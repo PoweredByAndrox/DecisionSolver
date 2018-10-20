@@ -11,6 +11,10 @@
 *.gch
 *.pch
 
+# PBAX
+*.ipch 
+
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
@@ -30,3 +34,27 @@
 *.exe
 *.out
 *.app
+
+# //////////////////////////////////
+# PBAX or Powered_By_AndroX 21.10.18
+# //////////////////////////////////
+
+# SUO
+*.suo
+
+# db and Opendb
+*.db
+*.opendb
+*.pdb
+*.idb
+
+# User file solution
+*.vcxproj.user
+
+# Log File
+*.ilk
+*.log
+*.tlog
+
+# State Build
+*.lastbuildstate
