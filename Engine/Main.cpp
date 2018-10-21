@@ -4,6 +4,8 @@
 #include "DXUTmisc.h"
 #include "SDKmisc.h"
 #include "SDKmesh.h"
+#include "DXUTCamera.h"
+#include "DXUTgui.h"
 
 ID3D10Effect* g_pEffect = nullptr;
 ID3D10InputLayout* g_pVertexLayout = nullptr;
@@ -12,13 +14,66 @@ ID3D10Buffer* g_pVertexBuffer = nullptr;
 ID3D10Buffer* g_pIndexBuffer = nullptr;
 ID3D10EffectMatrixVariable* g_pWorldVariable = nullptr;
 ID3D10EffectMatrixVariable* g_pViewVariable = nullptr;
-ID3D10EffectMatrixVariable* g_pProjectionVariable = nullptr;
+//ID3D10EffectMatrixVariable* g_pProjectionVariable = nullptr;
+ID3D10EffectTechnique* g_pRenderSky = nullptr;
+
+
 CDXUTSDKMesh g_Mesh;
+CDXUTSDKMesh g_SkyMesh;
+
 D3DXMATRIX g_World;
 D3DXMATRIX g_View;
 D3DXMATRIX g_Projection;
 
+CModelViewerCamera g_Camera;
+CDXUTDialogResourceManager g_DialogResourceManager;
+CDXUTDialog g_HUD;
+float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
+
+ID3D10EffectShaderResourceVariable* g_ptxDiffuse = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxNormal = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxHeight = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxDirt = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxGrass = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxMask = nullptr;
+ID3D10EffectShaderResourceVariable* g_ptxShadeNormals = nullptr;
+
+ID3D10EffectMatrixVariable* g_pmWorldViewProj = nullptr;
+ID3D10EffectMatrixVariable* g_pmWorld = nullptr;
+
 HRESULT hr = S_OK;
+
+
+void InitApp()
+{
+	g_HUD.Init(&g_DialogResourceManager);
+	int iY = 10;
+	g_HUD.AddButton(1, L"Some-Button#1", 35, iY, 125, 22);
+	g_HUD.AddButton(3, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
+	g_HUD.AddButton(4, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
+	g_HUD.AddStatic(5, L"SomeText#1", 100, 120, 60, 50);
+}
+
+void RenderSky(ID3D10Device* pd3dDevice)
+{
+	D3DXMATRIX mWorld;
+	D3DXVECTOR3 vEye;
+	D3DXVECTOR3 vDir;
+	D3DXMATRIX mView;
+	D3DXMATRIX mProj;
+
+	D3DXMatrixRotationY(&mWorld, -D3DX_PI / 2.5f);
+
+	mView._41 = mView._42 = mView._43 = 0.0f;
+	D3DXMATRIX mWVP = mWorld * *g_Camera.GetWorldMatrix() * *g_Camera.GetViewMatrix() * *g_Camera.GetProjMatrix();
+
+	g_pmWorldViewProj->SetMatrix((float*)&mWVP);
+	g_pmWorld->SetMatrix((float*)&mWorld);
+
+	pd3dDevice->IASetInputLayout(g_pVertexLayout);
+	g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
+}
+
 
 bool CALLBACK IsD3D10DeviceAcceptable(UINT Adapter, UINT Output, D3D10_DRIVER_TYPE DeviceType,
 	DXGI_FORMAT BackBufferFormat, bool bWindowed, void* pUserContext)
@@ -35,35 +90,40 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 	void* pUserContext)
 {
 	// Read the D3DX effect file
-	DWORD dwShaderFlags = D3D10_SHADER_ENABLE_STRICTNESS;
-#if defined( DEBUG ) || defined( _DEBUG )
-	// Set the D3D10_SHADER_DEBUG flag to embed debug information in the shaders.
-	// Setting this flag improves the shader debugging experience, but still allows 
-	// the shaders to be optimized and to run exactly the way they will run in 
-	// the release configuration of this program.
-	dwShaderFlags |= D3D10_SHADER_DEBUG;
-#endif
+	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
+	dwShaderFlags |= D3DXSHADER_DEBUG;
 
-	if (FAILED(hr = D3DX10CreateEffectFromFileA("D://DecisionSolver//Engine//resource//shaders//Main.fx", NULL, NULL, "fx_4_0", dwShaderFlags, 0, pd3dDevice, NULL, NULL,
-		&g_pEffect, NULL, NULL)))
-	{
-		MessageBoxA(NULL,
-			"The FX file cannot be located.  Please run this executable from the directory that contains the FX file.",
-			"Error", MB_OK);
-		V_RETURN(hr);
-	}
+	UINT uFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3D10_SHADER_DEBUG;
 
-	g_pTechnique = g_pEffect->GetTechniqueByName("Render");
-	g_pWorldVariable = g_pEffect->GetVariableByName("World")->AsMatrix();
-	g_pViewVariable = g_pEffect->GetVariableByName("View")->AsMatrix();
-	g_pProjectionVariable = g_pEffect->GetVariableByName("Projection")->AsMatrix();
+	V_RETURN(g_DialogResourceManager.OnD3D10CreateDevice(pd3dDevice));
+
+	V_RETURN(D3DX10CreateEffectFromFile(L"D://DecisionSolver//Engine//resource//shaders//SomeFile.fx", NULL, NULL, "fx_4_0", dwShaderFlags, 0, pd3dDevice, NULL, NULL,
+		&g_pEffect, NULL, NULL));
+
+	g_pTechnique = g_pEffect->GetTechniqueByName("RenderMesh");
+	g_pWorldVariable = g_pEffect->GetVariableByName("g_mWorld")->AsMatrix();
+	g_pViewVariable = g_pEffect->GetVariableByName("g_mWorldViewProj")->AsMatrix();
+	
+	///////////////////////////////////////////////////////////////////////////////////////////
+	//Rework IT
+	g_pRenderSky = g_pEffect->GetTechniqueByName("RenderSkybox");
+	g_ptxDiffuse = g_pEffect->GetVariableByName("g_txDiffuse")->AsShaderResource();
+	g_ptxNormal = g_pEffect->GetVariableByName("g_txNormal")->AsShaderResource();
+	g_ptxHeight = g_pEffect->GetVariableByName("g_txHeight")->AsShaderResource();
+	g_ptxDirt = g_pEffect->GetVariableByName("g_txDirt")->AsShaderResource();
+	g_ptxGrass = g_pEffect->GetVariableByName("g_txGrass")->AsShaderResource();
+	g_ptxMask = g_pEffect->GetVariableByName("g_txMask")->AsShaderResource();
+	g_ptxShadeNormals = g_pEffect->GetVariableByName("g_txShadeNormals")->AsShaderResource();
+	//Rework IT
+	///////////////////////////////////////////////////////////////////////////////////////////
+
 
 	// Define the input layout
 	const D3D10_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXTURE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = sizeof(layout) / sizeof(layout[0]);
@@ -79,7 +139,7 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 	pd3dDevice->IASetInputLayout(g_pVertexLayout);
 
 	V_RETURN(g_Mesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh", true));
-
+	V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
 
@@ -91,15 +151,24 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 
 	// Update Variables that never change
 	g_pViewVariable->SetMatrix((float*)&g_View);
+
+	// Setup the camera's view parameters
+	g_Camera.SetViewParams(&Eye, &At);
 	return S_OK;
 }
 
 HRESULT CALLBACK OnD3D10ResizedSwapChain(ID3D10Device* pd3dDevice, IDXGISwapChain* pSwapChain,
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
-	float fAspect = static_cast<float>(pBackBufferSurfaceDesc->Width) / static_cast<float>(pBackBufferSurfaceDesc->Height);
-	D3DXMatrixPerspectiveFovLH(&g_Projection, D3DX_PI * 0.25f, fAspect, 0.1f, 100.0f);
-	g_pProjectionVariable->SetMatrix((float*)&g_Projection);
+	V_RETURN(g_DialogResourceManager.OnD3D10ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
+
+	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
+	g_Camera.SetProjParams(g_fFOV, fAspectRatio, 0.1f, 1000.0f);
+	g_Camera.SetWindow(pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height);
+
+	
+	g_HUD.SetLocation(pBackBufferSurfaceDesc->Width - 170, 0);
+	g_HUD.SetSize(170, 170);
 	return S_OK;
 }
 
@@ -110,8 +179,8 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext)
 {
 	//
-	 // Clear the back buffer
-	 //
+	// Clear the back buffer
+	//
 	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
 	ID3D10RenderTargetView* pRTV = DXUTGetD3D10RenderTargetView();
 	pd3dDevice->ClearRenderTargetView(pRTV, ClearColor);
@@ -123,66 +192,51 @@ void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float f
 	pd3dDevice->ClearDepthStencilView(pDSV, D3D10_CLEAR_DEPTH, 1.0, 0);
 
 	//
-   //
+    //
 	// Set the Vertex Layout
 	//
 	pd3dDevice->IASetInputLayout(g_pVertexLayout);
+	
+	g_SkyMesh.Render(pd3dDevice, g_pRenderSky);
 
-	//
-	// Render the mesh
-	//
-	UINT Strides[1];
-	UINT Offsets[1];
-	ID3D10Buffer* pVB[1];
-	pVB[0] = g_Mesh.GetVB10(0, 0);
-	Strides[0] = (UINT)g_Mesh.GetVertexStride(0, 0);
-	Offsets[0] = 0;
-	pd3dDevice->IASetVertexBuffers(0, 1, pVB, Strides, Offsets);
-	pd3dDevice->IASetIndexBuffer(g_Mesh.GetIB10(0), g_Mesh.GetIBFormat10(0), 0);
 
-	D3D10_TECHNIQUE_DESC techDesc;
-	g_pTechnique->GetDesc(&techDesc);
-	SDKMESH_SUBSET* pSubset = NULL;
-	ID3D10ShaderResourceView* pDiffuseRV = NULL;
-	D3D10_PRIMITIVE_TOPOLOGY PrimType;
-
-	for (UINT p = 0; p < techDesc.Passes; ++p)
-	{
-		for (UINT subset = 0; subset < g_Mesh.GetNumSubsets(0); ++subset)
-		{
-			pSubset = g_Mesh.GetSubset(0, subset);
-
-			PrimType = g_Mesh.GetPrimitiveType10((SDKMESH_PRIMITIVE_TYPE)pSubset->PrimitiveType);
-			pd3dDevice->IASetPrimitiveTopology(PrimType);
-
-			pDiffuseRV = g_Mesh.GetMaterial(pSubset->MaterialID)->pDiffuseRV10;
-
-			g_pTechnique->GetPassByIndex(p)->Apply(0);
-			pd3dDevice->DrawIndexed((UINT)pSubset->IndexCount, 0, (UINT)pSubset->VertexStart);
-		}
-	}
+	V(g_HUD.OnRender(fElapsedTime));
+	//V(g_SampleUI.OnRender(fElapsedTime));
 
 	//the mesh class also had a render method that allows rendering the mesh with the most common options
-	g_Mesh.Render(pd3dDevice, g_pTechnique, nullptr);
+	g_Mesh.Render(pd3dDevice, g_pTechnique);
 }
 
 void CALLBACK OnD3D10ReleasingSwapChain(void* pUserContext)
 {
+	g_DialogResourceManager.OnD3D10ReleasingSwapChain();
 }
 
 void CALLBACK OnD3D10DestroyDevice(void* pUserContext)
 {
+	g_DialogResourceManager.OnD3D10DestroyDevice();
 	SAFE_RELEASE(g_pVertexBuffer);
 	SAFE_RELEASE(g_pIndexBuffer);
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 	SAFE_RELEASE(g_pVertexLayout);
 	SAFE_RELEASE(g_pEffect);
+	g_SkyMesh.Destroy();
 	g_Mesh.Destroy();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	bool* pbNoFurtherProcessing, void* pUserContext)
 {
+	*pbNoFurtherProcessing = g_DialogResourceManager.MsgProc(hWnd, uMsg, wParam, lParam);
+	if (*pbNoFurtherProcessing)
+		return 0;
+
+	*pbNoFurtherProcessing = g_HUD.MsgProc(hWnd, uMsg, wParam, lParam);
+	if (*pbNoFurtherProcessing)
+		return 0;
+
+	g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
+
 	return 0;
 }
 
@@ -216,6 +270,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	DXUTSetCallbackD3D10FrameRender(OnD3D10FrameRender);
 	DXUTSetCallbackD3D10SwapChainReleasing(OnD3D10ReleasingSwapChain);
 	DXUTSetCallbackD3D10DeviceDestroyed(OnD3D10DestroyDevice);
+
+	InitApp();
 
 	DXUTInit(true, true, NULL); 
 	DXUTSetCursorSettings(true, true);

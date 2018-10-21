@@ -31,8 +31,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="resource\shaders\Main.fx">
+    <None Include="Debug\SomeFile.fx">
       <Filter>Файлы ресурсов\Shaders</Filter>
-    </FxCompile>
+    </None>
   </ItemGroup>
 </Project>

@@ -61,3 +61,7 @@
 
 # HLSL Compiled File
 *.cso
+
+# Solution VC DB
+*Solution.VC.db-wal
+*Solution.VC.db-shm
