@@ -9,3 +9,4 @@
 #pragma comment (lib, "D3DCSX.lib")
 #pragma comment (lib, "dxerr.lib")
 #pragma comment (lib, "DXUT.lib")
+#pragma comment (lib, "DXUTOpt.lib")

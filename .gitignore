@@ -58,3 +58,6 @@
 
 # State Build
 *.lastbuildstate
+
+# HLSL Compiled File
+*.cso

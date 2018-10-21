@@ -11,6 +11,8 @@
 #include "DXUT.h"
 #include "SDKMesh.h"
 #include "SDKMisc.h"
+#include <d3d10.h>
+
 
 //--------------------------------------------------------------------------------------
 void CDXUTSDKMesh::LoadMaterials( ID3D10Device* pd3dDevice, SDKMESH_MATERIAL* pMaterials, UINT numMaterials,
