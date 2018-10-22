@@ -7,6 +7,18 @@
 #include "DXUTCamera.h"
 #include "DXUTgui.h"
 
+
+
+//Included for use USES_CONVERSION (or A2W, W2A)
+#include <AtlConv.h>
+
+#include <windows.h>
+#include <tchar.h>
+
+//https://ru.stackoverflow.com/questions/414690/%D0%9A%D0%B0%D0%BA-%D1%83%D0%B7%D0%BD%D0%B0%D1%82%D1%8C-%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8E-%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D0%BD%D1%8F%D0%B5%D0%BC%D0%BE%D0%B3%D0%BE-%D1%84%D0%B0%D0%B9%D0%BB%D0%B0-%D0%B2-windows
+#include <stdio.h> 
+#include <direct.h>
+
 ID3D10Effect* g_pEffect = nullptr;
 ID3D10InputLayout* g_pVertexLayout = nullptr;
 ID3D10EffectTechnique* g_pTechnique = nullptr;
@@ -14,9 +26,12 @@ ID3D10Buffer* g_pVertexBuffer = nullptr;
 ID3D10Buffer* g_pIndexBuffer = nullptr;
 ID3D10EffectMatrixVariable* g_pWorldVariable = nullptr;
 ID3D10EffectMatrixVariable* g_pViewVariable = nullptr;
-//ID3D10EffectMatrixVariable* g_pProjectionVariable = nullptr;
 ID3D10EffectTechnique* g_pRenderSky = nullptr;
 
+ID3D10Texture2D* g_pPipeTexture = nullptr;
+ID3D10ShaderResourceView* g_pPipeTexRV = nullptr;
+ID3D10Texture2D* g_pSkyTexture = nullptr;
+ID3D10ShaderResourceView* g_pSkyTexRV = nullptr;
 
 CDXUTSDKMesh g_Mesh;
 CDXUTSDKMesh g_SkyMesh;
@@ -25,7 +40,11 @@ D3DXMATRIX g_World;
 D3DXMATRIX g_View;
 D3DXMATRIX g_Projection;
 
-CModelViewerCamera g_Camera;
+D3DXVECTOR3 Eye(0.0f, 3.0f, -6.0f);
+D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
+D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
+
+CFirstPersonCamera g_Camera;
 CDXUTDialogResourceManager g_DialogResourceManager;
 CDXUTDialog g_HUD;
 float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
@@ -43,6 +62,21 @@ ID3D10EffectMatrixVariable* g_pmWorld = nullptr;
 
 HRESULT hr = S_OK;
 
+//Needed to move in File_system.h
+/*TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
+
+LPCTSTR GetWorkingDirectory()
+{
+	GetModuleFileName(0, szFileName, MAX_PATH);
+	int i, len = lstrlen(szFileName);
+	for (i = len - 1; i >= 0; i--)
+	{
+		if (szFileName[i] == _T('\\'))
+			break;
+	}
+	lstrcpyn(szFileName, szFileName, i + 2);
+	return szFileName;
+}*/
 
 void InitApp()
 {
@@ -52,28 +86,92 @@ void InitApp()
 	g_HUD.AddButton(3, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(4, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
 	g_HUD.AddStatic(5, L"SomeText#1", 100, 120, 60, 50);
+	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
+	g_Camera.SetEnableYAxisMovement(false);
+	g_Camera.SetScalers(0.001f, 4.0f);
+	g_Camera.SetRotateButtons(true, true, true);
 }
 
-void RenderSky(ID3D10Device* pd3dDevice)
+HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, LPCTSTR* szTextureNames, int iNumTextures,
+	ID3D10Texture2D** ppTex2D, ID3D10ShaderResourceView** ppSRV)
 {
-	D3DXMATRIX mWorld;
-	D3DXVECTOR3 vEye;
-	D3DXVECTOR3 vDir;
-	D3DXMATRIX mView;
-	D3DXMATRIX mProj;
+	HRESULT hr = S_OK;
+	D3D10_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(D3D10_TEXTURE2D_DESC));
 
-	D3DXMatrixRotationY(&mWorld, -D3DX_PI / 2.5f);
+	WCHAR str[MAX_PATH];
+	for (int i = 0; i < iNumTextures; i++)
+	{
+		//V_RETURN(DXUTFindDXSDKMediaFileCch(str, MAX_PATH, szTextureNames[i]));
+		ID3D10Resource* pRes = NULL;
+		D3DX10_IMAGE_LOAD_INFO loadInfo;
+		ZeroMemory(&loadInfo, sizeof(D3DX10_IMAGE_LOAD_INFO));
+		loadInfo.Width = D3DX_FROM_FILE;
+		loadInfo.Height = D3DX_FROM_FILE;
+		loadInfo.Depth = D3DX_FROM_FILE;
+		loadInfo.FirstMipLevel = 0;
+		loadInfo.MipLevels = 1;
+		loadInfo.Usage = D3D10_USAGE_STAGING;
+		loadInfo.BindFlags = 0;
+		loadInfo.CpuAccessFlags = D3D10_CPU_ACCESS_WRITE | D3D10_CPU_ACCESS_READ;
+		loadInfo.MiscFlags = 0;
+		loadInfo.Format = MAKE_TYPELESS(DXGI_FORMAT_R8G8B8A8_UNORM);
+		loadInfo.Filter = D3DX10_FILTER_NONE;
+		loadInfo.MipFilter = D3DX10_FILTER_NONE;
 
-	mView._41 = mView._42 = mView._43 = 0.0f;
-	D3DXMATRIX mWVP = mWorld * *g_Camera.GetWorldMatrix() * *g_Camera.GetViewMatrix() * *g_Camera.GetProjMatrix();
+		V_RETURN(D3DX10CreateTextureFromFile(pd3dDevice, szTextureNames[i], &loadInfo, NULL, &pRes, NULL));
+		if (pRes)
+		{
+			ID3D10Texture2D* pTemp;
+			pRes->QueryInterface(__uuidof(ID3D10Texture2D), (LPVOID*)&pTemp);
+			pTemp->GetDesc(&desc);
 
-	g_pmWorldViewProj->SetMatrix((float*)&mWVP);
-	g_pmWorld->SetMatrix((float*)&mWorld);
+			D3D10_MAPPED_TEXTURE2D mappedTex2D;
 
-	pd3dDevice->IASetInputLayout(g_pVertexLayout);
-	g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
+			if (desc.MipLevels > 4)
+				desc.MipLevels -= 4;
+			if (!(*ppTex2D))
+			{
+				desc.Usage = D3D10_USAGE_DEFAULT;
+				desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+				desc.CPUAccessFlags = 0;
+				desc.ArraySize = iNumTextures;
+				V_RETURN(pd3dDevice->CreateTexture2D(&desc, NULL, ppTex2D));
+			}
+
+			for (UINT iMip = 0; iMip < desc.MipLevels; iMip++)
+			{
+				pTemp->Map(iMip, D3D10_MAP_READ, 0, &mappedTex2D);
+
+				pd3dDevice->UpdateSubresource((*ppTex2D),
+					D3D10CalcSubresource(iMip, i, desc.MipLevels),
+					NULL,
+					mappedTex2D.pData,
+					mappedTex2D.RowPitch,
+					0);
+
+				pTemp->Unmap(iMip);
+			}
+
+			SAFE_RELEASE(pRes);
+			SAFE_RELEASE(pTemp);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+	ZeroMemory(&SRVDesc, sizeof(SRVDesc));
+	SRVDesc.Format = MAKE_SRGB(DXGI_FORMAT_R8G8B8A8_UNORM);
+	SRVDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+	SRVDesc.Texture2DArray.MipLevels = desc.MipLevels;
+	SRVDesc.Texture2DArray.ArraySize = iNumTextures;
+	V_RETURN(pd3dDevice->CreateShaderResourceView(*ppTex2D, &SRVDesc, ppSRV));
+
+	return hr;
 }
-
 
 bool CALLBACK IsD3D10DeviceAcceptable(UINT Adapter, UINT Output, D3D10_DRIVER_TYPE DeviceType,
 	DXGI_FORMAT BackBufferFormat, bool bWindowed, void* pUserContext)
@@ -86,6 +184,19 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 	return true;
 }
 
+LPCTSTR g_szPipeTextures = L"D://DecisionSolver//Engine//resource//models//Tiny_skin.dds";
+
+LPCTSTR g_szSkyTextures[] =
+{
+	L"D://DecisionSolver//Engine//resource//models//sky_bot.dds",
+	L"D://DecisionSolver//Engine//resource//models//sky_top.dds",
+	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
+	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
+	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
+	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
+};
+
+
 HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc,
 	void* pUserContext)
 {
@@ -97,26 +208,13 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 
 	V_RETURN(g_DialogResourceManager.OnD3D10CreateDevice(pd3dDevice));
 
-	V_RETURN(D3DX10CreateEffectFromFile(L"D://DecisionSolver//Engine//resource//shaders//SomeFile.fx", NULL, NULL, "fx_4_0", dwShaderFlags, 0, pd3dDevice, NULL, NULL,
-		&g_pEffect, NULL, NULL));
+	V_RETURN(D3DX10CreateEffectFromFile(L"D://DecisionSolver//Engine//resource//shaders//SomeFile.fx",NULL, NULL, "fx_4_0", dwShaderFlags,
+		0, pd3dDevice, NULL, NULL, &g_pEffect, NULL, NULL));
 
 	g_pTechnique = g_pEffect->GetTechniqueByName("RenderMesh");
-	g_pWorldVariable = g_pEffect->GetVariableByName("g_mWorld")->AsMatrix();
-	g_pViewVariable = g_pEffect->GetVariableByName("g_mWorldViewProj")->AsMatrix();
-	
-	///////////////////////////////////////////////////////////////////////////////////////////
-	//Rework IT
 	g_pRenderSky = g_pEffect->GetTechniqueByName("RenderSkybox");
+	g_pViewVariable = g_pEffect->GetVariableByName("g_mWorldViewProj")->AsMatrix();
 	g_ptxDiffuse = g_pEffect->GetVariableByName("g_txDiffuse")->AsShaderResource();
-	g_ptxNormal = g_pEffect->GetVariableByName("g_txNormal")->AsShaderResource();
-	g_ptxHeight = g_pEffect->GetVariableByName("g_txHeight")->AsShaderResource();
-	g_ptxDirt = g_pEffect->GetVariableByName("g_txDirt")->AsShaderResource();
-	g_ptxGrass = g_pEffect->GetVariableByName("g_txGrass")->AsShaderResource();
-	g_ptxMask = g_pEffect->GetVariableByName("g_txMask")->AsShaderResource();
-	g_ptxShadeNormals = g_pEffect->GetVariableByName("g_txShadeNormals")->AsShaderResource();
-	//Rework IT
-	///////////////////////////////////////////////////////////////////////////////////////////
-
 
 	// Define the input layout
 	const D3D10_INPUT_ELEMENT_DESC layout[] =
@@ -139,21 +237,22 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 	pd3dDevice->IASetInputLayout(g_pVertexLayout);
 
 	V_RETURN(g_Mesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh", true));
-	V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
+	V_RETURN(LoadTextureArray(pd3dDevice, &g_szPipeTextures, 1, &g_pPipeTexture, &g_pPipeTexRV));
+
+	V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh"));
+	V_RETURN(LoadTextureArray(pd3dDevice, g_szSkyTextures, 6, &g_pSkyTexture, &g_pSkyTexRV));
+	
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
 
 	// Initialize the view matrix
-	D3DXVECTOR3 Eye(0.0f, 3.0f, -6.0f);
-	D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
-	D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 	D3DXMatrixLookAtLH(&g_View, &Eye, &At, &Up);
 
 	// Update Variables that never change
 	g_pViewVariable->SetMatrix((float*)&g_View);
 
 	// Setup the camera's view parameters
-	g_Camera.SetViewParams(&Eye, &At);
+	//g_Camera.SetViewParams(&Eye, &At);
 	return S_OK;
 }
 
@@ -163,10 +262,8 @@ HRESULT CALLBACK OnD3D10ResizedSwapChain(ID3D10Device* pd3dDevice, IDXGISwapChai
 	V_RETURN(g_DialogResourceManager.OnD3D10ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	g_Camera.SetProjParams(g_fFOV, fAspectRatio, 0.1f, 1000.0f);
-	g_Camera.SetWindow(pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height);
+	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.5f, 5000.0f);
 
-	
 	g_HUD.SetLocation(pBackBufferSurfaceDesc->Width - 170, 0);
 	g_HUD.SetSize(170, 170);
 	return S_OK;
@@ -174,6 +271,7 @@ HRESULT CALLBACK OnD3D10ResizedSwapChain(ID3D10Device* pd3dDevice, IDXGISwapChai
 
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
+	g_Camera.FrameMove(fElapsedTime);
 }
 
 void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext)
@@ -181,7 +279,7 @@ void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float f
 	//
 	// Clear the back buffer
 	//
-	float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f }; // red, green, blue, alpha
+	float ClearColor[4] = { 0.1f, 1.f, 0.7f, 1.0f }; // red, green, blue, alpha
 	ID3D10RenderTargetView* pRTV = DXUTGetD3D10RenderTargetView();
 	pd3dDevice->ClearRenderTargetView(pRTV, ClearColor);
 
@@ -196,15 +294,30 @@ void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float f
 	// Set the Vertex Layout
 	//
 	pd3dDevice->IASetInputLayout(g_pVertexLayout);
-	
-	g_SkyMesh.Render(pd3dDevice, g_pRenderSky);
 
+	D3DXMATRIX mView;
+	D3DXMATRIX mProj;
+	D3DXMATRIX mWorldViewProj;
+	mProj = *g_Camera.GetProjMatrix();
+	mView = *g_Camera.GetViewMatrix();
+
+	// Render the skybox
+	D3DXMATRIX mViewSkybox = mView;
+	mViewSkybox._41 = 0.0f;
+	mViewSkybox._42 = 0.0f;
+	mViewSkybox._43 = 0.0f;
+	D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
+	g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+	g_ptxDiffuse->SetResource(g_pPipeTexRV);
+	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
+
+	// Render the Mesh
+	g_ptxDiffuse->SetResource(g_pPipeTexRV);
+	D3DXMatrixMultiply(&mWorldViewProj, &mView, &mProj);
+	g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+	g_Mesh.Render(pd3dDevice, g_pTechnique, g_ptxDiffuse);
 
 	V(g_HUD.OnRender(fElapsedTime));
-	//V(g_SampleUI.OnRender(fElapsedTime));
-
-	//the mesh class also had a render method that allows rendering the mesh with the most common options
-	g_Mesh.Render(pd3dDevice, g_pTechnique);
 }
 
 void CALLBACK OnD3D10ReleasingSwapChain(void* pUserContext)
@@ -220,6 +333,12 @@ void CALLBACK OnD3D10DestroyDevice(void* pUserContext)
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 	SAFE_RELEASE(g_pVertexLayout);
 	SAFE_RELEASE(g_pEffect);
+
+	SAFE_RELEASE(g_pPipeTexture);
+	SAFE_RELEASE(g_pPipeTexRV);
+	SAFE_RELEASE(g_pSkyTexture);
+	SAFE_RELEASE(g_pSkyTexRV);
+
 	g_SkyMesh.Destroy();
 	g_Mesh.Destroy();
 }
@@ -248,6 +367,7 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 	bool bSideButton1Down, bool bSideButton2Down, int nMouseWheelDelta,
 	int xPos, int yPos, void* pUserContext)
 {
+	g_Camera.SetEnablePositionMovement(true);
 }
 
 bool CALLBACK OnDeviceRemoved(void* pUserContext)
