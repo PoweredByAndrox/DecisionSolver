@@ -1,9 +1,3 @@
-[submodule "SpdLog"]
-	path = SpdLog
-	url = https://github.com/gabime/spdlog
 [submodule "submodules/SpdLog"]
 	path = submodules/SpdLog
 	url = https://github.com/gabime/spdlog
-[submodule "submodules\\boost\\FileSystem"]
-	path = submodules\\boost\\FileSystem
-	url = https://github.com/boostorg/filesystem
