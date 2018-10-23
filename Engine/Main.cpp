@@ -6,7 +6,7 @@
 #include "SDKmesh.h"
 #include "DXUTCamera.h"
 #include "DXUTgui.h"
-
+#include "File_system.h"
 
 
 //Included for use USES_CONVERSION (or A2W, W2A)
@@ -61,6 +61,8 @@ ID3D10EffectMatrixVariable* g_pmWorldViewProj = nullptr;
 ID3D10EffectMatrixVariable* g_pmWorld = nullptr;
 
 HRESULT hr = S_OK;
+
+File_system t;
 
 //Needed to move in File_system.h
 /*TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
@@ -377,6 +379,7 @@ bool CALLBACK OnDeviceRemoved(void* pUserContext)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
+	t.test_Func();
 	DXUTSetCallbackFrameMove(OnFrameMove);
 	DXUTSetCallbackKeyboard(OnKeyboard);
 	DXUTSetCallbackMouse(OnMouse);
