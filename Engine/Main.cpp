@@ -64,22 +64,6 @@ HRESULT hr = S_OK;
 
 File_system t;
 
-//Needed to move in File_system.h
-/*TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
-
-LPCTSTR GetWorkingDirectory()
-{
-	GetModuleFileName(0, szFileName, MAX_PATH);
-	int i, len = lstrlen(szFileName);
-	for (i = len - 1; i >= 0; i--)
-	{
-		if (szFileName[i] == _T('\\'))
-			break;
-	}
-	lstrcpyn(szFileName, szFileName, i + 2);
-	return szFileName;
-}*/
-
 void InitApp()
 {
 	g_HUD.Init(&g_DialogResourceManager);
@@ -94,7 +78,7 @@ void InitApp()
 	g_Camera.SetRotateButtons(true, true, true);
 }
 
-HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, LPCTSTR* szTextureNames, int iNumTextures,
+HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, vector<wstring> szTextureNames, int iNumTextures,
 	ID3D10Texture2D** ppTex2D, ID3D10ShaderResourceView** ppSRV)
 {
 	HRESULT hr = S_OK;
@@ -121,7 +105,8 @@ HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, LPCTSTR* szTextureNames, int 
 		loadInfo.Filter = D3DX10_FILTER_NONE;
 		loadInfo.MipFilter = D3DX10_FILTER_NONE;
 
-		V_RETURN(D3DX10CreateTextureFromFile(pd3dDevice, szTextureNames[i], &loadInfo, NULL, &pRes, NULL));
+		//V_RETURN(
+		D3DX10CreateTextureFromFile(pd3dDevice, szTextureNames[i].c_str(), &loadInfo, NULL, &pRes, NULL);
 		if (pRes)
 		{
 			ID3D10Texture2D* pTemp;
@@ -186,17 +171,17 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 	return true;
 }
 
-LPCTSTR g_szPipeTextures = L"D://DecisionSolver//Engine//resource//models//Tiny_skin.dds";
-
-LPCTSTR g_szSkyTextures[] =
+LPCTSTR g_szSkyTextureName[6] =
 {
-	L"D://DecisionSolver//Engine//resource//models//sky_bot.dds",
-	L"D://DecisionSolver//Engine//resource//models//sky_top.dds",
-	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
-	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
-	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
-	L"D://DecisionSolver//Engine//resource//models//sky_side.dds",
+		t.GetResPathW(L"sky_bot.dds"),
+		t.GetResPathW(L"sky_top.dds"),
+		t.GetResPathW(L"sky_side.dds"),
+		t.GetResPathW(L"sky_side.dds"),
+		t.GetResPathW(L"sky_side.dds"),
+		t.GetResPathW(L"sky_side.dds")
 };
+
+vector<wstring> g_szSkyTextures[6];
 
 
 HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc,
@@ -238,11 +223,17 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 	// Set the input layout
 	pd3dDevice->IASetInputLayout(g_pVertexLayout);
 
-	V_RETURN(g_Mesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh", true));
-	V_RETURN(LoadTextureArray(pd3dDevice, &g_szPipeTextures, 1, &g_pPipeTexture, &g_pPipeTexRV));
+	V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh")), true));
+	V_RETURN(LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
 
 	V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh"));
-	V_RETURN(LoadTextureArray(pd3dDevice, g_szSkyTextures, 6, &g_pSkyTexture, &g_pSkyTexRV));
+	
+	//for (int i = 0; i < 6; i++)
+	//	g_szSkyTextures[i].push_back(g_szSkyTextureName[i]);
+
+	//V_RETURN(
+	//LoadTextureArray(pd3dDevice, t.GetResPathW(g_szSkyTextures), 6, &g_pSkyTexture, &g_pSkyTexRV)
+	//);
 	
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
@@ -379,7 +370,6 @@ bool CALLBACK OnDeviceRemoved(void* pUserContext)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	t.test_Func();
 	DXUTSetCallbackFrameMove(OnFrameMove);
 	DXUTSetCallbackKeyboard(OnKeyboard);
 	DXUTSetCallbackMouse(OnMouse);
@@ -397,6 +387,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	InitApp();
 
 	DXUTInit(true, true, NULL); 
+
+	//t.GetPath();
+
 	DXUTSetCursorSettings(true, true);
 	DXUTCreateWindow(L"EngineProgram");
 	DXUTCreateDevice(true, 640, 480);

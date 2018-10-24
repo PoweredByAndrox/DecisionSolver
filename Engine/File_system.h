@@ -9,11 +9,23 @@ class File_system
 public:
 	File_system();
 	~File_system();
-	void test_Func();
+
+	void GetPath(); // Test Func
+
+		// Ansi (const char*)
+	LPCSTR GetResPathA(string *File);
+		// Wide (wchar_t*)
+	LPCTSTR GetResPathW(wstring *File);
+		// Getting massive vector<wstring>
+	vector<wstring> File_system::GetResPathW(vector<wstring> File[]);
+		// Getting one array from wstring to vector<wstring>
+	vector<wstring> File_system::GetResPathW(wstring File);
+		// Getting a resources file location
+	LPCTSTR File_system::GetResPathW(LPCTSTR File);
 
 private:
-	char Path[MAX_PATH];
 	path p;
 	void TestMsgBox(LPCSTR text);
+	void TestMsgBox(LPCSTR Text, LPCSTR CaptionText, int MButtons = MB_OK);
 };
 
