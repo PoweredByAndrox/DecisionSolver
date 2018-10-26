@@ -4,3 +4,6 @@
 [submodule "submodules\\ASSIMP"]
 	path = submodules\\ASSIMP
 	url = https://github.com/assimp/assimp
+[submodule "submodules\\DXUT"]
+	path = submodules\\DXUT
+	url = https://github.com/Microsoft/DXUT
