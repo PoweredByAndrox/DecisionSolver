@@ -16,6 +16,8 @@ public:
 	LPCSTR GetResPathA(string *File);
 		// Wide (wchar_t*)
 	LPCTSTR GetResPathW(wstring *File);
+		// Get string return wstring
+	wstring File_system::GetResPathW(string File);
 		// Getting massive vector<wstring>
 	vector<wstring> File_system::GetResPathW(vector<wstring> File[]);
 		// Getting one array from wstring to vector<wstring>

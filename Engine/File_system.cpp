@@ -34,7 +34,7 @@ LPCSTR File_system::GetResPathA(string *File)
 {
 	if (!p.empty())
 	{
-		auto static ResPath = p.parent_path().generic_string() + string("//resource//");
+		auto static ResPath = p.generic_path().generic_string() + string("//resource//");
 		if (!ResPath.empty())
 			return ResPath.c_str();
 	}
@@ -46,12 +46,45 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 {
 	if (!p.empty())
 	{
-		auto static ResPath = p.relative_path().generic_wstring() + wstring(L"//resource//");
+		auto static ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
 		if (!ResPath.empty())
-			if (File->substr(File->find_last_of(L".") + 1) == "sdkmesh")
+			if (File->substr(File->find_last_of(L".") + 1) == L"sdkmesh")
 			{
 				ResPath = ResPath + wstring(L"models//") + wstring(*File);
 				return ResPath.c_str();
+			}
+			else if (File->substr(File->find_last_of(L".") + 1) == L"hlsl")
+			{
+				ResPath = ResPath + wstring(L"shaders//") + wstring(*File);
+				return ResPath.c_str();
+			}
+	}
+	else
+		return L"";
+}
+
+wstring File_system::GetResPathW(string File)
+{
+	USES_CONVERSION;
+	auto static wsFile = File;
+	if (!p.empty())
+	{
+		auto static ResPath = p.generic_path().generic_string() + string("//resource//");
+		if (!ResPath.empty())
+			if (wsFile.substr(wsFile.find_last_of(".") + 1) == "sdkmesh")
+			{
+				ResPath = ResPath + string("models//") + wsFile;
+				return A2W(ResPath.c_str());
+			}
+			else if (wsFile.substr(wsFile.find_last_of(".") + 1) == "dds")
+			{
+				ResPath = ResPath + string("textures//") + wsFile;
+				return A2W(ResPath.c_str());
+			}
+			else if (wsFile.substr(wsFile.find_last_of(".") + 1) == "hlsl")
+			{
+				ResPath = ResPath + string("shaders//") + wsFile;
+				return A2W(ResPath.c_str());
 			}
 	}
 	else
@@ -63,7 +96,7 @@ LPCTSTR File_system::GetResPathW(LPCTSTR File)
 	auto static wsFile = wstring(File);
 	if (!p.empty())
 	{
-		auto static ResPath = p.relative_path().generic_wstring() + wstring(L"//resource//");
+		auto static ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
 		if (!ResPath.empty())
 			if (wsFile.substr(wsFile.find_last_of(L".") + 1) == "sdkmesh")
 			{
@@ -87,7 +120,7 @@ vector<wstring> File_system::GetResPathW(vector<wstring> File[])
 	{
 		for (int i = 0; i < sizeof(File); i++)
 		{
-			ResPath[i].insert(ResPath[i].end(), p.relative_path().generic_wstring() + wstring(L"//resource//"));
+			ResPath[i].insert(ResPath[i].end(), p.generic_path().generic_wstring() + wstring(L"//resource//"));
 			if (ResPath[i].data()->empty())
 				break;
 
@@ -105,7 +138,7 @@ vector<wstring> File_system::GetResPathW(wstring File)
 	static vector<wstring> ResPath[1];
 	if (!p.empty())
 	{
-		ResPath[0].push_back(p.relative_path().generic_wstring() + wstring(L"//resource//"));
+		ResPath[0].push_back(p.generic_path().generic_wstring() + wstring(L"//resource//"));
 		if (ResPath[0].empty())
 			return ResPath[0];
 
