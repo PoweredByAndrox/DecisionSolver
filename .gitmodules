@@ -1,9 +1,12 @@
 [submodule "submodules/SpdLog"]
 	path = submodules/SpdLog
 	url = https://github.com/gabime/spdlog
-[submodule "submodules\\ASSIMP"]
-	path = submodules\\ASSIMP
+[submodule "submodules/ASSIMP"]
+	path = submodules/ASSIMP
 	url = https://github.com/assimp/assimp
-[submodule "submodules\\DXUT"]
-	path = submodules\\DXUT
+[submodule "submodules/DXUT"]
+	path = submodules/DXUT
 	url = https://github.com/Microsoft/DXUT
+[submodule "submodules/Boost"]
+	path = submodules/Boost
+	url = https://github.com/boostorg/boost
