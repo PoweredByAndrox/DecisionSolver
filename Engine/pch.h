@@ -23,6 +23,11 @@
 #include "SDKmisc.h"
 #include "DXUTmisc.h"
 
+	// Maybe this doesn't cause errors?
+#define SPDLOG_TRACE_ON
+#include "spdlog\\spdlog.h"
+using namespace spdlog;
+
 #pragma comment (lib, "d3d9.lib")
 #pragma comment (lib, "d3dx9.lib")
 #pragma comment (lib, "d3dx9d.lib")

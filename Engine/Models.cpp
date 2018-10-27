@@ -181,7 +181,7 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (Device == nullptr)
 		GetD3DDevice();
 
-	if (V_RETURN(hr = CreateWICTextureFromMemory(
+	if (FAILED(hr = CreateWICTextureFromMemory(
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData),  *size, nullptr, &texture)))
 		if (HWND == NULL)
 			GetD3DHWND();

@@ -215,7 +215,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	////	LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
 
 	Model = new Models;
-	if (!Model->Load(t.GetResPathA(&string("New.obj"))))//t.GetResPathA(&string("New.obj"))))
+	if (!Model->Load(t.GetResPathA(&string("New.obj"))))
 		t.GetPath();
 	////V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
 	//
@@ -237,8 +237,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 
 	//// Setup the camera's view parameters
 	//D3DXVECTOR3 vecEye( 0, 0, -300 );
- //   D3DXVECTOR3 vecAt ( 10.0f, 20.0f, 0.0f );
- //   g_Camera.SetViewParams( &vecEye, &vecAt );
+    //D3DXVECTOR3 vecAt ( 10.0f, 20.0f, 0.0f );
+    //g_Camera.SetViewParams(vecEye, &vecAt );
 
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
@@ -304,7 +304,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 //	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
 ////	g_Mesh.Render(pd3dImmediateContext);
 //
-	//Model->Draw();
+	Model->Draw();
 
 	V(g_HUD.OnRender(fElapsedTime));
 
@@ -335,6 +335,8 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
 	Model->Close();
+	DXUTGetD3D11Device()->Release();
+	DXUTGetD3D11Device1()->Release();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -371,30 +373,37 @@ bool CALLBACK OnDeviceRemoved(void* pUserContext)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	DXUTSetCallbackFrameMove(OnFrameMove);
-	DXUTSetCallbackKeyboard(OnKeyboard);
-	DXUTSetCallbackMouse(OnMouse);
-	DXUTSetCallbackMsgProc(MsgProc);
-	DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
-	DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
+	try
+	{
+		DXUTSetCallbackFrameMove(OnFrameMove);
+		DXUTSetCallbackKeyboard(OnKeyboard);
+		DXUTSetCallbackMouse(OnMouse);
+		DXUTSetCallbackMsgProc(MsgProc);
+		DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
+		DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
 
-	DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
-	DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
-	DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
-	DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
-	DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
-	DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
+		DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
+		DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
+		DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
+		DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
+		DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
+		DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
 
-	InitApp();
+		InitApp();
 
-	CoInitializeEx(NULL, COINIT_MULTITHREADED);
+		CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-	DXUTInit(true, true, NULL); 
+		DXUTInit(true, true, NULL);
 
-	DXUTSetCursorSettings(true, true);
-	DXUTCreateWindow(L"EngineProgram");
-	DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, 640, 480);
-	DXUTMainLoop(); 
+		DXUTSetCursorSettings(true, true);
+		DXUTCreateWindow(L"EngineProgram");
+		DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, 640, 480);
+		DXUTMainLoop();
+	}
 
+	catch (const std::exception	&ex)
+	{
+		MessageBoxA(DXUTGetHWND(), string("Log initialization failed: " + *ex.what()).c_str(), "Error", MB_OK);
+	}
 	return DXUTGetExitCode();
 }

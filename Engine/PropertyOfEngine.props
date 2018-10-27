@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\submodules\DXUT\Core;$(SolutionDir)..\submodules\DXUT\Optional;$(SolutionDir)Include\;$(SolutionDir)..\submodules\Boost\Include\;$(SolutionDir)..\submodules\ASSIMP\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\submodules\DXUT\Core;$(SolutionDir)..\submodules\DXUT\Optional;$(SolutionDir)Include\;$(SolutionDir)..\submodules\Boost\Include\;$(SolutionDir)..\submodules\ASSIMP\Include\;$(SolutionDir)..\submodules\SpdLog\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>USE_DIRECT3D11_4;_WIN32_WINNT=0x0600;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
