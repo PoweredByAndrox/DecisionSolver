@@ -7,7 +7,7 @@
 *.o
 *.obj
 *.obj.enc
-
+*.exp
 # Precompiled Headers
 *.gch
 *.pch

@@ -7,13 +7,14 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)DXUT\Core\;$(SolutionDir)DXUT\Optional;$(SolutionDir)Include\;$(SolutionDir)..\submodules\Boost\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\submodules\DXUT\Core;$(SolutionDir)..\submodules\DXUT\Optional;$(SolutionDir)Include\;$(SolutionDir)..\submodules\Boost\Include\;$(SolutionDir)..\submodules\ASSIMP\Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PreprocessorDefinitions>USE_DIRECT3D11_4;_WIN32_WINNT=0x0600;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\Debug;$(SolutionDir)DXUT\Optional\Debug;$(SolutionDir)..\submodules\Boost\Libs;$(SolutionDir)DXUT\Core\Release;$(SolutionDir)DXUT\Optional\Release;$(SolutionDir)DXUT\Core\x64\Debug;$(SolutionDir)DXUT\Optional\x64\Debug;$(SolutionDir)DXUT\Core\x64\Release;$(SolutionDir)DXUT\Optional\x64\Release;$(SolutionDir)Lib\DXUT\$(ConfigurationName)\$(PlatformTarget)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\Boost\Libs;$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>

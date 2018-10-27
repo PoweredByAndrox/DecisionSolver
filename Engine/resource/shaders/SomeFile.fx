@@ -689,3 +689,27 @@ technique10 RenderSkybox
 		SetDepthStencilState(DisableDepthTestWrite, 0);
 	}
 }
+
+PSSkyIn PS()
+{
+	PSSkyIn output;
+
+	output.pos = mul(pos, World);
+	output.pos = mul(output.pos, View);
+	output.pos = mul(output.pos, Projection);
+	output.texcoord = texcoord;
+
+	return output;
+}
+
+PSSkyIn VS()
+{
+	PSSkyIn output;
+
+	output.pos = mul(pos, World);
+	output.pos = mul(output.pos, View);
+	output.pos = mul(output.pos, Projection);
+	output.texcoord = texcoord;
+
+	return output;
+}

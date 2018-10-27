@@ -1,40 +1,21 @@
 #include "pch.h"
 
-#include "DXUT.h"
-#include "DXUTmisc.h"
-#include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "DXUTCamera.h"
 #include "DXUTgui.h"
+
+#include <d3d11_1.h>
+
+#include <d3d9.h>
+#include <d3dx9.h>
+
 #include "File_system.h"
+#include "Models.h"
 
+ID3D11InputLayout* g_pLayout = nullptr;
 
-//Included for use USES_CONVERSION (or A2W, W2A)
-#include <AtlConv.h>
-
-#include <windows.h>
-#include <tchar.h>
-
-//https://ru.stackoverflow.com/questions/414690/%D0%9A%D0%B0%D0%BA-%D1%83%D0%B7%D0%BD%D0%B0%D1%82%D1%8C-%D0%B4%D0%B8%D1%80%D0%B5%D0%BA%D1%82%D0%BE%D1%80%D0%B8%D1%8E-%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D0%BD%D1%8F%D0%B5%D0%BC%D0%BE%D0%B3%D0%BE-%D1%84%D0%B0%D0%B9%D0%BB%D0%B0-%D0%B2-windows
-#include <stdio.h> 
-#include <direct.h>
-
-ID3D10Effect* g_pEffect = nullptr;
-ID3D10InputLayout* g_pVertexLayout = nullptr;
-ID3D10EffectTechnique* g_pTechnique = nullptr;
-ID3D10Buffer* g_pVertexBuffer = nullptr;
-ID3D10Buffer* g_pIndexBuffer = nullptr;
-ID3D10EffectMatrixVariable* g_pWorldVariable = nullptr;
-ID3D10EffectMatrixVariable* g_pViewVariable = nullptr;
-ID3D10EffectTechnique* g_pRenderSky = nullptr;
-
-ID3D10Texture2D* g_pPipeTexture = nullptr;
-ID3D10ShaderResourceView* g_pPipeTexRV = nullptr;
-ID3D10Texture2D* g_pSkyTexture = nullptr;
-ID3D10ShaderResourceView* g_pSkyTexRV = nullptr;
-
-CDXUTSDKMesh g_Mesh;
-CDXUTSDKMesh g_SkyMesh;
+ID3D11VertexShader* g_pVS = nullptr;
+ID3D11PixelShader*  g_pPS = nullptr;
 
 D3DXMATRIX g_World;
 D3DXMATRIX g_View;
@@ -49,20 +30,20 @@ CDXUTDialogResourceManager g_DialogResourceManager;
 CDXUTDialog g_HUD;
 float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
 
-ID3D10EffectShaderResourceVariable* g_ptxDiffuse = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxNormal = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxHeight = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxDirt = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxGrass = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxMask = nullptr;
-ID3D10EffectShaderResourceVariable* g_ptxShadeNormals = nullptr;
-
-ID3D10EffectMatrixVariable* g_pmWorldViewProj = nullptr;
-ID3D10EffectMatrixVariable* g_pmWorld = nullptr;
-
 HRESULT hr = S_OK;
 
+Models *Model;
 File_system t;
+
+struct ConstantBuffer {
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+};
+
+XMMATRIX m_World;
+XMMATRIX m_View;
+XMMATRIX m_Projection;
 
 void InitApp()
 {
@@ -72,65 +53,66 @@ void InitApp()
 	g_HUD.AddButton(3, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(4, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
 	g_HUD.AddStatic(5, L"SomeText#1", 100, 120, 60, 50);
-	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
+	////g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.001f, 4.0f);
 	g_Camera.SetRotateButtons(true, true, true);
 }
 
-HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, vector<wstring> szTextureNames, int iNumTextures,
-	ID3D10Texture2D** ppTex2D, ID3D10ShaderResourceView** ppSRV)
+HRESULT LoadTextureArray(ID3D11Device* pd3dDevice, vector<wstring> szTextureNames, int iNumTextures,
+	ID3D11Texture2D** ppTex2D, ID3D11ShaderResourceView** ppSRV)
 {
 	HRESULT hr = S_OK;
-	D3D10_TEXTURE2D_DESC desc;
-	ZeroMemory(&desc, sizeof(D3D10_TEXTURE2D_DESC));
+	D3D11_TEXTURE2D_DESC desc;
+	ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
 
 	WCHAR str[MAX_PATH];
 	for (int i = 0; i < iNumTextures; i++)
 	{
 		//V_RETURN(DXUTFindDXSDKMediaFileCch(str, MAX_PATH, szTextureNames[i]));
-		ID3D10Resource* pRes = NULL;
-		D3DX10_IMAGE_LOAD_INFO loadInfo;
-		ZeroMemory(&loadInfo, sizeof(D3DX10_IMAGE_LOAD_INFO));
+		ID3D11Resource* pRes = NULL;
+		D3DX11_IMAGE_LOAD_INFO loadInfo;
+		ZeroMemory(&loadInfo, sizeof(D3DX11_IMAGE_LOAD_INFO));
 		loadInfo.Width = D3DX_FROM_FILE;
 		loadInfo.Height = D3DX_FROM_FILE;
 		loadInfo.Depth = D3DX_FROM_FILE;
 		loadInfo.FirstMipLevel = 0;
 		loadInfo.MipLevels = 1;
-		loadInfo.Usage = D3D10_USAGE_STAGING;
+		loadInfo.Usage = D3D11_USAGE_STAGING;
 		loadInfo.BindFlags = 0;
-		loadInfo.CpuAccessFlags = D3D10_CPU_ACCESS_WRITE | D3D10_CPU_ACCESS_READ;
+		loadInfo.CpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D10_CPU_ACCESS_READ;
 		loadInfo.MiscFlags = 0;
 		loadInfo.Format = MAKE_TYPELESS(DXGI_FORMAT_R8G8B8A8_UNORM);
-		loadInfo.Filter = D3DX10_FILTER_NONE;
-		loadInfo.MipFilter = D3DX10_FILTER_NONE;
+		loadInfo.Filter = D3DX11_FILTER_NONE;
+		loadInfo.MipFilter = D3DX11_FILTER_NONE;
 
 		//V_RETURN(
-		D3DX10CreateTextureFromFile(pd3dDevice, szTextureNames[i].c_str(), &loadInfo, NULL, &pRes, NULL);
+		D3DX11CreateTextureFromFile(pd3dDevice, szTextureNames[i].c_str(), &loadInfo, NULL, &pRes, NULL);
 		if (pRes)
 		{
-			ID3D10Texture2D* pTemp;
-			pRes->QueryInterface(__uuidof(ID3D10Texture2D), (LPVOID*)&pTemp);
+			ID3D11Texture2D* pTemp;
+			pRes->QueryInterface(__uuidof(ID3D11Texture2D), (LPVOID*)&pTemp);
 			pTemp->GetDesc(&desc);
 
-			D3D10_MAPPED_TEXTURE2D mappedTex2D;
+			D3D11_TEXTURE2D_DESC mappedTex2D;
 
 			if (desc.MipLevels > 4)
 				desc.MipLevels -= 4;
 			if (!(*ppTex2D))
 			{
-				desc.Usage = D3D10_USAGE_DEFAULT;
-				desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 				desc.CPUAccessFlags = 0;
 				desc.ArraySize = iNumTextures;
 				V_RETURN(pd3dDevice->CreateTexture2D(&desc, NULL, ppTex2D));
 			}
 
+			/*
 			for (UINT iMip = 0; iMip < desc.MipLevels; iMip++)
 			{
-				pTemp->Map(iMip, D3D10_MAP_READ, 0, &mappedTex2D);
+				pTemp->Map(iMip, D3D11_MAP_READ, 0, &mappedTex2D);
 
-				pd3dDevice->UpdateSubresource((*ppTex2D),
+				DXUTGetD3D11DeviceContext()->UpdateSubresource((*ppTex2D),
 					D3D10CalcSubresource(iMip, i, desc.MipLevels),
 					NULL,
 					mappedTex2D.pData,
@@ -139,6 +121,7 @@ HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, vector<wstring> szTextureName
 
 				pTemp->Unmap(iMip);
 			}
+			*/
 
 			SAFE_RELEASE(pRes);
 			SAFE_RELEASE(pTemp);
@@ -149,10 +132,10 @@ HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, vector<wstring> szTextureName
 		}
 	}
 
-	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc;
+	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
 	ZeroMemory(&SRVDesc, sizeof(SRVDesc));
 	SRVDesc.Format = MAKE_SRGB(DXGI_FORMAT_R8G8B8A8_UNORM);
-	SRVDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	SRVDesc.Texture2DArray.MipLevels = desc.MipLevels;
 	SRVDesc.Texture2DArray.ArraySize = iNumTextures;
 	V_RETURN(pd3dDevice->CreateShaderResourceView(*ppTex2D, &SRVDesc, ppSRV));
@@ -160,8 +143,9 @@ HRESULT LoadTextureArray(ID3D10Device* pd3dDevice, vector<wstring> szTextureName
 	return hr;
 }
 
-bool CALLBACK IsD3D10DeviceAcceptable(UINT Adapter, UINT Output, D3D10_DRIVER_TYPE DeviceType,
-	DXGI_FORMAT BackBufferFormat, bool bWindowed, void* pUserContext)
+bool CALLBACK IsD3D11DeviceAcceptable(const CD3D11EnumAdapterInfo *AdapterInfo,
+	UINT Output, const CD3D11EnumDeviceInfo *DeviceInfo, DXGI_FORMAT BackBufferFormat, bool bWindowed, 
+	void* pUserContext)
 {
 	return true;
 }
@@ -183,58 +167,65 @@ LPCTSTR g_szSkyTextureName[6] =
 
 vector<wstring> g_szSkyTextures[6];
 
-
-HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc,
-	void* pUserContext)
+HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
+	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+	m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 640/(float)480, 0.01f, 1000.0f);
+
 	// Read the D3DX effect file
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DXSHADER_DEBUG;
 
-	UINT uFlags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3D10_SHADER_DEBUG;
+	UINT uFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG;
 
-	V_RETURN(g_DialogResourceManager.OnD3D10CreateDevice(pd3dDevice));
+	V_RETURN(g_DialogResourceManager.OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
 
-	V_RETURN(D3DX10CreateEffectFromFile(L"D://DecisionSolver//Engine//resource//shaders//SomeFile.fx",NULL, NULL, "fx_4_0", dwShaderFlags,
-		0, pd3dDevice, NULL, NULL, &g_pEffect, NULL, NULL));
+	ID3DBlob *VS = nullptr, *PS = nullptr;
+	V_RETURN(D3DCompileFromFile(t.GetResPathW(&wstring(L"VertexShader.hlsl")), 0, 
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", uFlags, 0, &VS, nullptr));
+	
+	V_RETURN(D3DCompileFromFile(t.GetResPathW(&wstring(L"PixelShader.hlsl")), 0,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", uFlags, 0, &PS, nullptr));
 
-	g_pTechnique = g_pEffect->GetTechniqueByName("RenderMesh");
-	g_pRenderSky = g_pEffect->GetTechniqueByName("RenderSkybox");
-	g_pViewVariable = g_pEffect->GetVariableByName("g_mWorldViewProj")->AsMatrix();
-	g_ptxDiffuse = g_pEffect->GetVariableByName("g_txDiffuse")->AsShaderResource();
+	V_RETURN(pd3dDevice->CreateVertexShader(VS->GetBufferPointer(),
+		VS->GetBufferSize(), NULL, &g_pVS));
+
+	V_RETURN(pd3dDevice->CreatePixelShader(PS->GetBufferPointer(),
+		PS->GetBufferSize(), NULL, &g_pPS));
+	
+	DXUT_SetDebugName(g_pVS, "VS");
+	DXUT_SetDebugName(g_pPS, "PS");
 
 	// Define the input layout
-	const D3D10_INPUT_ELEMENT_DESC layout[] =
+	const D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXTURE", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D10_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 
+						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT numElements = sizeof(layout) / sizeof(layout[0]);
+	//// Create the input layout
+	V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, VS->GetBufferPointer(),
+		VS->GetBufferSize(), &g_pLayout));
+	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 
-	// Create the input layout
-	D3D10_PASS_DESC PassDesc;
-	g_pTechnique->GetPassByIndex(0)->GetDesc(&PassDesc);
-	V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, PassDesc.pIAInputSignature, PassDesc.IAInputSignatureSize,
-		&g_pVertexLayout));
+	////V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh")), true));
+	////V_RETURN(
+	////	LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
 
+	Model = new Models;
+	if (!Model->Load(t.GetResPathA(&string("New.obj"))))//t.GetResPathA(&string("New.obj"))))
+		t.GetPath();
+	////V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
+	//
+	////for (int i = 0; i < 6; i++)
+	////	g_szSkyTextures[i].push_back(g_szSkyTextureName[i]);
 
-	// Set the input layout
-	pd3dDevice->IASetInputLayout(g_pVertexLayout);
+	////V_RETURN(
+	////LoadTextureArray(pd3dDevice, t.GetResPathW(g_szSkyTextures), 6, &g_pSkyTexture, &g_pSkyTexRV)
+	////);
 
-	V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh")), true));
-	V_RETURN(LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
-
-	V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//tiny.sdkmesh"));
-	
-	//for (int i = 0; i < 6; i++)
-	//	g_szSkyTextures[i].push_back(g_szSkyTextureName[i]);
-
-	//V_RETURN(
-	//LoadTextureArray(pd3dDevice, t.GetResPathW(g_szSkyTextures), 6, &g_pSkyTexture, &g_pSkyTexRV)
-	//);
-	
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
 
@@ -242,17 +233,23 @@ HRESULT CALLBACK OnD3D10CreateDevice(ID3D10Device* pd3dDevice, const DXGI_SURFAC
 	D3DXMatrixLookAtLH(&g_View, &Eye, &At, &Up);
 
 	// Update Variables that never change
-	g_pViewVariable->SetMatrix((float*)&g_View);
+	//g_pViewVariable->SetMatrix((float*)&g_View);
 
-	// Setup the camera's view parameters
-	//g_Camera.SetViewParams(&Eye, &At);
+	//// Setup the camera's view parameters
+	//D3DXVECTOR3 vecEye( 0, 0, -300 );
+ //   D3DXVECTOR3 vecAt ( 10.0f, 20.0f, 0.0f );
+ //   g_Camera.SetViewParams( &vecEye, &vecAt );
+
+	SAFE_RELEASE(VS);
+	SAFE_RELEASE(PS);
+
 	return S_OK;
 }
 
-HRESULT CALLBACK OnD3D10ResizedSwapChain(ID3D10Device* pd3dDevice, IDXGISwapChain* pSwapChain,
+HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChain* pSwapChain,
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
-	V_RETURN(g_DialogResourceManager.OnD3D10ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
+	V_RETURN(g_DialogResourceManager.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.5f, 5000.0f);
@@ -262,78 +259,82 @@ HRESULT CALLBACK OnD3D10ResizedSwapChain(ID3D10Device* pd3dDevice, IDXGISwapChai
 	return S_OK;
 }
 
-void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
+void CALLBACK OnFrameMove(double fTime, float fElapsedTime, 
+	void* pUserContext)
 {
 	g_Camera.FrameMove(fElapsedTime);
 }
 
-void CALLBACK OnD3D10FrameRender(ID3D10Device* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext)
+void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
+	double fTime, float fElapsedTime, void* pUserContext)
 {
-	//
-	// Clear the back buffer
-	//
-	float ClearColor[4] = { 0.1f, 1.f, 0.7f, 1.0f }; // red, green, blue, alpha
-	ID3D10RenderTargetView* pRTV = DXUTGetD3D10RenderTargetView();
-	pd3dDevice->ClearRenderTargetView(pRTV, ClearColor);
+//	//
+//	// Clear the back buffer
+//	//
+	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
+	pd3dImmediateContext->ClearRenderTargetView(pRTV, DirectX::Colors::DarkRed);
 
-	//
-	// Clear the depth stencil
-	//
-	ID3D10DepthStencilView* pDSV = DXUTGetD3D10DepthStencilView();
-	pd3dDevice->ClearDepthStencilView(pDSV, D3D10_CLEAR_DEPTH, 1.0, 0);
+//	//
+//	// Clear the depth stencil
+//	//
+	ID3D11DepthStencilView* pDSV = DXUTGetD3D11DepthStencilView();
+	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
-	//
-    //
-	// Set the Vertex Layout
-	//
-	pd3dDevice->IASetInputLayout(g_pVertexLayout);
+//	//
+//	// Set the Vertex Layout
+//	//
+	pd3dImmediateContext->IASetInputLayout(g_pLayout);
 
-	D3DXMATRIX mView;
-	D3DXMATRIX mProj;
-	D3DXMATRIX mWorldViewProj;
-	mProj = *g_Camera.GetProjMatrix();
-	mView = *g_Camera.GetViewMatrix();
-
-	// Render the skybox
-	D3DXMATRIX mViewSkybox = mView;
-	mViewSkybox._41 = 0.0f;
-	mViewSkybox._42 = 0.0f;
-	mViewSkybox._43 = 0.0f;
-	D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
-	g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-	g_ptxDiffuse->SetResource(g_pPipeTexRV);
-	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
-
-	// Render the Mesh
-	g_ptxDiffuse->SetResource(g_pPipeTexRV);
-	D3DXMatrixMultiply(&mWorldViewProj, &mView, &mProj);
-	g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-	g_Mesh.Render(pd3dDevice, g_pTechnique, g_ptxDiffuse);
+	m_Projection = g_Camera.GetProjMatrix();
+	m_View = g_Camera.GetViewMatrix();
+//
+//	//// Render the skybox
+//	//D3DXMATRIX mViewSkybox = mView;
+//	//mViewSkybox._41 = 0.0f;
+//	//mViewSkybox._42 = 0.0f;
+//	//mViewSkybox._43 = 0.0f;
+//	//D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
+//	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+//	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
+//	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
+//
+//	// Render the Mesh
+//	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
+//	//D3DXMatrixMultiply(&m_World, &m_View, &m_Projection);
+//	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+////	g_Mesh.Render(pd3dImmediateContext);
+//
+	//Model->Draw();
 
 	V(g_HUD.OnRender(fElapsedTime));
+
+	ConstantBuffer cb;
+	cb.mWorld = XMMatrixTranspose(m_World);
+	cb.mView = XMMatrixTranspose(m_View);
+	cb.mProjection = XMMatrixTranspose(m_Projection);
+	//pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
+
+	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
+	//pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
+	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
+	//pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
+
+//	swapchain->
 }
 
-void CALLBACK OnD3D10ReleasingSwapChain(void* pUserContext)
+void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 {
-	g_DialogResourceManager.OnD3D10ReleasingSwapChain();
+	g_DialogResourceManager.OnD3D11ReleasingSwapChain();
 }
 
-void CALLBACK OnD3D10DestroyDevice(void* pUserContext)
+void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 {
-	g_DialogResourceManager.OnD3D10DestroyDevice();
-	SAFE_RELEASE(g_pVertexBuffer);
-	SAFE_RELEASE(g_pIndexBuffer);
+	g_DialogResourceManager.OnD3D11DestroyDevice();
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
-	SAFE_RELEASE(g_pVertexLayout);
-	SAFE_RELEASE(g_pEffect);
-
-	SAFE_RELEASE(g_pPipeTexture);
-	SAFE_RELEASE(g_pPipeTexRV);
-	SAFE_RELEASE(g_pSkyTexture);
-	SAFE_RELEASE(g_pSkyTexRV);
-
-	g_SkyMesh.Destroy();
-	g_Mesh.Destroy();
+	SAFE_RELEASE(g_pLayout);
+	SAFE_RELEASE(g_pVS);
+	SAFE_RELEASE(g_pPS);
+	Model->Close();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -377,22 +378,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
 	DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
 
-	DXUTSetCallbackD3D10DeviceAcceptable(IsD3D10DeviceAcceptable);
-	DXUTSetCallbackD3D10DeviceCreated(OnD3D10CreateDevice);
-	DXUTSetCallbackD3D10SwapChainResized(OnD3D10ResizedSwapChain);
-	DXUTSetCallbackD3D10FrameRender(OnD3D10FrameRender);
-	DXUTSetCallbackD3D10SwapChainReleasing(OnD3D10ReleasingSwapChain);
-	DXUTSetCallbackD3D10DeviceDestroyed(OnD3D10DestroyDevice);
+	DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
+	DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
+	DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
+	DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
+	DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
+	DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
 
 	InitApp();
 
-	DXUTInit(true, true, NULL); 
+	CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-	//t.GetPath();
+	DXUTInit(true, true, NULL); 
 
 	DXUTSetCursorSettings(true, true);
 	DXUTCreateWindow(L"EngineProgram");
-	DXUTCreateDevice(true, 640, 480);
+	DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, 640, 480);
 	DXUTMainLoop(); 
 
 	return DXUTGetExitCode();

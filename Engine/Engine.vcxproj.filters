@@ -27,6 +27,12 @@
     <ClCompile Include="File_system.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="Models.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Textures.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
@@ -35,10 +41,22 @@
     <ClInclude Include="File_system.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="Models.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Textures.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Debug\SomeFile.fx">
+    <FxCompile Include="resource\shaders\VertexShader.hlsl">
       <Filter>Файлы ресурсов\Shaders</Filter>
-    </None>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\PixelShader.hlsl">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
