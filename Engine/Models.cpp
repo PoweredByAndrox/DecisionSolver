@@ -18,7 +18,7 @@ bool Models::Load(string Filename)
 
 void Models::Draw()
 {
-	for (int i = 0; i < Meshes.size(); i++)
+	for (size_t i = 0; i < Meshes.size(); i++)
 	{
 		if (Device == nullptr)
 			GetD3DDevice();
@@ -129,7 +129,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 
 void Models::Close()
 {
-	for (int i = 0; i < Meshes.size(); i++)
+	for (size_t i = 0; i < Meshes.size(); i++)
 		Meshes[i].Close();
 
 	if (Device == nullptr)

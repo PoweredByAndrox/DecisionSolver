@@ -32,8 +32,10 @@ float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
 
 HRESULT hr = S_OK;
 
-Models *Model;
+//Models *Model;
 File_system t;
+
+CDXUTSDKMesh g_Mesh;
 
 struct ConstantBuffer {
 	XMMATRIX mWorld;
@@ -66,7 +68,6 @@ HRESULT LoadTextureArray(ID3D11Device* pd3dDevice, vector<wstring> szTextureName
 	D3D11_TEXTURE2D_DESC desc;
 	ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
 
-	WCHAR str[MAX_PATH];
 	for (int i = 0; i < iNumTextures; i++)
 	{
 		//V_RETURN(DXUTFindDXSDKMediaFileCch(str, MAX_PATH, szTextureNames[i]));
@@ -94,7 +95,7 @@ HRESULT LoadTextureArray(ID3D11Device* pd3dDevice, vector<wstring> szTextureName
 			pRes->QueryInterface(__uuidof(ID3D11Texture2D), (LPVOID*)&pTemp);
 			pTemp->GetDesc(&desc);
 
-			D3D11_TEXTURE2D_DESC mappedTex2D;
+			//D3D11_TEXTURE2D_DESC mappedTex2D;
 
 			if (desc.MipLevels > 4)
 				desc.MipLevels -= 4;
@@ -170,7 +171,7 @@ vector<wstring> g_szSkyTextures[6];
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
-	m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 640/(float)480, 0.01f, 1000.0f);
+	//m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 640/(float)480, 0.01f, 1000.0f);
 
 	// Read the D3DX effect file
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
@@ -210,13 +211,13 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		VS->GetBufferSize(), &g_pLayout));
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 
-	////V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh")), true));
-	////V_RETURN(
-	////	LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
+	V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh"))));
+	//V_RETURN(
+	//	LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
 
-	Model = new Models;
-	if (!Model->Load(t.GetResPathA(&string("New.obj"))))
-		t.GetPath();
+	//Model = new Models;
+	//if (!Model->Load(t.GetResPathA(&string("New.obj"))))
+	//	t.GetPath();
 	////V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
 	//
 	////for (int i = 0; i < 6; i++)
@@ -268,50 +269,50 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime,
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
-//	//
-//	// Clear the back buffer
-//	//
+	//
+	// Clear the back buffer
+	//
 	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, DirectX::Colors::DarkRed);
 
-//	//
-//	// Clear the depth stencil
-//	//
+	//
+	// Clear the depth stencil
+	//
 	ID3D11DepthStencilView* pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
-//	//
-//	// Set the Vertex Layout
-//	//
+	//
+	// Set the Vertex Layout
+	//
 	pd3dImmediateContext->IASetInputLayout(g_pLayout);
 
 	m_Projection = g_Camera.GetProjMatrix();
 	m_View = g_Camera.GetViewMatrix();
+
+	//// Render the skybox
+	//D3DXMATRIX mViewSkybox = mView;
+	//mViewSkybox._41 = 0.0f;
+	//mViewSkybox._42 = 0.0f;
+	//mViewSkybox._43 = 0.0f;
+	//D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
+	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
+	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
+
+	// Render the Mesh
+	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
+	//D3DXMatrixMultiply(&m_World, &m_View, &m_Projection);
+	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
+	g_Mesh.Render(pd3dImmediateContext);
 //
-//	//// Render the skybox
-//	//D3DXMATRIX mViewSkybox = mView;
-//	//mViewSkybox._41 = 0.0f;
-//	//mViewSkybox._42 = 0.0f;
-//	//mViewSkybox._43 = 0.0f;
-//	//D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
-//	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-//	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
-//	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
-//
-//	// Render the Mesh
-//	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
-//	//D3DXMatrixMultiply(&m_World, &m_View, &m_Projection);
-//	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-////	g_Mesh.Render(pd3dImmediateContext);
-//
-	Model->Draw();
+	//Model->Draw();
 
 	V(g_HUD.OnRender(fElapsedTime));
 
-	ConstantBuffer cb;
-	cb.mWorld = XMMatrixTranspose(m_World);
-	cb.mView = XMMatrixTranspose(m_View);
-	cb.mProjection = XMMatrixTranspose(m_Projection);
+	//ConstantBuffer cb;
+	//cb.mWorld = XMMatrixTranspose(m_World);
+	//cb.mView = XMMatrixTranspose(m_View);
+	//cb.mProjection = XMMatrixTranspose(m_Projection);
 	//pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
 	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
@@ -319,7 +320,6 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
 	//pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
 
-//	swapchain->
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -334,9 +334,10 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pLayout);
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
-	Model->Close();
-	DXUTGetD3D11Device()->Release();
-	DXUTGetD3D11Device1()->Release();
+	//Model->Close();
+	g_Mesh.Destroy();
+	//DXUTGetD3D11Device()->Release();
+	//DXUTGetD3D11DeviceContext()->Release();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,

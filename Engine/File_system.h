@@ -17,13 +17,13 @@ public:
 		// Wide (wchar_t*)
 	LPCTSTR GetResPathW(wstring *File);
 		// Get string return wstring
-	wstring File_system::GetResPathW(string *File);
+	wstring GetResPathW(string *File);
 		// Getting massive vector<wstring>
-	vector<wstring> File_system::GetResPathW(vector<wstring> *File[]);
+	vector<wstring> GetResPathW(vector<wstring> *File[]);
 		// Getting one array from wstring to vector<wstring>
-	vector<wstring> File_system::GetResPathW(wstring File);
+	vector<wstring> GetResPathW(wstring File);
 		// Getting a resources file location
-	LPCTSTR File_system::GetResPathW(LPCTSTR File);
+	LPCTSTR GetResPathW(LPCTSTR File);
 
 private:
 	path p;

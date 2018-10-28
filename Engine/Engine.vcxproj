@@ -89,6 +89,9 @@
       <ShaderModel>5.0</ShaderModel>
       <ShaderType>Effect</ShaderType>
     </FxCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\Boost\lib$(PlatformTarget)\lib;%(AdditionalLibraryDirectories);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -102,7 +105,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\x64\Debug;$(SolutionDir)DXUT\Optional\x64\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\Boost\lib$(PlatformTarget)\lib;$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -123,7 +126,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\Release;$(SolutionDir)DXUT\Optional\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\Release;$(SolutionDir)DXUT\Optional\Release;%(AdditionalLibraryDirectories);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -144,7 +147,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\x64\Release;$(SolutionDir)DXUT\Optional\x64\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\$(PlatformTarget);$(SolutionDir)DXUT\Core\x64\Release;$(SolutionDir)DXUT\Optional\x64\Release;%(AdditionalLibraryDirectories);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName)\;$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>

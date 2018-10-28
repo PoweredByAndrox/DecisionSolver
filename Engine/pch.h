@@ -25,7 +25,7 @@
 
 	// Maybe this doesn't cause errors?
 #define SPDLOG_TRACE_ON
-#include "spdlog\\spdlog.h"
+#include "spdlog/spdlog.h"
 using namespace spdlog;
 
 #pragma comment (lib, "d3d9.lib")
