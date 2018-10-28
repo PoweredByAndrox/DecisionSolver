@@ -19,11 +19,7 @@ bool Models::Load(string Filename)
 void Models::Draw()
 {
 	for (size_t i = 0; i < Meshes.size(); i++)
-	{
-		if (Device == nullptr)
-			GetD3DDevice();
 		Meshes[i].Draw();
-	}
 }
 
 Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
@@ -132,9 +128,8 @@ void Models::Close()
 	for (size_t i = 0; i < Meshes.size(); i++)
 		Meshes[i].Close();
 
-	if (Device == nullptr)
-		GetD3DDevice();
-	Device->Release();
+	if (Device != nullptr)
+		Device->Release();
 }
 
 void Models::processNode(aiNode *node, const aiScene *scene)

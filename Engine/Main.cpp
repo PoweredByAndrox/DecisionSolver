@@ -12,10 +12,13 @@
 #include "File_system.h"
 #include "Models.h"
 
-ID3D11InputLayout* g_pLayout = nullptr;
+ID3D11InputLayout  *g_pLayout = nullptr;
 
-ID3D11VertexShader* g_pVS = nullptr;
-ID3D11PixelShader*  g_pPS = nullptr;
+ID3D11VertexShader *g_pVS = nullptr;
+ID3D11PixelShader  *g_pPS = nullptr;
+
+//ID3D11Texture2D	   *g_pPipeTexture = nullptr;
+//ID3D11ShaderResourceView *g_pPipeTexRV = nullptr;
 
 D3DXMATRIX g_World;
 D3DXMATRIX g_View;
@@ -25,6 +28,9 @@ D3DXVECTOR3 Eye(0.0f, 3.0f, -6.0f);
 D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
 D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 
+File_system t;
+Models *Model;
+
 CFirstPersonCamera g_Camera;
 CDXUTDialogResourceManager g_DialogResourceManager;
 CDXUTDialog g_HUD;
@@ -32,10 +38,32 @@ float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
 
 HRESULT hr = S_OK;
 
-//Models *Model;
-File_system t;
+static XMVECTORF32 Color = DirectX::Colors::DarkRed;
 
-CDXUTSDKMesh g_Mesh;
+LPCTSTR g_szSkyTextureName[6] =
+{
+	t.GetResPathW(L"sky_bot.dds"),
+	t.GetResPathW(L"sky_top.dds"),
+	t.GetResPathW(L"sky_side.dds"),
+	t.GetResPathW(L"sky_side.dds"),
+	t.GetResPathW(L"sky_side.dds"),
+	t.GetResPathW(L"sky_side.dds")
+};
+
+vector<wstring> g_szSkyTextures[6];
+
+XMVECTORF32 _Color[9] = 
+{
+	DirectX::Colors::AliceBlue,
+	DirectX::Colors::Black,
+	DirectX::Colors::Chartreuse,
+	DirectX::Colors::DarkGreen,
+	DirectX::Colors::Indigo,
+	DirectX::Colors::LightSteelBlue,
+	DirectX::Colors::Magenta,
+	DirectX::Colors::OliveDrab,
+	DirectX::Colors::SkyBlue
+};
 
 struct ConstantBuffer {
 	XMMATRIX mWorld;
@@ -43,19 +71,26 @@ struct ConstantBuffer {
 	XMMATRIX mProjection;
 };
 
-XMMATRIX m_World;
-XMMATRIX m_View;
-XMMATRIX m_Projection;
+#define BUTTON_1 1
+#define BUTTON_2 2
+#define BUTTON_3 3
+#define STATIC_TEXT 4
+
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
+
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
 void InitApp()
 {
 	g_HUD.Init(&g_DialogResourceManager);
+	g_HUD.SetCallback(OnGUIEvent);
 	int iY = 10;
-	g_HUD.AddButton(1, L"Some-Button#1", 35, iY, 125, 22);
-	g_HUD.AddButton(3, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
-	g_HUD.AddButton(4, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
-	g_HUD.AddStatic(5, L"SomeText#1", 100, 120, 60, 50);
-	////g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
+	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22);
+	g_HUD.AddButton(BUTTON_2, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
+	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
+	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 100, 120, 60, 50);
+	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.001f, 4.0f);
 	g_Camera.SetRotateButtons(true, true, true);
@@ -156,24 +191,20 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 	return true;
 }
 
-LPCTSTR g_szSkyTextureName[6] =
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
+	CDXUTControl* pControl, void* pUserContext)
 {
-		t.GetResPathW(L"sky_bot.dds"),
-		t.GetResPathW(L"sky_top.dds"),
-		t.GetResPathW(L"sky_side.dds"),
-		t.GetResPathW(L"sky_side.dds"),
-		t.GetResPathW(L"sky_side.dds"),
-		t.GetResPathW(L"sky_side.dds")
-};
-
-vector<wstring> g_szSkyTextures[6];
+	switch (nControlID)
+	{
+	case BUTTON_1:
+		Color = _Color[rand() % 9 + 1];
+		break;
+	}
+}
 
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
-	//m_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, 640/(float)480, 0.01f, 1000.0f);
-
-	// Read the D3DX effect file
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DXSHADER_DEBUG;
 
@@ -211,21 +242,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		VS->GetBufferSize(), &g_pLayout));
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 
-	V_RETURN(g_Mesh.Create(pd3dDevice, t.GetResPathW(&wstring(L"tiny.sdkmesh"))));
-	//V_RETURN(
-	//	LoadTextureArray(pd3dDevice, t.GetResPathW(wstring(L"Tiny_skin.dds")), 1, &g_pPipeTexture, &g_pPipeTexRV));
-
-	//Model = new Models;
-	//if (!Model->Load(t.GetResPathA(&string("New.obj"))))
-	//	t.GetPath();
-	////V_RETURN(g_SkyMesh.Create(pd3dDevice, L"D://DecisionSolver//Engine//resource//models//cloud_skybox.sdkmesh"));
-	//
-	////for (int i = 0; i < 6; i++)
-	////	g_szSkyTextures[i].push_back(g_szSkyTextureName[i]);
-
-	////V_RETURN(
-	////LoadTextureArray(pd3dDevice, t.GetResPathW(g_szSkyTextures), 6, &g_pSkyTexture, &g_pSkyTexRV)
-	////);
+	Model = new Models;
+	if (!Model->Load(t.GetResPathA(&string("New.obj"))))
+		t.GetPath();
 
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
@@ -233,13 +252,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	// Initialize the view matrix
 	D3DXMatrixLookAtLH(&g_View, &Eye, &At, &Up);
 
-	// Update Variables that never change
-	//g_pViewVariable->SetMatrix((float*)&g_View);
-
 	//// Setup the camera's view parameters
-	//D3DXVECTOR3 vecEye( 0, 0, -300 );
-    //D3DXVECTOR3 vecAt ( 10.0f, 20.0f, 0.0f );
-    //g_Camera.SetViewParams(vecEye, &vecAt );
+    g_Camera.SetViewParams(XMVectorSet(0.f, 0.f, -300.f, 0.f), XMVectorSet(10.0f, 20.0f, 0.0f, 0.f));
 
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
@@ -273,7 +287,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	// Clear the back buffer
 	//
 	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
-	pd3dImmediateContext->ClearRenderTargetView(pRTV, DirectX::Colors::DarkRed);
+	pd3dImmediateContext->ClearRenderTargetView(pRTV, Color);
 
 	//
 	// Clear the depth stencil
@@ -286,40 +300,12 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	//
 	pd3dImmediateContext->IASetInputLayout(g_pLayout);
 
-	m_Projection = g_Camera.GetProjMatrix();
-	m_View = g_Camera.GetViewMatrix();
+	D3DXMATRIX mView;
+	D3DXMATRIX mProj;
+	D3DXMATRIX mWorldViewProj;
 
-	//// Render the skybox
-	//D3DXMATRIX mViewSkybox = mView;
-	//mViewSkybox._41 = 0.0f;
-	//mViewSkybox._42 = 0.0f;
-	//mViewSkybox._43 = 0.0f;
-	//D3DXMatrixMultiply(&mWorldViewProj, &mViewSkybox, &mProj);
-	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
-	//g_SkyMesh.Render(pd3dDevice, g_pRenderSky, g_ptxDiffuse);
-
-	// Render the Mesh
-	//g_ptxDiffuse->SetResource(g_pPipeTexRV);
-	//D3DXMatrixMultiply(&m_World, &m_View, &m_Projection);
-	//g_pViewVariable->SetMatrix((float*)&mWorldViewProj);
-	g_Mesh.Render(pd3dImmediateContext);
-//
 	//Model->Draw();
-
 	V(g_HUD.OnRender(fElapsedTime));
-
-	//ConstantBuffer cb;
-	//cb.mWorld = XMMatrixTranspose(m_World);
-	//cb.mView = XMMatrixTranspose(m_View);
-	//cb.mProjection = XMMatrixTranspose(m_Projection);
-	//pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
-
-	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
-	//pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
-	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
-	//pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
-
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -334,10 +320,8 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pLayout);
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
-	//Model->Close();
-	g_Mesh.Destroy();
-	//DXUTGetD3D11Device()->Release();
-	//DXUTGetD3D11DeviceContext()->Release();
+
+	Model->Close();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -398,7 +382,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		DXUTSetCursorSettings(true, true);
 		DXUTCreateWindow(L"EngineProgram");
-		DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, 640, 480);
+		DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, SCREEN_WIDTH, SCREEN_HEIGHT);
 		DXUTMainLoop();
 	}
 

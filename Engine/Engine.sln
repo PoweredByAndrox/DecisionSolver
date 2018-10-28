@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.28010.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Engine", "Engine.vcxproj", "{E3B9711D-5F12-4BCD-B7F2-5AEC1A1890EC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{85344B7F-5AA0-4E12-A065-D1333D11F6CA} = {85344B7F-5AA0-4E12-A065-D1333D11F6CA}
+		{61B333C2-C4F7-4CC1-A9BF-83F6D95588EB} = {61B333C2-C4F7-4CC1-A9BF-83F6D95588EB}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DXUT", "DXUT", "{19A35514-12C6-4586-A20F-3A7CD79388BA}"
 EndProject

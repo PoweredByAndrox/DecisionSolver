@@ -55,8 +55,6 @@ public:
 	{
 		VertexBuffer->Release();
 		IndexBuffer->Release();
-		
-		Device->Release();
 	}
 private:
 	ID3D11Device *Device = nullptr;
