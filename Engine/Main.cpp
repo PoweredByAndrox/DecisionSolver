@@ -20,9 +20,6 @@ ID3D11InputLayout  *g_pLayout = nullptr;
 ID3D11VertexShader *g_pVS = nullptr;
 ID3D11PixelShader  *g_pPS = nullptr;
 
-//ID3D11Texture2D	   *g_pPipeTexture = nullptr;
-//ID3D11ShaderResourceView *g_pPipeTexRV = nullptr;
-
 D3DXMATRIX g_World;
 D3DXMATRIX g_View;
 D3DXMATRIX g_Projection;
@@ -42,18 +39,6 @@ float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
 HRESULT hr = S_OK;
 
 static XMVECTORF32 Color = DirectX::Colors::DarkRed;
-
-LPCTSTR g_szSkyTextureName[6] =
-{
-	t.GetResPathW(L"sky_bot.dds"),
-	t.GetResPathW(L"sky_top.dds"),
-	t.GetResPathW(L"sky_side.dds"),
-	t.GetResPathW(L"sky_side.dds"),
-	t.GetResPathW(L"sky_side.dds"),
-	t.GetResPathW(L"sky_side.dds")
-};
-
-vector<wstring> g_szSkyTextures[6];
 
 XMVECTORF32 _Color[9] = 
 {
