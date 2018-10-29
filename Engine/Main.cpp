@@ -1,6 +1,5 @@
 #include "pch.h"
 
-#include "SDKmesh.h"
 #include "DXUTCamera.h"
 #include "DXUTgui.h"
 
@@ -11,6 +10,10 @@
 
 #include "File_system.h"
 #include "Models.h"
+
+#ifdef DEBUG
+#include <d3d11sdklayers.h>
+#endif
 
 ID3D11InputLayout  *g_pLayout = nullptr;
 
@@ -29,7 +32,7 @@ D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
 D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 
 File_system t;
-Models *Model;
+//Models *Model;
 
 CFirstPersonCamera g_Camera;
 CDXUTDialogResourceManager g_DialogResourceManager;
@@ -90,6 +93,7 @@ void InitApp()
 	g_HUD.AddButton(BUTTON_2, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
 	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 100, 120, 60, 50);
+
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.001f, 4.0f);
@@ -242,9 +246,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		VS->GetBufferSize(), &g_pLayout));
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 
-	Model = new Models;
-	if (!Model->Load(t.GetResPathA(&string("New.obj"))))
-		t.GetPath();
+	//Model = new Models;
+	//if (!Model->Load(t.GetResPathA(&string("New.obj"))))
+	//	t.GetPath();
 
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
@@ -306,6 +310,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	//Model->Draw();
 	V(g_HUD.OnRender(fElapsedTime));
+
+#ifdef DEBUG
+	ID3D11Debug* debug = 0;
+	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void**)&debug);
+	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+#endif
+
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -321,7 +332,7 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
 
-	Model->Close();
+//	Model->Close();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,

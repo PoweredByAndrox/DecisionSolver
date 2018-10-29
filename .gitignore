@@ -8,6 +8,8 @@
 *.obj
 *.obj.enc
 *.exp
+*.user
+
 # Precompiled Headers
 *.gch
 *.pch
@@ -49,7 +51,7 @@
 *.idb
 
 # User file solution
-*.vcxproj.user
+
 
 # Log File
 *.ilk
