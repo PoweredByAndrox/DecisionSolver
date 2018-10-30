@@ -192,6 +192,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	case BUTTON_1:
 		Color = _Color[rand() % 9 + 1];
 		break;
+	case BUTTON_2:
+		PhysX->AddTorque(*PhysX->GetPhysObject().data(), PxVec3(10, 45, 33), PxForceMode::Enum::eIMPULSE);
+		break;
 	}
 }
 

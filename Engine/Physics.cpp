@@ -29,7 +29,6 @@ HRESULT Physics::Init()
 							//static friction, dynamic friction, restitution
 	mMaterial = gPhysicsSDK->createMaterial(0.5, 0.5, 0.5);
 
-	//1-Creating static plane
 	PxTransform planePos = PxTransform(PxVec3(0.0f, 0, 0.0f), 
 		PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
 
@@ -41,6 +40,8 @@ HRESULT Physics::Init()
 	PxBoxGeometry boxGeometry(PxVec3(0.5f, 0.5f, 0.5f));
 	gBox = PxCreateDynamic(*gPhysicsSDK, boxPos, boxGeometry, *mMaterial, 1.0f);
 	gScene->addActor(*gBox);
+
+	NumberRigDyn.push_back(gBox);
 
 	return S_OK;
 }
@@ -57,6 +58,26 @@ void Physics::Simulation()
 		std::string buffAsStdStr = buff;
 		OutputDebugStringA(buffAsStdStr.c_str());
 	}
+}
+
+void Physics::SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3)
+{
+	RigDyn->getScene()->setGravity(Vec3);
+}
+
+void Physics::SetMass(PxRigidDynamic *RigDyn, PxReal Mass)
+{
+	RigDyn->setMass(Mass);
+}
+
+void Physics::AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode)
+{
+	RigDyn->addTorque(Vec3, ForceMode);
+}
+
+vector<PxRigidDynamic*> Physics::GetPhysObject()
+{
+	return NumberRigDyn;
 }
 
 void Physics::Destroy()

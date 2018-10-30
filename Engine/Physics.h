@@ -46,7 +46,16 @@ class Physics
 {
 public:
 	HRESULT Init();
+
 	void Simulation();
+
+	void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3);
+
+	void SetMass(PxRigidDynamic *RigDyn, PxReal Mass);
+
+	void AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode);
+
+	vector<PxRigidDynamic*> GetPhysObject();
 
 	void Destroy();
 
@@ -56,12 +65,15 @@ public:
 private:
 	PxDefaultErrorCallback gDefaultErrorCallback;
 	PxDefaultAllocator gDefaultAllocatorCallback;
+
 	PxFoundation *gFoundation = nullptr;
 	PxPhysics *gPhysicsSDK = nullptr;
 	PxMaterial* mMaterial = nullptr;
 	PxScene* gScene = nullptr;
 	PxRigidStatic* plane = nullptr;
 	PxRigidDynamic*gBox = nullptr;
+
+	vector<PxRigidDynamic*> NumberRigDyn;
 
 	PxReal myTimestep = 1.0f / 60.0f;
 };
