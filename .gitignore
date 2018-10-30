@@ -13,11 +13,9 @@
 # Precompiled Headers
 *.gch
 *.pch
-*.dll
 
 # PBAX
 *.ipch 
-
 
 # Compiled Dynamic libraries
 *.so
@@ -49,9 +47,6 @@
 *.opendb
 *.pdb
 *.idb
-
-# User file solution
-
 
 # Log File
 *.ilk

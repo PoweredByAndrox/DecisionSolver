@@ -10,6 +10,7 @@
 
 #include "File_system.h"
 #include "Models.h"
+#include "Physics.h"
 
 #ifdef DEBUG
 #include <d3d11sdklayers.h>
@@ -30,6 +31,7 @@ D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 
 File_system t;
 //Models *Model;
+auto PhysX = std::make_unique<Physics>();
 
 CFirstPersonCamera g_Camera;
 CDXUTDialogResourceManager g_DialogResourceManager;
@@ -83,6 +85,8 @@ void InitApp()
 	g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.001f, 4.0f);
 	g_Camera.SetRotateButtons(true, true, true);
+
+	PhysX->Init();
 }
 
 HRESULT LoadTextureArray(ID3D11Device* pd3dDevice, vector<wstring> szTextureNames, int iNumTextures,
@@ -302,6 +306,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
+	PhysX->Simulation();
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -316,7 +321,7 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pLayout);
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
-
+	PhysX->Destroy();
 //	Model->Close();
 }
 

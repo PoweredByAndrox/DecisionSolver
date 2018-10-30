@@ -35,8 +35,6 @@ using namespace spdlog;
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dx11.lib")
 #pragma comment (lib, "DxErr.lib")
-//#pragma comment (lib, "d3dx11d.lib")
-//#pragma comment (lib, "d3dxof.lib")
 #pragma comment (lib, "Dxgi.lib")
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "D3DCompiler.lib")
