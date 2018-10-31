@@ -23,10 +23,14 @@
 #include "SDKmisc.h"
 #include "DXUTmisc.h"
 
+using namespace DirectX;
+
+#ifdef define 0
 	// Maybe this doesn't cause errors?
 #define SPDLOG_TRACE_ON
 #include "spdlog/spdlog.h"
 using namespace spdlog;
+#endif
 
 #pragma comment (lib, "d3d9.lib")
 #pragma comment (lib, "d3dx9.lib")

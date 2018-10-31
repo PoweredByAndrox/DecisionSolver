@@ -50,6 +50,7 @@ void Physics::Simulation()
 {
 	gScene->simulate(myTimestep);
 	gScene->fetchResults(true);
+#ifdef DEBUG
 	for (int i = 0; i <= 300; i++)
 	{
 		PxVec3 boxPos = gBox->getGlobalPose().p;
@@ -58,6 +59,7 @@ void Physics::Simulation()
 		std::string buffAsStdStr = buff;
 		OutputDebugStringA(buffAsStdStr.c_str());
 	}
+#endif
 }
 
 void Physics::SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3)

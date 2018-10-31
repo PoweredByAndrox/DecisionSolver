@@ -1,4 +1,6 @@
 #pragma once
+#ifndef __TEXTURES_H__
+#define __TEXTURES_H__
 #include "pch.h"
 
 #ifdef _MSC_VER
@@ -20,3 +22,5 @@ HRESULT CreateWICTextureFromFile(_In_z_ const wchar_t* szFileName,
 	_Out_opt_ ID3D11Resource** texture,
 	_Out_opt_ ID3D11ShaderResourceView** textureView,
 	_In_ size_t maxsize = 0);
+#endif // !__TEXTURES_H__
+

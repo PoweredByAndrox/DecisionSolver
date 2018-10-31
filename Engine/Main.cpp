@@ -9,7 +9,11 @@
 #include <d3dx9.h>
 
 #include "File_system.h"
+
+#ifndef _M_X64
 #include "Models.h"
+#endif
+
 #include "Physics.h"
 
 #ifdef DEBUG
@@ -29,9 +33,9 @@ D3DXVECTOR3 Eye(0.0f, 3.0f, -6.0f);
 D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
 D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 
-File_system t;
+auto file_system = make_unique<File_system>();
 //Models *Model;
-auto PhysX = std::make_unique<Physics>();
+auto PhysX = make_unique<Physics>();
 
 CFirstPersonCamera g_Camera;
 CDXUTDialogResourceManager g_DialogResourceManager;
@@ -55,12 +59,6 @@ XMVECTORF32 _Color[9] =
 	DirectX::Colors::SkyBlue
 };
 
-struct ConstantBuffer {
-	XMMATRIX mWorld;
-	XMMATRIX mView;
-	XMMATRIX mProjection;
-};
-
 #define BUTTON_1 1
 #define BUTTON_2 2
 #define BUTTON_3 3
@@ -77,7 +75,7 @@ void InitApp()
 	g_HUD.SetCallback(OnGUIEvent);
 	int iY = 10;
 	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22);
-	g_HUD.AddButton(BUTTON_2, L"Some-Button#2", 35, iY += 24, 125, 22, VK_F3);
+	g_HUD.AddButton(BUTTON_2, L"Do torque a phys box", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
 	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 100, 120, 60, 50);
 
@@ -198,37 +196,71 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	}
 }
 
+	// Need to move in shader class!!!
+HRESULT CompileShaderFromFile(LPCTSTR szFileName, LPCSTR szEntryPoINT, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
+{
+	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+
+#if defined(DEBUG) || defined(_DEBUG)
+	dwShaderFlags |= D3DCOMPILE_DEBUG;
+#endif
+
+	ID3DBlob* pErrorBlob;
+
+	if (FAILED(hr = D3DX11CompileFromFile(szFileName, NULL, NULL, szEntryPoINT, szShaderModel,
+		dwShaderFlags, NULL, NULL, ppBlobOut, &pErrorBlob, NULL)))
+	{
+		if (pErrorBlob != NULL)
+#ifdef DEBUG
+			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer()); 
+#elif !defined(DEBUG)
+			MessageBoxA(DXUTGetHWND(), 
+				string(string("Error in 220. Shader compiller is failed with text: ") + 
+				string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+#endif
+		SAFE_RELEASE(pErrorBlob);
+		return hr;
+	}
+	SAFE_RELEASE(pErrorBlob);
+	return S_OK;
+}
+
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
+	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
+	
+#ifdef DEBUG
 	dwShaderFlags |= D3DXSHADER_DEBUG;
-
-	UINT uFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_DEBUG;
+	dwShaderFlags |= D3DCOMPILE_DEBUG;
+#endif
 
 	V_RETURN(g_DialogResourceManager.OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
 
 	ID3DBlob *VS = nullptr, *PS = nullptr;
-	V_RETURN(D3DCompileFromFile(t.GetResPathW(&wstring(L"VertexShader.hlsl")), 0, 
-		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", uFlags, 0, &VS, nullptr));
-	
-	V_RETURN(D3DCompileFromFile(t.GetResPathW(&wstring(L"PixelShader.hlsl")), 0,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", uFlags, 0, &PS, nullptr));
+	V_RETURN(D3DCompileFromFile(file_system->GetResPathW(&wstring(L"VertexShader.hlsl")), 0,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", dwShaderFlags, 0, &VS, nullptr));
+
+	V_RETURN(D3DCompileFromFile(file_system->GetResPathW(&wstring(L"PixelShader.hlsl")), 0,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", dwShaderFlags, 0, &PS, nullptr));
 
 	V_RETURN(pd3dDevice->CreateVertexShader(VS->GetBufferPointer(),
 		VS->GetBufferSize(), NULL, &g_pVS));
 
 	V_RETURN(pd3dDevice->CreatePixelShader(PS->GetBufferPointer(),
 		PS->GetBufferSize(), NULL, &g_pPS));
-	
+
+#ifdef DEBUG
 	DXUT_SetDebugName(g_pVS, "VS");
 	DXUT_SetDebugName(g_pPS, "PS");
+#endif
 
 	// Define the input layout
 	const D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
 						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
@@ -236,10 +268,13 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	//// Create the input layout
 	V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, VS->GetBufferPointer(),
 		VS->GetBufferSize(), &g_pLayout));
+
+#ifdef DEBUG
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
+#endif
 
 	//Model = new Models;
-	//if (!Model->Load(t.GetResPathA(&string("New.obj"))))
+	//if (!Model->Load(file_system->GetResPathA(&string("New.obj"))))
 	//	t.GetPath();
 
 	// Initialize the world matrices
@@ -248,9 +283,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	// Initialize the view matrix
 	D3DXMatrixLookAtLH(&g_View, &Eye, &At, &Up);
 
-	//// Setup the camera's view parameters
-    g_Camera.SetViewParams(XMVectorSet(0.f, 0.f, -300.f, 0.f), XMVectorSet(10.0f, 20.0f, 0.0f, 0.f));
-
+	// Setup the camera's view parameters
+    g_Camera.SetViewParams(XMVectorSet(Eye.x, Eye.y, Eye.z, 1.f), XMVectorSet(At.x, At.y, At.z, 1.f));
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
 

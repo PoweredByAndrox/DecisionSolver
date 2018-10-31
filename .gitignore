@@ -62,3 +62,5 @@
 # Solution VC DB
 *Solution.VC.db-wal
 *Solution.VC.db-shm
+*.iobj
+*.ipdb

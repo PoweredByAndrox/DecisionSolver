@@ -16,7 +16,7 @@
 
 #include <foundation/PxFoundation.h>
 
-#ifdef _DEBUG
+#if defined(DEBUG) && defined(WIN32)
 #pragma comment(lib, "PhysX3DEBUG_x86.lib")
 #pragma comment(lib, "PhysX3CommonDEBUG_x86.lib")
 #pragma comment(lib, "PxFoundationDEBUG_x86.lib")
@@ -27,7 +27,15 @@
 #pragma comment(lib, "PhysX3CharacterKinematicDEBUG_x86.lib")
 #pragma comment(lib, "PhysX3CookingDEBUG_x86.lib")
 #pragma comment(lib, "PxTaskDEBUG_x86")
-#else
+#elif defined(DEBUG) && defined(_M_X64)
+#pragma comment(lib, "PhysX3DEBUG_x64.lib")
+#pragma comment(lib, "PhysX3CommonDEBUG_x64.lib")
+#pragma comment(lib, "PxFoundationDEBUG_x64.lib")
+#pragma comment(lib, "PxPvdSDKDEBUG_x64.lib")
+#pragma comment(lib, "PhysX3CharacterKinematicDEBUG_x64.lib")
+#pragma comment(lib, "PhysX3CookingDEBUG_x64.lib")
+#pragma comment(lib, "PxTaskDEBUG_x64")
+#elif !defined(_M_X64)
 #pragma comment(lib, "PhysX3_x86.lib")
 #pragma comment(lib, "PhysX3Common_x86.lib")
 #pragma comment(lib, "PhysX3Extensions.lib")
@@ -37,6 +45,19 @@
 #pragma comment(lib, "SimulationController.lib")
 #pragma comment(lib, "PhysX3CharacterKinematic_x86.lib")
 #pragma comment(lib, "PhysX3Cooking_x86.lib")
+#pragma comment(lib, "PxTask_x86")
+#elif defined(_M_X64)
+#pragma comment(lib, "PhysX3CharacterKinematic_x64.lib")
+#pragma comment(lib, "PhysX3Cooking_x64.lib")
+#pragma comment(lib, "PxTask_x64")
+#pragma comment(lib, "SceneQuery.lib")
+#pragma comment(lib, "PhysX3Common_x64.lib")
+#pragma comment(lib, "PxFoundation_x64.lib")
+#pragma comment(lib, "PxPvdSDK_x64.lib")
+#pragma comment(lib, "PhysX3_x64.lib")
+#pragma comment(lib, "PxPvdSDK_x64.lib")
+#pragma comment(lib, "PhysX3Extensions.lib")
+
 #endif
 
 using namespace std;

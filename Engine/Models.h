@@ -1,6 +1,7 @@
 #pragma once
 #include "pch.h"
-
+#ifndef __MODELS_H__
+#define __MODELS_H__
 #include <assimp\Importer.hpp>
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
@@ -48,4 +49,4 @@ private:
 		this->HWND = DXUTGetHWND();
 	}
 };
-
+#endif // !__MODELS_H__

@@ -1,4 +1,6 @@
 #pragma once
+#ifndef __MESH_H__
+#define __MESH_H__
 #include "pch.h"
 
 using namespace DirectX;
@@ -109,3 +111,4 @@ private:
 		this->Device1 = DXUTGetD3D11DeviceContext();
 	}
 };
+#endif // !__MESH_H__

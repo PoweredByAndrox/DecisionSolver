@@ -1,4 +1,7 @@
 #pragma once
+#ifndef __FILE_SYSTEM_H__
+#define __FILE_SYSTEM_H__
+
 #include "boost/filesystem.hpp"
 
 using namespace std;
@@ -30,4 +33,4 @@ private:
 	void TestMsgBox(LPCSTR text);
 	void TestMsgBox(LPCSTR Text, LPCSTR CaptionText, int MButtons = MB_OK);
 };
-
+#endif // !__FILE_SYSTEM_H__
