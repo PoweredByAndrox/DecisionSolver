@@ -10,7 +10,7 @@
 
 #include "File_system.h"
 
-#ifndef _M_X64
+#if defined(Never)
 #include "Models.h"
 #endif
 
@@ -34,7 +34,11 @@ D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
 D3DXVECTOR3 Up(0.0f, 1.0f, 0.0f);
 
 auto file_system = make_unique<File_system>();
-//Models *Model;
+
+#if defined(Never)
+auto Model = make_unique<Models>();
+#endif
+
 auto PhysX = make_unique<Physics>();
 
 CFirstPersonCamera g_Camera;
@@ -273,9 +277,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 #endif
 
-	//Model = new Models;
-	//if (!Model->Load(file_system->GetResPathA(&string("New.obj"))))
-	//	t.GetPath();
+#if defined(Never)
+	Model = new Models;
+	if (!Model->Load(file_system->GetResPathA(&string("New.obj"))))
+		t.GetPath(); // TEST FUNC!
+#endif
 
 	// Initialize the world matrices
 	D3DXMatrixIdentity(&g_World);
@@ -334,7 +340,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	D3DXMATRIX mProj;
 	D3DXMATRIX mWorldViewProj;
 
-	//Model->Draw();
+#if defined(Never)
+	Model->Draw();
+#endif
+	
 	V(g_HUD.OnRender(fElapsedTime));
 
 #ifdef DEBUG
@@ -359,7 +368,10 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
 	PhysX->Destroy();
-//	Model->Close();
+
+#if defined(Never)
+	Model->Close();
+#endif
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,

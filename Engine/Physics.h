@@ -16,7 +16,7 @@
 
 #include <foundation/PxFoundation.h>
 
-#if defined(DEBUG) && defined(WIN32)
+#if defined(DEBUG) && !defined(_M_X64)
 #pragma comment(lib, "PhysX3DEBUG_x86.lib")
 #pragma comment(lib, "PhysX3CommonDEBUG_x86.lib")
 #pragma comment(lib, "PxFoundationDEBUG_x86.lib")
@@ -31,7 +31,10 @@
 #pragma comment(lib, "PhysX3DEBUG_x64.lib")
 #pragma comment(lib, "PhysX3CommonDEBUG_x64.lib")
 #pragma comment(lib, "PxFoundationDEBUG_x64.lib")
+#pragma comment(lib, "PhysX3ExtensionsDEBUG.lib")
 #pragma comment(lib, "PxPvdSDKDEBUG_x64.lib")
+#pragma comment(lib, "SceneQueryDEBUG.lib")
+#pragma comment(lib, "SimulationControllerDEBUG.lib")
 #pragma comment(lib, "PhysX3CharacterKinematicDEBUG_x64.lib")
 #pragma comment(lib, "PhysX3CookingDEBUG_x64.lib")
 #pragma comment(lib, "PxTaskDEBUG_x64")
