@@ -71,17 +71,21 @@ XMVECTORF32 _Color[9] =
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
+int iY = 10;
+
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
 void InitApp()
 {
 	g_HUD.Init(&g_DialogResourceManager);
 	g_HUD.SetCallback(OnGUIEvent);
-	int iY = 10;
+	
 	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22);
 	g_HUD.AddButton(BUTTON_2, L"Do torque a phys box", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
-	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 100, 120, 60, 50);
+
+	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 35,
+		90, 60, 50);
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	g_Camera.SetEnableYAxisMovement(false);
@@ -232,6 +236,9 @@ HRESULT CompileShaderFromFile(LPCTSTR szFileName, LPCSTR szEntryPoINT, LPCSTR sz
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+
+	InitApp();
+
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 	
@@ -304,9 +311,14 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.5f, 5000.0f);
+	int X = pBackBufferSurfaceDesc->Width - 170;
+	int Y = 15;
+	g_HUD.GetButton(1)->SetLocation(X, Y);
+	g_HUD.GetButton(2)->SetLocation(X, Y += 25);
+	g_HUD.GetButton(3)->SetLocation(X, Y += 20);
 
-	g_HUD.SetLocation(pBackBufferSurfaceDesc->Width - 170, 0);
-	g_HUD.SetSize(170, 170);
+	//g_HUD.GetButton(i)->SetSize(170, 170);
+
 	return S_OK;
 }
 
@@ -316,9 +328,13 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime,
 	g_Camera.FrameMove(fElapsedTime);
 }
 
+vector<D3DXVECTOR3> Mass;
+
+#include <boost/format.hpp>
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
+	USES_CONVERSION;
 	//
 	// Clear the back buffer
 	//
@@ -353,6 +369,15 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif
 
 	PhysX->Simulation();
+//pBackBufferSurfaceDesc->Width - 170
+	Mass = { Eye };
+	char buff[100];
+	snprintf(buff, sizeof(buff), "\nCam Pos: X:%.1f, Y:%.1f, Z:%.1f\n", Mass.data()->x, Mass.data()->y, Mass.data()->z);
+
+	g_HUD.GetStatic(STATIC_TEXT)->SetText(A2W(buff));
+											//UP  DOWN
+	g_HUD.GetStatic(STATIC_TEXT)->SetLocation(0, 10);
+	Mass.clear();
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -423,8 +448,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
 		DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
 		DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
-
-		InitApp();
 
 		CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
