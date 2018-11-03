@@ -10,3 +10,6 @@
 [submodule "submodules/Boost"]
 	path = submodules/Boost
 	url = https://github.com/boostorg/boost
+[submodule "submodules/FX11"]
+	path = submodules/FX11
+	url = https://github.com/Microsoft/FX11
