@@ -75,6 +75,11 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 				*File = ResPath + wstring(L"shaders//") + wstring(*File);
 				return File->c_str();
 			}
+			else if (ext == ".png" || ext == ".dds")
+			{
+				*File = ResPath + wstring(L"textures//") + wstring(*File);
+				return File->c_str();
+			}
 	}
 	else
 		return L"";
@@ -102,29 +107,6 @@ wstring File_system::GetResPathW(string *File)
 			{
 				*File = ResPath + string("shaders//") + *File;
 				return A2W(File->c_str());
-			}
-	}
-	else
-		return L"";
-}
-
-LPCTSTR File_system::GetResPathW(LPCTSTR File)
-{
-	auto static wsFile = wstring(File);
-	if (!p.empty())
-	{
-		auto static ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
-		auto ext = boost::filesystem::extension(File);
-		if (!ResPath.empty())
-			if (ext == ".sdkmesh" || ext == ".obj")
-			{
-				ResPath = ResPath + wstring(L"models//") + wstring(wsFile);
-				return ResPath.c_str();
-			}
-			else if (ext == ".dds" || ".png")
-			{
-				ResPath = ResPath + wstring(L"textures//") + wstring(wsFile);
-				return ResPath.c_str();
 			}
 	}
 	else

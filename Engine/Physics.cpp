@@ -77,6 +77,52 @@ void Physics::AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum F
 	RigDyn->addTorque(Vec3, ForceMode);
 }
 
+PxActor* Physics::GenTriangleMesh(PxVec3 pos, vector<short> indices, vector<float> vertices)
+{
+	int NumVerticies = vertices.size() / 3;
+	int NumTriangles = indices.size() / 3;
+
+	//Create pointer for vertices  
+	PxVec3* verts = new PxVec3[NumVerticies];
+	int ii = -1;
+	for (int i = 0; i < NumVerticies; i++)
+	{
+		++ii;
+		verts[i].x = vertices[ii];
+		verts[i].y = vertices[++ii];
+		verts[i].z = vertices[++ii];
+	}
+
+	//Create pointer for indices  
+	PxU16 *tris = new PxU16[indices.size()];
+	for (int i = indices.size() - 1; i >= 0; i--)
+		tris[i] = i;
+
+	// Build physical model  
+	//PxTriangleMeshDesc TriMeshDesc;
+	//TriMeshDesc.numVertices = NumVerticies;
+	//TriMeshDesc.numTriangles = NumTriangles;
+	//TriMeshDesc.pointStrideBytes = sizeof(PxVec3);
+	//TriMeshDesc.triangleStrideBytes = 3 * sizeof(PxU16);
+	//TriMeshDesc.points = verts;
+	//TriMeshDesc.triangles = tris;
+	//TriMeshDesc.flags = NX_MF_16_BIT_INDICES;//| NX_MF_FLIPNORMALS ;  
+	//PxTriangleMeshShapeDesc ShapeDesc;
+	//PxInitCooking();
+
+	// Cooking from memory  
+	//MemoryWriteBuffer buf;
+	//bool status = PxCookTriangleMesh(TriMeshDesc, buf);
+	//ShapeDesc.meshData = gPhysicsSDK->createTriangleMesh(MemoryReadBuffer(buf.data));
+	//PxActorDesc actorDesc;
+	//actorDesc.shapes.pushBack(&ShapeDesc);
+	//actorDesc.globalPose.t = pos;
+	//PxActor* act = gScene->createActor(actorDesc);
+	delete[] verts;
+	delete[] tris;
+	return nullptr;
+}
+
 vector<PxRigidDynamic*> Physics::GetPhysObject()
 {
 	return NumberRigDyn;

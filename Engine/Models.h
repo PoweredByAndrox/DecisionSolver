@@ -18,6 +18,8 @@ public:
 	bool Load(string Filename);
 	void Draw();
 
+	vector<float> GetVertices(void);
+	vector<short> GetIndices(void);
 	void Close();
 	Models() {}
 	~Models(){}

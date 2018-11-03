@@ -14,7 +14,7 @@ VOut main(float4 pos : POSITION, float2 texcoord : TEXCOORD)
 {
 	VOut output;
 
-	output.pos = mul(pos, World);
+	output.pos = mul(pos, 1);
 	output.pos = mul(output.pos, View);
 	output.pos = mul(output.pos, Projection);
 	output.texcoord = texcoord;

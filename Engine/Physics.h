@@ -81,6 +81,8 @@ public:
 
 	vector<PxRigidDynamic*> GetPhysObject();
 
+	PxActor* GenTriangleMesh(PxVec3 pos, vector<short> indices, vector<float> vertices);
+
 	void Destroy();
 
 	Physics() {}

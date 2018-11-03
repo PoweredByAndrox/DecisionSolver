@@ -25,8 +25,6 @@ public:
 	vector<wstring> GetResPathW(vector<wstring> *File[]);
 		// Getting one array from wstring to vector<wstring>
 	vector<wstring> GetResPathW(wstring File);
-		// Getting a resources file location
-	LPCTSTR GetResPathW(LPCTSTR File);
 
 private:
 	path p;

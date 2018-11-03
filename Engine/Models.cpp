@@ -22,6 +22,43 @@ void Models::Draw()
 		Meshes[i].Draw();
 }
 
+	// Function for work with PhysX (Need rework and connect to class physics)
+vector<float> Models::GetVertices(void)//LPD3DXMESH  *g_pMesh
+{
+	vector<float> vertices;
+	//DWORD stride = D3DXGetFVFVertexSize((*g_pMesh)->GetFVF());
+	BYTE* vbptr = NULL;
+	//(*g_pMesh)->LockVertexBuffer(0, (LPVOID*)&vbptr);
+	int ii = -1;
+	//for (int i = 0; i < (*g_pMesh)->GetNumVertices(); i++)
+	//{
+	//	ii++;
+	//	D3DXVECTOR3* pos = (D3DXVECTOR3*)vbptr;
+		//vertices.push_back(pos->x);
+		//vertices.push_back(pos->y);
+		//vertices.push_back(pos->z);
+		//vbptr += stride;
+	//}
+	//(*g_pMesh)->UnlockVertexBuffer();
+	return vertices;
+}
+
+	// It needs so
+vector<short> Models::GetIndices(void) //LPD3DXMESH *g_pMesh
+{
+	LPVOID * ppData;
+	DWORD stride = sizeof(short);
+	BYTE* ibptr = NULL;
+	//short* indices = new short[(*g_pMesh)->GetNumFaces() * 3];
+	vector<short> copy;
+	//(*g_pMesh)->LockIndexBuffer(0, (LPVOID*)&indices);
+//	for (int i = 0; i < (*g_pMesh)->GetNumFaces() * 3; i++)
+//		copy.push_back(indices[i]);
+
+//	(*g_pMesh)->UnlockIndexBuffer();
+	return copy;
+}
+
 Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 {
 	// Data to fill

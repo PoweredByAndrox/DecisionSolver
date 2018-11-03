@@ -2,9 +2,9 @@
 
 #include "DXUTCamera.h"
 #include "DXUTgui.h"
+#include "SDKmesh.h"
 
 #include <d3d11_1.h>
-
 #include <d3d9.h>
 #include <d3dx9.h>
 
@@ -19,15 +19,13 @@
 #ifdef DEBUG
 #include <d3d11sdklayers.h>
 #endif
+#include "d3dx11effect.h"
+#pragma comment(lib, "Effects11d.lib")
 
 ID3D11InputLayout  *g_pLayout = nullptr;
 
 ID3D11VertexShader *g_pVS = nullptr;
 ID3D11PixelShader  *g_pPS = nullptr;
-
-D3DXMATRIX g_World;
-D3DXMATRIX g_View;
-D3DXMATRIX g_Projection;
 
 D3DXVECTOR3 Eye(0.0f, 3.0f, -6.0f);
 D3DXVECTOR3 At(0.0f, 1.0f, 0.0f);
@@ -63,15 +61,32 @@ XMVECTORF32 _Color[9] =
 	DirectX::Colors::SkyBlue
 };
 
+struct ConstantBuffer 
+{
+	XMMATRIX mWorld;
+	XMMATRIX mView;
+	XMMATRIX mProjection;
+};
+
+ID3D11SamplerState *TexSamplerState;
+ID3D11Buffer *pConstantBuffer;
+
 #define BUTTON_1 1
 #define BUTTON_2 2
 #define BUTTON_3 3
 #define STATIC_TEXT 4
-
+#define EDITBOX 5
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
 int iY = 10;
+
+ID3D11InputLayout* g_pVertexLayout = NULL;
+
+CDXUTSDKMesh g_Mesh;
+D3DXMATRIX g_World;
+D3DXMATRIX g_View;
+D3DXMATRIX g_Projection;
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
@@ -84,13 +99,12 @@ void InitApp()
 	g_HUD.AddButton(BUTTON_2, L"Do torque a phys box", 35, iY += 24, 125, 22, VK_F3);
 	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
 
-	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 35,
-		90, 60, 50);
+	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 35, 90, 60, 50);
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
-	g_Camera.SetEnableYAxisMovement(false);
-	g_Camera.SetScalers(0.001f, 4.0f);
-	g_Camera.SetRotateButtons(true, true, true);
+	//g_Camera.SetEnableYAxisMovement(false);
+	g_Camera.SetScalers(0.010f, 6.0f);
+	g_Camera.SetRotateButtons(true, true, true, true);
 
 	PhysX->Init();
 }
@@ -193,6 +207,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	CDXUTControl* pControl, void* pUserContext)
 {
+	WCHAR wszOutput[1024];
 	switch (nControlID)
 	{
 	case BUTTON_1:
@@ -268,16 +283,16 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	// Define the input layout
-	const D3D11_INPUT_ELEMENT_DESC layout[] =
+	const D3D11_INPUT_ELEMENT_DESC layout1[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
 						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	UINT numElements = sizeof(layout) / sizeof(layout[0]);
+	UINT numElements = sizeof(layout1) / sizeof(layout1[0]);
 	//// Create the input layout
-	V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, VS->GetBufferPointer(),
+	V_RETURN(pd3dDevice->CreateInputLayout(layout1, numElements, VS->GetBufferPointer(),
 		VS->GetBufferSize(), &g_pLayout));
 
 #ifdef DEBUG
@@ -287,7 +302,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #if defined(Never)
 	Model = new Models;
 	if (!Model->Load(file_system->GetResPathA(&string("New.obj"))))
-		t.GetPath(); // TEST FUNC!
+		file_system->GetPath(); // TEST FUNC!
 #endif
 
 	// Initialize the world matrices
@@ -297,10 +312,34 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	D3DXMatrixLookAtLH(&g_View, &Eye, &At, &Up);
 
 	// Setup the camera's view parameters
-    g_Camera.SetViewParams(XMVectorSet(Eye.x, Eye.y, Eye.z, 1.f), XMVectorSet(At.x, At.y, At.z, 1.f));
+    //g_Camera.SetViewParams(XMVectorSet(Eye.x, Eye.y, Eye.z, 1.f), XMVectorSet(At.x, At.y, At.z, 1.f));
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
+	
+	D3D11_BUFFER_DESC bd;
+	ZeroMemory(&bd, sizeof(bd));
 
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	V_RETURN(pd3dDevice->CreateBuffer(&bd, nullptr, &pConstantBuffer));
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	V_RETURN(pd3dDevice->CreateSamplerState(&sampDesc, &TexSamplerState));
+
+	V_RETURN(g_Mesh.Create(pd3dDevice, file_system->GetResPathW(&wstring(L"tiny.sdkmesh"))));
+	
 	return S_OK;
 }
 
@@ -316,7 +355,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	g_HUD.GetButton(1)->SetLocation(X, Y);
 	g_HUD.GetButton(2)->SetLocation(X, Y += 25);
 	g_HUD.GetButton(3)->SetLocation(X, Y += 20);
-
+		
 	//g_HUD.GetButton(i)->SetSize(170, 170);
 
 	return S_OK;
@@ -325,12 +364,20 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, 
 	void* pUserContext)
 {
+	// Заполняем матрицу вращения
+	//D3DXMatrixRotationY(&g_World, t);
 	g_Camera.FrameMove(fElapsedTime);
 }
 
-vector<D3DXVECTOR3> Mass;
+vector<XMVECTOR> Mass;
 
-#include <boost/format.hpp>
+XMMATRIX GetMatrix(D3DMATRIX Thing)
+{
+	return XMMatrixSet(Thing._11, Thing._12, Thing._13, Thing._14, Thing._21,
+		Thing._22, Thing._23, Thing._24, Thing._31, Thing._32, Thing._33,
+		Thing._34, Thing._41, Thing._42, Thing._43, Thing._44);
+}
+
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
@@ -350,11 +397,20 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	//
 	// Set the Vertex Layout
 	//
-	pd3dImmediateContext->IASetInputLayout(g_pLayout);
+	pd3dImmediateContext->IASetInputLayout(g_pVertexLayout);
+		
+	ConstantBuffer cb;
+	cb.mWorld = XMMatrixTranspose(g_Camera.GetWorldMatrix()); //GetMatrix(g_World) );
+	cb.mView = XMMatrixTranspose(g_Camera.GetViewMatrix()); //GetMatrix(g_View));
+	cb.mProjection = XMMatrixTranspose(g_Camera.GetProjMatrix()); //GetMatrix(g_Projection));
+	pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
-	D3DXMATRIX mView;
-	D3DXMATRIX mProj;
-	D3DXMATRIX mWorldViewProj;
+	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
+	pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
+	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
+	pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
+
+	g_Mesh.Render(pd3dImmediateContext);
 
 #if defined(Never)
 	Model->Draw();
@@ -369,10 +425,12 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif
 
 	PhysX->Simulation();
-//pBackBufferSurfaceDesc->Width - 170
-	Mass = { Eye };
+
+	Mass = { g_Camera.GetEyePt() };
 	char buff[100];
-	snprintf(buff, sizeof(buff), "\nCam Pos: X:%.1f, Y:%.1f, Z:%.1f\n", Mass.data()->x, Mass.data()->y, Mass.data()->z);
+
+	snprintf(buff, sizeof(buff), "\nCam Pos: X:%.1f, Y:%.1f, Z:%.1f\n",
+		Mass.data()->m128_f32[0],  Mass.data()->m128_f32[1], Mass.data()->m128_f32[2]);
 
 	g_HUD.GetStatic(STATIC_TEXT)->SetText(A2W(buff));
 											//UP  DOWN
@@ -392,6 +450,10 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pLayout);
 	SAFE_RELEASE(g_pVS);
 	SAFE_RELEASE(g_pPS);
+	SAFE_RELEASE(g_pVertexLayout);
+	pConstantBuffer->Release();
+
+	g_Mesh.Destroy();
 	PhysX->Destroy();
 
 #if defined(Never)
