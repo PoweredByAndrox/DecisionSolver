@@ -13,3 +13,6 @@
 [submodule "submodules/FX11"]
 	path = submodules/FX11
 	url = https://github.com/Microsoft/FX11
+[submodule "submodules/DXTK"]
+	path = submodules/DXTK
+	url = https://github.com/Microsoft/DirectXTK
