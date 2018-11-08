@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "Models.h"
 
 bool Models::Load(string Filename)
@@ -20,43 +19,6 @@ void Models::Draw()
 {
 	for (size_t i = 0; i < Meshes.size(); i++)
 		Meshes[i].Draw();
-}
-
-	// Function for work with PhysX (Need rework and connect to class physics)
-vector<float> Models::GetVertices(void)//LPD3DXMESH  *g_pMesh
-{
-	vector<float> vertices;
-	//DWORD stride = D3DXGetFVFVertexSize((*g_pMesh)->GetFVF());
-	BYTE* vbptr = NULL;
-	//(*g_pMesh)->LockVertexBuffer(0, (LPVOID*)&vbptr);
-	int ii = -1;
-	//for (int i = 0; i < (*g_pMesh)->GetNumVertices(); i++)
-	//{
-	//	ii++;
-	//	D3DXVECTOR3* pos = (D3DXVECTOR3*)vbptr;
-		//vertices.push_back(pos->x);
-		//vertices.push_back(pos->y);
-		//vertices.push_back(pos->z);
-		//vbptr += stride;
-	//}
-	//(*g_pMesh)->UnlockVertexBuffer();
-	return vertices;
-}
-
-	// It needs so
-vector<short> Models::GetIndices(void) //LPD3DXMESH *g_pMesh
-{
-	LPVOID * ppData;
-	DWORD stride = sizeof(short);
-	BYTE* ibptr = NULL;
-	//short* indices = new short[(*g_pMesh)->GetNumFaces() * 3];
-	vector<short> copy;
-	//(*g_pMesh)->LockIndexBuffer(0, (LPVOID*)&indices);
-//	for (int i = 0; i < (*g_pMesh)->GetNumFaces() * 3; i++)
-//		copy.push_back(indices[i]);
-
-//	(*g_pMesh)->UnlockIndexBuffer();
-	return copy;
 }
 
 Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
@@ -111,7 +73,7 @@ Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 	return Mesh(vertices, indices, textures);
 }
 
-vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
+vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
 {
 	vector<Texture> textures;
 	for (UINT i = 0; i < mat->GetTextureCount(type); i++)
@@ -143,12 +105,12 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 				if (Device == nullptr)
 					GetD3DDevice();
 
-				if (FAILED(hr = CreateWICTextureFromFile(File_system::GetResPathW(&string(str.C_Str())).c_str(),
+				if (FAILED(hr = CreateWICTextureFromFile(GetResPathW(&string(str.C_Str())).c_str(),
 					nullptr, &texture.texture)))
 				{
-					if (HWND == NULL)
+					if (hwnd == NULL)
 						GetD3DHWND();
-					MessageBoxA(HWND, "Texture couldn't be loaded", "Error!", MB_ICONERROR | MB_OK);
+					MessageBoxA(hwnd, "Texture couldn't be loaded", "Error!", MB_ICONERROR | MB_OK);
 				}
 			}
 			texture.type = typeName;
@@ -213,11 +175,12 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (Device == nullptr)
 		GetD3DDevice();
 
+		// Need to reformat this code for a new submodule
 	if (FAILED(hr = CreateWICTextureFromMemory(
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData),  *size, nullptr, &texture)))
-		if (HWND == NULL)
+		if (hwnd == NULL)
 			GetD3DHWND();
-	MessageBoxA(HWND, "Texture couldn't be created from memory!", "Error!", MB_ICONERROR | MB_OK);
+	MessageBoxA(hwnd, "Texture couldn't be created from memory!", "Error!", MB_ICONERROR | MB_OK);
 
 	return texture;
 }

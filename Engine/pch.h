@@ -24,8 +24,9 @@
 #include "DXUTmisc.h"
 
 using namespace DirectX;
+using namespace std;
 
-#ifdef define 0
+#if defined(Never)
 	// Maybe this doesn't cause errors?
 #define SPDLOG_TRACE_ON
 #include "spdlog/spdlog.h"

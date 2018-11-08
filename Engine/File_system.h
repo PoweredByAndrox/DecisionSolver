@@ -11,9 +11,7 @@ class File_system
 {
 public:
 	File_system();
-	~File_system();
-
-	void GetPath(); // Test Func
+	~File_system() {}
 
 		// Ansi (const char*)
 	LPCSTR GetResPathA(string *File);

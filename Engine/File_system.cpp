@@ -20,15 +20,6 @@ File_system::File_system()
 		TestMsgBox("Error in getting path. Class_File_System. Line: 11", "ERROR!");
 }
 
-File_system::~File_system()
-{
-}
-
-void File_system::GetPath()
-{
-	TestMsgBox(p.root_path().generic_string().c_str());
-}
-
 LPCSTR File_system::GetResPathA(string *File)
 {
 	if (!p.empty())

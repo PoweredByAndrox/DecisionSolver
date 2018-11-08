@@ -3,25 +3,24 @@
 #define __MESH_H__
 #include "pch.h"
 
-using namespace DirectX;
-using namespace std;
-
-struct VERTEX {
-	FLOAT X, Y, Z;
-	XMFLOAT2 texcoord;
-};
-
-struct Texture {
-	string type;
-	string path;
-	ID3D11ShaderResourceView *texture;
-};
-
-class Mesh 
+class Mesh
 {
 public:
-	Mesh()  {}
+	Mesh() {}
 	~Mesh() {}
+
+	struct VERTEX
+	{
+		FLOAT X, Y, Z;
+		XMFLOAT2 texcoord;
+	};
+
+	struct Texture
+	{
+		string type;
+		string path;
+		ID3D11ShaderResourceView *texture;
+	};
 
 	vector<VERTEX> vertices;
 	vector<UINT> indices;
@@ -43,16 +42,15 @@ public:
 	{
 		UINT stride = sizeof(VERTEX);
 		UINT offset = 0;
-		if (Device1 == nullptr)
+		if (DeviceCon == nullptr)
 			GetD3DDevice1();
-		Device1->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
-		Device1->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		DeviceCon->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
+		DeviceCon->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-		Device1->PSSetShaderResources(0, 1, &textures[0].texture);
+		DeviceCon->PSSetShaderResources(0, 1, &textures[0].texture);
 
-		Device1->DrawIndexed(indices.size(), 0, 0);
+		DeviceCon->DrawIndexed(indices.size(), 0, 0);
 	}
-
 	void Close()
 	{
 		VertexBuffer->Release();
@@ -60,13 +58,13 @@ public:
 	}
 private:
 	ID3D11Device *Device = nullptr;
-	ID3D11DeviceContext *Device1 = nullptr;
+	ID3D11DeviceContext *DeviceCon = nullptr;
 
 	/*  Render data  */
 	ID3D11Buffer *VertexBuffer, *IndexBuffer;
 
-	/*  Functions    */
-	// Initializes all the buffer objects/arrays
+/*  Functions    */
+// Initializes all the buffer objects/arrays
 	bool setupMesh()
 	{
 		HRESULT hr;
@@ -105,10 +103,10 @@ private:
 	{
 		this->Device = DXUTGetD3D11Device();
 	}
-	
+
 	void GetD3DDevice1()
 	{
-		this->Device1 = DXUTGetD3D11DeviceContext();
+		this->DeviceCon = DXUTGetD3D11DeviceContext();
 	}
 };
 #endif // !__MESH_H__
