@@ -171,7 +171,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Physics.cpp" />
-    <ClCompile Include="Textures.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="File_system.h" />
@@ -179,7 +178,6 @@
     <ClInclude Include="Models.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Physics.h" />
-    <ClInclude Include="Textures.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\shaders\PixelShader.hlsl">
