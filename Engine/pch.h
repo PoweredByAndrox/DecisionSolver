@@ -23,6 +23,9 @@
 #include "SDKmisc.h"
 #include "DXUTmisc.h"
 
+	// For ThrowIfFailed
+#include "../Src/PlatformHelpers.h"
+
 using namespace DirectX;
 using namespace std;
 

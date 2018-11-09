@@ -7,10 +7,11 @@
 #include <assimp\scene.h>
 #include <assimp\postprocess.h>
 
-#include "Textures.h"
 #include "Physics.h"
 #include "File_system.h"
 #include "Mesh.h"
+
+#include <WICTextureLoader.h>
 
 class Models: public Physics, public File_system, public Mesh
 {

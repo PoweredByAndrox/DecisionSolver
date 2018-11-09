@@ -105,13 +105,8 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 				if (Device == nullptr)
 					GetD3DDevice();
 
-				if (FAILED(hr = CreateWICTextureFromFile(GetResPathW(&string(str.C_Str())).c_str(),
-					nullptr, &texture.texture)))
-				{
-					if (hwnd == NULL)
-						GetD3DHWND();
-					MessageBoxA(hwnd, "Texture couldn't be loaded", "Error!", MB_ICONERROR | MB_OK);
-				}
+				ThrowIfFailed(CreateWICTextureFromFile(Device, GetResPathW(&string(str.C_Str())).c_str(),
+					nullptr, &texture.texture));
 			}
 			texture.type = typeName;
 			texture.path = str.C_Str();
@@ -175,12 +170,8 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (Device == nullptr)
 		GetD3DDevice();
 
-		// Need to reformat this code for a new submodule
-	if (FAILED(hr = CreateWICTextureFromMemory(
-		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData),  *size, nullptr, &texture)))
-		if (hwnd == NULL)
-			GetD3DHWND();
-	MessageBoxA(hwnd, "Texture couldn't be created from memory!", "Error!", MB_ICONERROR | MB_OK);
+	ThrowIfFailed(CreateWICTextureFromMemory(Device,
+		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
 
 	return texture;
 }
