@@ -3,6 +3,7 @@
 #define __FILE_SYSTEM_H__
 
 #include "boost/filesystem.hpp"
+#include <algorithm>
 
 using namespace std;
 using namespace boost::filesystem;
@@ -24,9 +25,11 @@ public:
 		// Getting one array from wstring to vector<wstring>
 	vector<wstring> GetResPathW(wstring File);
 
+		//********
+	vector<wstring> getFilesInFolder(wstring *File);
+	vector<wstring> getFilesInFolder(wstring *File, bool Recursive = false, bool onlyFile = false);
+
 private:
 	path p;
-	void TestMsgBox(LPCSTR text);
-	void TestMsgBox(LPCSTR Text, LPCSTR CaptionText, int MButtons = MB_OK);
 };
 #endif // !__FILE_SYSTEM_H__

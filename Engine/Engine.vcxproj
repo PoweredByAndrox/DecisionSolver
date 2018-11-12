@@ -91,7 +91,7 @@
       <ShaderType>Effect</ShaderType>
     </FxCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -102,12 +102,11 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)DXUT\Core\;$(SolutionDir)DXUT\Optional;$(SolutionDir)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PltformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PltformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -122,14 +121,13 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)DXUT\Core\;$(SolutionDir)DXUT\Optional;$(SolutionDir)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -144,19 +142,19 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)DXUT\Core\;$(SolutionDir)DXUT\Optional;$(SolutionDir)Include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXUT\Core\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(ConfigurationName)\$(PlatformName);$(SolutionDir)..\submodules\DXUT\Optional\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="File_system.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Models.cpp">
@@ -173,8 +171,8 @@
     <ClCompile Include="Physics.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="File_system.h" />
-    <ClInclude Include="Mesh.h" />
     <ClInclude Include="Models.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Physics.h" />

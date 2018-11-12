@@ -17,7 +17,10 @@ File_system::File_system()
 {
 	p = _wgetcwd(NULL, 512);
 	if (p.empty())
-		TestMsgBox("Error in getting path. Class_File_System. Line: 11", "ERROR!");
+	{
+		DebugTrace("File_system: Error getting path. Line: 19\n");
+		throw std::exception("p == null!!!");
+	}
 }
 
 LPCSTR File_system::GetResPathA(string *File)
@@ -28,7 +31,7 @@ LPCSTR File_system::GetResPathA(string *File)
 		auto ext = boost::filesystem::extension(File->c_str());
 		if (!ResPath.empty())
 		{
-			if (ext == ".sdkmesh" || ext == ".obj")
+			if (ext == ".obj")
 			{
 				*File = ResPath + string("models//") + string(*File);
 				return File->c_str();
@@ -41,6 +44,11 @@ LPCSTR File_system::GetResPathA(string *File)
 			else if (ext == ".hlsl" || ext == ".fx")
 			{
 				*File = ResPath + string("shaders//") + string(*File);
+				return File->c_str();
+			}
+			if (ext == ".obj")
+			{
+				*File = ResPath + string("sounds//") + string(*File);
 				return File->c_str();
 			}
 		}
@@ -56,7 +64,7 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 		auto ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
 		auto ext = boost::filesystem::extension(File->c_str());
 		if (!ResPath.empty())
-			if (ext == ".sdkmesh" || ext == ".obj")
+			if (ext == ".obj")
 			{
 				*File = ResPath + wstring(L"models//") + wstring(*File);
 				return File->c_str();
@@ -69,6 +77,11 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 			else if (ext == ".png" || ext == ".dds")
 			{
 				*File = ResPath + wstring(L"textures//") + wstring(*File);
+				return File->c_str();
+			}
+			else if (ext == ".wav")
+			{
+				*File = ResPath + wstring(L"sounds//") + wstring(*File);
 				return File->c_str();
 			}
 	}
@@ -84,7 +97,7 @@ wstring File_system::GetResPathW(string *File)
 		auto ResPath = p.generic_path().generic_string() + string("//resource//");
 		auto ext = boost::filesystem::extension(File->c_str());
 		if (!ResPath.empty())
-			if (ext == ".sdkmesh" || ext == ".obj")
+			if (ext == ".obj")
 			{
 				*File = ResPath + string("models//") + *File;
 				return A2W(File->c_str());
@@ -94,9 +107,14 @@ wstring File_system::GetResPathW(string *File)
 				*File = ResPath + string("textures//") + *File;
 				return A2W(File->c_str());
 			}
-			else if (ext == ".hlsl" || ".fx")
+			else if (ext == ".hlsl" || ext == ".fx")
 			{
 				*File = ResPath + string("shaders//") + *File;
+				return A2W(File->c_str());
+			}
+			else if (ext == ".wav")
+			{
+				*File = ResPath + string("sounds//") + *File;
 				return A2W(File->c_str());
 			}
 	}
@@ -116,10 +134,14 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 			if (ResPath[i].data()->empty())
 				break;
 
-			if (ext == ".sdkmesh" || ext == ".obj")
+			if (ext == ".obj")
 				ResPath[i].at(i).append(wstring(L"models//") + wstring(*File[i]->data()));
 			else if (ext == ".dds" || ext == ".png")
 				ResPath[i].at(i).append(wstring(L"textures//") + wstring(File[i]->data()->c_str()));
+			else if (ext == ".wav")
+				ResPath[i].at(i).append(wstring(L"sounds//") + wstring(File[i]->data()->c_str()));
+			else if (ext == ".hlsl" || ext == ".fx")
+				ResPath[i].at(i).append(wstring(L"shaders//") + wstring(File[i]->data()->c_str()));
 			return ResPath[sizeof(*File)];
 		}
 	}
@@ -127,28 +149,72 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 
 vector<wstring> File_system::GetResPathW(wstring File)
 {
-	vector<wstring> ResPath[1];
+	vector<wstring> ResPath;
 	if (!p.empty())
 	{
-		ResPath[0].push_back(p.generic_path().generic_wstring() + wstring(L"//resource//"));
+		ResPath.push_back(p.generic_path().generic_wstring() + wstring(L"//resource//"));
 		auto ext = boost::filesystem::extension(File.c_str());
-		if (ResPath[0].empty())
-			return ResPath[0];
+		if (ResPath.empty())
+			return ResPath;
 
-		if (ext == ".sdkmesh" || ".obj")
-			ResPath[0].insert(ResPath[0].end(), wstring(L"models//") + wstring(File));
+		if (ext == ".obj")
+			ResPath.push_back(wstring(L"models//") + wstring(File));
 		else if (ext == ".dds" || ext == ".png")
-			ResPath[0].at(0).append(wstring(L"textures//") + wstring(File));
-		return ResPath[0];
+			ResPath.push_back(wstring(L"textures//") + wstring(File));
+		else if (ext == ".wav")
+			ResPath.push_back(wstring(L"sounds//") + wstring(File));
+		else if (ext == ".hlsl" || ext == ".fx")
+			ResPath.push_back(wstring(L"shaders//") + wstring(File));
+		return ResPath;
 	}
 }
 
-void File_system::TestMsgBox(LPCSTR Text)
+vector<wstring> File_system::getFilesInFolder(wstring *File, bool Recursive, bool onlyFile)
 {
-	MessageBoxA(DXUTGetHWND(), Text, "Test", MB_OK);
+	vector<wstring> files;
+	auto ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//") 
+		+ wstring(File->c_str());
+	if (!Recursive && !onlyFile)
+		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
+		{
+			auto Str = it->path().wstring();
+			replace(Str.begin(), Str.end(), '/', '\\');
+			files.push_back(Str);
+		}
+	else if (Recursive && onlyFile)
+		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
+		{
+			auto Str = it->path().wstring();
+			replace(Str.begin(), Str.end(), '/', '\\');
+			files.push_back(Str);
+		}
+	else if (onlyFile && !Recursive)
+		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
+		{
+			auto Str = it->path().filename().wstring();
+			replace(Str.begin(), Str.end(), '/', '\\');
+			files.push_back(Str);
+		}
+	else if (!onlyFile && Recursive)
+		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
+		{
+			auto Str = it->path().wstring();
+			replace(Str.begin(), Str.end(), '/', '\\');
+			files.push_back(Str);
+		}
+	return files;
 }
 
-void File_system::TestMsgBox(LPCSTR Text, LPCSTR CaptionText, int MButtons)
+vector<wstring> File_system::getFilesInFolder(wstring *File)
 {
-	MessageBoxA(DXUTGetHWND(), Text, CaptionText, MButtons);
+	vector<wstring> files;
+	auto ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//")
+		+ wstring(File->c_str());
+	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
+	{
+		auto Str = it->path().wstring();
+		replace(Str.begin(), Str.end(), '/', '\\');
+		files.push_back(Str);
+	}
+	return files;
 }

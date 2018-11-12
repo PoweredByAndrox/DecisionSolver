@@ -23,7 +23,6 @@ void Models::Draw()
 
 Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 {
-	// Data to fill
 	vector<VERTEX> vertices;
 	vector<UINT> indices;
 	vector<Texture> textures;
@@ -36,7 +35,6 @@ Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 			Textype = determineTextureType(Scene, mat);
 	}
 
-	// Walk through each of the mesh's vertices
 	for (UINT i = 0; i < mesh->mNumVertices; i++)
 	{
 		VERTEX vertex;
@@ -80,20 +78,18 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 	{
 		aiString str;
 		mat->GetTexture(type, i, &str);
-		// Check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
 		bool skip = false;
 		for (UINT j = 0; j < Textures_loaded.size(); j++)
 		{
 			if (std::strcmp(Textures_loaded[j].path.c_str(), str.C_Str()) == 0)
 			{
 				textures.push_back(Textures_loaded[j]);
-				skip = true; // A texture with the same filepath has already been loaded, continue to next one. (optimization)
+				skip = true;
 				break;
 			}
 		}
 		if (!skip)
-		{   // If texture hasn't been loaded already, load it
-			HRESULT hr;
+		{
 			Texture texture;
 			if (Textype == "embedded compressed texture")
 			{
@@ -111,7 +107,7 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 			texture.type = typeName;
 			texture.path = str.C_Str();
 			textures.push_back(texture);
-			this->Textures_loaded.push_back(texture);  // Store it as texture loaded for entire model, to ensure we won't unnecesery load duplicate textures.
+			this->Textures_loaded.push_back(texture);  
 		}
 	}
 	return textures;

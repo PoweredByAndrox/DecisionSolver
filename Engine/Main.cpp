@@ -10,6 +10,9 @@
 #include "Models.h"
 #include "Physics.h"
 #include "File_system.h"
+#include "Audio.h"
+
+#define Never 1
 
 #ifdef DEBUG
 #include <d3d11sdklayers.h>
@@ -34,7 +37,8 @@ Vector3 Up(0.0f, 1.0f, 0.0f);
 
 auto file_system = make_unique<File_system>();
 auto Model = make_unique<Models>();
-#define Never 1
+auto Sound = make_unique<Audio>();
+
 #if defined(Never)
 auto PhysX = make_unique<Physics>();
 #endif
@@ -80,14 +84,20 @@ struct ConstantBuffer
 #define BUTTON_1 1
 #define BUTTON_2 2
 #define BUTTON_3 3
+#define BUTTON_4 4
+#define BUTTON_5 5
+#define BUTTON_6 6
+#define BUTTON_7 7
+#define BUTTON_8 8
+#define BUTTON_9 9
 
-#define EDITBOX 4
+#define EDITBOX 10
 
-#define STATIC_TEXT 5
-#define STATIC_TEXT_2 6
-#define STATIC_TEXT_3 7
-#define STATIC_TEXT_4 8
-
+#define STATIC_TEXT 11
+#define STATIC_TEXT_2 12
+#define STATIC_TEXT_3 13
+#define STATIC_TEXT_4 14
+#define STATIC_TEXT_5 15
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
@@ -101,100 +111,26 @@ void InitApp()
 	g_HUD.Init(&g_DialogResourceManager);
 	g_HUD.SetCallback(OnGUIEvent);
 	
-	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22);
+	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22, VK_F2);
 	g_HUD.AddButton(BUTTON_2, L"Do torque phys box", 35, iY += 24, 125, 22, VK_F3);
-	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F2);
+	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F4);
+	g_HUD.AddButton(BUTTON_4, L"Play Sound", 35, iY += 24, 125, 22, VK_F5);
+	g_HUD.AddButton(BUTTON_5, L"Pause Sound", 35, iY += 24, 125, 22, VK_F6);
+	g_HUD.AddButton(BUTTON_6, L"Stop Sound", 35, iY += 24, 125, 22, VK_F3);
 
 	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 35, 90, 60, 50);
-	g_HUD.AddStatic(STATIC_TEXT_2, L"SomeText#2", 35, iY += 24, 60, 50);
+	//g_HUD.AddStatic(STATIC_TEXT_2, L"SomeText#2", 35, iY += 24, 60, 50);
 	g_HUD.AddStatic(STATIC_TEXT_3, L"SomeText#3", 35, iY += 24, 60, 50);
 	g_HUD.AddStatic(STATIC_TEXT_4, L"SomeText#4", 35, iY += 24, 60, 50);
+	g_HUD.AddStatic(STATIC_TEXT_5, L"SomeText#5", 35, iY += 24, 60, 50);
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	//g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.010f, 6.0f);
 	g_Camera.SetRotateButtons(true, true, true, true);
+	//g_Camera.SetResetCursorAfterMove(true);
+
 	InitProgram = true;
-}
-
-HRESULT LoadTextureArray(ID3D11Device* pd3dDevice, vector<wstring> szTextureNames, int iNumTextures,
-	ID3D11Texture2D** ppTex2D, ID3D11ShaderResourceView** ppSRV)
-{
-	HRESULT hr = S_OK;
-	D3D11_TEXTURE2D_DESC desc;
-	ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-
-	for (int i = 0; i < iNumTextures; i++)
-	{
-		//V_RETURN(DXUTFindDXSDKMediaFileCch(str, MAX_PATH, szTextureNames[i]));
-		ID3D11Resource* pRes = NULL;
-		D3DX11_IMAGE_LOAD_INFO loadInfo;
-		ZeroMemory(&loadInfo, sizeof(D3DX11_IMAGE_LOAD_INFO));
-		loadInfo.Width = D3DX_FROM_FILE;
-		loadInfo.Height = D3DX_FROM_FILE;
-		loadInfo.Depth = D3DX_FROM_FILE;
-		loadInfo.FirstMipLevel = 0;
-		loadInfo.MipLevels = 1;
-		loadInfo.Usage = D3D11_USAGE_STAGING;
-		loadInfo.BindFlags = 0;
-		loadInfo.CpuAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D10_CPU_ACCESS_READ;
-		loadInfo.MiscFlags = 0;
-		loadInfo.Format = MAKE_TYPELESS(DXGI_FORMAT_R8G8B8A8_UNORM);
-		loadInfo.Filter = D3DX11_FILTER_NONE;
-		loadInfo.MipFilter = D3DX11_FILTER_NONE;
-
-		D3DX11CreateTextureFromFile(pd3dDevice, szTextureNames[i].c_str(), &loadInfo, NULL, &pRes, NULL);
-		if (pRes)
-		{
-			ID3D11Texture2D* pTemp;
-			pRes->QueryInterface(__uuidof(ID3D11Texture2D), (LPVOID*)&pTemp);
-			pTemp->GetDesc(&desc);
-
-			//D3D11_TEXTURE2D_DESC mappedTex2D;
-
-			if (desc.MipLevels > 4)
-				desc.MipLevels -= 4;
-			if (!(*ppTex2D))
-			{
-				desc.Usage = D3D11_USAGE_DEFAULT;
-				desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-				desc.CPUAccessFlags = 0;
-				desc.ArraySize = iNumTextures;
-				V_RETURN(pd3dDevice->CreateTexture2D(&desc, NULL, ppTex2D));
-			}
-
-			/*
-			for (UINT iMip = 0; iMip < desc.MipLevels; iMip++)
-			{
-				pTemp->Map(iMip, D3D11_MAP_READ, 0, &mappedTex2D);
-
-				DXUTGetD3D11DeviceContext()->UpdateSubresource((*ppTex2D),
-					D3D10CalcSubresource(iMip, i, desc.MipLevels),
-					NULL,
-					mappedTex2D.pData,
-					mappedTex2D.RowPitch,
-					0);
-
-				pTemp->Unmap(iMip);
-			}
-			*/
-
-			SAFE_RELEASE(pRes);
-			SAFE_RELEASE(pTemp);
-		}
-		else
-			return false;
-	}
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
-	ZeroMemory(&SRVDesc, sizeof(SRVDesc));
-	SRVDesc.Format = MAKE_SRGB(DXGI_FORMAT_R8G8B8A8_UNORM);
-	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-	SRVDesc.Texture2DArray.MipLevels = desc.MipLevels;
-	SRVDesc.Texture2DArray.ArraySize = iNumTextures;
-	V_RETURN(pd3dDevice->CreateShaderResourceView(*ppTex2D, &SRVDesc, ppSRV));
-
-	return hr;
 }
 
 bool CALLBACK IsD3D11DeviceAcceptable(const CD3D11EnumAdapterInfo *AdapterInfo,
@@ -208,6 +144,8 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 {
 	return true;
 }
+
+float i = 3;
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	CDXUTControl* pControl, void* pUserContext)
@@ -229,9 +167,18 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
 	case BUTTON_3:
-		/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
+/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
 			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
 			g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);*/
+		break;
+	case BUTTON_4:
+		Sound->doPlay();
+		break;
+	case BUTTON_5:
+		Sound->doPause();
+		break;
+	case BUTTON_6:
+		Sound->doStop();
 		break;
 	}
 }
@@ -270,6 +217,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 {
 	if (!InitProgram)
 		InitApp();
+
+	if (!Sound->isInitSounSystem())
+		Sound->Init();
+
+	Sound->AddNewSound();
 
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
@@ -325,11 +277,12 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	gWorld = Matrix::Identity;
-	gView = XMMatrixLookAtRH(Eye, At, Up);
-	gProjection = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f,
-		float(DXUTGetDXGIBackBufferSurfaceDesc()->Width) /
-		float(DXUTGetDXGIBackBufferSurfaceDesc()->Height), 0.1f, 100.f);
-
+	//gView = XMMatrixLookAtLH(Eye, At, Up);
+	//gProjection = XMMatrixPerspectiveFovRH(XM_PI / 4.f,
+	//	float(DXUTGetDXGIBackBufferSurfaceDesc()->Width) /
+	//	float(DXUTGetDXGIBackBufferSurfaceDesc()->Height), 0.1f, 100.f);
+	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
+	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
     g_Camera.SetViewParams(Eye, XMVectorSet(At.x, At.y, At.z, 1.0f));
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
@@ -368,14 +321,13 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	V_RETURN(g_DialogResourceManager.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 100.0f);
+	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	int X = pBackBufferSurfaceDesc->Width - 170;
 	int Y = 15;
 	g_HUD.GetButton(1)->SetLocation(X, Y);
 	g_HUD.GetButton(2)->SetLocation(X, Y += 25);
 	g_HUD.GetButton(3)->SetLocation(X, Y += 20);
-		
-	gProjection = Matrix::CreatePerspectiveFieldOfView(XM_PI / 4.f, fAspectRatio, 0.1f, 100.f);
+	
 	//g_HUD.GetButton(i)->SetSize(170, 170);
 
 	return S_OK;
@@ -393,6 +345,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	double fTime, float fElapsedTime, void* pUserContext)
 {
 	USES_CONVERSION;
+	//g_Camera.SetNumberOfFramesToSmoothMouseData(fElapsedTime);
 
 	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
@@ -424,7 +377,15 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif
 
 #if defined(Never)
-	PhysX->Simulation(gWorld, gView, gProjection);
+	XMVECTOR qid = XMQuaternionIdentity();
+	const XMVECTORF32 scale = { 1.f, 1.f, 1.f };
+	const XMVECTORF32 translate = { 0.f, 0.f, 0.f };
+	const XMVECTORF32 rotate = { 0.f, 0.f, 0.f, 1.f };
+	XMMATRIX local = XMMatrixMultiply(gWorld, XMMatrixTransformation(g_XMZero, qid, scale, g_XMZero, rotate, translate));
+
+	PhysX->Simulation(local, local, 	XMMatrixPerspectiveFovRH(XM_PI / 4.f,
+		float(DXUTGetDXGIBackBufferSurfaceDesc()->Width) /
+		float(DXUTGetDXGIBackBufferSurfaceDesc()->Height), 0.1f, 100.f));
 #endif
 
 	Mass = { g_Camera.GetEyePt() };
@@ -440,18 +401,18 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	Mass.clear();
 	ZeroMemory(buff, sizeof(buff));
 
-	XMVECTOR Obj = { XMVectorSet(Model->GetMeshes()->data()->vertices.data()->X,
-		Model->GetMeshes()->data()->vertices.data()->Y,
-		Model->GetMeshes()->data()->vertices.data()->Z, 1.0f) };
+	//XMVECTOR Obj = { XMVectorSet(Model->.data()->X,
+	//	Model->vertices.data()->Y,
+	//	Model->vertices.data()->Z, 1.0f) };
 
-	snprintf(buff, sizeof(buff), "Model (OBJ) pos: X:%.1f, Y:%.1f, Z:%.1f",
-		Obj.m128_f32[0], Obj.m128_f32[1], Obj.m128_f32[2]);
+	//snprintf(buff, sizeof(buff), "Model (OBJ) pos: X:%.1f, Y:%.1f, Z:%.1f",
+	//	Obj.m128_f32[0], Obj.m128_f32[1], Obj.m128_f32[2]);
 
-	g_HUD.GetStatic(STATIC_TEXT_2)->SetText(A2W(buff));
+	//g_HUD.GetStatic(STATIC_TEXT_2)->SetText(A2W(buff));
 											//UP  DOWN
-	g_HUD.GetStatic(STATIC_TEXT_2)->SetLocation(0, 25);
+	//g_HUD.GetStatic(STATIC_TEXT_2)->SetLocation(0, 25);
 	
-	ZeroMemory(buff, sizeof(buff));
+	//ZeroMemory(buff, sizeof(buff));
 
 	snprintf(buff, sizeof(buff), "FPS: %.2f", DXUTGetFPS());
 
@@ -470,6 +431,22 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	g_HUD.GetStatic(STATIC_TEXT_4)->SetText(A2W(buff));
 	g_HUD.GetStatic(STATIC_TEXT_4)->SetLocation(0, 40);
+
+	Sound->Update();
+	auto StatAudio = Sound->getStaticSound();
+	ZeroMemory(buff, sizeof(buff));
+
+	snprintf(buff, sizeof(buff), "\nPlaying: %Iu / %Iu; Instances %Iu; Voices %Iu / %Iu / %Iu / %Iu;"
+		"%Iu audio bytes\n",
+		StatAudio->playingOneShots, StatAudio->playingInstances,
+		StatAudio->allocatedInstances, StatAudio->allocatedVoices, StatAudio->allocatedVoices3d,
+		StatAudio->allocatedVoicesOneShot, StatAudio->allocatedVoicesIdle,
+		StatAudio->audioBytes);
+
+	g_HUD.GetStatic(STATIC_TEXT_5)->SetText(A2W(buff));
+	g_HUD.GetStatic(STATIC_TEXT_5)->SetLocation(0, 50);
+
+
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)

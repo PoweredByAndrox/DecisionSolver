@@ -17,11 +17,11 @@
 
 #include <foundation/PxFoundation.h>
 
-#include "Mesh.h"
 #include "DirectXHelpers.h"
 #include "GeometricPrimitive.h"
 #include "Effects.h"
 #include "SimpleMath.h"
+#include "Models.h"
 
 #include "DirectXMath.h"
 using namespace SimpleMath;
@@ -80,7 +80,7 @@ using namespace SimpleMath;
 using namespace std;
 using namespace physx;
 
-class Physics
+class Physics: public Models
 {
 public:
 	HRESULT Init(); //vector<Mesh> *_Mesh
@@ -93,7 +93,7 @@ public:
 
 	vector<PxRigidDynamic*> GetPhysDynamiObject() { return DynamicObjects; }
 	vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
-	void GenTriangleMesh(PxVec3 pos, vector<Mesh::VERTEX> indices, vector<UINT> vertices);
+//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
 	PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
 
@@ -129,7 +129,7 @@ private:
 
 		// ***************
 	HRESULT hr = S_OK;
-	vector<Mesh> *_Mesh;
+	//vector<Mesh> *_Mesh;
 
 		// ***************
 	vector<PxRigidDynamic*> DynamicObjects;

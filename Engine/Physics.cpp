@@ -136,7 +136,14 @@ void Physics::Simulation(Matrix World, Matrix View, Matrix Proj)
 	_World._43 = coll.z;
 	_World._44 = coll.w;
 
-	m_shape->Draw(_World, View, Proj);
+	PxQuat aq = gBox->getGlobalPose().q;
+	XMVECTOR q = { aq.x, aq.y, aq.z, aq.w };
+	auto g_World = XMMatrixRotationQuaternion(q);
+
+	PxVec3 pos = gBox->getGlobalPose().p;
+	g_World = XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+	m_shape->Draw(g_World, View, Proj);
 
 #if defined(Never)
 	for (int i = 0; i <= 300; i++)
@@ -152,8 +159,8 @@ void Physics::Simulation(Matrix World, Matrix View, Matrix Proj)
 
 void Physics::_createConvexMesh()
 {
-	int NumVerticies = _Mesh->data()->vertices.size();
-	int NumTriangles = _Mesh->data()->indices.size() / 3;
+	int NumVerticies = vertices.size();
+	int NumTriangles = indices.size() / 3;
 
 
 	PxVec3* verts = new PxVec3[NumVerticies / 3];
@@ -161,19 +168,19 @@ void Physics::_createConvexMesh()
 	for (int i = 0; i < NumVerticies / 3; i++)
 	{
 		++ii;
-		verts[i].x = _Mesh->data()->vertices[ii].X;
-		verts[i].y = _Mesh->data()->vertices[++ii].Y;
-		verts[i].z = _Mesh->data()->vertices[++ii].Z;
+		verts[i].x = vertices[ii].X;
+		verts[i].y = vertices[++ii].Y;
+		verts[i].z = vertices[++ii].Z;
 	}
 
-	PxU16 *tris = new PxU16[_Mesh->data()->indices.size()];
-	for (int i = _Mesh->data()->indices.size() - 1; i >= 0; i--)
-		tris[i] = _Mesh->data()->indices[i];
+	PxU16 *tris = new PxU16[indices.size()];
+	for (int i = indices.size() - 1; i >= 0; i--)
+		tris[i] = indices[i];
 
 	PxConvexMeshDesc convexDesc;
 	convexDesc.points.count = NumVerticies;
 	convexDesc.points.stride = sizeof(PxVec3);
-	convexDesc.points.data = &_Mesh->data()->vertices[3];
+	convexDesc.points.data = &vertices[3];
 	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
 	bool Valid_ConvexMesh = convexDesc.isValid();
@@ -182,9 +189,9 @@ void Physics::_createConvexMesh()
 	PxTriangleMeshDesc TriMeshDesc;
 	TriMeshDesc.points.count = NumVerticies;
 	TriMeshDesc.points.stride = sizeof(PxVec3);
-	TriMeshDesc.points.data = &_Mesh->data()->vertices[6]; // XYZ
+	TriMeshDesc.points.data = &vertices[6]; // XYZ
 	TriMeshDesc.triangles.count = NumTriangles;
-	TriMeshDesc.triangles.data = &_Mesh->data()->indices[3];
+	TriMeshDesc.triangles.data = &indices[3];
 	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
 	TriMeshDesc.flags = PxMeshFlag::Enum::e16_BIT_INDICES;//eCOMPUTE_CONVEX;
 
@@ -234,9 +241,9 @@ void Physics::_createConvexMesh()
 	PxGeometryHolder geom = convexShape->getGeometry();
 
 	PxRigidDynamic* newActor = PxCreateDynamic(*gPhysics, 
-	PxTransform(PxVec3(_Mesh->data()->vertices.data()->X,
-		_Mesh->data()->vertices.data()->Y,
-		_Mesh->data()->vertices.data()->Z)), *convexShape, PxReal(1.0f));
+	PxTransform(PxVec3(vertices.data()->X,
+		vertices.data()->Y,
+		vertices.data()->Z)), *convexShape, PxReal(1.0f));
 	if (!newActor)
 	{
 		MessageBoxA(DXUTGetHWND(), "Error in newActor = PxCreateDynamic! line: 177. PhysX", "Error", MB_OK);
@@ -245,48 +252,48 @@ void Physics::_createConvexMesh()
 	newActor->setRigidBodyFlags(PxRigidBodyFlag::Enum::eENABLE_CCD | PxRigidBodyFlag::Enum::eENABLE_POSE_INTEGRATION_PREVIEW | PxRigidBodyFlag::Enum::eUSE_KINEMATIC_TARGET_FOR_SCENE_QUERIES);
 }
 
-void Physics::GenTriangleMesh(PxVec3 pos, vector<Mesh::VERTEX> indices, vector<UINT> vertices)
-{
-	//int NumVerticies = vertices.size() / 3;
-	//int NumTriangles = indices.size() / 3;
-
-	////Create pointer for vertices  
-	//PxVec3* verts = new PxVec3[NumVerticies];
-	//int ii = -1;
-	//for (int i = 0; i < NumVerticies; i++)
-	//{
-	//	++ii;
-	//	verts[i].x = indices[ii].X;
-	//	verts[i].y = indices[++ii].Y;
-	//	verts[i].z = indices[++ii].Z;
-	//}
-
-	////Create pointer for indices  
-	//PxU16 *tris = new PxU16[vertices.size()];
-	//for (int i = vertices.size() - 1; i >= 0; i--)
-	//	tris[i] = vertices[i];
-	
-	// Build physical model 
-	//PxShape* meshShape;
-	//if (meshActor)
-	//{
-	//	meshActor->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, true);
-
-	//	PxTriangleMeshGeometry triGeom;
-	//	triGeom.triangleMesh = triangleMesh;
-	//	meshShape = meshActor->createShape(triGeom, defaultMaterial);
-	//	getScene().addActor(*meshActor);
-	//}
-
-	//PxDefaultMemoryOutputStream writeBuffer;
-	//bool status = gCooking->cookConvexMesh(meshDesc, writeBuffer);
-	//if (!status)
-	//	return;
-
-
-	//SAFE_DELETE_ARRAY(verts);
-	//SAFE_DELETE_ARRAY(tris);
-}
+//void Physics::GenTriangleMesh(PxVec3 pos, vector<Mesh::VERTEX> indices, vector<UINT> vertices)
+//{
+//	//int NumVerticies = vertices.size() / 3;
+//	//int NumTriangles = indices.size() / 3;
+//
+//	////Create pointer for vertices  
+//	//PxVec3* verts = new PxVec3[NumVerticies];
+//	//int ii = -1;
+//	//for (int i = 0; i < NumVerticies; i++)
+//	//{
+//	//	++ii;
+//	//	verts[i].x = indices[ii].X;
+//	//	verts[i].y = indices[++ii].Y;
+//	//	verts[i].z = indices[++ii].Z;
+//	//}
+//
+//	////Create pointer for indices  
+//	//PxU16 *tris = new PxU16[vertices.size()];
+//	//for (int i = vertices.size() - 1; i >= 0; i--)
+//	//	tris[i] = vertices[i];
+//	
+//	// Build physical model 
+//	//PxShape* meshShape;
+//	//if (meshActor)
+//	//{
+//	//	meshActor->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, true);
+//
+//	//	PxTriangleMeshGeometry triGeom;
+//	//	triGeom.triangleMesh = triangleMesh;
+//	//	meshShape = meshActor->createShape(triGeom, defaultMaterial);
+//	//	getScene().addActor(*meshActor);
+//	//}
+//
+//	//PxDefaultMemoryOutputStream writeBuffer;
+//	//bool status = gCooking->cookConvexMesh(meshDesc, writeBuffer);
+//	//if (!status)
+//	//	return;
+//
+//
+//	//SAFE_DELETE_ARRAY(verts);
+//	//SAFE_DELETE_ARRAY(tris);
+//}
 
 void Physics::Destroy()
 {
