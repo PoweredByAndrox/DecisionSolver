@@ -11,6 +11,7 @@
 #include "Physics.h"
 #include "File_system.h"
 #include "Audio.h"
+#include "Shaders.h"
 
 #define Never 1
 
@@ -38,6 +39,7 @@ Vector3 Up(0.0f, 1.0f, 0.0f);
 auto file_system = make_unique<File_system>();
 auto Model = make_unique<Models>();
 auto Sound = make_unique<Audio>();
+auto Shader = make_unique<Shaders>();
 
 #if defined(Never)
 auto PhysX = make_unique<Physics>();
@@ -55,7 +57,7 @@ ID3D11InputLayout* g_pVertexLayout = nullptr;
 ID3D11SamplerState *TexSamplerState;
 ID3D11Buffer *pConstantBuffer;
 
-static XMVECTORF32 _ColorBuffer = DirectX::Colors::DarkRed;
+static XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
 
 XMVECTORF32 _Color[9] = 
 {
@@ -99,8 +101,8 @@ struct ConstantBuffer
 #define STATIC_TEXT_4 14
 #define STATIC_TEXT_5 15
 
-#define SCREEN_WIDTH 800
-#define SCREEN_HEIGHT 600
+#define SCREEN_WIDTH 1024
+#define SCREEN_HEIGHT 768
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
@@ -145,8 +147,6 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 	return true;
 }
 
-float i = 3;
-
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	CDXUTControl* pControl, void* pUserContext)
 {
@@ -156,18 +156,18 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 		_ColorBuffer = _Color[rand() % 9 + 1];
 		break;
 	case BUTTON_2:
-		PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(0),
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(0),
 			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
-			g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eIMPULSE);
-		PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(0),
+				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eIMPULSE);
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(0),
 			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
 				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eFORCE);
-		PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(0),
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(0),
 			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
 				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
 	case BUTTON_3:
-/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
+			/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
 			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
 			g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);*/
 		break;
@@ -183,34 +183,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 	}
 }
 
-	// Need to move in shader class!!!
-HRESULT CompileShaderFromFile(LPCTSTR szFileName, LPCSTR szEntryPoINT, LPCSTR szShaderModel, ID3DBlob** ppBlobOut)
-{
-	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-
-#if defined(DEBUG) || defined(_DEBUG)
-	dwShaderFlags |= D3DCOMPILE_DEBUG;
-#endif
-
-	ID3DBlob* pErrorBlob;
-
-	if (FAILED(hr = D3DX11CompileFromFile(szFileName, NULL, NULL, szEntryPoINT, szShaderModel,
-		dwShaderFlags, NULL, NULL, ppBlobOut, &pErrorBlob, NULL)))
-	{
-		if (pErrorBlob != NULL)
-#ifdef DEBUG
-			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer()); 
-#elif !defined(DEBUG)
-			MessageBoxA(DXUTGetHWND(), 
-				string(string("Error in 220. Shader compiller is failed with text: ") + 
-				string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
-#endif
-		SAFE_RELEASE(pErrorBlob);
-		return hr;
-	}
-	SAFE_RELEASE(pErrorBlob);
-	return S_OK;
-}
+unique_ptr<DirectX::GeometricPrimitive> m_shape;
 
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
@@ -273,14 +246,12 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	// else
 #if defined(Never)
 	if (!PhysX->IsPhysicsInit())
-		PhysX->Init(); //Model->GetMeshes())
+		PhysX->Init();
 #endif
 
 	gWorld = Matrix::Identity;
-	//gView = XMMatrixLookAtLH(Eye, At, Up);
-	//gProjection = XMMatrixPerspectiveFovRH(XM_PI / 4.f,
-	//	float(DXUTGetDXGIBackBufferSurfaceDesc()->Width) /
-	//	float(DXUTGetDXGIBackBufferSurfaceDesc()->Height), 0.1f, 100.f);
+	m_shape = GeometricPrimitive::CreateBox(DXUTGetD3D11DeviceContext(), XMFLOAT3(0.5f, 0.5f, 0.5f), false);
+	
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
     g_Camera.SetViewParams(Eye, XMVectorSet(At.x, At.y, At.z, 1.0f));
@@ -324,9 +295,11 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	int X = pBackBufferSurfaceDesc->Width - 170;
 	int Y = 15;
-	g_HUD.GetButton(1)->SetLocation(X, Y);
-	g_HUD.GetButton(2)->SetLocation(X, Y += 25);
-	g_HUD.GetButton(3)->SetLocation(X, Y += 20);
+
+		// *******
+	g_HUD.GetButton(BUTTON_1)->SetLocation(X, Y);
+	g_HUD.GetButton(BUTTON_2)->SetLocation(X, Y += 25);
+	g_HUD.GetButton(BUTTON_3)->SetLocation(X, Y += 20);
 	
 	//g_HUD.GetButton(i)->SetSize(170, 170);
 
@@ -354,7 +327,21 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
 	pd3dImmediateContext->IASetInputLayout(g_pLayout);
-		
+
+	float fAspectRatio = (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Width /
+		(FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
+	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+
+	PxQuat aq = PhysX->GetPhysDynamicObject().at(0)->getGlobalPose().q;
+	XMVECTOR q = { aq.x, aq.y, aq.z, aq.w };
+	PxVec3 pos = PhysX->GetPhysDynamicObject().at(0)->getGlobalPose().p;
+	gWorld = XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+	XMMATRIX world = XMMatrixRotationQuaternion(XMVectorSet(aq.x, aq.y, aq.z, aq.w))
+		* XMMatrixTranslation(pos.x, pos.y, pos.z);
+
+	m_shape->Draw(world, g_Camera.GetViewMatrix(), g_Camera.GetProjMatrix());
+
 	cb.mWorld = XMMatrixTranspose(g_Camera.GetWorldMatrix());
 	cb.mView = XMMatrixTranspose(g_Camera.GetViewMatrix());
 	cb.mProjection = XMMatrixTranspose(g_Camera.GetProjMatrix());
@@ -422,9 +409,9 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ZeroMemory(buff, sizeof(buff));
 
 	XMVECTOR PosPhys = { XMVectorSet(
-		PhysX->GetObjPos(PhysX->GetPhysDynamiObject().at(0)).x,
-		PhysX->GetObjPos(PhysX->GetPhysDynamiObject().at(0)).y,
-		PhysX->GetObjPos(PhysX->GetPhysDynamiObject().at(0)).z, 1.0f) };
+		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).x,
+		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).y,
+		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).z, 1.0f) };
 
 	snprintf(buff, sizeof(buff), "Physics pos: X:%.1f, Y:%.1f, Z:%.1f",
 		PosPhys.m128_f32[0], PosPhys.m128_f32[1], PosPhys.m128_f32[2]);

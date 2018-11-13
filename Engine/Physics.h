@@ -83,7 +83,7 @@ using namespace physx;
 class Physics: public Models
 {
 public:
-	HRESULT Init(); //vector<Mesh> *_Mesh
+	HRESULT Init();
 
 	void Simulation(Matrix World, Matrix View, Matrix Proj);
 
@@ -91,7 +91,7 @@ public:
 	void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }
 	void AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addTorque(Vec3, ForceMode); }
 
-	vector<PxRigidDynamic*> GetPhysDynamiObject() { return DynamicObjects; }
+	vector<PxRigidDynamic*> GetPhysDynamicObject() { return DynamicObjects; }
 	vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
 //	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
@@ -116,9 +116,6 @@ private:
 	PxReal Timestep = 1.0f / 60.0f;
 
 		// ***************
-	std::unique_ptr<DirectX::GeometricPrimitive> m_shape;
-
-		// ***************
 	PxFoundation *gFoundation = nullptr;
 	PxPhysics *gPhysics = nullptr;
 	PxMaterial *gMaterial = nullptr;
@@ -129,7 +126,6 @@ private:
 
 		// ***************
 	HRESULT hr = S_OK;
-	//vector<Mesh> *_Mesh;
 
 		// ***************
 	vector<PxRigidDynamic*> DynamicObjects;
@@ -152,7 +148,6 @@ private:
 		// ***************
 			// Initialized bool variables
 	bool IsInitPhysX = false;
-	bool IsRenderBufferInit = false;
 
 		// ***************
 	ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;

@@ -1,17 +1,18 @@
 #include "pch.h"
 #include "Physics.h"
 
-#define SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
+#define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
 
 
-HRESULT Physics::Init() //vector<Mesh> *_Mesh
+HRESULT Physics::Init()
 {
 	try
 	{
 		gFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		if (gFoundation == nullptr)
 		{
-			MessageBoxA(DXUTGetHWND(), "PxCreateFoundation failed, Exiting! line 9", "ERROR!", MB_OK);
+			DebugTrace("Physics: PxCreateFoundation failed. Line: 12\n");
+			throw std::exception("PxCreateFoundation == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -19,7 +20,8 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale());
 		if (gPhysics == nullptr)
 		{
-			MessageBoxA(DXUTGetHWND(), "Error in creating PhysX3 device, Exiting! line 17", "ERROR!", MB_OK);
+			DebugTrace("Physics: gPhysics failed. Line: 21\n");
+			throw std::exception("gPhysics == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -31,15 +33,18 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 		gScene = gPhysics->createScene(sceneDesc);
 		if (!gScene)
 		{
-			MessageBoxA(DXUTGetHWND(), "Error in gPhysics->createScene(), Exiting! line 29", "ERROR!", MB_OK);
+			DebugTrace("Physics: gScene failed. Line: 34\n");
+			throw std::exception("gScene == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
-		//static friction, dynamic friction, restitution
+
+			//static friction, dynamic friction, restitution
 		gMaterial = gPhysics->createMaterial(0.5, 0.5, 0.5);
 		if (!gMaterial)
 		{
-			MessageBoxA(DXUTGetHWND(), "Error in gPhysics->createMaterial(), Exiting! line 37", "ERROR!", MB_OK);
+			DebugTrace("Physics: gMaterial failed. Line: 44\n");
+			throw std::exception("gMaterial == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -48,7 +53,8 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 		gPlane = gPhysics->createRigidStatic(planePos);
 		if (!gPlane)
 		{
-			MessageBoxA(DXUTGetHWND(), "Error in gPhysics->createRigidStatic(), Exiting! line 46", "ERROR!", MB_OK);
+			DebugTrace("Physics: gPlane failed. Line: 54\n");
+			throw std::exception("gPlane == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -68,8 +74,6 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 		//		_Mesh->data()->vertices.data()->texcoord.y)) 
 		//};
 
-		m_shape = GeometricPrimitive::CreateBox(DXUTGetD3D11DeviceContext(), 
-			Vector3(1.5f, 1.5f, 1.5f));
 			//vertices,
 			//vector<uint16_t>(_Mesh->data()->indices.size()));
 		PxTransform boxPos(PxVec3(0.5f, 5.0f, 0.5f));
@@ -82,11 +86,12 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 		PxCookingParams params(gPhysics->getTolerancesScale());
 		params.meshWeldTolerance = 0.001f;
 		params.meshPreprocessParams = PxMeshPreprocessingFlags(PxMeshPreprocessingFlag::eWELD_VERTICES);
-		params.buildGPUData = true; //Enable GRB data being produced in cooking.
+		params.buildGPUData = true;
 		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, params);
 		if (!gCooking)
 		{
-			MessageBoxA(DXUTGetHWND(), "Error in gPhysics->createRigidStatic(), Exiting! line 60", "ERROR!", MB_OK);
+			DebugTrace("Physics: gCooking failed. Line: 91\n");
+			throw std::exception("gCooking == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -98,6 +103,8 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 	}
 	catch (const std::exception&)
 	{
+		DebugTrace("Physics: Init failed. Line: 104\n");
+		throw std::exception("PhysX initialization error!!!");
 		IsInitPhysX = false;
 		return E_FAIL;
 	}
@@ -105,63 +112,14 @@ HRESULT Physics::Init() //vector<Mesh> *_Mesh
 
 void Physics::Simulation(Matrix World, Matrix View, Matrix Proj)
 {
-	Matrix _World;
 	gScene->simulate(Timestep);
 	gScene->fetchResults(true);
-
-	PxShape* shapes[128];
-	const PxU32 nbShapes = gBox->getNbShapes();
-	gBox->getShapes(shapes, nbShapes);
-
-	const PxMat44 shapePose(PxShapeExt::getGlobalPose(*shapes[0], *gBox));
-	PxVec4 coll;
-	coll = shapePose.column0;
-	_World._11 = coll.x;
-	_World._12 = coll.y;
-	_World._13 = coll.z;
-	_World._14 = coll.w;
-	coll = shapePose.column1;
-	_World._21 = coll.x;
-	_World._22 = coll.y;
-	_World._23 = coll.z;
-	_World._24 = coll.w;
-	coll = shapePose.column2;
-	_World._31 = coll.x;
-	_World._32 = coll.y;
-	_World._33 = coll.z;
-	_World._34 = coll.w;
-	coll = shapePose.column3;
-	_World._41 = coll.x;
-	_World._42 = coll.y;
-	_World._43 = coll.z;
-	_World._44 = coll.w;
-
-	PxQuat aq = gBox->getGlobalPose().q;
-	XMVECTOR q = { aq.x, aq.y, aq.z, aq.w };
-	auto g_World = XMMatrixRotationQuaternion(q);
-
-	PxVec3 pos = gBox->getGlobalPose().p;
-	g_World = XMMatrixTranslation(pos.x, pos.y, pos.z);
-
-	m_shape->Draw(g_World, View, Proj);
-
-#if defined(Never)
-	for (int i = 0; i <= 300; i++)
-	{
-		PxVec3 boxPos = DynamicObjects[0]->getGlobalPose().p;
-		char buff[100];
-		snprintf(buff, sizeof(buff), "\nBox current Position (%f), (%f), (%f)\n", boxPos.x, boxPos.y, boxPos.z);
-		std::string buffAsStdStr = buff;
-		OutputDebugStringA(buffAsStdStr.c_str());
-	}
-#endif
 }
 
 void Physics::_createConvexMesh()
 {
 	int NumVerticies = vertices.size();
 	int NumTriangles = indices.size() / 3;
-
 
 	PxVec3* verts = new PxVec3[NumVerticies / 3];
 	int ii = -1;
@@ -189,11 +147,11 @@ void Physics::_createConvexMesh()
 	PxTriangleMeshDesc TriMeshDesc;
 	TriMeshDesc.points.count = NumVerticies;
 	TriMeshDesc.points.stride = sizeof(PxVec3);
-	TriMeshDesc.points.data = &vertices[6]; // XYZ
+	TriMeshDesc.points.data = &vertices[6];
 	TriMeshDesc.triangles.count = NumTriangles;
 	TriMeshDesc.triangles.data = &indices[3];
 	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
-	TriMeshDesc.flags = PxMeshFlag::Enum::e16_BIT_INDICES;//eCOMPUTE_CONVEX;
+	TriMeshDesc.flags = PxMeshFlag::Enum::e16_BIT_INDICES;
 
 	bool Valid_TriMesh = TriMeshDesc.isValid();
 
@@ -201,7 +159,8 @@ void Physics::_createConvexMesh()
 	PxShape* meshShape;
 	if (!meshActor)
 	{
-		MessageBoxA(DXUTGetHWND(), "Error in create createRigidDynamic! line: 137. PhysX", "Error", MB_OK);
+		DebugTrace("Physics: meshActor failed. Line: 208\n");
+		throw std::exception("meshActor == nullptr!!!");
 		return;
 	}
 	meshActor->setRigidBodyFlag(PxRigidBodyFlag::Enum::eKINEMATIC, true);
@@ -213,7 +172,8 @@ void Physics::_createConvexMesh()
 
 	if (!triangleMesh)
 	{
-		MessageBoxA(DXUTGetHWND(), "Error in create createTriangleMesh! line: 149. PhysX", "Error", MB_OK);
+		DebugTrace("Physics: triangleMesh failed. Line: 221\n");
+		throw std::exception("triangleMesh == nullptr!!!");
 		return;
 	}
 	PxTriangleMeshGeometry triGeom;
@@ -229,7 +189,8 @@ void Physics::_createConvexMesh()
 
 	if (!gCooking->cookConvexMesh(convexDesc, buf2, &result))
 	{
-		MessageBoxA(DXUTGetHWND(), "Error in cookConvexMesh! line: 165. PhysX", "Error", MB_OK);
+		DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 237\n");
+		throw std::exception("gCooking->cookConvexMesh == nullptr!!!");
 		return;
 	}
 	PxDefaultMemoryInputData input(buf2.getData(), buf2.getSize());
@@ -246,59 +207,17 @@ void Physics::_createConvexMesh()
 		vertices.data()->Z)), *convexShape, PxReal(1.0f));
 	if (!newActor)
 	{
-		MessageBoxA(DXUTGetHWND(), "Error in newActor = PxCreateDynamic! line: 177. PhysX", "Error", MB_OK);
+		DebugTrace("Physics: newActor failed. Line: 256\n");
+		throw std::exception("newActor == nullptr!!!");
 		return;
 	}
 	newActor->setRigidBodyFlags(PxRigidBodyFlag::Enum::eENABLE_CCD | PxRigidBodyFlag::Enum::eENABLE_POSE_INTEGRATION_PREVIEW | PxRigidBodyFlag::Enum::eUSE_KINEMATIC_TARGET_FOR_SCENE_QUERIES);
 }
 
-//void Physics::GenTriangleMesh(PxVec3 pos, vector<Mesh::VERTEX> indices, vector<UINT> vertices)
-//{
-//	//int NumVerticies = vertices.size() / 3;
-//	//int NumTriangles = indices.size() / 3;
-//
-//	////Create pointer for vertices  
-//	//PxVec3* verts = new PxVec3[NumVerticies];
-//	//int ii = -1;
-//	//for (int i = 0; i < NumVerticies; i++)
-//	//{
-//	//	++ii;
-//	//	verts[i].x = indices[ii].X;
-//	//	verts[i].y = indices[++ii].Y;
-//	//	verts[i].z = indices[++ii].Z;
-//	//}
-//
-//	////Create pointer for indices  
-//	//PxU16 *tris = new PxU16[vertices.size()];
-//	//for (int i = vertices.size() - 1; i >= 0; i--)
-//	//	tris[i] = vertices[i];
-//	
-//	// Build physical model 
-//	//PxShape* meshShape;
-//	//if (meshActor)
-//	//{
-//	//	meshActor->setRigidDynamicFlag(PxRigidDynamicFlag::eKINEMATIC, true);
-//
-//	//	PxTriangleMeshGeometry triGeom;
-//	//	triGeom.triangleMesh = triangleMesh;
-//	//	meshShape = meshActor->createShape(triGeom, defaultMaterial);
-//	//	getScene().addActor(*meshActor);
-//	//}
-//
-//	//PxDefaultMemoryOutputStream writeBuffer;
-//	//bool status = gCooking->cookConvexMesh(meshDesc, writeBuffer);
-//	//if (!status)
-//	//	return;
-//
-//
-//	//SAFE_DELETE_ARRAY(verts);
-//	//SAFE_DELETE_ARRAY(tris);
-//}
-
 void Physics::Destroy()
 {
-	SAFE_RELEASE(gScene);
-	SAFE_RELEASE(gPhysics);
-	SAFE_RELEASE(gFoundation);
-	SAFE_RELEASE(gCooking);
+	_SAFE_RELEASE(gScene);
+	_SAFE_RELEASE(gPhysics);
+	_SAFE_RELEASE(gFoundation);
+	_SAFE_RELEASE(gCooking);
 }

@@ -131,9 +131,7 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 		{
 			auto ext = boost::filesystem::extension(File[i]->data()->c_str());
 			ResPath[i].insert(ResPath[i].end(), p.generic_path().generic_wstring() + wstring(L"//resource//"));
-			if (ResPath[i].data()->empty())
-				break;
-
+			if (!ResPath[i].data()->empty())
 			if (ext == ".obj")
 				ResPath[i].at(i).append(wstring(L"models//") + wstring(*File[i]->data()));
 			else if (ext == ".dds" || ext == ".png")
@@ -149,23 +147,22 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 
 vector<wstring> File_system::GetResPathW(wstring File)
 {
-	vector<wstring> ResPath;
+	vector<wstring> file;
 	if (!p.empty())
 	{
-		ResPath.push_back(p.generic_path().generic_wstring() + wstring(L"//resource//"));
+		auto ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
 		auto ext = boost::filesystem::extension(File.c_str());
-		if (ResPath.empty())
-			return ResPath;
 
+		if (!ResPath.empty())
 		if (ext == ".obj")
-			ResPath.push_back(wstring(L"models//") + wstring(File));
+			file.push_back(ResPath + wstring(L"models//") + wstring(File));
 		else if (ext == ".dds" || ext == ".png")
-			ResPath.push_back(wstring(L"textures//") + wstring(File));
+			file.push_back(ResPath + wstring(L"textures//") + wstring(File));
 		else if (ext == ".wav")
-			ResPath.push_back(wstring(L"sounds//") + wstring(File));
+			file.push_back(ResPath + wstring(L"sounds//") + wstring(File));
 		else if (ext == ".hlsl" || ext == ".fx")
-			ResPath.push_back(wstring(L"shaders//") + wstring(File));
-		return ResPath;
+			file.push_back(ResPath + wstring(L"shaders//") + wstring(File));
+		return file;
 	}
 }
 
