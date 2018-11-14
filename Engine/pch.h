@@ -19,9 +19,12 @@
 #include <sstream>
 #pragma warning( pop )
 
+#include <windows.h>
+
 #include "DXUT.h"
 #include "SDKmisc.h"
 #include "DXUTmisc.h"
+#include "DXUTgui.h"
 
 	// For ThrowIfFailed
 #include "../Src/PlatformHelpers.h"

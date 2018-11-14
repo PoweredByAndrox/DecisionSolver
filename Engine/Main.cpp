@@ -1,7 +1,6 @@
 #include "pch.h"
 
 #include "DXUTCamera.h"
-#include "DXUTgui.h"
 
 #include <d3d11_1.h>
 #include <d3d9.h>
@@ -12,6 +11,7 @@
 #include "File_system.h"
 #include "Audio.h"
 #include "Shaders.h"
+#include "UI.h"
 
 #define Never 1
 
@@ -40,18 +40,15 @@ auto file_system = make_unique<File_system>();
 auto Model = make_unique<Models>();
 auto Sound = make_unique<Audio>();
 auto Shader = make_unique<Shaders>();
+auto ui = make_unique<UI>();
 
 #if defined(Never)
 auto PhysX = make_unique<Physics>();
 #endif
 
 CFirstPersonCamera g_Camera;
-CDXUTDialogResourceManager g_DialogResourceManager;
-CDXUTDialog g_HUD;
 
-float g_fFOV = 80.0f * (D3DX_PI / 180.0f);
 HRESULT hr = S_OK;
-int iY = 10;
 
 ID3D11InputLayout* g_pVertexLayout = nullptr;
 ID3D11SamplerState *TexSamplerState;
@@ -110,22 +107,63 @@ bool InitProgram = false;
 
 void InitApp()
 {
-	g_HUD.Init(&g_DialogResourceManager);
-	g_HUD.SetCallback(OnGUIEvent);
-	
-	g_HUD.AddButton(BUTTON_1, L"Change Buffer Color", 35, iY, 125, 22, VK_F2);
-	g_HUD.AddButton(BUTTON_2, L"Do torque phys box", 35, iY += 24, 125, 22, VK_F3);
-	g_HUD.AddButton(BUTTON_3, L"Some-Button#3", 35, iY += 24, 125, 22, VK_F4);
-	g_HUD.AddButton(BUTTON_4, L"Play Sound", 35, iY += 24, 125, 22, VK_F5);
-	g_HUD.AddButton(BUTTON_5, L"Pause Sound", 35, iY += 24, 125, 22, VK_F6);
-	g_HUD.AddButton(BUTTON_6, L"Stop Sound", 35, iY += 24, 125, 22, VK_F3);
+	if (!ui->IsInitUI())
+		ui->Init();
+	ui->getHUD()->SetCallback(OnGUIEvent);
 
-	g_HUD.AddStatic(STATIC_TEXT, L"SomeText#1", 35, 90, 60, 50);
-	//g_HUD.AddStatic(STATIC_TEXT_2, L"SomeText#2", 35, iY += 24, 60, 50);
-	g_HUD.AddStatic(STATIC_TEXT_3, L"SomeText#3", 35, iY += 24, 60, 50);
-	g_HUD.AddStatic(STATIC_TEXT_4, L"SomeText#4", 35, iY += 24, 60, 50);
-	g_HUD.AddStatic(STATIC_TEXT_5, L"SomeText#5", 35, iY += 24, 60, 50);
-
+	auto CountOfButtons = vector<int>
+	{ 1, 2, 3, 4, 5, 6 };
+	vector<wstring> NameOfButtons = 
+	{
+		L"Change Buffer Color",
+		L"Do torque phys box",
+		L"Some-Button#3",
+		L"Play Sound",
+		L"Pause Sound",
+		L"Stop Sound"
+	};
+	auto iY = 10;
+	vector<int> PositionYButtons =
+	{
+		iY,
+		iY += 24,
+		iY += 24,
+		iY += 24,
+		iY += 24,
+		iY += 24
+	};
+	vector<int> KeysButtons =
+	{
+		VK_F1,
+		VK_F2,
+		VK_F3,
+		VK_F4,
+		VK_F5,
+		VK_F6
+	};
+	auto CountOfStatics = vector<int>
+	{ 7, 8, 
+		//9,
+	  10, 11 };
+	vector<wstring> NameOfStatics =
+	{
+		L"SomeText#1",
+		L"SomeText#2",
+		//L"SomeText#3",
+		L"SomeText#4",
+		L"SomeText#5",
+	};
+	iY = 10;
+	vector<int> PositionYStatics =
+	{
+		iY,
+		iY += 24,
+		//iY += 24,
+		iY += 24,
+		iY += 24,
+	};
+	ui->AddStatic_Mass(&CountOfStatics, &NameOfStatics, &vector<int>(10), &PositionYStatics);
+	ui->AddButton_Mass(&CountOfButtons, &NameOfButtons, &vector<int>(10), &PositionYButtons, &KeysButtons);
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	//g_Camera.SetEnableYAxisMovement(false);
 	g_Camera.SetScalers(0.010f, 6.0f);
@@ -167,9 +205,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
 	case BUTTON_3:
-			/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
-			PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
-			g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);*/
+		/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
+		PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
+		g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);*/
 		break;
 	case BUTTON_4:
 		Sound->doPlay();
@@ -204,7 +242,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-	V_RETURN(g_DialogResourceManager.OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
+	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
 
 	ID3DBlob *VS = nullptr, *PS = nullptr;
 	V_RETURN(D3DCompileFromFile(file_system->GetResPathW(&wstring(L"VertexShader.hlsl")), 0,
@@ -289,17 +327,17 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChain* pSwapChain,
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
-	V_RETURN(g_DialogResourceManager.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
+	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	int X = pBackBufferSurfaceDesc->Width - 170;
-	int Y = 15;
+	int Y = 10;
 
 		// *******
-	g_HUD.GetButton(BUTTON_1)->SetLocation(X, Y);
-	g_HUD.GetButton(BUTTON_2)->SetLocation(X, Y += 25);
-	g_HUD.GetButton(BUTTON_3)->SetLocation(X, Y += 20);
+	ui->getHUD()->GetButton(ui->getObjButton()->at(0))->SetLocation(X, Y);
+	ui->getHUD()->GetButton(ui->getObjButton()->at(1))->SetLocation(X, Y += 24);
+	ui->getHUD()->GetButton(ui->getObjButton()->at(2))->SetLocation(X, Y += 24);
 	
 	//g_HUD.GetButton(i)->SetSize(170, 170);
 
@@ -355,7 +393,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	
 	Model->Draw();
 	
-	V(g_HUD.OnRender(fElapsedTime));
+	V(ui->getHUD()->OnRender(fElapsedTime));
 
 #ifdef DEBUG
 	ID3D11Debug* debug = 0;
@@ -364,15 +402,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif
 
 #if defined(Never)
-	XMVECTOR qid = XMQuaternionIdentity();
-	const XMVECTORF32 scale = { 1.f, 1.f, 1.f };
-	const XMVECTORF32 translate = { 0.f, 0.f, 0.f };
-	const XMVECTORF32 rotate = { 0.f, 0.f, 0.f, 1.f };
-	XMMATRIX local = XMMatrixMultiply(gWorld, XMMatrixTransformation(g_XMZero, qid, scale, g_XMZero, rotate, translate));
-
-	PhysX->Simulation(local, local, 	XMMatrixPerspectiveFovRH(XM_PI / 4.f,
-		float(DXUTGetDXGIBackBufferSurfaceDesc()->Width) /
-		float(DXUTGetDXGIBackBufferSurfaceDesc()->Height), 0.1f, 100.f));
+	PhysX->Simulation();
 #endif
 
 	Mass = { g_Camera.GetEyePt() };
@@ -381,9 +411,9 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	snprintf(buff, sizeof(buff), "Cam Pos: X:%.1f, Y:%.1f, Z:%.1f",
 		Mass.data()->m128_f32[0],  Mass.data()->m128_f32[1], Mass.data()->m128_f32[2]);
 
-	g_HUD.GetStatic(STATIC_TEXT)->SetText(A2W(buff));
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(0))->SetText(A2W(buff));
 											//UP  DOWN
-	g_HUD.GetStatic(STATIC_TEXT)->SetLocation(0, 5);
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(0))->SetLocation(0, 5);
 
 	Mass.clear();
 	ZeroMemory(buff, sizeof(buff));
@@ -396,15 +426,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	//	Obj.m128_f32[0], Obj.m128_f32[1], Obj.m128_f32[2]);
 
 	//g_HUD.GetStatic(STATIC_TEXT_2)->SetText(A2W(buff));
-											//UP  DOWN
 	//g_HUD.GetStatic(STATIC_TEXT_2)->SetLocation(0, 25);
-	
 	//ZeroMemory(buff, sizeof(buff));
 
 	snprintf(buff, sizeof(buff), "FPS: %.2f", DXUTGetFPS());
 
-	g_HUD.GetStatic(STATIC_TEXT_3)->SetText(A2W(buff));
-	g_HUD.GetStatic(STATIC_TEXT_3)->SetLocation(SCREEN_WIDTH /2, -3);
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(1))->SetText(A2W(buff));
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(1))->SetLocation(SCREEN_WIDTH /2, -3);
 
 	ZeroMemory(buff, sizeof(buff));
 
@@ -416,29 +444,25 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	snprintf(buff, sizeof(buff), "Physics pos: X:%.1f, Y:%.1f, Z:%.1f",
 		PosPhys.m128_f32[0], PosPhys.m128_f32[1], PosPhys.m128_f32[2]);
 
-	g_HUD.GetStatic(STATIC_TEXT_4)->SetText(A2W(buff));
-	g_HUD.GetStatic(STATIC_TEXT_4)->SetLocation(0, 40);
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(2))->SetText(A2W(buff));
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(2))->SetLocation(0, 40);
 
 	Sound->Update();
 	auto StatAudio = Sound->getStaticSound();
 	ZeroMemory(buff, sizeof(buff));
 
-	snprintf(buff, sizeof(buff), "\nPlaying: %Iu / %Iu; Instances %Iu; Voices %Iu / %Iu / %Iu / %Iu;"
-		"%Iu audio bytes\n",
+	snprintf(buff, sizeof(buff), "\nPlaying: %Iu / %Iu; Instances %Iu; Voices %Iu / %Iu / %Iu / %Iu;",
 		StatAudio->playingOneShots, StatAudio->playingInstances,
 		StatAudio->allocatedInstances, StatAudio->allocatedVoices, StatAudio->allocatedVoices3d,
-		StatAudio->allocatedVoicesOneShot, StatAudio->allocatedVoicesIdle,
-		StatAudio->audioBytes);
+		StatAudio->allocatedVoicesOneShot, StatAudio->allocatedVoicesIdle);
 
-	g_HUD.GetStatic(STATIC_TEXT_5)->SetText(A2W(buff));
-	g_HUD.GetStatic(STATIC_TEXT_5)->SetLocation(0, 50);
-
-
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(3))->SetText(A2W(buff));
+	ui->getHUD()->GetStatic(ui->getObjStatic()->at(3))->SetLocation(0, 50);
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 {
-	g_DialogResourceManager.OnD3D11ReleasingSwapChain();
+	ui->getDialogResManager()->OnD3D11ReleasingSwapChain();
 }
 
 void Destroy_Application()
@@ -457,18 +481,18 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(g_pVertexLayout);
 	SAFE_RELEASE(TexSamplerState);
 	SAFE_RELEASE(pConstantBuffer);
-	g_DialogResourceManager.OnD3D11DestroyDevice();
+	ui->getDialogResManager()->OnD3D11DestroyDevice();
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	bool* pbNoFurtherProcessing, void* pUserContext)
 {
-	*pbNoFurtherProcessing = g_DialogResourceManager.MsgProc(hWnd, uMsg, wParam, lParam);
+	*pbNoFurtherProcessing = ui->getDialogResManager()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
 
-	*pbNoFurtherProcessing = g_HUD.MsgProc(hWnd, uMsg, wParam, lParam);
+	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
 

@@ -110,7 +110,7 @@ HRESULT Physics::Init()
 	}
 }
 
-void Physics::Simulation(Matrix World, Matrix View, Matrix Proj)
+void Physics::Simulation()
 {
 	gScene->simulate(Timestep);
 	gScene->fetchResults(true);
