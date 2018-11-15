@@ -6,8 +6,8 @@ File_system::File_system()
 	p = _wgetcwd(NULL, 512);
 	if (p.empty())
 	{
-		DebugTrace("File_system: Error getting path. Line: 19\n");
-		throw std::exception("p == null!!!");
+		DebugTrace("File_system: Error getting path. Line: 7\n");
+		throw std::exception("p == empty!!!");
 	}
 }
 

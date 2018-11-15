@@ -30,7 +30,7 @@ public:
 
 	// ************
 	bool isInitSounSystem() { return InitSoundSystem; }
-	auto *getStaticSound() { return &audEngine->GetStatistics(); }
+	auto *getStaticsSound() { return &audEngine->GetStatistics(); }
 
 private:
 	// ************

@@ -34,7 +34,6 @@ ID3D11PixelShader  *g_pPS = nullptr;
 
 Vector3 Eye(0.0f, 3.0f, -6.0f);
 Vector3 At(0.0f, 1.0f, 0.0f);
-Vector3 Up(0.0f, 1.0f, 0.0f);
 
 auto file_system = make_unique<File_system>();
 auto Model = make_unique<Models>();
@@ -117,10 +116,10 @@ void InitApp()
 	{
 		L"Change Buffer Color",
 		L"Do torque phys box",
-		L"Some-Button#3",
 		L"Play Sound",
 		L"Pause Sound",
-		L"Stop Sound"
+		L"Stop Sound",
+		L"Reset Cam Pos"
 	};
 	auto iY = 10;
 	vector<int> PositionYButtons =
@@ -130,7 +129,7 @@ void InitApp()
 		iY += 24,
 		iY += 24,
 		iY += 24,
-		iY += 24
+		iY += 24,
 	};
 	vector<int> KeysButtons =
 	{
@@ -139,17 +138,16 @@ void InitApp()
 		VK_F3,
 		VK_F4,
 		VK_F5,
-		VK_F6
+		VK_F6,
+		VK_F7
 	};
 	auto CountOfStatics = vector<int>
-	{ 7, 8, 
-		//9,
+	{ 8, 9, 
 	  10, 11 };
 	vector<wstring> NameOfStatics =
 	{
 		L"SomeText#1",
 		L"SomeText#2",
-		//L"SomeText#3",
 		L"SomeText#4",
 		L"SomeText#5",
 	};
@@ -158,16 +156,18 @@ void InitApp()
 	{
 		iY,
 		iY += 24,
-		//iY += 24,
 		iY += 24,
 		iY += 24,
 	};
-	ui->AddStatic_Mass(&CountOfStatics, &NameOfStatics, &vector<int>(10), &PositionYStatics);
-	ui->AddButton_Mass(&CountOfButtons, &NameOfButtons, &vector<int>(10), &PositionYButtons, &KeysButtons);
+	ui->AddStatic_Mass(&CountOfStatics, &NameOfStatics, &vector<int>(0), &PositionYStatics);
+	ui->AddButton_Mass(&CountOfButtons, &NameOfButtons, &vector<int>(0), &PositionYButtons, &KeysButtons);
+	
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	//g_Camera.SetEnableYAxisMovement(false);
+	
 	g_Camera.SetScalers(0.010f, 6.0f);
 	g_Camera.SetRotateButtons(true, true, true, true);
+	
 	//g_Camera.SetResetCursorAfterMove(true);
 
 	InitProgram = true;
@@ -205,23 +205,21 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
 	case BUTTON_3:
-		/*PhysX->AddTorque(PhysX->GetPhysDynamiObject().at(1),
-		PxVec3(g_Camera.GetEyePt().m128_f32[0], g_Camera.GetEyePt().m128_f32[1],
-		g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);*/
-		break;
-	case BUTTON_4:
 		Sound->doPlay();
 		break;
-	case BUTTON_5:
+	case BUTTON_4:
 		Sound->doPause();
 		break;
-	case BUTTON_6:
+	case BUTTON_5:
 		Sound->doStop();
+		break;
+	case BUTTON_6:
+		g_Camera.SetViewParams(Eye, At);
 		break;
 	}
 }
 
-unique_ptr<DirectX::GeometricPrimitive> m_shape;
+unique_ptr<GeometricPrimitive> m_shape;
 
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
 	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
@@ -335,18 +333,15 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	int Y = 10;
 
 		// *******
-	ui->getHUD()->GetButton(ui->getObjButton()->at(0))->SetLocation(X, Y);
-	ui->getHUD()->GetButton(ui->getObjButton()->at(1))->SetLocation(X, Y += 24);
-	ui->getHUD()->GetButton(ui->getObjButton()->at(2))->SetLocation(X, Y += 24);
-	
-	//g_HUD.GetButton(i)->SetSize(170, 170);
+	ui->SetLocationButton(0, X, Y);
+	ui->SetLocationButton(1, X, Y += 25);
+	ui->SetLocationButton(5, X, Y += 25);
 
 	return S_OK;
 }
 
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
-	//D3DXMatrixRotationY(&g_World, t);
 	g_Camera.FrameMove(fElapsedTime);
 }
 
@@ -390,7 +385,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
 	pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
-	
+
 	Model->Draw();
 	
 	V(ui->getHUD()->OnRender(fElapsedTime));
@@ -405,59 +400,40 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	PhysX->Simulation();
 #endif
 
-	Mass = { g_Camera.GetEyePt() };
-	char buff[100];
+	int PosText = 0;
 
-	snprintf(buff, sizeof(buff), "Cam Pos: X:%.1f, Y:%.1f, Z:%.1f",
-		Mass.data()->m128_f32[0],  Mass.data()->m128_f32[1], Mass.data()->m128_f32[2]);
+	ui->SetTextStatic(0, &string("Cam Pos: "), g_Camera.GetEyePt());
+	ui->SetLocationStatic(0, 0, PosText += 5);
 
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(0))->SetText(A2W(buff));
-											//UP  DOWN
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(0))->SetLocation(0, 5);
+	ui->SetTextStatic(1, &string("FPS: "), DXUTGetFPS());
+	ui->SetLocationStatic(1, SCREEN_WIDTH /2, -3);
 
-	Mass.clear();
-	ZeroMemory(buff, sizeof(buff));
-
-	//XMVECTOR Obj = { XMVectorSet(Model->.data()->X,
-	//	Model->vertices.data()->Y,
-	//	Model->vertices.data()->Z, 1.0f) };
-
-	//snprintf(buff, sizeof(buff), "Model (OBJ) pos: X:%.1f, Y:%.1f, Z:%.1f",
-	//	Obj.m128_f32[0], Obj.m128_f32[1], Obj.m128_f32[2]);
-
-	//g_HUD.GetStatic(STATIC_TEXT_2)->SetText(A2W(buff));
-	//g_HUD.GetStatic(STATIC_TEXT_2)->SetLocation(0, 25);
-	//ZeroMemory(buff, sizeof(buff));
-
-	snprintf(buff, sizeof(buff), "FPS: %.2f", DXUTGetFPS());
-
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(1))->SetText(A2W(buff));
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(1))->SetLocation(SCREEN_WIDTH /2, -3);
-
-	ZeroMemory(buff, sizeof(buff));
-
-	XMVECTOR PosPhys = { XMVectorSet(
-		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).x,
+	XMVECTOR PosPhys = 
+	{ 
+		XMVectorSet(PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).x,
 		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).y,
-		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).z, 1.0f) };
+		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).z, 1.0f) 
+	};
 
-	snprintf(buff, sizeof(buff), "Physics pos: X:%.1f, Y:%.1f, Z:%.1f",
-		PosPhys.m128_f32[0], PosPhys.m128_f32[1], PosPhys.m128_f32[2]);
-
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(2))->SetText(A2W(buff));
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(2))->SetLocation(0, 40);
+	ui->SetTextStatic(2, &string("Physics pos: "), PosPhys);
+	ui->SetLocationStatic(2, 0, PosText += 15);
 
 	Sound->Update();
-	auto StatAudio = Sound->getStaticSound();
-	ZeroMemory(buff, sizeof(buff));
+	auto StatAudio = Sound->getStaticsSound();
 
-	snprintf(buff, sizeof(buff), "\nPlaying: %Iu / %Iu; Instances %Iu; Voices %Iu / %Iu / %Iu / %Iu;",
-		StatAudio->playingOneShots, StatAudio->playingInstances,
-		StatAudio->allocatedInstances, StatAudio->allocatedVoices, StatAudio->allocatedVoices3d,
-		StatAudio->allocatedVoicesOneShot, StatAudio->allocatedVoicesIdle);
+	vector<size_t> SoundInformatio =
+	{
+		StatAudio->playingOneShots, 
+		StatAudio->playingInstances,
+		StatAudio->allocatedInstances,
+		StatAudio->allocatedVoices,
+		StatAudio->allocatedVoices3d,
+		StatAudio->allocatedVoicesOneShot, 
+		StatAudio->allocatedVoicesIdle
+	};
 
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(3))->SetText(A2W(buff));
-	ui->getHUD()->GetStatic(ui->getObjStatic()->at(3))->SetLocation(0, 50);
+	ui->SetTextStatic(3, &string("Playing: "), SoundInformatio);
+	ui->SetLocationStatic(3, 0, PosText += 15);
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)

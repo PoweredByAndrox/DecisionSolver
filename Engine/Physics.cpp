@@ -61,21 +61,6 @@ HRESULT Physics::Init()
 		gPlane->createShape(PxPlaneGeometry(), *gMaterial);
 		gScene->addActor(*gPlane);
 
-		//vector<VertexPositionNormalTexture> vertices = 
-		//{
-		//	VertexPositionNormalTexture::VertexPositionNormalTexture(
-		//	XMFLOAT3(_Mesh->data()->vertices.data()->X,
-		//		_Mesh->data()->vertices.data()->Y,
-		//		_Mesh->data()->vertices.data()->Z),
-		//	XMFLOAT3(_Mesh->data()->vertices.data()->X,
-		//		_Mesh->data()->vertices.data()->Y,
-		//		_Mesh->data()->vertices.data()->Z),
-		//	XMFLOAT2(_Mesh->data()->vertices.data()->texcoord.x,
-		//		_Mesh->data()->vertices.data()->texcoord.y)) 
-		//};
-
-			//vertices,
-			//vector<uint16_t>(_Mesh->data()->indices.size()));
 		PxTransform boxPos(PxVec3(0.5f, 5.0f, 0.5f));
 		PxBoxGeometry boxGeometry(PxVec3(0.5f, 0.5f, 0.5f));
 		gBox = PxCreateDynamic(*gPhysics, boxPos, boxGeometry, *gMaterial, 1.0f);

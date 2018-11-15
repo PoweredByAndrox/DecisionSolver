@@ -126,7 +126,7 @@ void Models::processNode(aiNode *node, const aiScene *scene)
 {
 	for (UINT i = 0; i < node->mNumMeshes; i++)
 	{
-		aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
+		mesh = scene->mMeshes[node->mMeshes[i]];
 		Meshes.push_back(this->processMesh(mesh, scene));
 	}
 

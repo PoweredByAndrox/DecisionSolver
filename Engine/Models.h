@@ -113,8 +113,10 @@ public:
 	bool Load(string Filename);
 
 	void Draw();
-
 	void Close();
+	
+	auto *getMeshes() { return &Meshes; }
+
 	Models() {}
 	~Models(){}
 
@@ -130,6 +132,8 @@ private:
 	string Textype;
 
 	HWND hwnd;
+
+	aiMesh *mesh;
 
 	void processNode(aiNode *node, const aiScene *Scene);
 	Mesh processMesh(aiMesh *mesh, const aiScene *Scene);

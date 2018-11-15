@@ -7,6 +7,7 @@ class UI
 {
 public:
 	HRESULT Init();
+
 	HRESULT AddButton(int ID, wstring Text, int X, int Y, int W, int H, int Key);
 	HRESULT AddButton(int ID, wstring Text, int X, int Y, int W, int H);
 	HRESULT AddButton(int ID, wstring Text);
@@ -17,6 +18,36 @@ public:
 
 	HRESULT AddButton_Mass(vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *Keys);
 	HRESULT AddStatic_Mass(vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y);
+
+	void SetLocationButton(int ID, int X, int Y);
+	void SetTextButton(int ID, wstring *Text);
+
+	void SetTextButton(int ID, string *Text, float Format[3]);
+	void SetTextButton(int ID, string *Text, XMMATRIX Format);
+	void SetTextButton(int ID, string *Text, float Format);
+	void SetTextButton(int ID, string *Text, vector<size_t> Format);
+	void SetTextButton(int ID, string *Text, XMVECTOR Format);
+
+	void SetTextButton(int ID, wstring *Text, float Format[3]);
+	void SetTextButton(int ID, wstring *Text, XMMATRIX Format);
+	void SetTextButton(int ID, wstring *Text, float Format);
+	void SetTextButton(int ID, wstring *Text, vector<size_t> Format);
+	void SetTextButton(int ID, wstring *Text, XMVECTOR Format);
+
+	void SetLocationStatic(int ID, int X, int Y);
+	void SetTextStatic(int ID, wstring *Text);
+
+	void SetTextStatic(int ID, string *Text, float Format[3]);
+	void SetTextStatic(int ID, string *Text, XMMATRIX Format);
+	void SetTextStatic(int ID, string *Text, float Format);
+	void SetTextStatic(int ID, string *Text, vector<size_t> Format);
+	void SetTextStatic(int ID, string *Text, XMVECTOR Format);
+
+	void SetTextStatic(int ID, wstring *Text, float Format[3]);
+	void SetTextStatic(int ID, wstring *Text, XMMATRIX Format);
+	void SetTextStatic(int ID, wstring *Text, float Format);
+	void SetTextStatic(int ID, wstring *Text, vector<size_t> Format);
+	void SetTextStatic(int ID, wstring *Text, XMVECTOR Format);
 
 	bool IsInitUI() { return InitUI; }
 
