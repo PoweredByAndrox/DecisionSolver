@@ -12,6 +12,7 @@
 #include "Audio.h"
 #include "Shaders.h"
 #include "UI.h"
+#include "MainMenu.h"
 
 #define Never 1
 
@@ -40,6 +41,9 @@ auto Model = make_unique<Models>();
 auto Sound = make_unique<Audio>();
 auto Shader = make_unique<Shaders>();
 auto ui = make_unique<UI>();
+#ifdef Never_MainMenu
+auto MM = make_unique<MainMenu>();
+#endif Never_MainMenu
 
 #if defined(Never)
 auto PhysX = make_unique<Physics>();
@@ -159,14 +163,26 @@ void InitApp()
 		iY += 24,
 		iY += 24,
 	};
-	ui->AddStatic_Mass(&CountOfStatics, &NameOfStatics, &vector<int>(0), &PositionYStatics);
-	ui->AddButton_Mass(&CountOfButtons, &NameOfButtons, &vector<int>(0), &PositionYButtons, &KeysButtons);
+	vector<int> X = { 35, 35, 35, 35 }, W = { 125, 125, 125, 125 }, H = { 22, 22, 22, 22 };
+	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
+	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
 	
+	if (!Sound->IsInitSounSystem())
+		Sound->Init();
+#ifdef Never_MainMenu
+	if (!MM->IsInitMainMenu())
+		MM->Init(ui.get(), Sound.get());
+
+	MM->getDlgMM()->SetCallback(OnGUIEvent); 
+	MM->getDlgAUD()->SetCallback(OnGUIEvent);
+	MM->getDlgVID()->SetCallback(OnGUIEvent);
+#endif Never_MainMenu
+
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
 	//g_Camera.SetEnableYAxisMovement(false);
 	
 	g_Camera.SetScalers(0.010f, 6.0f);
-	g_Camera.SetRotateButtons(true, true, true, true);
+	//g_Camera.SetRotateButtons(true, true, true, true);
 	
 	//g_Camera.SetResetCursorAfterMove(true);
 
@@ -185,8 +201,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 	return true;
 }
 
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
-	CDXUTControl* pControl, void* pUserContext)
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext)
 {
 	switch (nControlID)
 	{
@@ -217,6 +232,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID,
 		g_Camera.SetViewParams(Eye, At);
 		break;
 	}
+#ifdef Never_MainMenu
+	MM->setGUIEvent(nEvent, nControlID, pControl, pUserContext);
+#endif Never_MainMenu
 }
 
 unique_ptr<GeometricPrimitive> m_shape;
@@ -227,11 +245,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	if (!InitProgram)
 		InitApp();
 
-	if (!Sound->isInitSounSystem())
-		Sound->Init();
-
 	Sound->AddNewSound();
-
+#ifdef Never_MainMenu
+	MM->setGameMode(GAME_RUNNING);
+#endif Never_MainMenu
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 	
@@ -333,9 +350,9 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	int Y = 10;
 
 		// *******
-	ui->SetLocationButton(0, X, Y);
-	ui->SetLocationButton(1, X, Y += 25);
-	ui->SetLocationButton(5, X, Y += 25);
+	ui->SetLocationButton(ui->getHUD(), 0, X, Y);
+	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25);
+	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25);
 
 	return S_OK;
 }
@@ -350,9 +367,41 @@ vector<XMVECTOR> Mass;
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
-	USES_CONVERSION;
 	//g_Camera.SetNumberOfFramesToSmoothMouseData(fElapsedTime);
+#ifdef Never_MainMenu
+	switch (*MM->getGameMode())
+	{
+	case GAME_RUNNING:
+		break;
+	case GAME_MAIN_MENU:
+		MM->getDlgMM()->OnRender(fElapsedTime);
+		MM->getDlgMM()->SetVisible(true);
+		MM->getDlgAUD()->SetVisible(false);
+		MM->getDlgVID()->SetVisible(false);
+		DXUTSetCursorSettings(true, true);
+		g_Camera.SetRotateButtons(true, 0, 0);
+		g_Camera.SetResetCursorAfterMove(false);
+		break;
+	case GAME_AUDIO_MENU:
+		MM->getDlgAUD()->OnRender(fElapsedTime);
+		MM->getDlgAUD()->SetVisible(true);
+		MM->getDlgMM()->SetVisible(false);
+		MM->getDlgVID()->SetVisible(false);
+		break;
+	case GAME_VIDEO_MENU:
+		MM->getDlgVID()->OnRender(fElapsedTime);
+		MM->getDlgVID()->SetVisible(true);
+		MM->getDlgAUD()->SetVisible(false);
+		MM->getDlgMM()->SetVisible(false);
+		break;
+	}
+#endif Never_MainMenu
 
+	Sound->Update();
+#ifdef Never_MainMenu // Need To Move In Thread
+	if (*MM->getGameMode() != GAME_RUNNING)
+		return;
+#endif Never_MainMenu
 	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
@@ -402,23 +451,22 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	int PosText = 0;
 
-	ui->SetTextStatic(0, &string("Cam Pos: "), g_Camera.GetEyePt());
-	ui->SetLocationStatic(0, 0, PosText += 5);
+	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), g_Camera.GetEyePt());
+	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5);
 
-	ui->SetTextStatic(1, &string("FPS: "), DXUTGetFPS());
-	ui->SetLocationStatic(1, SCREEN_WIDTH /2, -3);
+	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
+	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH /2, -3);
 
 	XMVECTOR PosPhys = 
 	{ 
-		XMVectorSet(PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).x,
-		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).y,
+		XMVectorSet(PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).y,
+		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).x,
 		PhysX->GetObjPos(PhysX->GetPhysDynamicObject().at(0)).z, 1.0f) 
 	};
 
-	ui->SetTextStatic(2, &string("Physics pos: "), PosPhys);
-	ui->SetLocationStatic(2, 0, PosText += 15);
+	ui->SetTextStatic(ui->getHUD(), 2, &string("Physics pos: "), PosPhys);
+	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15);
 
-	Sound->Update();
 	auto StatAudio = Sound->getStaticsSound();
 
 	vector<size_t> SoundInformatio =
@@ -432,8 +480,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		StatAudio->allocatedVoicesIdle
 	};
 
-	ui->SetTextStatic(3, &string("Playing: "), SoundInformatio);
-	ui->SetLocationStatic(3, 0, PosText += 15);
+	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
+	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15);
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -471,14 +519,53 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
-
-	g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
-
+#ifdef Never_MainMenu
+	switch (*MM->getGameMode())
+	{
+	case GAME_RUNNING:
+		g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
+		break;
+	case GAME_MAIN_MENU:
+		MM->getDlgMM()->MsgProc(hWnd, uMsg, wParam, lParam);
+		break;
+	case GAME_AUDIO_MENU:
+		MM->getDlgAUD()->MsgProc(hWnd, uMsg, wParam, lParam);
+		break;
+	case GAME_VIDEO_MENU:
+		MM->getDlgVID()->MsgProc(hWnd, uMsg, wParam, lParam);
+		break;
+	}
+#endif Never_MainMenu
 	return 0;
 }
 
 void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
+#ifdef Never_MainMenu
+	if (bKeyDown)
+	{
+		switch (nChar)
+		{
+		case VK_ESCAPE:
+			switch (*MM->getGameMode())
+			{
+			case GAME_RUNNING:
+				MM->setGameMode(GAME_MAIN_MENU);
+				break;
+			case GAME_MAIN_MENU:
+				MM->setGameMode(GAME_RUNNING);
+				break;
+			case GAME_AUDIO_MENU:
+				MM->setGameMode(GAME_MAIN_MENU);
+				break;
+			case GAME_VIDEO_MENU:
+				MM->setGameMode(GAME_MAIN_MENU);
+				break;
+		break;
+			}
+		}
+	}
+#endif Never_MainMenu
 }
 
 void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown,
@@ -514,6 +601,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 		DXUTInit(true, true, NULL);
+		DXUTSetHotkeyHandling(false, false, false);
 
 		DXUTSetCursorSettings(true, true);
 		DXUTCreateWindow(L"EngineProgram");

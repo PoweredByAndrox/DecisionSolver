@@ -34,12 +34,24 @@ LPCSTR File_system::GetResPathA(string *File)
 				*File = ResPath + string("shaders//") + string(*File);
 				return File->c_str();
 			}
-			if (ext == ".obj")
+			else if (ext == ".obj")
 			{
 				*File = ResPath + string("sounds//") + string(*File);
 				return File->c_str();
 			}
+			else
+			{
+				*File = "Unsupported File!";
+				return File->c_str();
+			}
 		}
+		else
+		{
+			DebugTrace("File System: GetResPathA failed. Line: 20\n");
+			throw std::exception("ResPath == empty!!!");
+			return "";
+		}
+
 	}
 	else
 		return "";
@@ -52,6 +64,7 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 		auto ResPath = p.generic_path().generic_wstring() + wstring(L"//resource//");
 		auto ext = boost::filesystem::extension(File->c_str());
 		if (!ResPath.empty())
+		{
 			if (ext == ".obj")
 			{
 				*File = ResPath + wstring(L"models//") + wstring(*File);
@@ -72,6 +85,18 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 				*File = ResPath + wstring(L"sounds//") + wstring(*File);
 				return File->c_str();
 			}
+			else
+			{
+				*File = wstring(L"Unsupported File!");
+				return File->c_str();
+			}
+		}
+		else
+		{
+			DebugTrace("File System: GetResPathA failed. Line: 62\n");
+			throw std::exception("ResPath == empty!!!");
+			return L"";
+		}
 	}
 	else
 		return L"";
@@ -85,6 +110,7 @@ wstring File_system::GetResPathW(string *File)
 		auto ResPath = p.generic_path().generic_string() + string("//resource//");
 		auto ext = boost::filesystem::extension(File->c_str());
 		if (!ResPath.empty())
+		{
 			if (ext == ".obj")
 			{
 				*File = ResPath + string("models//") + *File;
@@ -105,6 +131,18 @@ wstring File_system::GetResPathW(string *File)
 				*File = ResPath + string("sounds//") + *File;
 				return A2W(File->c_str());
 			}
+			else
+			{
+				File = &string("Unsupported File!");
+				return A2W(File->c_str());
+			}
+		}
+		else
+		{
+			DebugTrace("File System: GetResPathA failed. Line: 108\n");
+			throw std::exception("ResPath == empty!!!");
+			return L"";
+		}
 	}
 	else
 		return L"";

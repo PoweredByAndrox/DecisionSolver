@@ -29,8 +29,8 @@ public:
 	~Audio() {}
 
 	// ************
-	bool isInitSounSystem() { return InitSoundSystem; }
-	auto *getStaticsSound() { return &audEngine->GetStatistics(); }
+	bool IsInitSounSystem() { return InitSoundSystem; }
+	auto *getStaticsSound() { return &audEngine.get()->GetStatistics(); }
 
 private:
 	// ************
