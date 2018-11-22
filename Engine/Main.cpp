@@ -33,8 +33,8 @@ ID3D11InputLayout  *g_pLayout = nullptr;
 ID3D11VertexShader *g_pVS = nullptr;
 ID3D11PixelShader  *g_pPS = nullptr;
 
-Vector3 Eye(0.0f, 3.0f, -6.0f);
-Vector3 At(0.0f, 1.0f, 0.0f);
+Vector3 Eye(0.0f, 4.0f, 0.0f);
+Vector3 At(0.0f, 4.0f, 1.0f);
 
 auto file_system = make_unique<File_system>();
 auto Model = make_unique<Models>();
@@ -43,7 +43,7 @@ auto Shader = make_unique<Shaders>();
 auto ui = make_unique<UI>();
 #ifdef Never_MainMenu
 auto MM = make_unique<MainMenu>();
-#endif Never_MainMenu
+#endif
 
 #if defined(Never)
 auto PhysX = make_unique<Physics>();
@@ -176,13 +176,13 @@ void InitApp()
 	MM->getDlgMM()->SetCallback(OnGUIEvent); 
 	MM->getDlgAUD()->SetCallback(OnGUIEvent);
 	MM->getDlgVID()->SetCallback(OnGUIEvent);
-#endif Never_MainMenu
+#endif
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
-	//g_Camera.SetEnableYAxisMovement(false);
+	g_Camera.SetEnableYAxisMovement(false);
 	
 	g_Camera.SetScalers(0.010f, 6.0f);
-	//g_Camera.SetRotateButtons(true, true, true, true);
+	g_Camera.SetRotateButtons(true, false, false);
 	
 	//g_Camera.SetResetCursorAfterMove(true);
 
@@ -234,7 +234,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	}
 #ifdef Never_MainMenu
 	MM->setGUIEvent(nEvent, nControlID, pControl, pUserContext);
-#endif Never_MainMenu
+#endif
 }
 
 unique_ptr<GeometricPrimitive> m_shape;
@@ -248,7 +248,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	Sound->AddNewSound();
 #ifdef Never_MainMenu
 	MM->setGameMode(GAME_RUNNING);
-#endif Never_MainMenu
+#endif
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 	
@@ -260,11 +260,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
 
 	ID3DBlob *VS = nullptr, *PS = nullptr;
-	V_RETURN(D3DCompileFromFile(file_system->GetResPathW(&wstring(L"VertexShader.hlsl")), 0,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_4_0", dwShaderFlags, 0, &VS, nullptr));
+	V_RETURN(Shader->CompileShaderFromFile(file_system->GetResPathW(&wstring(L"VertexShader.hlsl")), &string("main"), &string("vs_4_0"),
+		&VS));
 
-	V_RETURN(D3DCompileFromFile(file_system->GetResPathW(&wstring(L"PixelShader.hlsl")), 0,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "ps_4_0", dwShaderFlags, 0, &PS, nullptr));
+	V_RETURN(Shader->CompileShaderFromFile(file_system->GetResPathW(&wstring(L"PixelShader.hlsl")), &string("main"), &string("ps_4_0"),
+		&PS));
 
 	V_RETURN(pd3dDevice->CreateVertexShader(VS->GetBufferPointer(),
 		VS->GetBufferSize(), NULL, &g_pVS));
@@ -294,8 +294,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	if (!Model->Load(file_system->GetResPathA(&string("nanosuit.obj"))))
-		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ")
-			+ wstring(file_system->GetResPathW(&wstring(L"nanosuit.obj")))).c_str(), L"", MB_OK);
+		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
+			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 	// else
 #if defined(Never)
 	if (!PhysX->IsPhysicsInit())
@@ -307,7 +307,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
-    g_Camera.SetViewParams(Eye, XMVectorSet(At.x, At.y, At.z, 1.0f));
+	g_Camera.SetViewParams(Eye, At);
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
 	
@@ -334,7 +334,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	V_RETURN(pd3dDevice->CreateSamplerState(&sampDesc, &TexSamplerState));
 
 #if defined(Never)
-	//PhysX->ModelPhysics(Model->GetMeshes());
+	// PhysX->ModelPhysics(Model->GetMeshes());
 #endif
 	return S_OK;
 }
@@ -395,13 +395,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		MM->getDlgMM()->SetVisible(false);
 		break;
 	}
-#endif Never_MainMenu
+#endif
 
 	Sound->Update();
 #ifdef Never_MainMenu // Need To Move In Thread
 	if (*MM->getGameMode() != GAME_RUNNING)
 		return;
-#endif Never_MainMenu
+#endif
 	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
@@ -519,6 +519,8 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
+	g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
+
 #ifdef Never_MainMenu
 	switch (*MM->getGameMode())
 	{
@@ -535,7 +537,7 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 		MM->getDlgVID()->MsgProc(hWnd, uMsg, wParam, lParam);
 		break;
 	}
-#endif Never_MainMenu
+#endif
 	return 0;
 }
 

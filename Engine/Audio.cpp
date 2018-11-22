@@ -14,7 +14,7 @@ void Audio::Init()
 	if (audEngine == nullptr)
 	{
 		DebugTrace("Sound_system: Error audEngine = make_unique. Line: 14\n");
-		throw std::exception("audEngine == nullptr!!!");
+		throw exception("audEngine == nullptr!!!");
 		InitSoundSystem = false;
 	}
 	InitSoundSystem = true;
@@ -31,7 +31,7 @@ void Audio::AddNewSound()
 		if (!sound[i])
 		{
 			DebugTrace("Sound_system: Error sound.push_back. Line: 31\n");
-			throw std::exception("sound[i] == null!!!");
+			throw exception("sound[i] == null!!!");
 		}
 	}
 }
@@ -43,7 +43,7 @@ void Audio::Update()
 		if (audEngine->IsCriticalError())
 		{
 			DebugTrace("Sound_system: Error IsCriticalError. Line: 43\n");
-			throw std::exception("audEngine: has critical errors audio!");
+			throw exception("audEngine: has critical errors audio!");
 		}
 	}
 }

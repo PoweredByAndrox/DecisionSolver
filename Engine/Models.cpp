@@ -1,12 +1,18 @@
 #include "pch.h"
 #include "Models.h"
 
-bool Models::Load(string Filename)
+bool Models::Load(string *Filename)
 {
-	pScene = importer.ReadFile(Filename, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
-	if (pScene == nullptr)
-		return false;
 
+	pScene = importer.ReadFile(Filename->c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+
+	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+	{
+		DebugTrace(string(string("Models: Error. Scene returned nullptr with text:\n") 
+				+ string(importer.GetErrorString()) + string(" Line: 10\n")).c_str());
+		throw exception("pScene == nullptr!!!");
+		return false;
+	}
 	GetD3DDevice();
 	GetD3DHWND();
 	
@@ -39,33 +45,45 @@ Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 	{
 		VERTEX vertex;
 
-		vertex.X = mesh->mVertices[i].x;
-		vertex.Y = mesh->mVertices[i].y;
-		vertex.Z = mesh->mVertices[i].z;
+		vertex.Position.x = mesh->mVertices[i].x;
+		vertex.Position.y = mesh->mVertices[i].y;
+		vertex.Position.z = mesh->mVertices[i].z;
 
 		if (mesh->mTextureCoords[0])
 		{
 			vertex.texcoord.x = (float)mesh->mTextureCoords[0][i].x;
 			vertex.texcoord.y = (float)mesh->mTextureCoords[0][i].y;
 		}
+		else
+			vertex.texcoord = XMFLOAT2(0.f, 0.f);
 
 		vertices.push_back(vertex);
 	}
 
 	for (UINT i = 0; i < mesh->mNumFaces; i++)
-	{
-		aiFace face = mesh->mFaces[i];
-
-		for (UINT j = 0; j < face.mNumIndices; j++)
-			indices.push_back(face.mIndices[j]);
-	}
+		for (UINT j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+			indices.push_back(mesh->mFaces[i].mIndices[j]);
 
 	if (mesh->mMaterialIndex >= 0)
 	{
-		aiMaterial* material = Scene->mMaterials[mesh->mMaterialIndex];
+		aiMaterial *material = Scene->mMaterials[mesh->mMaterialIndex];
 
-		vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", Scene);
+		vector<Texture> diffuseMaps = this->loadMaterialTextures(material,
+			aiTextureType_DIFFUSE, "texture_diffuse", Scene);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
+			///It doesn't work!
+		/*vector<Texture> specularMaps = loadMaterialTextures(material,
+			aiTextureType_SPECULAR, "texture_specular", Scene);
+		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+	
+		vector<Texture> normalMaps = loadMaterialTextures(material, 
+			aiTextureType_HEIGHT, "texture_normal", Scene);
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+		vector<Texture> heightMaps = loadMaterialTextures(material, 
+			aiTextureType_AMBIENT, "texture_height", Scene);
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());*/
 	}
 
 	return Mesh(vertices, indices, textures);
@@ -81,7 +99,7 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 		bool skip = false;
 		for (UINT j = 0; j < Textures_loaded.size(); j++)
 		{
-			if (std::strcmp(Textures_loaded[j].path.c_str(), str.C_Str()) == 0)
+			if (strcmp(Textures_loaded[j].path.c_str(), str.C_Str()) == 0)
 			{
 				textures.push_back(Textures_loaded[j]);
 				skip = true;
@@ -125,10 +143,7 @@ void Models::Close()
 void Models::processNode(aiNode *node, const aiScene *scene)
 {
 	for (UINT i = 0; i < node->mNumMeshes; i++)
-	{
-		mesh = scene->mMeshes[node->mMeshes[i]];
-		Meshes.push_back(this->processMesh(mesh, scene));
-	}
+		Meshes.push_back(this->processMesh(scene->mMeshes[node->mMeshes[i]], scene));
 
 	for (UINT i = 0; i < node->mNumChildren; i++)
 		this->processNode(node->mChildren[i], scene);

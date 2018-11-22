@@ -6,13 +6,13 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 	if (!ui->IsInitUI())
 	{
 		DebugTrace("MainMenu: Init failed. Line: 6\n");
-		throw std::exception("UI has not been initialized!!!");
+		throw exception("UI has not been initialized!!!");
 		InitMainMenu = false;
 	}
 	if (!sound->IsInitSounSystem())
 	{
 		DebugTrace("MainMenu: Init failed. Line: 12\n");
-		throw std::exception("Audio has not been initialized!!!");
+		throw exception("Audio has not been initialized!!!");
 		InitMainMenu = false;
 	}
 	this->ui = unique_ptr<UI>(ui);
@@ -545,7 +545,7 @@ void MainMenu::AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate)
 
 	if (!pComboBox->ContainsItem(strRefreshRate))
 	{
-		auto pNewRate = new (std::nothrow) DXGI_RATIONAL;
+		auto pNewRate = new (nothrow) DXGI_RATIONAL;
 		if (pNewRate)
 		{
 			*pNewRate = RefreshRate;

@@ -19,7 +19,7 @@ public:
 
 	struct VERTEX
 	{
-		FLOAT X, Y, Z;
+		XMFLOAT3 Position;
 		XMFLOAT2 texcoord;
 	};
 
@@ -65,41 +65,39 @@ public:
 		IndexBuffer->Release();
 	}
 private:
+	HRESULT hr = S_OK;
+
 	ID3D11Device *Device = nullptr;
 	ID3D11DeviceContext *DeviceCon = nullptr;
 	ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
 
 	bool setupMesh()
 	{
-		HRESULT hr;
-
-		D3D11_BUFFER_DESC vbd;
-		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth = sizeof(VERTEX) * vertices.size();
-		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vbd.CPUAccessFlags = 0;
-		vbd.MiscFlags = 0;
-
-		D3D11_SUBRESOURCE_DATA initData;
-		initData.pSysMem = &vertices[0];
+		D3D11_SUBRESOURCE_DATA Data;
+		Data.pSysMem = &vertices[0];
+		D3D11_BUFFER_DESC bd;
+		bd.Usage = D3D11_USAGE_IMMUTABLE;
+		bd.ByteWidth = sizeof(VERTEX) * vertices.size();
+		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		bd.CPUAccessFlags = 0;
+		bd.MiscFlags = 0;
 
 		if (Device == nullptr)
 			GetD3DDevice();
 
-		if (FAILED(hr = Device->CreateBuffer(&vbd, &initData, &VertexBuffer)))
+		if (FAILED(hr = Device->CreateBuffer(&bd, &Data, &VertexBuffer)))
 			return false;
 
-		D3D11_BUFFER_DESC ibd;
-		ibd.Usage = D3D11_USAGE_IMMUTABLE;
-		ibd.ByteWidth = sizeof(UINT) * indices.size();
-		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-		ibd.CPUAccessFlags = 0;
-		ibd.MiscFlags = 0;
+		bd.Usage = D3D11_USAGE_IMMUTABLE;
+		bd.ByteWidth = sizeof(UINT) * indices.size();
+		bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+		bd.CPUAccessFlags = 0;
+		bd.MiscFlags = 0;
+		Data.pSysMem = &indices[0];
 
-		initData.pSysMem = &indices[0];
-		if (Device == nullptr)
-			GetD3DDevice();
-		if (FAILED(hr = Device->CreateBuffer(&ibd, &initData, &IndexBuffer)))
+		if (FAILED(hr = Device->CreateBuffer(&bd, &Data, &IndexBuffer)))
+			return false;
+
 			return false;
 	}
 
@@ -110,7 +108,7 @@ private:
 class Models: public File_system, public Mesh
 {
 public:
-	bool Load(string Filename);
+	bool Load(string *Filename);
 
 	void Draw();
 	void Close();
@@ -121,6 +119,8 @@ public:
 	~Models(){}
 
 private:
+	HRESULT hr = S_OK;
+
 	ID3D11ShaderResourceView *texture;
 	ID3D11Device *Device = nullptr;
 
@@ -145,7 +145,6 @@ private:
 	ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
 
 	void GetD3DDevice() { Device = DXUTGetD3D11Device(); }
-
 	void GetD3DHWND() { hwnd = DXUTGetHWND(); }
 };
 #endif // !__MODELS_H__

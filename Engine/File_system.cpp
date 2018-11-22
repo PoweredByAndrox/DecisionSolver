@@ -7,11 +7,11 @@ File_system::File_system()
 	if (p.empty())
 	{
 		DebugTrace("File_system: Error getting path. Line: 7\n");
-		throw std::exception("p == empty!!!");
+		throw exception("p == empty!!!");
 	}
 }
 
-LPCSTR File_system::GetResPathA(string *File)
+string *File_system::GetResPathA(string *File)
 {
 	if (!p.empty())
 	{
@@ -22,42 +22,42 @@ LPCSTR File_system::GetResPathA(string *File)
 			if (ext == ".obj")
 			{
 				*File = ResPath + string("models//") + string(*File);
-				return File->c_str();
+				return File;
 			}
 			else if (ext == ".dds" || ext == ".png")
 			{
 				*File = ResPath + string("textures//") + string(*File);
-				return File->c_str();
+				return File;
 			}
-			else if (ext == ".hlsl" || ext == ".fx")
+			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
 			{
 				*File = ResPath + string("shaders//") + string(*File);
-				return File->c_str();
+				return File;
 			}
 			else if (ext == ".obj")
 			{
 				*File = ResPath + string("sounds//") + string(*File);
-				return File->c_str();
+				return File;
 			}
 			else
 			{
 				*File = "Unsupported File!";
-				return File->c_str();
+				return File;
 			}
 		}
 		else
 		{
 			DebugTrace("File System: GetResPathA failed. Line: 20\n");
-			throw std::exception("ResPath == empty!!!");
-			return "";
+			throw exception("ResPath == empty!!!");
+			return &string("");
 		}
 
 	}
 	else
-		return "";
+		return &string("");
 }
 
-LPCTSTR File_system::GetResPathW(wstring *File)
+wstring *File_system::GetResPathW(wstring *File)
 {
 	if (!p.empty())
 	{
@@ -68,38 +68,38 @@ LPCTSTR File_system::GetResPathW(wstring *File)
 			if (ext == ".obj")
 			{
 				*File = ResPath + wstring(L"models//") + wstring(*File);
-				return File->c_str();
+				return File;
 			}
-			else if (ext == ".hlsl" || ext == ".fx")
+			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
 			{
 				*File = ResPath + wstring(L"shaders//") + wstring(*File);
-				return File->c_str();
+				return File;
 			}
 			else if (ext == ".png" || ext == ".dds")
 			{
 				*File = ResPath + wstring(L"textures//") + wstring(*File);
-				return File->c_str();
+				return File;
 			}
 			else if (ext == ".wav")
 			{
 				*File = ResPath + wstring(L"sounds//") + wstring(*File);
-				return File->c_str();
+				return File;
 			}
 			else
 			{
 				*File = wstring(L"Unsupported File!");
-				return File->c_str();
+				return File;
 			}
 		}
 		else
 		{
 			DebugTrace("File System: GetResPathA failed. Line: 62\n");
-			throw std::exception("ResPath == empty!!!");
-			return L"";
+			throw exception("ResPath == empty!!!");
+			return &wstring(L"");
 		}
 	}
 	else
-		return L"";
+		return &wstring(L"");
 }
 
 wstring File_system::GetResPathW(string *File)
@@ -121,7 +121,7 @@ wstring File_system::GetResPathW(string *File)
 				*File = ResPath + string("textures//") + *File;
 				return A2W(File->c_str());
 			}
-			else if (ext == ".hlsl" || ext == ".fx")
+			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
 			{
 				*File = ResPath + string("shaders//") + *File;
 				return A2W(File->c_str());
@@ -140,7 +140,7 @@ wstring File_system::GetResPathW(string *File)
 		else
 		{
 			DebugTrace("File System: GetResPathA failed. Line: 108\n");
-			throw std::exception("ResPath == empty!!!");
+			throw exception("ResPath == empty!!!");
 			return L"";
 		}
 	}
@@ -164,7 +164,7 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 				ResPath[i].at(i).append(wstring(L"textures//") + wstring(File[i]->data()->c_str()));
 			else if (ext == ".wav")
 				ResPath[i].at(i).append(wstring(L"sounds//") + wstring(File[i]->data()->c_str()));
-			else if (ext == ".hlsl" || ext == ".fx")
+			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
 				ResPath[i].at(i).append(wstring(L"shaders//") + wstring(File[i]->data()->c_str()));
 			return ResPath[sizeof(*File)];
 		}
@@ -186,7 +186,7 @@ vector<wstring> File_system::GetResPathW(wstring File)
 			file.push_back(ResPath + wstring(L"textures//") + wstring(File));
 		else if (ext == ".wav")
 			file.push_back(ResPath + wstring(L"sounds//") + wstring(File));
-		else if (ext == ".hlsl" || ext == ".fx")
+		else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
 			file.push_back(ResPath + wstring(L"shaders//") + wstring(File));
 		return file;
 	}

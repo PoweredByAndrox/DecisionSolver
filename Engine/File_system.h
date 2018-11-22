@@ -14,10 +14,9 @@ public:
 	File_system();
 	~File_system() {}
 
-		// Ansi (const char*)
-	LPCSTR GetResPathA(string *File);
+	string *GetResPathA(string *File);
 		// Wide (wchar_t*)
-	LPCTSTR GetResPathW(wstring *File);
+	wstring *GetResPathW(wstring *File);
 		// Get string return wstring
 	wstring GetResPathW(string *File);
 		// Getting massive vector<wstring>

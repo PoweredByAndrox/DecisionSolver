@@ -12,7 +12,7 @@ HRESULT Physics::Init()
 		if (gFoundation == nullptr)
 		{
 			DebugTrace("Physics: PxCreateFoundation failed. Line: 12\n");
-			throw std::exception("PxCreateFoundation == nullptr!!!");
+			throw exception("PxCreateFoundation == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -21,7 +21,7 @@ HRESULT Physics::Init()
 		if (gPhysics == nullptr)
 		{
 			DebugTrace("Physics: gPhysics failed. Line: 21\n");
-			throw std::exception("gPhysics == nullptr!!!");
+			throw exception("gPhysics == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -34,7 +34,7 @@ HRESULT Physics::Init()
 		if (!gScene)
 		{
 			DebugTrace("Physics: gScene failed. Line: 34\n");
-			throw std::exception("gScene == nullptr!!!");
+			throw exception("gScene == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -44,7 +44,7 @@ HRESULT Physics::Init()
 		if (!gMaterial)
 		{
 			DebugTrace("Physics: gMaterial failed. Line: 44\n");
-			throw std::exception("gMaterial == nullptr!!!");
+			throw exception("gMaterial == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -54,7 +54,7 @@ HRESULT Physics::Init()
 		if (!gPlane)
 		{
 			DebugTrace("Physics: gPlane failed. Line: 54\n");
-			throw std::exception("gPlane == nullptr!!!");
+			throw exception("gPlane == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -76,7 +76,7 @@ HRESULT Physics::Init()
 		if (!gCooking)
 		{
 			DebugTrace("Physics: gCooking failed. Line: 91\n");
-			throw std::exception("gCooking == nullptr!!!");
+			throw exception("gCooking == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
@@ -86,10 +86,10 @@ HRESULT Physics::Init()
 		getDeviceConD3D();
 		return S_OK;
 	}
-	catch (const std::exception&)
+	catch (const exception&)
 	{
 		DebugTrace("Physics: Init failed. Line: 104\n");
-		throw std::exception("PhysX initialization error!!!");
+		throw exception("PhysX initialization error!!!");
 		IsInitPhysX = false;
 		return E_FAIL;
 	}
@@ -111,9 +111,9 @@ void Physics::_createConvexMesh()
 	for (int i = 0; i < NumVerticies / 3; i++)
 	{
 		++ii;
-		verts[i].x = vertices[ii].X;
-		verts[i].y = vertices[++ii].Y;
-		verts[i].z = vertices[++ii].Z;
+		verts[i].x = vertices[ii].Position.x;
+		verts[i].y = vertices[++ii].Position.y;
+		verts[i].z = vertices[++ii].Position.z;
 	}
 
 	PxU16 *tris = new PxU16[indices.size()];
@@ -145,7 +145,7 @@ void Physics::_createConvexMesh()
 	if (!meshActor)
 	{
 		DebugTrace("Physics: meshActor failed. Line: 208\n");
-		throw std::exception("meshActor == nullptr!!!");
+		throw exception("meshActor == nullptr!!!");
 		return;
 	}
 	meshActor->setRigidBodyFlag(PxRigidBodyFlag::Enum::eKINEMATIC, true);
@@ -158,7 +158,7 @@ void Physics::_createConvexMesh()
 	if (!triangleMesh)
 	{
 		DebugTrace("Physics: triangleMesh failed. Line: 221\n");
-		throw std::exception("triangleMesh == nullptr!!!");
+		throw exception("triangleMesh == nullptr!!!");
 		return;
 	}
 	PxTriangleMeshGeometry triGeom;
@@ -175,7 +175,7 @@ void Physics::_createConvexMesh()
 	if (!gCooking->cookConvexMesh(convexDesc, buf2, &result))
 	{
 		DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 237\n");
-		throw std::exception("gCooking->cookConvexMesh == nullptr!!!");
+		throw exception("gCooking->cookConvexMesh == nullptr!!!");
 		return;
 	}
 	PxDefaultMemoryInputData input(buf2.getData(), buf2.getSize());
@@ -187,13 +187,13 @@ void Physics::_createConvexMesh()
 	PxGeometryHolder geom = convexShape->getGeometry();
 
 	PxRigidDynamic* newActor = PxCreateDynamic(*gPhysics, 
-	PxTransform(PxVec3(vertices.data()->X,
-		vertices.data()->Y,
-		vertices.data()->Z)), *convexShape, PxReal(1.0f));
+	PxTransform(PxVec3(vertices.data()->Position.x,
+		vertices.data()->Position.y,
+		vertices.data()->Position.z)), *convexShape, PxReal(1.0f));
 	if (!newActor)
 	{
 		DebugTrace("Physics: newActor failed. Line: 256\n");
-		throw std::exception("newActor == nullptr!!!");
+		throw exception("newActor == nullptr!!!");
 		return;
 	}
 	newActor->setRigidBodyFlags(PxRigidBodyFlag::Enum::eENABLE_CCD | PxRigidBodyFlag::Enum::eENABLE_POSE_INTEGRATION_PREVIEW | PxRigidBodyFlag::Enum::eUSE_KINEMATIC_TARGET_FOR_SCENE_QUERIES);
