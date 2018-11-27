@@ -19,8 +19,8 @@ public:
 
 	struct VERTEX
 	{
-		XMFLOAT3 Position;
-		XMFLOAT2 texcoord;
+		Vector3 Position;
+		Vector2 texcoord;
 	};
 
 	struct Texture
@@ -31,10 +31,10 @@ public:
 	};
 
 	vector<VERTEX> vertices;
-	vector<UINT> indices;
+	vector<uint16_t> indices;
 	vector<Texture> textures;
 
-	Mesh(vector<VERTEX> vertices, vector<UINT> indices, vector<Texture> textures)
+	Mesh(vector<VERTEX> vertices, vector<uint16_t> indices, vector<Texture> textures)
 	{
 		this->vertices = vertices;
 		this->indices = indices;
@@ -46,6 +46,7 @@ public:
 		this->setupMesh();
 	}
 
+	/*
 	void Draw()
 	{
 		UINT stride = sizeof(VERTEX);
@@ -64,6 +65,7 @@ public:
 		VertexBuffer->Release();
 		IndexBuffer->Release();
 	}
+	*/
 private:
 	HRESULT hr = S_OK;
 
@@ -105,35 +107,87 @@ private:
 	void GetD3DDevice1() { DeviceCon = DXUTGetD3D11DeviceContext(); }
 };
 
+#include <CommonStates.h>
+#include <Effects.h>
+#include <GeometricPrimitive.h>
+
 class Models: public File_system, public Mesh
 {
 public:
 	bool Load(string *Filename);
+	bool Load(string *Filename, UINT Flags, bool ConvertToLH);
 
 	void Draw();
 	void Close();
 	
 	auto *getMeshes() { return &Meshes; }
 
+	void test(Models *ObjClas, Matrix World, Matrix View, Matrix Proj)
+	{
+		for (int i = 0; i < m_shape.size(); i++)
+			for (int i1 = 0; i1 < ObjClas->getMeshes()->size(); i1++)
+				for (int i2 = 0; i2 < ObjClas->getMeshes()->at(i1).textures.size(); i2++)
+					m_shape.at(i)->Draw(World, View, Proj, Colors::White, ObjClas->getMeshes()->at(i1).textures.at(i2).texture);
+	}
+
+	void Setting(Models *ObjClas)
+	{
+		vector<VertexPositionNormalTexture> Vertes;
+		vector<uint16_t> indices;
+		vector<GeometricPrimitive::VertexType> S;
+		GeometricPrimitive::VertexType VT;
+		for (int i = 0; i < ObjClas->Meshes.size(); i++)
+		{
+			for (int ii = 0; ii < ObjClas->Meshes.at(i).vertices.size(); ii++)
+			{
+				VT.position = XMFLOAT3(ObjClas->Meshes.at(i).vertices.at(ii).Position.x,
+					ObjClas->Meshes.at(i).vertices.at(ii).Position.y,
+					ObjClas->Meshes.at(i).vertices.at(ii).Position.z);
+
+				VT.normal = XMFLOAT3(0, 0, 0);
+
+				VT.textureCoordinate = XMFLOAT2(ObjClas->Meshes.at(i).vertices.at(ii).texcoord.x,
+					ObjClas->Meshes.at(i).vertices.at(ii).texcoord.y);
+
+				S.push_back(VT);
+			}
+
+			for (int i1 = 0; i1 < Meshes.at(i).indices.size(); i1++)
+				indices.push_back(Meshes.at(i).indices.at(i1));
+		}
+
+		for (int i = 0; i < S.size(); i++)
+			Vertes.push_back(S.at(i));
+
+		if (DeviceCon == nullptr)
+			GetD3DDeviceCon();
+		m_shape.push_back(GeometricPrimitive::CreateCustom(DeviceCon, Vertes, indices));
+	}
+
 	Models() {}
+	Models(string *Filename) { if (!Load(Filename)) throw exception("Models::load == false!!!"); }
+	Models(string *Filename, UINT Flags, bool ConvertToLH) { if (!Load(Filename, Flags, ConvertToLH)) throw exception("Models::load == false!!!"); }
+
+
 	~Models(){}
 
 private:
 	HRESULT hr = S_OK;
 
-	ID3D11ShaderResourceView *texture;
+	ID3D11ShaderResourceView *texture = nullptr;
 	ID3D11Device *Device = nullptr;
+	ID3D11DeviceContext *DeviceCon = nullptr;
 
-	Assimp::Importer importer;
-	const aiScene *pScene;
+	Assimp::Importer *importer = nullptr;
+	const aiScene *pScene = nullptr;
 
 	vector<Mesh> Meshes;
 	vector<Texture> Textures_loaded;
 	string Textype;
 
-	HWND hwnd;
+	HWND hwnd = nullptr;
 
-	aiMesh *mesh;
+	aiMesh *mesh = nullptr;
 
 	void processNode(aiNode *node, const aiScene *Scene);
 	Mesh processMesh(aiMesh *mesh, const aiScene *Scene);
@@ -144,7 +198,14 @@ private:
 	
 	ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
 
+	unique_ptr<DirectX::CommonStates> m_states;
+	unique_ptr<DirectX::BasicEffect> m_effect;
+	vector<unique_ptr<DirectX::GeometricPrimitive>> m_shape;
+	//unique_ptr<PrimitiveBatch<VertexPositionColor>> m_batch;
+	ID3D11InputLayout *m_inputLayout = nullptr;
+
 	void GetD3DDevice() { Device = DXUTGetD3D11Device(); }
+	void GetD3DDeviceCon() { DeviceCon = DXUTGetD3D11DeviceContext(); }
 	void GetD3DHWND() { hwnd = DXUTGetHWND(); }
 };
 #endif // !__MODELS_H__

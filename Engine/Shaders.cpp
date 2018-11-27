@@ -2,11 +2,15 @@
 #include "Shaders.h"
 #include "Models.h"
 
+#include "d3dx9effect.h"
+
 HRESULT Shaders::CompileShaderFromFile(wstring *szFileName, string *szEntryPoint, string *szShaderModel, ID3DBlob **ppBlobOut)
 {
-	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
+	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined(DEBUG) || defined(_DEBUG)
+#ifdef DEBUG
+	dwShaderFlags |= D3DXSHADER_DEBUG;
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 

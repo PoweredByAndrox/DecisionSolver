@@ -43,13 +43,15 @@ public:
 	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, XMMATRIX Format);
 	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format);
 	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> Format);
-	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, XMVECTOR Format);
+	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format);
+	void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, size_t Format);
 
 	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format[3]);
 	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, XMMATRIX Format);
 	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format);
 	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> Format);
-	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, XMVECTOR Format);
+	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, Vector3 *Format);
+	void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, size_t Format);
 
 	HRESULT AddSlider(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Min, int Max);
 	HRESULT AddSlider_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y,

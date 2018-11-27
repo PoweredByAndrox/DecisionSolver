@@ -10,6 +10,8 @@
 #include <d3dx11.h>
 #include <dxgi1_2.h>
 
+#include <SimpleMath.h>
+
 	// Included for use USES_CONVERSION (or A2W, W2A)
 #include <AtlConv.h>
 
@@ -30,6 +32,7 @@
 #include "../Src/PlatformHelpers.h"
 
 using namespace DirectX;
+using namespace DirectX::SimpleMath;
 using namespace std;
 
 #if defined(Never)

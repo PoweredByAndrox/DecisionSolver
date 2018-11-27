@@ -3,14 +3,13 @@
 
 bool Models::Load(string *Filename)
 {
-
-	pScene = importer.ReadFile(Filename->c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
-
+	importer = new Assimp::Importer;
+	pScene = importer->ReadFile(Filename->c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
 		DebugTrace(string(string("Models: Error. Scene returned nullptr with text:\n") 
-				+ string(importer.GetErrorString()) + string(" Line: 10\n")).c_str());
-		throw exception("pScene == nullptr!!!");
+				+ string(importer->GetErrorString()) + string(" Line: 8\n")).c_str());
+		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
 	GetD3DDevice();
@@ -21,16 +20,39 @@ bool Models::Load(string *Filename)
 	return true;
 }
 
+bool Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
+{
+	importer = new Assimp::Importer;
+	if (ConvertToLH)
+		pScene = importer->ReadFile(Filename->c_str(), Flags | aiProcess_ConvertToLeftHanded);
+	else
+		pScene = importer->ReadFile(Filename->c_str(), Flags);
+
+	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+	{
+		DebugTrace(string(string("Models: Error. Scene returned nullptr with text:\n")
+			+ string(importer->GetErrorString()) + string(" Line: 32\n")).c_str());
+		throw exception("Models::pScene == nullptr!!!");
+		return false;
+	}
+	GetD3DDevice();
+	GetD3DHWND();
+
+	processNode(pScene->mRootNode, pScene);
+
+	return true;
+}
+
 void Models::Draw()
 {
-	for (size_t i = 0; i < Meshes.size(); i++)
-		Meshes[i].Draw();
+//	for (size_t i = 0; i < Meshes.size(); i++)
+//		Meshes[i].Draw();
 }
 
 Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 {
 	vector<VERTEX> vertices;
-	vector<UINT> indices;
+	vector<uint16_t> indices;
 	vector<Texture> textures;
 
 	if (mesh->mMaterialIndex >= 0)
@@ -60,8 +82,8 @@ Mesh Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 		vertices.push_back(vertex);
 	}
 
-	for (UINT i = 0; i < mesh->mNumFaces; i++)
-		for (UINT j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+	for (uint16_t i = 0; i < mesh->mNumFaces; i++)
+		for (uint16_t j = 0; j < mesh->mFaces[i].mNumIndices; j++)
 			indices.push_back(mesh->mFaces[i].mIndices[j]);
 
 	if (mesh->mMaterialIndex >= 0)
@@ -119,13 +141,12 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 				if (Device == nullptr)
 					GetD3DDevice();
 
-				ThrowIfFailed(CreateWICTextureFromFile(Device, GetResPathW(&string(str.C_Str())).c_str(),
-					nullptr, &texture.texture));
+				ThrowIfFailed(CreateWICTextureFromFile(Device, GetResPathW(&string(str.C_Str())).c_str(), nullptr, &texture.texture));
 			}
 			texture.type = typeName;
-			texture.path = str.C_Str();
+			texture.path = GetResPathA(&string(str.C_Str()))->c_str();
 			textures.push_back(texture);
-			this->Textures_loaded.push_back(texture);  
+			this->Textures_loaded.push_back(texture);
 		}
 	}
 	return textures;
@@ -133,8 +154,8 @@ vector<Mesh::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureTyp
 
 void Models::Close()
 {
-	for (size_t i = 0; i < Meshes.size(); i++)
-		Meshes[i].Close();
+	//for (int i = 0; i < Meshes.size(); i++)
+		// Meshes[i].Close();
 
 	if (Device != nullptr)
 		Device->Release();
@@ -154,7 +175,8 @@ string Models::determineTextureType(const aiScene *Scene, aiMaterial *mat)
 	aiString textypeStr;
 	mat->GetTexture(aiTextureType_DIFFUSE, 0, &textypeStr);
 	string textypeteststr = textypeStr.C_Str();
-	if (textypeteststr == "*0" || textypeteststr == "*1" || textypeteststr == "*2" || textypeteststr == "*3" || textypeteststr == "*4" || textypeteststr == "*5")
+	if (textypeteststr == "*0" || textypeteststr == "*1" || textypeteststr == "*2" 
+		|| textypeteststr == "*3" || textypeteststr == "*4" || textypeteststr == "*5")
 	{
 		if (Scene->mTextures[0]->mHeight == 0)
 			return "embedded compressed texture";

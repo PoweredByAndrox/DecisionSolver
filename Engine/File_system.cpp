@@ -24,7 +24,7 @@ string *File_system::GetResPathA(string *File)
 				*File = ResPath + string("models//") + string(*File);
 				return File;
 			}
-			else if (ext == ".dds" || ext == ".png")
+			else if (ext == ".dds" || ext == ".png" || ext == ".jpg")
 			{
 				*File = ResPath + string("textures//") + string(*File);
 				return File;
@@ -75,7 +75,7 @@ wstring *File_system::GetResPathW(wstring *File)
 				*File = ResPath + wstring(L"shaders//") + wstring(*File);
 				return File;
 			}
-			else if (ext == ".png" || ext == ".dds")
+			else if (ext == ".png" || ext == ".dds" || ext == ".jpg")
 			{
 				*File = ResPath + wstring(L"textures//") + wstring(*File);
 				return File;
@@ -116,7 +116,7 @@ wstring File_system::GetResPathW(string *File)
 				*File = ResPath + string("models//") + *File;
 				return A2W(File->c_str());
 			}
-			else if (ext == ".dds" || ext == ".png")
+			else if (ext == ".dds" || ext == ".png" || ext == ".jpg")
 			{
 				*File = ResPath + string("textures//") + *File;
 				return A2W(File->c_str());
@@ -160,7 +160,7 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 			if (!ResPath[i].data()->empty())
 			if (ext == ".obj")
 				ResPath[i].at(i).append(wstring(L"models//") + wstring(*File[i]->data()));
-			else if (ext == ".dds" || ext == ".png")
+			else if (ext == ".dds" || ext == ".png" || ext == ".jpg")
 				ResPath[i].at(i).append(wstring(L"textures//") + wstring(File[i]->data()->c_str()));
 			else if (ext == ".wav")
 				ResPath[i].at(i).append(wstring(L"sounds//") + wstring(File[i]->data()->c_str()));
@@ -182,7 +182,7 @@ vector<wstring> File_system::GetResPathW(wstring File)
 		if (!ResPath.empty())
 		if (ext == ".obj")
 			file.push_back(ResPath + wstring(L"models//") + wstring(File));
-		else if (ext == ".dds" || ext == ".png")
+		else if (ext == ".dds" || ext == ".png" || ext == ".jpg")
 			file.push_back(ResPath + wstring(L"textures//") + wstring(File));
 		else if (ext == ".wav")
 			file.push_back(ResPath + wstring(L"sounds//") + wstring(File));

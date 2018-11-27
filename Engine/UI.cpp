@@ -352,21 +352,21 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> F
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, XMVECTOR Format)
+void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, Vector3 *Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
 	snprintf(buff, sizeof(buff), W2A(wstring(*Text + wstring(L"X:%.1f, Y:%.1f, Z:%.1f")).c_str()),
-		Format.m128_f32[1], Format.m128_f32[2], Format.m128_f32[3]);
+		Format->x, Format->y, Format->z);
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, XMVECTOR Format)
+void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
 	snprintf(buff, sizeof(buff), string(*Text + string("X:%.1f, Y:%.1f, Z:%.1f")).c_str(),
-		Format.m128_f32[1], Format.m128_f32[2], Format.m128_f32[3]);
+		Format->x, Format->y, Format->z);
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
@@ -767,4 +767,22 @@ wstring UI::getComponentName_By_ID(UI *ui, int ID)
 				 return ui->getObjNameStatic()->at(i);
 	}
 	return L"";
+}
+
+void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, size_t Format)
+{
+	char buff[FILENAME_MAX];
+	USES_CONVERSION;
+	snprintf(buff, sizeof(buff),
+		W2A(wstring(*Text + wstring(L"%d")).c_str()), Format);
+	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
+}
+
+void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, size_t Format)
+{
+	char buff[FILENAME_MAX];
+	USES_CONVERSION;
+	snprintf(buff, sizeof(buff),
+		string(*Text + string("%d")).c_str(), Format);
+	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }

@@ -85,15 +85,28 @@ class Physics: public Models
 public:
 	HRESULT Init();
 
-	void Simulation();
+	void Simulation(bool StopIT, float Timestep);
 
 	void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3) { RigDyn->getScene()->setGravity(Vec3); }
 	void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }
 	void AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addTorque(Vec3, ForceMode); }
+	void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
+	void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
+	{
+#ifndef DEBUG
+		PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
+		distanceJoint->setProjectionLinearTolerance(0.5f);
+#endif
+		PxSphericalJoint* sphericalJoint = PxSphericalJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2,
+			PxTransform(-OffSet));
+		sphericalJoint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
+	}
 
 	vector<PxRigidDynamic*> GetPhysDynamicObject() { return DynamicObjects; }
 	vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
 //	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
+
+	void AddNewActor(Vector3 Pos, Vector3 Geom);
 
 	PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
 
@@ -103,6 +116,19 @@ public:
 	void _createConvexMesh();
 		
 	auto *getTriMesh() { return &triangleMesh; }
+	auto *getScene() { return &gScene; }
+
+	void ClearAllObj()
+	{
+		if (!DynamicObjects.empty())
+			while (DynamicObjects.size() != 0)
+			{
+				DynamicObjects[0]->release();
+				DynamicObjects.erase(DynamicObjects.begin());
+				if (DynamicObjects.size() == 0)
+					DynamicObjects.clear();
+			}
+	}
 
 	Physics() {}
 	~Physics() {}
@@ -111,9 +137,6 @@ private:
 		// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;
 	PxDefaultAllocator gDefaultAllocatorCallback;
-	
-		// ***************
-	PxReal Timestep = 1.0f / 60.0f;
 
 		// ***************
 	PxFoundation *gFoundation = nullptr;
@@ -122,7 +145,7 @@ private:
 	PxScene *gScene = nullptr;
 	PxRigidStatic *gPlane = nullptr;
 	PxRigidDynamic *gBox = nullptr;
-	PxCooking *gCooking;
+	PxCooking *gCooking = nullptr;
 
 		// ***************
 	HRESULT hr = S_OK;
@@ -133,7 +156,7 @@ private:
 
 		// ***************
 	PxRigidDynamic *meshActor = nullptr;
-	PxTriangleMesh *triangleMesh;
+	PxTriangleMesh *triangleMesh = nullptr;
 	
 		// ***************
 	void getDeviceD3D()

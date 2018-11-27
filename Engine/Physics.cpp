@@ -75,7 +75,7 @@ HRESULT Physics::Init()
 		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, params);
 		if (!gCooking)
 		{
-			DebugTrace("Physics: gCooking failed. Line: 91\n");
+			DebugTrace("Physics: gCooking failed. Line: 76\n");
 			throw exception("gCooking == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
@@ -88,17 +88,20 @@ HRESULT Physics::Init()
 	}
 	catch (const exception&)
 	{
-		DebugTrace("Physics: Init failed. Line: 104\n");
+		DebugTrace("Physics: Init failed. Line: 89\n");
 		throw exception("PhysX initialization error!!!");
 		IsInitPhysX = false;
 		return E_FAIL;
 	}
 }
 
-void Physics::Simulation()
+void Physics::Simulation(bool StopIT, float Timestep)
 {
-	gScene->simulate(Timestep);
-	gScene->fetchResults(true);
+	if (!StopIT) 
+	{
+		gScene->simulate(Timestep);
+		gScene->fetchResults(true);
+	}
 }
 
 void Physics::_createConvexMesh()
@@ -144,7 +147,7 @@ void Physics::_createConvexMesh()
 	PxShape* meshShape;
 	if (!meshActor)
 	{
-		DebugTrace("Physics: meshActor failed. Line: 208\n");
+		DebugTrace("Physics: meshActor failed. Line: 145\n");
 		throw exception("meshActor == nullptr!!!");
 		return;
 	}
@@ -157,7 +160,7 @@ void Physics::_createConvexMesh()
 
 	if (!triangleMesh)
 	{
-		DebugTrace("Physics: triangleMesh failed. Line: 221\n");
+		DebugTrace("Physics: triangleMesh failed. Line: 158\n");
 		throw exception("triangleMesh == nullptr!!!");
 		return;
 	}
@@ -167,14 +170,12 @@ void Physics::_createConvexMesh()
 
 	gScene->addActor(*meshActor);
 
-	//DynamicObjects.push_back(meshActor);
-
 	PxConvexMeshCookingResult::Enum result;
 	PxDefaultMemoryOutputStream buf2;
 
 	if (!gCooking->cookConvexMesh(convexDesc, buf2, &result))
 	{
-		DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 237\n");
+		DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 175\n");
 		throw exception("gCooking->cookConvexMesh == nullptr!!!");
 		return;
 	}
@@ -192,7 +193,7 @@ void Physics::_createConvexMesh()
 		vertices.data()->Position.z)), *convexShape, PxReal(1.0f));
 	if (!newActor)
 	{
-		DebugTrace("Physics: newActor failed. Line: 256\n");
+		DebugTrace("Physics: newActor failed. Line: 193\n");
 		throw exception("newActor == nullptr!!!");
 		return;
 	}
@@ -205,4 +206,14 @@ void Physics::Destroy()
 	_SAFE_RELEASE(gPhysics);
 	_SAFE_RELEASE(gFoundation);
 	_SAFE_RELEASE(gCooking);
+}
+
+void Physics::AddNewActor(Vector3 Pos, Vector3 Geom)
+{
+	PxTransform boxPos(PxVec3(Pos.x, Pos.y, Pos.z));
+	PxBoxGeometry boxGeometry(PxVec3(Geom.x, Geom.y, Geom.z));
+	gBox = PxCreateDynamic(*gPhysics, boxPos, boxGeometry, *gMaterial, 1.0f);
+
+	gScene->addActor(*gBox);
+	DynamicObjects.push_back(gBox);
 }
