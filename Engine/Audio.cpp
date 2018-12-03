@@ -2,7 +2,7 @@
 #include "Audio.h"
 #include "../Audio/WAVFileReader.h"
 
-void Audio::Init()
+void Engine::Audio::Init()
 {
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 
@@ -20,7 +20,7 @@ void Audio::Init()
 	InitSoundSystem = true;
 }
 
-void Audio::AddNewSound()
+void Engine::Audio::AddNewSound()
 {
 	ListSoundsFile = getFilesInFolder(&wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
@@ -36,7 +36,7 @@ void Audio::AddNewSound()
 	}
 }
 
-void Audio::Update()
+void Engine::Audio::Update()
 {
 	if (!audEngine->Update())
 	{
@@ -48,37 +48,37 @@ void Audio::Update()
 	}
 }
 
-void Audio::doPlay()
+void Engine::Audio::doPlay()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Play(true);
 }
 
-void Audio::changeSoundVol(float Vol)
+void Engine::Audio::changeSoundVol(float Vol)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetVolume(Vol);
 }
 
-void Audio::changeSoundPan(float Pan)
+void Engine::Audio::changeSoundPan(float Pan)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetPan(Pan);
 }
 
-void Audio::doPause()
+void Engine::Audio::doPause()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Pause();
 }
 
-void Audio::doResume()
+void Engine::Audio::doResume()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Resume();
 }
 
-void Audio::doStop()
+void Engine::Audio::doStop()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Stop();

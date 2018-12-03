@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "UI.h"
 
+using namespace Engine;
+
 HRESULT UI::Init()
 {
 	try
@@ -114,7 +116,7 @@ HRESULT UI::AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddStatic_Massive failed. An equal number of ID elements and text and X\Y is required. Line: 115\n");
+			DebugTrace("UI: AddStatic_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 115\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -460,7 +462,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\Y is required. Line: 458\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 458\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -504,7 +506,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\Y is required. Line: 502\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 502\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -548,7 +550,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\Y is required. Line: 546\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 546\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}

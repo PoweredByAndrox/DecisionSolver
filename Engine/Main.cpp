@@ -1,7 +1,5 @@
 #include "pch.h"
 
-#include "DXUTCamera.h"
-
 #include <d3d11_1.h>
 #include <d3d9.h>
 #include <d3dx9.h>
@@ -13,6 +11,11 @@
 #include "Shaders.h"
 #include "UI.h"
 #include "MainMenu.h"
+#include "Camera.h"
+#include "Picking.h"
+#include "Terrain.h"
+
+using namespace Engine;
 
 #define Never 1
 
@@ -41,6 +44,10 @@ vector<unique_ptr<Models>> Model;
 auto Sound = make_unique<Audio>();
 auto Shader = make_unique<Shaders>();
 auto ui = make_unique<UI>();
+auto Pick = make_unique<Picking>();
+auto g_Camera = make_unique<CFirstPersonCamera>();
+auto terrain = make_unique<Terrain>();
+
 #ifdef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
 #endif
@@ -48,8 +55,6 @@ auto ui = make_unique<UI>();
 #if defined(Never)
 	auto PhysX = make_unique<Physics>();
 #endif
-
-CFirstPersonCamera g_Camera;
 
 HRESULT hr = S_OK;
 
@@ -192,16 +197,16 @@ void InitApp()
 #endif
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
-	g_Camera.SetEnableYAxisMovement(false);
+	g_Camera->SetEnableYAxisMovement(false);
 	
-	g_Camera.SetScalers(0.010f, 6.0f);
-	g_Camera.SetRotateButtons(true, false, false);
+	g_Camera->SetScalers(0.010f, 6.0f);
+	g_Camera->SetRotateButtons(true, false, false);
 	
 	InitProgram = true;
 }
 
 bool CALLBACK IsD3D11DeviceAcceptable(const CD3D11EnumAdapterInfo *AdapterInfo,
-	UINT Output, const CD3D11EnumDeviceInfo *DeviceInfo, DXGI_FORMAT BackBufferFormat, bool bWindowed, 
+	UINT Output, const CD3D11EnumDeviceInfo *DeviceInfo, DXGI_FORMAT BackBufferFormat, bool bWindowed,
 	void* pUserContext)
 {
 	return true;
@@ -222,16 +227,16 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		_ColorBuffer = _Color[rand() % 9 + 1];
 		break;
 	case BUTTON_2:
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			PxVec3(g_Camera.GetEyePt().m128_f32[0], -g_Camera.GetEyePt().m128_f32[1],
-				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eIMPULSE);
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			PxVec3(g_Camera.GetEyePt().m128_f32[0], -g_Camera.GetEyePt().m128_f32[1],
-				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eFORCE);
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			PxVec3(g_Camera.GetEyePt().m128_f32[0], -g_Camera.GetEyePt().m128_f32[1],
-				g_Camera.GetEyePt().m128_f32[2]), PxForceMode::Enum::eVELOCITY_CHANGE);
+	{
+		auto PosCam = PxVec3(g_Camera->GetEyePt().x, -g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+			PxForceMode::Enum::eIMPULSE);
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+			PxForceMode::Enum::eFORCE);
+		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+			PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
+	}
 	case BUTTON_3:
 		Sound->doPlay();
 		break;
@@ -242,12 +247,11 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		Sound->doStop();
 		break;
 	case BUTTON_6:
-		g_Camera.SetViewParams(Eye, At);
+		g_Camera->SetViewParams(Eye, At);
 		break;
 	case BUTTON_7:
-		auto SizeBox = Vector3(0.5f, 0.5f, 0.5f);
-		PhysX->AddNewActor(Vector3(1.f, 5.f, -3.f), SizeBox);
-		m_shape.push_back(GeometricPrimitive::CreateBox(DXUTGetD3D11DeviceContext(), SizeBox, false));
+		PhysX->AddNewActor(Vector3(1.f, 5.f, -3.f), Vector3(0.5f, 0.5f, 0.5f));
+		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	}
 #ifdef Never_MainMenu
@@ -302,24 +306,25 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
 #endif
 
-	//Model->push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj"))));
-	//if (Model.empty())
-	//	MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
-	//		*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
-
-	//Model->push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj")), aiProcess_Triangulate, false));
-	//if (Model.empty())
-	//	MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
-	//		*file_system->GetResPathW(&wstring(L"SnowTerrain.obj"))).c_str(), L"", MB_OK);
-
-	//Model->Setting(Model.get());
+#ifndef NEVER_228
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj")), Shader.get()));
+	if (Model.empty())
+		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
+			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
+#endif
+#ifdef NEVER_228
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj")), Shader.get()));//, aiProcess_Triangulate, false));
+	if (Model.empty())
+		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
+			*file_system->GetResPathW(&wstring(L"SnowTerrain.obj"))).c_str(), L"", MB_OK);
+#endif
 
 	gWorld = Matrix::Identity;
-	m_shape.push_back(GeometricPrimitive::CreateBox(DXUTGetD3D11DeviceContext(), XMFLOAT3(0.5f, 0.5f, 0.5f), false));
+	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 	
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
-	g_Camera.SetViewParams(Eye, At);
+	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	g_Camera->SetViewParams(Eye, At);
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
 	
@@ -348,6 +353,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #if defined(Never)
 	// PhysX->ModelPhysics(Model->GetMeshes());
 #endif
+
+	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
+	terrain->InitializeBuffers(Shader.get());
+
 	return S_OK;
 }
 
@@ -357,7 +366,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	g_Camera.SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	int X = pBackBufferSurfaceDesc->Width - 170;
 	int Y = 10;
 
@@ -372,7 +381,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
-	g_Camera.FrameMove(fElapsedTime);
+	g_Camera->FrameMove(fElapsedTime);
 }
 
 vector<XMVECTOR> Mass;
@@ -380,7 +389,7 @@ vector<XMVECTOR> Mass;
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
-	//g_Camera.SetNumberOfFramesToSmoothMouseData(fElapsedTime);
+	//g_Camera->SetNumberOfFramesToSmoothMouseData(fElapsedTime);
 #ifdef Never_MainMenu
 	switch (*MM->getGameMode())
 	{
@@ -392,8 +401,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		MM->getDlgAUD()->SetVisible(false);
 		MM->getDlgVID()->SetVisible(false);
 		DXUTSetCursorSettings(true, true);
-		g_Camera.SetRotateButtons(true, 0, 0);
-		g_Camera.SetResetCursorAfterMove(false);
+		g_Camera->SetRotateButtons(true, 0, 0);
+		g_Camera->SetResetCursorAfterMove(false);
 		break;
 	case GAME_AUDIO_MENU:
 		MM->getDlgAUD()->OnRender(fElapsedTime);
@@ -426,7 +435,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	float fAspectRatio = (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Width /
 		(FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
-	g_Camera.SetProjParams(D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f);
+	g_Camera->SetProjParams(D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f);
 
 	for (int i = 0; i < m_shape.size(); i++)
 	{
@@ -443,13 +452,20 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 				pos.push_back(Obj.at(i1)->getGlobalPose().p);
 
 				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
-					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), g_Camera.GetViewMatrix(), g_Camera.GetProjMatrix());
+					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix()//, 
+					//_Color[rand() % 9 + 1]
+				);
 			}
 		}
 	}
-	cb.mWorld = XMMatrixTranspose(g_Camera.GetWorldMatrix());
-	cb.mView = XMMatrixTranspose(g_Camera.GetViewMatrix());
-	cb.mProjection = XMMatrixTranspose(g_Camera.GetProjMatrix());
+	cb.mWorld = XMMatrixTranspose(g_Camera->GetWorldMatrix());
+	cb.mView = XMMatrixTranspose(g_Camera->GetViewMatrix());
+	cb.mProjection = XMMatrixTranspose(g_Camera->GetProjMatrix());
+
+	for (int i = 0; i < Model.size(); i++)
+		Model.at(i)->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+
+	terrain->Render(pd3dImmediateContext, g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
 	pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -457,9 +473,6 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
 	pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
-
-	for (int i = 0; i < Model.size(); i++)
-		 Model.at(i)->test(Model.at(i).get(), cb.mWorld, cb.mView, cb.mProjection);
 	
 	V(ui->getHUD()->OnRender(fElapsedTime));
 
@@ -474,9 +487,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif
 
 	int PosText = 0;
-
-	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), &Vector3(g_Camera.GetEyePt().m128_f32[0],
-		g_Camera.GetEyePt().m128_f32[1], g_Camera.GetEyePt().m128_f32[2]));
+	auto *PosCam = &Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
+	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), PosCam);
 	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5);
 
 	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
@@ -500,6 +512,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
 	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15);
+
+	Pick->tick();
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -512,8 +526,7 @@ void Destroy_Application()
 #if defined(Never)
 	PhysX->Destroy();
 #endif
-	for (int i = 0; i < Model.size(); i++)
-		 Model.at(i)->Close();
+	terrain->Shutdown();
 }
 
 void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
@@ -526,6 +539,8 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(pConstantBuffer);
 	ui->getDialogResManager()->OnD3D11DestroyDevice();
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
+	for (int i = 0; i < Model.size(); i++)
+		 Model.at(i)->Close();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -538,13 +553,13 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
-	g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
+	g_Camera->HandleMessages(hWnd, uMsg, wParam, lParam);
 
 #ifdef Never_MainMenu
 	switch (*MM->getGameMode())
 	{
 	case GAME_RUNNING:
-		g_Camera.HandleMessages(hWnd, uMsg, wParam, lParam);
+		g_Camera->HandleMessages(hWnd, uMsg, wParam, lParam);
 		break;
 	case GAME_MAIN_MENU:
 		MM->getDlgMM()->MsgProc(hWnd, uMsg, wParam, lParam);
@@ -582,8 +597,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			PhysX->ClearAllObj();
 			break;
 		case VK_F10:
-			PhysX->CreateJoint(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PxVec3(1.1f, 0.1f, 3.5f));
+			g_Camera->setPosCam(Vector3(4, 6, 1));
+			//PhysX->CreateJoint(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
+			//PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PxVec3(1.1f, 0.1f, 3.5f));
 			break;
 		}
 #ifdef Never_MainMenu
@@ -617,16 +633,24 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 	bool bSideButton1Down, bool bSideButton2Down, int nMouseWheelDelta,
 	int xPos, int yPos, void* pUserContext)
 {
-	g_Camera.SetEnablePositionMovement(true);
+	g_Camera->SetEnablePositionMovement(true);
 
-	//PxRaycastBuffer hit;
-	//if (bRightButtonDown)
-	//{
-	//	auto Pos = PxVec3(g_Camera.GetEyePt().m128_f32[0],
-	//		g_Camera.GetEyePt().m128_f32[1], g_Camera.GetEyePt().m128_f32[2]).getNormalized();
-	//	auto &T = *PhysX->getScene();
-	//	T->raycast(Pos, PhysX->GetPhysDynamicObject().at(0)->getGlobalPose().p.getNormalized(), 10, hit);
-	//}
+	if (bRightButtonDown)
+	{
+		PxRaycastBuffer hit;
+		auto T = PhysX->getScene();
+		const PxTransform& camPose = PxTransform(PxVec3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z));
+		PxVec3 forward = -PxMat33(camPose.q)[1];
+		auto PosObjPhys = PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size());
+		if (T->raycast(camPose.p + forward, forward, Vector3::Distance(
+			Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z),
+			Vector3(PosObjPhys->getGlobalPose().p.x, PosObjPhys->getGlobalPose().p.y, PosObjPhys->getGlobalPose().p.z)), hit, PxHitFlags(PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eUV)))
+			PhysX->AddTorque(PosObjPhys, -hit.block.position, PxForceMode::Enum::eACCELERATION);
+		Pick->letGo();
+	}
+//	Pick->moveCursor(DXUTGetWindowWidth() / 2, DXUTGetWindowHeight() / 2);
+//	Pick->lazyPick();
+	
 }
 
 bool CALLBACK OnDeviceRemoved(void* pUserContext)

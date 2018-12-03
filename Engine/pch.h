@@ -56,3 +56,4 @@ using namespace spdlog;
 #pragma comment (lib, "DXUT.lib")
 #pragma comment (lib, "DXUTOpt.lib")
 #pragma comment (lib, "assimp-vc140-mt.lib")
+#pragma comment (lib, "DirectXTK.lib")

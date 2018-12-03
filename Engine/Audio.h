@@ -7,42 +7,45 @@
 
 #pragma comment(lib, "DirectXTKAudioDX.lib")
 
-class Audio : public File_system
+namespace Engine
 {
-public:
-	void Init();
-	void AddNewSound();
-	void Update();
+	class Audio : public File_system
+	{
+	public:
+		void Init();
+		void AddNewSound();
+		void Update();
 
-	// ************
-		// Needed for UI (main menu)
-	void doPause();
-	void doResume();
-	void doStop();
-	void doPlay();
+		// ************
+			// Needed for UI (main menu)
+		void doPause();
+		void doResume();
+		void doStop();
+		void doPlay();
 
-	// ************
-	void changeSoundVol(float Vol);
-	void changeSoundPan(float Pan);
+		// ************
+		void changeSoundVol(float Vol);
+		void changeSoundPan(float Pan);
 
-	Audio() {}
-	~Audio() {}
+		Audio() {}
+		~Audio() {}
 
-	// ************
-	bool IsInitSounSystem() { return InitSoundSystem; }
-	auto *getStaticsSound() { return &audEngine.get()->GetStatistics(); }
+		// ************
+		bool IsInitSounSystem() { return InitSoundSystem; }
+		auto *getStaticsSound() { return &audEngine.get()->GetStatistics(); }
 
-private:
-	// ************
-	bool InitSoundSystem = false;
+	private:
+		// ************
+		bool InitSoundSystem = false;
 
-	// ************
-	unique_ptr<AudioEngine> audEngine;
-	unique_ptr<SoundEffect> soundEffect[FILENAME_MAX];
-	vector<unique_ptr<SoundEffectInstance>> sound;
-	vector<wstring> ListSoundsFile;
+		// ************
+		unique_ptr<AudioEngine> audEngine;
+		unique_ptr<SoundEffect> soundEffect[FILENAME_MAX];
+		vector<unique_ptr<SoundEffectInstance>> sound;
+		vector<wstring> ListSoundsFile;
 
-	HRESULT hr = S_OK;
+		HRESULT hr = S_OK;
+	};
 };
 
 #endif // !__SOUND_SYSTEM_H__

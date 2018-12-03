@@ -4,7 +4,7 @@
 
 #include "d3dx9effect.h"
 
-HRESULT Shaders::CompileShaderFromFile(wstring *szFileName, string *szEntryPoint, string *szShaderModel, ID3DBlob **ppBlobOut)
+HRESULT Engine::Shaders::CompileShaderFromFile(wstring *szFileName, string *szEntryPoint, string *szShaderModel, ID3DBlob **ppBlobOut)
 {
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
@@ -36,7 +36,7 @@ HRESULT Shaders::CompileShaderFromFile(wstring *szFileName, string *szEntryPoint
 	return S_OK;
 }
 
-vector<ID3DBlob> *Shaders::CompileShaderFromFile(vector<wstring> *szFileName, vector<string> *szEntryPoint, vector<string> *szShaderModel)
+vector<ID3DBlob> *Engine::Shaders::CompileShaderFromFile(vector<wstring> *szFileName, vector<string> *szEntryPoint, vector<string> *szShaderModel)
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 

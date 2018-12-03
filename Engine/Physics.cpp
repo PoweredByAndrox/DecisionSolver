@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "Physics.h"
 
-#define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
-
-
-HRESULT Physics::Init()
+HRESULT Engine::Physics::Init()
 {
 	try
 	{
@@ -88,14 +85,14 @@ HRESULT Physics::Init()
 	}
 	catch (const exception&)
 	{
-		DebugTrace("Physics: Init failed. Line: 89\n");
+		DebugTrace("Physics: Init failed. Line: 86\n");
 		throw exception("PhysX initialization error!!!");
 		IsInitPhysX = false;
 		return E_FAIL;
 	}
 }
 
-void Physics::Simulation(bool StopIT, float Timestep)
+void Engine::Physics::Simulation(bool StopIT, float Timestep)
 {
 	if (!StopIT) 
 	{
@@ -104,111 +101,111 @@ void Physics::Simulation(bool StopIT, float Timestep)
 	}
 }
 
-void Physics::_createConvexMesh()
+void Engine::Physics::_createConvexMesh()
 {
-	int NumVerticies = vertices.size();
-	int NumTriangles = indices.size() / 3;
+	//int NumVerticies = vertices.size();
+	//int NumTriangles = indices.size() / 3;
 
-	PxVec3* verts = new PxVec3[NumVerticies / 3];
-	int ii = -1;
-	for (int i = 0; i < NumVerticies / 3; i++)
-	{
-		++ii;
-		verts[i].x = vertices[ii].Position.x;
-		verts[i].y = vertices[++ii].Position.y;
-		verts[i].z = vertices[++ii].Position.z;
-	}
+	//PxVec3* verts = new PxVec3[NumVerticies / 3];
+	//int ii = -1;
+	//for (int i = 0; i < NumVerticies / 3; i++)
+	//{
+	//	++ii;
+	//	verts[i].x = vertices[ii].Position.x;
+	//	verts[i].y = vertices[++ii].Position.y;
+	//	verts[i].z = vertices[++ii].Position.z;
+	//}
 
-	PxU16 *tris = new PxU16[indices.size()];
-	for (int i = indices.size() - 1; i >= 0; i--)
-		tris[i] = indices[i];
+	//PxU16 *tris = new PxU16[indices.size()];
+	//for (int i = indices.size() - 1; i >= 0; i--)
+	//	tris[i] = indices[i];
 
-	PxConvexMeshDesc convexDesc;
-	convexDesc.points.count = NumVerticies;
-	convexDesc.points.stride = sizeof(PxVec3);
-	convexDesc.points.data = &vertices[3];
-	convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
+	//PxConvexMeshDesc convexDesc;
+	//convexDesc.points.count = NumVerticies;
+	//convexDesc.points.stride = sizeof(PxVec3);
+	//convexDesc.points.data = &vertices[3];
+	//convexDesc.flags = PxConvexFlag::eCOMPUTE_CONVEX;
 
-	bool Valid_ConvexMesh = convexDesc.isValid();
+	//bool Valid_ConvexMesh = convexDesc.isValid();
 
 
-	PxTriangleMeshDesc TriMeshDesc;
-	TriMeshDesc.points.count = NumVerticies;
-	TriMeshDesc.points.stride = sizeof(PxVec3);
-	TriMeshDesc.points.data = &vertices[6];
-	TriMeshDesc.triangles.count = NumTriangles;
-	TriMeshDesc.triangles.data = &indices[3];
-	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
-	TriMeshDesc.flags = PxMeshFlag::Enum::e16_BIT_INDICES;
+	//PxTriangleMeshDesc TriMeshDesc;
+	//TriMeshDesc.points.count = NumVerticies;
+	//TriMeshDesc.points.stride = sizeof(PxVec3);
+	//TriMeshDesc.points.data = &vertices[6];
+	//TriMeshDesc.triangles.count = NumTriangles;
+	//TriMeshDesc.triangles.data = &indices[3];
+	//TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
+	//TriMeshDesc.flags = PxMeshFlag::Enum::e16_BIT_INDICES;
 
-	bool Valid_TriMesh = TriMeshDesc.isValid();
+	//bool Valid_TriMesh = TriMeshDesc.isValid();
 
-	meshActor = gPhysics->createRigidDynamic(PxTransform(1.0f, 1.0f, 1.0f));
-	PxShape* meshShape;
-	if (!meshActor)
-	{
-		DebugTrace("Physics: meshActor failed. Line: 145\n");
-		throw exception("meshActor == nullptr!!!");
-		return;
-	}
-	meshActor->setRigidBodyFlag(PxRigidBodyFlag::Enum::eKINEMATIC, true);
+	//meshActor = gPhysics->createRigidDynamic(PxTransform(1.0f, 1.0f, 1.0f));
+	//PxShape* meshShape;
+	//if (!meshActor)
+	//{
+	//	DebugTrace("Physics: meshActor failed. Line: 145\n");
+	//	throw exception("meshActor == nullptr!!!");
+	//	return;
+	//}
+	//meshActor->setRigidBodyFlag(PxRigidBodyFlag::Enum::eKINEMATIC, true);
 
-	//PxDefaultMemoryInputData readBuffer(buf.getData(), buf.getSize());
-	triangleMesh = gCooking->createTriangleMesh(TriMeshDesc, gPhysics->getPhysicsInsertionCallback());
-	PxDefaultMemoryOutputStream buf;
-	bool status = gCooking->cookTriangleMesh(TriMeshDesc, buf);
+	////PxDefaultMemoryInputData readBuffer(buf.getData(), buf.getSize());
+	//triangleMesh = gCooking->createTriangleMesh(TriMeshDesc, gPhysics->getPhysicsInsertionCallback());
+	//PxDefaultMemoryOutputStream buf;
+	//bool status = gCooking->cookTriangleMesh(TriMeshDesc, buf);
 
-	if (!triangleMesh)
-	{
-		DebugTrace("Physics: triangleMesh failed. Line: 158\n");
-		throw exception("triangleMesh == nullptr!!!");
-		return;
-	}
-	PxTriangleMeshGeometry triGeom;
-	triGeom.triangleMesh = triangleMesh;
-	meshShape = meshActor->createShape(triGeom, *gMaterial);
+	//if (!triangleMesh)
+	//{
+	//	DebugTrace("Physics: triangleMesh failed. Line: 158\n");
+	//	throw exception("triangleMesh == nullptr!!!");
+	//	return;
+	//}
+	//PxTriangleMeshGeometry triGeom;
+	//triGeom.triangleMesh = triangleMesh;
+	//meshShape = meshActor->createShape(triGeom, *gMaterial);
 
-	gScene->addActor(*meshActor);
+	//gScene->addActor(*meshActor);
 
-	PxConvexMeshCookingResult::Enum result;
-	PxDefaultMemoryOutputStream buf2;
+	//PxConvexMeshCookingResult::Enum result;
+	//PxDefaultMemoryOutputStream buf2;
 
-	if (!gCooking->cookConvexMesh(convexDesc, buf2, &result))
-	{
-		DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 175\n");
-		throw exception("gCooking->cookConvexMesh == nullptr!!!");
-		return;
-	}
-	PxDefaultMemoryInputData input(buf2.getData(), buf2.getSize());
-	PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
+	//if (!gCooking->cookConvexMesh(convexDesc, buf2, &result))
+	//{
+	//	DebugTrace("Physics: gCooking->cookConvexMesh failed. Line: 175\n");
+	//	throw exception("gCooking->cookConvexMesh == nullptr!!!");
+	//	return;
+	//}
+	//PxDefaultMemoryInputData input(buf2.getData(), buf2.getSize());
+	//PxConvexMesh* convexMesh = gPhysics->createConvexMesh(input);
 
-	PxConvexMeshGeometry convexGeom = PxConvexMeshGeometry(convexMesh);
-	auto convexShape = meshActor->createShape(convexGeom, *gMaterial);
-	convexShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
-	PxGeometryHolder geom = convexShape->getGeometry();
+	//PxConvexMeshGeometry convexGeom = PxConvexMeshGeometry(convexMesh);
+	//auto convexShape = meshActor->createShape(convexGeom, *gMaterial);
+	//convexShape->setFlag(PxShapeFlag::eSIMULATION_SHAPE, false);
+	//PxGeometryHolder geom = convexShape->getGeometry();
 
-	PxRigidDynamic* newActor = PxCreateDynamic(*gPhysics, 
-	PxTransform(PxVec3(vertices.data()->Position.x,
-		vertices.data()->Position.y,
-		vertices.data()->Position.z)), *convexShape, PxReal(1.0f));
-	if (!newActor)
-	{
-		DebugTrace("Physics: newActor failed. Line: 193\n");
-		throw exception("newActor == nullptr!!!");
-		return;
-	}
-	newActor->setRigidBodyFlags(PxRigidBodyFlag::Enum::eENABLE_CCD | PxRigidBodyFlag::Enum::eENABLE_POSE_INTEGRATION_PREVIEW | PxRigidBodyFlag::Enum::eUSE_KINEMATIC_TARGET_FOR_SCENE_QUERIES);
+	//PxRigidDynamic* newActor = PxCreateDynamic(*gPhysics, 
+	//PxTransform(PxVec3(vertices.data()->Position.x,
+	//	vertices.data()->Position.y,
+	//	vertices.data()->Position.z)), *convexShape, PxReal(1.0f));
+	//if (!newActor)
+	//{
+	//	DebugTrace("Physics: newActor failed. Line: 193\n");
+	//	throw exception("newActor == nullptr!!!");
+	//	return;
+	//}
+	//newActor->setRigidBodyFlags(PxRigidBodyFlag::Enum::eENABLE_CCD | PxRigidBodyFlag::Enum::eENABLE_POSE_INTEGRATION_PREVIEW | PxRigidBodyFlag::Enum::eUSE_KINEMATIC_TARGET_FOR_SCENE_QUERIES);
 }
 
-void Physics::Destroy()
+void Engine::Physics::Destroy()
 {
-	_SAFE_RELEASE(gScene);
+	_SAFE_RELEASE(gScene); // Need To Rework It!
 	_SAFE_RELEASE(gPhysics);
 	_SAFE_RELEASE(gFoundation);
 	_SAFE_RELEASE(gCooking);
 }
 
-void Physics::AddNewActor(Vector3 Pos, Vector3 Geom)
+void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom)
 {
 	PxTransform boxPos(PxVec3(Pos.x, Pos.y, Pos.z));
 	PxBoxGeometry boxGeometry(PxVec3(Geom.x, Geom.y, Geom.z));

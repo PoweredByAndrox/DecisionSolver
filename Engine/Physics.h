@@ -5,6 +5,12 @@
 
 #include <PxPhysicsAPI.h>
 #include <PxPhysics.h>
+
+#include <foundation/PxSimpleTypes.h>
+#include <foundation/PxVec3.h>
+
+#include <extensions/PxD6Joint.h>
+#include <extensions/PxSphericalJoint.h>
 #include <extensions/PxExtensionsAPI.h>
 #include <extensions/PxDefaultErrorCallback.h>
 #include <extensions/PxDefaultAllocator.h>
@@ -12,18 +18,18 @@
 #include <extensions/PxDefaultCpuDispatcher.h>
 #include <extensions/PxShapeExt.h>
 #include <extensions/PxSimpleFactory.h>
-#include <PxRigidStatic.h> 
+
 #include <PxSimulationEventCallback.h>
+
 
 #include <foundation/PxFoundation.h>
 
 #include "DirectXHelpers.h"
 #include "GeometricPrimitive.h"
 #include "Effects.h"
-#include "SimpleMath.h"
 #include "Models.h"
 
-#include "DirectXMath.h"
+//#include "DirectXMath.h"
 using namespace SimpleMath;
 
 
@@ -38,7 +44,6 @@ using namespace SimpleMath;
 #pragma comment(lib, "PhysX3CharacterKinematicDEBUG_x86.lib")
 #pragma comment(lib, "PhysX3CookingDEBUG_x86.lib")
 #pragma comment(lib, "PxTaskDEBUG_x86")
-#pragma comment(lib, "DirectXTK.lib")
 #elif defined(DEBUG) && defined(_M_X64)
 #pragma comment(lib, "PhysX3DEBUG_x64.lib")
 #pragma comment(lib, "PhysX3CommonDEBUG_x64.lib")
@@ -50,7 +55,6 @@ using namespace SimpleMath;
 #pragma comment(lib, "PhysX3CharacterKinematicDEBUG_x64.lib")
 #pragma comment(lib, "PhysX3CookingDEBUG_x64.lib")
 #pragma comment(lib, "PxTaskDEBUG_x64")
-#pragma comment(lib, "DirectXTK.lib")
 #elif !defined(_M_X64)
 #pragma comment(lib, "PhysX3_x86.lib")
 #pragma comment(lib, "PhysX3Common_x86.lib")
@@ -62,7 +66,6 @@ using namespace SimpleMath;
 #pragma comment(lib, "PhysX3CharacterKinematic_x86.lib")
 #pragma comment(lib, "PhysX3Cooking_x86.lib")
 #pragma comment(lib, "PxTask_x86")
-#pragma comment(lib, "DirectXTK.lib")
 #elif defined(_M_X64)
 #pragma comment(lib, "PhysX3CharacterKinematic_x64.lib")
 #pragma comment(lib, "PhysX3Cooking_x64.lib")
@@ -74,109 +77,115 @@ using namespace SimpleMath;
 #pragma comment(lib, "PhysX3_x64.lib")
 #pragma comment(lib, "PxPvdSDK_x64.lib")
 #pragma comment(lib, "PhysX3Extensions.lib")
-#pragma comment(lib, "DirectXTK.lib")
 #endif
 
-using namespace std;
-using namespace physx;
-
-class Physics: public Models
+namespace Engine
 {
-public:
-	HRESULT Init();
+#define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
 
-	void Simulation(bool StopIT, float Timestep);
+	using namespace std;
+	using namespace physx;
+	using namespace Engine;
 
-	void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3) { RigDyn->getScene()->setGravity(Vec3); }
-	void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }
-	void AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addTorque(Vec3, ForceMode); }
-	void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
-	void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
+	class Physics : public Models
 	{
+	public:
+		HRESULT Init();
+
+		void Simulation(bool StopIT, float Timestep);
+
+		void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3) { RigDyn->getScene()->setGravity(Vec3); }
+		void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }
+		void AddTorque(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addTorque(Vec3, ForceMode); }
+		void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
+		void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
+		{
 #ifndef DEBUG
-		PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
-		distanceJoint->setProjectionLinearTolerance(0.5f);
+			PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
+			distanceJoint->setProjectionLinearTolerance(0.5f);
 #endif
-		PxSphericalJoint* sphericalJoint = PxSphericalJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2,
-			PxTransform(-OffSet));
-		sphericalJoint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
-	}
+			PxSphericalJoint* sphericalJoint = PxSphericalJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2,
+				PxTransform(-OffSet));
+			sphericalJoint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
+		}
 
-	vector<PxRigidDynamic*> GetPhysDynamicObject() { return DynamicObjects; }
-	vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
-//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
+		vector<PxRigidDynamic*> GetPhysDynamicObject() { return DynamicObjects; }
+		vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
+		//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
-	void AddNewActor(Vector3 Pos, Vector3 Geom);
+		void AddNewActor(Vector3 Pos, Vector3 Geom);
 
-	PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
+		PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
 
-	void Destroy();
+		void Destroy();
 
-	bool IsPhysicsInit() { return IsInitPhysX; }
-	void _createConvexMesh();
-		
-	auto *getTriMesh() { return &triangleMesh; }
-	auto *getScene() { return &gScene; }
+		bool IsPhysicsInit() { return IsInitPhysX; }
+		void _createConvexMesh();
 
-	void ClearAllObj()
-	{
-		if (!DynamicObjects.empty())
-			while (DynamicObjects.size() != 0)
-			{
-				DynamicObjects[0]->release();
-				DynamicObjects.erase(DynamicObjects.begin());
-				if (DynamicObjects.size() == 0)
-					DynamicObjects.clear();
-			}
-	}
+		auto *getTriMesh() { return &triangleMesh; }
+		auto getScene() { return gScene; }
+		auto getPhysics() { return gPhysics; }
 
-	Physics() {}
-	~Physics() {}
+		void ClearAllObj()
+		{
+			if (!DynamicObjects.empty())
+				while (DynamicObjects.size() != 0)
+				{
+					DynamicObjects[0]->release();
+					DynamicObjects.erase(DynamicObjects.begin());
+					if (DynamicObjects.size() == 0)
+						DynamicObjects.clear();
+				}
+		}
 
-private:
+		Physics() {}
+		~Physics() {}
+
+	private:
 		// ***************
-	PxDefaultErrorCallback gDefaultErrorCallback;
-	PxDefaultAllocator gDefaultAllocatorCallback;
-
-		// ***************
-	PxFoundation *gFoundation = nullptr;
-	PxPhysics *gPhysics = nullptr;
-	PxMaterial *gMaterial = nullptr;
-	PxScene *gScene = nullptr;
-	PxRigidStatic *gPlane = nullptr;
-	PxRigidDynamic *gBox = nullptr;
-	PxCooking *gCooking = nullptr;
+		PxDefaultErrorCallback gDefaultErrorCallback;
+		PxDefaultAllocator gDefaultAllocatorCallback;
 
 		// ***************
-	HRESULT hr = S_OK;
+		PxFoundation *gFoundation = nullptr;
+		PxPhysics *gPhysics = nullptr;
+		PxMaterial *gMaterial = nullptr;
+		PxScene *gScene = nullptr;
+		PxRigidStatic *gPlane = nullptr;
+		PxRigidDynamic *gBox = nullptr;
+		PxCooking *gCooking = nullptr;
 
 		// ***************
-	vector<PxRigidDynamic*> DynamicObjects;
-	vector<PxRigidStatic*> StaticObjects;
+		HRESULT hr = S_OK;
 
 		// ***************
-	PxRigidDynamic *meshActor = nullptr;
-	PxTriangleMesh *triangleMesh = nullptr;
-	
+		vector<PxRigidDynamic*> DynamicObjects;
+		vector<PxRigidStatic*> StaticObjects;
+
 		// ***************
-	void getDeviceD3D()
-	{
-		Device = DXUTGetD3D11Device();
-	}
-	void getDeviceConD3D()
-	{
-		DevCon = DXUTGetD3D11DeviceContext();
-	}
+		PxRigidDynamic *meshActor = nullptr;
+		PxTriangleMesh *triangleMesh = nullptr;
+
+		// ***************
+		void getDeviceD3D()
+		{
+			Device = DXUTGetD3D11Device();
+		}
+		void getDeviceConD3D()
+		{
+			DevCon = DXUTGetD3D11DeviceContext();
+		}
 
 		// ***************
 			// Initialized bool variables
-	bool IsInitPhysX = false;
+		bool IsInitPhysX = false;
 
 		// ***************
-	ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
+		ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
 
 		// ***************
-	ID3D11DeviceContext *DevCon = DXUTGetD3D11DeviceContext();
-	ID3D11Device *Device = DXUTGetD3D11Device();
+		ID3D11DeviceContext *DevCon = DXUTGetD3D11DeviceContext();
+		ID3D11Device *Device = DXUTGetD3D11Device();
+	};
 };
 #endif // !__PHYSICS_H__

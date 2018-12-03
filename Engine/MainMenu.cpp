@@ -1,6 +1,9 @@
 #include "pch.h"
 #include "MainMenu.h"
 
+using namespace Engine;
+
+
 HRESULT MainMenu::Init(UI *ui, Audio *sound)
 {
 	if (!ui->IsInitUI())
