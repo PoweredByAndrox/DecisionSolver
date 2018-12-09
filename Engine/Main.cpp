@@ -47,6 +47,7 @@ auto ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
 auto g_Camera = make_unique<CFirstPersonCamera>();
 auto terrain = make_unique<Terrain>();
+auto frustum = make_unique<Frustum>();
 
 #ifdef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
@@ -197,7 +198,7 @@ void InitApp()
 #endif
 
 	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
-	g_Camera->SetEnableYAxisMovement(false);
+	//g_Camera->SetEnableYAxisMovement(false);
 	
 	g_Camera->SetScalers(0.010f, 6.0f);
 	g_Camera->SetRotateButtons(true, false, false);
@@ -325,6 +326,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	g_Camera->SetViewParams(Eye, At);
+
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
 	
@@ -355,7 +357,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
-	terrain->InitializeBuffers(Shader.get());
+
+	terrain->Initialize(Shader.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
+		file_system->GetResPathW(&wstring(L"686.jpg"))->c_str());
 
 	return S_OK;
 }
@@ -433,6 +437,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	pd3dImmediateContext->IASetInputLayout(g_pLayout);
 
+	frustum->ConstructFrustum(1000.0f, g_Camera->GetProjMatrix(), g_Camera->GetViewMatrix());
+
 	float fAspectRatio = (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Width /
 		(FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 	g_Camera->SetProjParams(D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f);
@@ -465,7 +471,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	for (int i = 0; i < Model.size(); i++)
 		Model.at(i)->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
-	terrain->Render(pd3dImmediateContext, g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
 	pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
@@ -476,7 +482,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	
 	V(ui->getHUD()->OnRender(fElapsedTime));
 
-#ifndef DEBUG
+#ifdef DEBUG
 	ID3D11Debug* debug = 0;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void**)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);

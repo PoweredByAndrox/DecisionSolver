@@ -317,7 +317,6 @@ void Engine::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 	DeviceCon->PSSetSamplers(0, 1, &m_sampleState);
 
 	DeviceCon->DrawIndexed(indices.size(), 0, 0);
-
 }
 
 void Engine::Mesh::Close()

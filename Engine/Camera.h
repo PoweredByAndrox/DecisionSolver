@@ -240,7 +240,7 @@ namespace Engine
 		Vector3 m_vMaxBoundary;       // Max point in clip boundary
 	};
 
-	class CFirstPersonCamera: public CBaseCamera
+	class CFirstPersonCamera : public CBaseCamera
 	{
 	public:
 		CFirstPersonCamera() noexcept;
@@ -254,8 +254,8 @@ namespace Engine
 		Vector3 GetWorldUp() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._21)); }
 		Vector3 GetWorldAhead() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._31)); }
 		Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
-		
-		void setPosCam(_In_ Vector3 Pos) 
+
+		void setPosCam(_In_ Vector3 Pos)
 		{
 			SetViewParams(Pos, Pos + GetWorldAhead());
 		}
@@ -276,6 +276,20 @@ namespace Engine
 
 		int m_nActiveButtonMask;
 		bool m_bRotateWithoutButtonDown;
+	};
+
+	class Frustum
+	{
+	public:
+		void ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix);
+
+		bool CheckPoint(Vector3 XYZ);
+		bool CheckCube(Vector3 Center, float size);
+		bool CheckSphere(Vector3 Center, float radius);
+		bool CheckRectangle(Vector3 Center, float xSize, float ySize, float zSize);
+
+	private:
+		Vector3 m_planes[6];
 	};
 };
 #endif // !__CAMERA_H__

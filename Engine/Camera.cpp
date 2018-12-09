@@ -517,3 +517,172 @@ void Engine::CFirstPersonCamera::SetRotateButtons(bool bLeft, bool bMiddle, bool
 	m_nActiveButtonMask = (bLeft ? MOUSE_LEFT_BUTTON : 0) | (bMiddle ? MOUSE_MIDDLE_BUTTON : 0) | (bRight ? MOUSE_RIGHT_BUTTON : 0);
 	m_bRotateWithoutButtonDown = bRotateWithoutButtonDown;
 }
+
+void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
+{
+	auto projMatrix = projectionMatrix;
+
+	float zMinimum = -projMatrix._43 / projMatrix._33, r = screenDepth / (screenDepth - zMinimum),
+		  a = 0.f, b = 0.f, c = 0.f, d = 0.f;
+
+	projMatrix._33 = r;
+	projMatrix._43 = -r * zMinimum;
+
+	Matrix matrix = XMMatrixMultiply(viewMatrix, projMatrix);
+
+	// Вычисление близкой (near) плоскости.
+	a = matrix._14 + matrix._13;
+	b = matrix._24 + matrix._23;
+	c = matrix._34 + matrix._33;
+	d = matrix._44 + matrix._43;
+	m_planes[0] = XMVectorSet(a, b, c, d);
+	m_planes[0] = XMPlaneNormalize(m_planes[0]);
+
+	// Вычисление дальней (far) плоскости.
+	a = matrix._14 - matrix._13;
+	b = matrix._24 - matrix._23;
+	c = matrix._34 - matrix._33;
+	d = matrix._44 - matrix._43;
+	m_planes[1] = XMVectorSet(a, b, c, d);
+	m_planes[1] = XMPlaneNormalize(m_planes[1]);
+
+	// Вычисление левой (left) плоскости.
+	a = matrix._14 + matrix._11;
+	b = matrix._24 + matrix._21;
+	c = matrix._34 + matrix._31;
+	d = matrix._44 + matrix._41;
+	m_planes[2] = XMVectorSet(a, b, c, d);
+	m_planes[2] = XMPlaneNormalize(m_planes[2]);
+
+	// Вычисление правой (right) плоскости.
+	a = matrix._14 - matrix._11;
+	b = matrix._24 - matrix._21;
+	c = matrix._34 - matrix._31;
+	d = matrix._44 - matrix._41;
+	m_planes[3] = XMVectorSet(a, b, c, d);
+	m_planes[3] = XMPlaneNormalize(m_planes[3]);
+
+	// Вычисление верхней (top) плоскости.
+	a = matrix._14 - matrix._12;
+	b = matrix._24 - matrix._22;
+	c = matrix._34 - matrix._32;
+	d = matrix._44 - matrix._42;
+	m_planes[4] = XMVectorSet(a, b, c, d);
+	m_planes[4] = XMPlaneNormalize(m_planes[4]);
+
+	// Вычисление нижней (bottom) плоскости.
+	a = matrix._14 + matrix._12;
+	b = matrix._24 + matrix._22;
+	c = matrix._34 + matrix._32;
+	d = matrix._44 + matrix._42;
+	m_planes[5] = XMVectorSet(a, b, c, d);
+	m_planes[5] = XMPlaneNormalize(m_planes[5]);
+}
+
+bool Engine::Frustum::CheckPoint(Vector3 XYZ)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(XYZ.x, XYZ.y, XYZ.z, 1.0f)));
+		if (ret < 0.0f)
+			return false;
+	}
+
+	return true;
+}
+
+bool Engine::Frustum::CheckCube(Vector3 Center, float size)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y - size), (Center.z - size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y - size), (Center.z - size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y + size), (Center.z - size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y + size), (Center.z - size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y - size), (Center.z + size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y - size), (Center.z + size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y + size), (Center.z + size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y + size), (Center.z + size), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		return false;
+	}
+
+	return true;
+}
+
+bool Engine::Frustum::CheckSphere(Vector3 Center, float radius)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(Center.x, Center.y, Center.z, 1.0f)));
+		if (ret < -radius)
+			return false;
+	}
+
+	return true;
+}
+
+bool Engine::Frustum::CheckRectangle(Vector3 Center, float xSize, float ySize, float zSize)
+{
+	for (int i = 0; i < 6; i++)
+	{
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y - ySize), (Center.z - zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y - ySize), (Center.z - zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y + ySize), (Center.z - zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y - ySize), (Center.z + zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y + ySize), (Center.z - zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y - ySize), (Center.z + zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y + ySize), (Center.z + zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y + ySize), (Center.z + zSize), 1.0f)));
+		if (ret >= 0.0f)
+			continue;
+
+		return false;
+	}
+
+	return true;
+}

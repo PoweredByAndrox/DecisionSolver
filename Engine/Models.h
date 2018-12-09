@@ -66,12 +66,10 @@ namespace Engine
 		ID3D11Device *Device = nullptr;
 		ID3D11DeviceContext *DeviceCon = nullptr;
 	
-		ID3D11Buffer *m_vertexBuffer = nullptr;
-		ID3D11Buffer *m_indexBuffer = nullptr;
+		ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_pConstantBuffer = nullptr;
 		ID3D11VertexShader *m_vertexShader = nullptr;
 		ID3D11PixelShader *m_pixelShader = nullptr;
 		ID3D11InputLayout *m_layout = nullptr;
-		ID3D11Buffer *m_pConstantBuffer = nullptr;
 		ID3D11SamplerState *m_sampleState = nullptr;
 		ID3D11ShaderResourceView *m_texture = nullptr;
 
