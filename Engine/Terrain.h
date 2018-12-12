@@ -5,12 +5,68 @@
 #include "pch.h"
 #include "Shaders.h"
 #include "File_system.h"
+#include "Camera.h"
 
 #include <WICTextureLoader.h>
 
 namespace Engine
 {
-	class Terrain: public Shaders, public File_system
+	class Terrain;
+	class QuadTerrain: public Frustum
+	{
+		private:
+			struct Vertex
+			{
+				Vector3 position = { 0.f, 0.f, 0.f };
+				Vector2 texture = { 0.f, 0.f };
+			} *m_vertexList;
+			struct NT
+			{
+				Vector2 texcoord = { 0.f, 0.f };
+				float width = 0.f;
+				int triangleCount = 0;
+				vector<Vector3> vertexArray;
+				ID3D11Buffer *vertexBuffer = nullptr, *indexBuffer = nullptr;
+				NT *nodes[4];
+			} *m_parentNode;
+
+		public:
+			QuadTerrain()  {}
+			~QuadTerrain() {}
+
+			bool Initialize(Terrain *terrain, Frustum *frustum);
+			void Shutdown();
+			void Render(Matrix World, Matrix View, Matrix Proj);
+
+			int GetDrawCount();
+
+			bool GetHeightAtPosition(float positionX, float positionZ, float &height);
+
+		private:
+			const int MAX_TRIANGLES = 10000;
+			int m_triangleCount = 0, m_drawCount = 0;
+
+			void CalculateMeshDimensions(int, float&, float&, float&);
+			void CreateTreeNode(NT *node, Vector2 Pos, float width);
+			int CountTriangles(Vector2 Pos, float);
+			bool IsTriangleContained(int, Vector2 Pos, float);
+			void ReleaseNode(NT *node);
+			void RenderNode(NT *node, Matrix World, Matrix View, Matrix Proj);
+
+			void FindNode(NT *node, float x, float z, float &height);
+			bool CheckHeightOfTriangle(float x, float z, float &height, float v0[3], float v1[3], float v2[3]);
+
+			unique_ptr<Terrain> terrain;
+			unique_ptr<Frustum> frustum;
+
+				// Devices!!!
+			void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
+			void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
+			ID3D11Device *Device = nullptr;
+			ID3D11DeviceContext *DeviceCon = nullptr;
+	};
+
+	class Terrain: public Shaders, public File_system, public QuadTerrain
 	{
 	private:
 		struct Vertex
@@ -40,22 +96,32 @@ namespace Engine
 		~Terrain() {}
 
 		void Shutdown();
-		void Render(Matrix, Matrix, Matrix);
-		bool Initialize(Shaders *Shader, const char *HMapFile, const wchar_t *TextureTerrain);
+		void RenderBuffers(int Indices, Matrix World, Matrix View, Matrix Proj);
+		void Render(Matrix World, Matrix View, Matrix Proj);
+		bool Initialize(Shaders *Shader, Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain);
 		bool InitializeBuffers();
 
 		int GetIndexCount() { return m_indexCount != 0 ? m_indexCount : throw exception("Terrain: m_indexCount == 0!!!"); }
 		int GetVertexCount() { return m_vertexCount != 0 ? m_vertexCount : throw exception("Terrain: m_vertexCount == 0!!!"); }
 
-	private:
-		void ShutdownBuffers();
-		void RenderBuffers(Matrix, Matrix, Matrix);
+		void CopyVertexArray(void *vertexList) { memcpy(vertexList, vertices, sizeof(Vertex) * m_vertexCount); }
+
+		auto getQTerrain(float X, float Z, float &H) 
+		{
+			if (QTerrain.operator bool()) 
+				return QTerrain->GetHeightAtPosition(X, Z, H);
+			else 
+				false;
+		}
+		//throw exception("Terrain: getQTerrain == false!!!"); }
 
 	private:
+		void ShutdownBuffers();
+
 		HRESULT result = S_OK;
 		
 			// For texture!!!
-		const int TEXTURE_REPEAT = 8;
+		const int TEXTURE_REPEAT = 16;
 		void CalculateTextureCoordinates();
 
 			// Devices!!!
@@ -63,9 +129,9 @@ namespace Engine
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 		ID3D11Device *Device = nullptr;
 		ID3D11DeviceContext *DeviceCon = nullptr;
+		ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_matrixBuffer = nullptr;
 
 		int m_terrainWidth = 257, m_terrainHeight = 257, m_vertexCount = 0, m_indexCount = 0;
-		ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_matrixBuffer = nullptr;
 
 		float m_heightScale = 6.f;
 
@@ -75,9 +141,10 @@ namespace Engine
 		ID3D11PixelShader *m_pixelShader = nullptr;
 		ID3D11InputLayout *m_layout = nullptr;
 		ID3D11SamplerState *m_sampleState = nullptr;
-		ID3D11ShaderResourceView *m_texture;
+		ID3D11ShaderResourceView *m_texture = nullptr;
 
 		unique_ptr<Shaders> Shader;
+		unique_ptr<QuadTerrain> QTerrain;
 
 			// Height Map!!!
 		bool LoadBitmapHeightMap(const char *TerrainBMPfile);

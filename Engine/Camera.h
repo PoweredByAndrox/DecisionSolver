@@ -188,59 +188,62 @@ namespace Engine
 		void UpdateVelocity(_In_ float fElapsedTime);
 		void GetInput(_In_ bool bGetKeyboardInput, _In_ bool bGetMouseInput, _In_ bool bGetGamepadInput);
 
-		DirectX::XMFLOAT4X4 m_mView;                    // View matrix 
-		DirectX::XMFLOAT4X4 m_mProj;                    // Projection matrix
+		Matrix m_mView,                    // View matrix 
+		m_mProj;                    // Projection matrix
 
 		DXUT_GAMEPAD m_GamePad[DXUT_MAX_CONTROLLERS];  // XInput controller state
-		Vector3 m_vGamePadLeftThumb;
-		Vector3 m_vGamePadRightThumb;
+		Vector3 m_vGamePadLeftThumb,
+		m_vGamePadRightThumb;
 		double m_GamePadLastActive[DXUT_MAX_CONTROLLERS];
 
 		int m_cKeysDown;                        // Number of camera keys that are down.
 		BYTE m_aKeys[CAM_MAX_KEYS];             // State of input - KEY_WAS_DOWN_MASK|KEY_IS_DOWN_MASK
 		Vector3 m_vKeyboardDirection; // Direction vector of keyboard input
 		POINT m_ptLastMousePosition;            // Last absolute position of mouse cursor
-		int m_nCurrentButtonMask;               // mask of which buttons are down
-		int m_nMouseWheelDelta;                 // Amount of middle wheel scroll (+/-) 
+		int m_nCurrentButtonMask,               // mask of which buttons are down
+		m_nMouseWheelDelta;                 // Amount of middle wheel scroll (+/-) 
+
 		Vector2 m_vMouseDelta;        // Mouse relative delta smoothed over a few frames
 		float m_fFramesToSmoothMouseData;       // Number of frames to smooth mouse data over
-		Vector3 m_vDefaultEye;        // Default camera eye position
-		Vector3 m_vDefaultLookAt;     // Default LookAt position
-		Vector3 m_vEye;               // Camera eye position
-		Vector3 m_vLookAt;            // LookAt position
-		float m_fCameraYawAngle;                // Yaw angle of camera
-		float m_fCameraPitchAngle;              // Pitch angle of camera
+		Vector3 m_vDefaultEye,        // Default camera eye position
+		m_vDefaultLookAt,     // Default LookAt position
+		m_vEye,               // Camera eye position
+		m_vLookAt;            // LookAt position
+
+		float m_fCameraYawAngle,                // Yaw angle of camera
+		m_fCameraPitchAngle;              // Pitch angle of camera
 
 		RECT m_rcDrag;                          // Rectangle within which a drag can be initiated.
-		Vector3 m_vVelocity;          // Velocity of camera
-		Vector3 m_vVelocityDrag;      // Velocity drag force
-		float m_fDragTimer;                     // Countdown timer to apply drag
-		float m_fTotalDragTimeToZero;           // Time it takes for velocity to go from full to 0
+		Vector3 m_vVelocity,          // Velocity of camera
+		m_vVelocityDrag;      // Velocity drag force
+
+		float m_fDragTimer,                     // Countdown timer to apply drag
+		m_fTotalDragTimeToZero;           // Time it takes for velocity to go from full to 0
+
 		Vector2 m_vRotVelocity;       // Velocity of camera
 
-		float m_fFOV;                           // Field of view
-		float m_fAspect;                        // Aspect ratio
-		float m_fNearPlane;                     // Near plane
-		float m_fFarPlane;                      // Far plane
+		float m_fFOV,                           // Field of view
+		m_fAspect,                        // Aspect ratio
+		m_fNearPlane,                     // Near plane
+		m_fFarPlane,						// Far plane
 
-		float m_fRotationScaler;                // Scaler for rotation
-		float m_fMoveScaler;                    // Scaler for movement
+		m_fRotationScaler,                // Scaler for rotation
+		m_fMoveScaler;                    // Scaler for movement
 
-		bool m_bMouseLButtonDown;               // True if left button is down 
-		bool m_bMouseMButtonDown;               // True if middle button is down 
-		bool m_bMouseRButtonDown;               // True if right button is down 
-		bool m_bMovementDrag;                   // If true, then camera movement will slow to a stop otherwise movement is instant
-		bool m_bInvertPitch;                    // Invert the pitch axis
-		bool m_bEnablePositionMovement;         // If true, then the user can translate the camera/model 
-		bool m_bEnableYAxisMovement;            // If true, then camera can move in the y-axis
-		bool m_bClipToBoundary;                 // If true, then the camera will be clipped to the boundary
-		bool m_bResetCursorAfterMove;           // If true, the class will reset the cursor position so that the cursor always has space to move 
+		bool m_bMouseLButtonDown,               // True if left button is down 
+		m_bMouseMButtonDown,               // True if middle button is down 
+		m_bMouseRButtonDown,               // True if right button is down 
+		m_bMovementDrag,                   // If true, then camera movement will slow to a stop otherwise movement is instant
+		m_bInvertPitch,                    // Invert the pitch axis
+		m_bEnablePositionMovement,         // If true, then the user can translate the camera/model 
+		m_bEnableYAxisMovement,            // If true, then camera can move in the y-axis
+		m_bClipToBoundary,                 // If true, then the camera will be clipped to the boundary
+		m_bResetCursorAfterMove;           // If true, the class will reset the cursor position so that the cursor always has space to move 
 
-		Vector3 m_vMinBoundary;       // Min point in clip boundary
-		Vector3 m_vMaxBoundary;       // Max point in clip boundary
+		Vector3 m_vMinBoundary,       // Min point in clip boundary
+		m_vMaxBoundary;       // Max point in clip boundary
 	};
-
-	class CFirstPersonCamera : public CBaseCamera
+	class CFirstPersonCamera: public CBaseCamera
 	{
 	public:
 		CFirstPersonCamera() noexcept;
@@ -257,22 +260,30 @@ namespace Engine
 
 		void setPosCam(_In_ Vector3 Pos)
 		{
-			SetViewParams(Pos, Pos + GetWorldAhead());
+			m_vEye = Pos;
+
+			Vector3 vLookAt = m_vEye + GetWorldAhead();
+			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
+			mCameraWorld = XMMatrixInverse(nullptr, mView);
+			XMStoreFloat3(&m_vLookAt, vLookAt);
+			XMStoreFloat4x4(&m_mView, mView);
+			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
 		}
 
 		void setPosCam(_In_ float Y)
 		{
-			SetViewParams(Vector3(m_vEye.x, Y, m_vEye.z), Vector3(m_vEye.x, Y, m_vEye.z) + GetWorldAhead());
+			m_vEye.y = Y;
+
+			Vector3 vLookAt = m_vEye + GetWorldAhead();
+			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
+			mCameraWorld = XMMatrixInverse(nullptr, mView);
+			XMStoreFloat3(&m_vLookAt, vLookAt);
+			XMStoreFloat4x4(&m_mView, mView);
+			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
 		}
 
-		//***********
-			// To control the movement of the terrain
-		float getXPos() { return GetEyePt().x; }
-		float getYPos() { return GetEyePt().y; }
-		float getZPos() { return GetEyePt().z; }
-
 	protected:
-		DirectX::XMFLOAT4X4 m_mCameraWorld;
+		Matrix m_mCameraWorld;
 
 		int m_nActiveButtonMask;
 		bool m_bRotateWithoutButtonDown;
@@ -283,10 +294,10 @@ namespace Engine
 	public:
 		void ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix);
 
-		bool CheckPoint(Vector3 XYZ);
-		bool CheckCube(Vector3 Center, float size);
-		bool CheckSphere(Vector3 Center, float radius);
-		bool CheckRectangle(Vector3 Center, float xSize, float ySize, float zSize);
+		bool CheckPoint(float x, float y, float z);
+		bool CheckCube(float xCenter, float yCenter, float zCenter, float size);
+		bool CheckSphere(float xCenter, float yCenter, float zCenter, float radius);
+		bool CheckRectangle(float xCenter, float yCenter, float zCenter, float xSize, float ySize, float zSize);
 
 	private:
 		Vector3 m_planes[6];

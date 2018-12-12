@@ -222,9 +222,10 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 _Use_decl_annotations_
 void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
 {
-	m_vKeyboardDirection = Vector3(0, 0, 0);
 	if (bGetKeyboardInput)
 	{
+		m_vKeyboardDirection = Vector3(0, 0, 0);
+
 		// Update acceleration vector based on keyboard state
 		if (IsKeyDown(m_aKeys[CAM_MOVE_FORWARD]))
 			m_vKeyboardDirection.z += 1.0f;
@@ -319,8 +320,7 @@ void Engine::CBaseCamera::UpdateMouseDelta()
 		m_ptLastMousePosition = ptCenter;
 	}
 
-	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData;
-	float fPercentOfOld = 1.0f - fPercentOfNew;
+	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData, fPercentOfOld = 1.0f - fPercentOfNew;
 	m_vMouseDelta.x = m_vMouseDelta.x * fPercentOfOld + ptCurMouseDelta.x * fPercentOfNew;
 	m_vMouseDelta.y = m_vMouseDelta.y * fPercentOfOld + ptCurMouseDelta.y * fPercentOfNew;
 
@@ -330,16 +330,15 @@ void Engine::CBaseCamera::UpdateMouseDelta()
 
 void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 {
-	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0);
+	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
-	Vector3 vMouseDelta = XMLoadFloat2(&m_vMouseDelta);
-	Vector3 vRotVelocity = vMouseDelta * m_fRotationScaler + vGamePadRightThumb * 0.02f;
+	vMouseDelta = XMLoadFloat2(&m_vMouseDelta), vRotVelocity = vMouseDelta * m_fRotationScaler + vGamePadRightThumb * 0.02f;
 
 	XMStoreFloat2(&m_vRotVelocity, vRotVelocity);
 
-	Vector3 vKeyboardDirection = XMLoadFloat3(&m_vKeyboardDirection);
-	Vector3 vGamePadLeftThumb = XMLoadFloat3(&m_vGamePadLeftThumb);
-	Vector3 vAccel = vKeyboardDirection + vGamePadLeftThumb;
+	Vector3 vKeyboardDirection = XMLoadFloat3(&m_vKeyboardDirection),
+	vGamePadLeftThumb = XMLoadFloat3(&m_vGamePadLeftThumb),
+	vAccel = vKeyboardDirection + vGamePadLeftThumb;
 
 	vAccel = XMVector3Normalize(vAccel);
 
@@ -361,8 +360,7 @@ void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 			if (m_fDragTimer > 0)
 			{
 				// Drag until timer is <= 0
-				Vector3 vVelocity = XMLoadFloat3(&m_vVelocity);
-				Vector3 vVelocityDrag = XMLoadFloat3(&m_vVelocityDrag);
+				Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vVelocityDrag = XMLoadFloat3(&m_vVelocityDrag);
 
 				vVelocity -= vVelocityDrag * fElapsedTime;
 				XMStoreFloat3(&m_vVelocity, vVelocity);
@@ -431,8 +429,7 @@ Engine::D3DUtil_CameraKeys Engine::CBaseCamera::MapKey(_In_ UINT nKey)
 
 void Engine::CBaseCamera::Reset()
 {
-	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye);
-	Vector3 vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
+	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
 
 	SetViewParams(vDefaultEye, vDefaultLookAt);
 }
@@ -457,16 +454,14 @@ void Engine::CFirstPersonCamera::FrameMove(_In_ float fElapsedTime)
 	UpdateVelocity(fElapsedTime);
 
 	// Simple euler method to calculate position delta
-	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity);
-	Vector3 vPosDelta = vVelocity * fElapsedTime;
+	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
 
 	// If rotating the camera 
 	if ((m_nActiveButtonMask & m_nCurrentButtonMask) || m_bRotateWithoutButtonDown || m_vGamePadRightThumb.x != 0 ||
 		m_vGamePadRightThumb.z != 0)
 	{
 		// Update the pitch & yaw angle based on mouse movement
-		float fYawDelta = m_vRotVelocity.x;
-		float fPitchDelta = m_vRotVelocity.y;
+		float fYawDelta = m_vRotVelocity.x, fPitchDelta = m_vRotVelocity.y;
 
 		// Invert pitch if requested
 		if (m_bInvertPitch)
@@ -484,16 +479,16 @@ void Engine::CFirstPersonCamera::FrameMove(_In_ float fElapsedTime)
 	Matrix mCameraRot = XMMatrixRotationRollPitchYaw(m_fCameraPitchAngle, m_fCameraYawAngle, 0);
 
 	// Transform vectors based on camera's rotation matrix
-	Vector3 vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot);
-	Vector3 vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
+	Vector3 vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot), vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
 
 	// Transform the position delta by the camera's rotation 
 	if (!m_bEnableYAxisMovement)
 		mCameraRot = XMMatrixRotationRollPitchYaw(0.0f, m_fCameraYawAngle, 0.0f);
-	Vector3 vPosDeltaWorld = XMVector3TransformCoord(vPosDelta, mCameraRot);
+	Vector3 vPosDeltaWorld = XMVector3TransformCoord(vPosDelta, mCameraRot),
+		// Move the eye position 
+	vEye
+	= m_vEye;
 
-	// Move the eye position 
-	Vector3 vEye = XMLoadFloat3(&m_vEye);
 	vEye += vPosDeltaWorld;
 	if (m_bClipToBoundary)
 		vEye = ConstrainToBoundary(vEye);
@@ -520,25 +515,24 @@ void Engine::CFirstPersonCamera::SetRotateButtons(bool bLeft, bool bMiddle, bool
 
 void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
 {
-	auto projMatrix = projectionMatrix;
+	float zMinimum = 0.f, r = 0.f;
+	Matrix matrix;
 
-	float zMinimum = -projMatrix._43 / projMatrix._33, r = screenDepth / (screenDepth - zMinimum),
-		  a = 0.f, b = 0.f, c = 0.f, d = 0.f;
 
-	projMatrix._33 = r;
-	projMatrix._43 = -r * zMinimum;
+	zMinimum = -projectionMatrix._43 / projectionMatrix._33;
+	r = screenDepth / (screenDepth - zMinimum);
+	projectionMatrix._33 = r;
+	projectionMatrix._43 = -r * zMinimum;
 
-	Matrix matrix = XMMatrixMultiply(viewMatrix, projMatrix);
+	matrix = XMMatrixMultiply(viewMatrix, projectionMatrix);
 
-	// Вычисление близкой (near) плоскости.
-	a = matrix._14 + matrix._13;
-	b = matrix._24 + matrix._23;
-	c = matrix._34 + matrix._33;
-	d = matrix._44 + matrix._43;
+	auto a = matrix._14 + matrix._13;
+	auto b = matrix._24 + matrix._23;
+	auto c = matrix._34 + matrix._33;
+	auto d = matrix._44 + matrix._43;
 	m_planes[0] = XMVectorSet(a, b, c, d);
 	m_planes[0] = XMPlaneNormalize(m_planes[0]);
 
-	// Вычисление дальней (far) плоскости.
 	a = matrix._14 - matrix._13;
 	b = matrix._24 - matrix._23;
 	c = matrix._34 - matrix._33;
@@ -546,7 +540,6 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[1] = XMVectorSet(a, b, c, d);
 	m_planes[1] = XMPlaneNormalize(m_planes[1]);
 
-	// Вычисление левой (left) плоскости.
 	a = matrix._14 + matrix._11;
 	b = matrix._24 + matrix._21;
 	c = matrix._34 + matrix._31;
@@ -554,7 +547,6 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[2] = XMVectorSet(a, b, c, d);
 	m_planes[2] = XMPlaneNormalize(m_planes[2]);
 
-	// Вычисление правой (right) плоскости.
 	a = matrix._14 - matrix._11;
 	b = matrix._24 - matrix._21;
 	c = matrix._34 - matrix._31;
@@ -562,7 +554,6 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[3] = XMVectorSet(a, b, c, d);
 	m_planes[3] = XMPlaneNormalize(m_planes[3]);
 
-	// Вычисление верхней (top) плоскости.
 	a = matrix._14 - matrix._12;
 	b = matrix._24 - matrix._22;
 	c = matrix._34 - matrix._32;
@@ -570,7 +561,6 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[4] = XMVectorSet(a, b, c, d);
 	m_planes[4] = XMPlaneNormalize(m_planes[4]);
 
-	// Вычисление нижней (bottom) плоскости.
 	a = matrix._14 + matrix._12;
 	b = matrix._24 + matrix._22;
 	c = matrix._34 + matrix._32;
@@ -579,11 +569,11 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[5] = XMPlaneNormalize(m_planes[5]);
 }
 
-bool Engine::Frustum::CheckPoint(Vector3 XYZ)
+bool Engine::Frustum::CheckPoint(float x, float y, float z)
 {
 	for (int i = 0; i < 6; i++)
 	{
-		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(XYZ.x, XYZ.y, XYZ.z, 1.0f)));
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(x, y, z, 1.0f)));
 		if (ret < 0.0f)
 			return false;
 	}
@@ -591,39 +581,39 @@ bool Engine::Frustum::CheckPoint(Vector3 XYZ)
 	return true;
 }
 
-bool Engine::Frustum::CheckCube(Vector3 Center, float size)
+bool Engine::Frustum::CheckCube(float xCenter, float yCenter, float zCenter, float size)
 {
 	for (int i = 0; i < 6; i++)
 	{
-		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y - size), (Center.z - size), 1.0f)));
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - size), (yCenter - size), (zCenter - size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y - size), (Center.z - size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + size), (yCenter - size), (zCenter - size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y + size), (Center.z - size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - size), (yCenter + size), (zCenter - size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y + size), (Center.z - size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + size), (yCenter + size), (zCenter - size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y - size), (Center.z + size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - size), (yCenter - size), (zCenter + size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y - size), (Center.z + size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + size), (yCenter - size), (zCenter + size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - size), (Center.y + size), (Center.z + size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - size), (yCenter + size), (zCenter + size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + size), (Center.y + size), (Center.z + size), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + size), (yCenter + size), (zCenter + size), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
@@ -633,11 +623,11 @@ bool Engine::Frustum::CheckCube(Vector3 Center, float size)
 	return true;
 }
 
-bool Engine::Frustum::CheckSphere(Vector3 Center, float radius)
+bool Engine::Frustum::CheckSphere(float xCenter, float yCenter, float zCenter, float radius)
 {
 	for (int i = 0; i < 6; i++)
 	{
-		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(Center.x, Center.y, Center.z, 1.0f)));
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(xCenter, yCenter, zCenter, 1.0f)));
 		if (ret < -radius)
 			return false;
 	}
@@ -645,39 +635,39 @@ bool Engine::Frustum::CheckSphere(Vector3 Center, float radius)
 	return true;
 }
 
-bool Engine::Frustum::CheckRectangle(Vector3 Center, float xSize, float ySize, float zSize)
+bool Engine::Frustum::CheckRectangle(float xCenter, float yCenter, float zCenter, float xSize, float ySize, float zSize)
 {
 	for (int i = 0; i < 6; i++)
 	{
-		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y - ySize), (Center.z - zSize), 1.0f)));
+		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - xSize), (yCenter - ySize), (zCenter - zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y - ySize), (Center.z - zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + xSize), (yCenter - ySize), (zCenter - zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y + ySize), (Center.z - zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - xSize), (yCenter + ySize), (zCenter - zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y - ySize), (Center.z + zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - xSize), (yCenter - ySize), (zCenter + zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y + ySize), (Center.z - zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + xSize), (yCenter + ySize), (zCenter - zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y - ySize), (Center.z + zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + xSize), (yCenter - ySize), (zCenter + zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x - xSize), (Center.y + ySize), (Center.z + zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter - xSize), (yCenter + ySize), (zCenter + zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 
-		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((Center.x + xSize), (Center.y + ySize), (Center.z + zSize), 1.0f)));
+		ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet((xCenter + xSize), (yCenter + ySize), (zCenter + zSize), 1.0f)));
 		if (ret >= 0.0f)
 			continue;
 

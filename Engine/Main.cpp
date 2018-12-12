@@ -31,13 +31,15 @@ using namespace Engine;
 	#pragma comment(lib, "Effects11.lib")
 #endif
 
-ID3D11InputLayout  *g_pLayout = nullptr;
+ID3D11InputLayout  *g_pLayout = nullptr, *g_pVertexLayout = nullptr;
 
 ID3D11VertexShader *g_pVS = nullptr;
 ID3D11PixelShader  *g_pPS = nullptr;
 
-Vector3 Eye(0.0f, 2.5f, 0.0f);
-Vector3 At(0.0f, 2.5f, 1.0f);
+ID3D11SamplerState *TexSamplerState = nullptr;
+ID3D11Buffer *pConstantBuffer = nullptr;
+
+Vector3 Eye = { 0.0f, 2.5f, 0.0f }, At = { 0.0f, 2.5f, 1.0f };
 
 auto file_system = make_unique<File_system>();
 vector<unique_ptr<Models>> Model;
@@ -58,10 +60,6 @@ auto frustum = make_unique<Frustum>();
 #endif
 
 HRESULT hr = S_OK;
-
-ID3D11InputLayout* g_pVertexLayout = nullptr;
-ID3D11SamplerState *TexSamplerState;
-ID3D11Buffer *pConstantBuffer;
 
 static XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
 
@@ -111,8 +109,8 @@ struct ConstantBuffer
 #define SCREEN_HEIGHT 768
 
 //**************
-// Test
-auto StopIT = false;
+	// Test
+bool StopIT = false;
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
@@ -126,7 +124,6 @@ void InitApp()
 
 	vector<int> CountOfButtons =
 	{ 1, 2, 3, 4, 5, 6, 7 };
-
 	vector<wstring> NameOfButtons = 
 	{
 		L"Change Buffer Color",
@@ -267,6 +264,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		InitApp();
 
 	Sound->AddNewSound();
+
 #ifdef Never_MainMenu
 	MM->setGameMode(GAME_RUNNING);
 #endif
@@ -295,7 +293,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	UINT numElements = sizeof(layout) / sizeof(layout[0]);
@@ -326,6 +324,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	g_Camera->SetViewParams(Eye, At);
+
+	gProjection = Matrix::CreatePerspective(pBackBufferSurfaceDesc->Width, (FLOAT)pBackBufferSurfaceDesc->Height, 0.1f, 1000.f);
 
 	SAFE_RELEASE(VS);
 	SAFE_RELEASE(PS);
@@ -358,7 +358,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 
 	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
 
-	terrain->Initialize(Shader.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
+	terrain->Initialize(Shader.get(), frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
 		file_system->GetResPathW(&wstring(L"686.jpg"))->c_str());
 
 	return S_OK;
@@ -371,8 +371,8 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
-	int X = pBackBufferSurfaceDesc->Width - 170;
-	int Y = 10;
+
+	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 
 		// *******
 	ui->SetLocationButton(ui->getHUD(), 0, X, Y);
@@ -437,20 +437,16 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	pd3dImmediateContext->IASetInputLayout(g_pLayout);
 
-	frustum->ConstructFrustum(1000.0f, g_Camera->GetProjMatrix(), g_Camera->GetViewMatrix());
-
-	float fAspectRatio = (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Width /
-		(FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
-	g_Camera->SetProjParams(D3DX_PI / 4, fAspectRatio, 0.1f, 1000.0f);
+	frustum->ConstructFrustum(1000.f, cb.mWorld, cb.mProjection);
 
 	for (int i = 0; i < m_shape.size(); i++)
 	{
-		vector<PxQuat> aq;
-		vector<Vector4> q;
-		vector<PxVec3> pos;
 		auto Obj = PhysX->GetPhysDynamicObject();
 		if (!Obj.empty())
 		{
+			vector<PxQuat> aq;
+			vector<Vector4> q;
+			vector<PxVec3> pos;
 			for (int i1 = 0; i1 < PhysX->GetPhysDynamicObject().size(); i1++)
 			{
 				aq.push_back(Obj.at(i1)->getGlobalPose().q);
@@ -464,6 +460,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 			}
 		}
 	}
+
 	cb.mWorld = XMMatrixTranspose(g_Camera->GetWorldMatrix());
 	cb.mView = XMMatrixTranspose(g_Camera->GetViewMatrix());
 	cb.mProjection = XMMatrixTranspose(g_Camera->GetProjMatrix());
@@ -473,16 +470,24 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
+		// Get the current position of the camera.
+	auto position = g_Camera->GetEyePt();
+	float height = 2.0f;
+
+		// Get the height of the triangle that is directly underneath the given camera position.
+	if (terrain->getQTerrain(position.x, position.z, height))
+		g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
+
 	pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 
 	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
 	pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
 	pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
-	
+
 	V(ui->getHUD()->OnRender(fElapsedTime));
 
-#ifdef DEBUG
+#ifndef DEBUG
 	ID3D11Debug* debug = 0;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void**)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -498,7 +503,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5);
 
 	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
-	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH /2, -3);
+	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH / 2, -3);
 
 	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysX->GetPhysDynamicObject().size());
 	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15);
@@ -507,12 +512,12 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	vector<size_t> SoundInformatio =
 	{
-		StatAudio->playingOneShots, 
+		StatAudio->playingOneShots,
 		StatAudio->playingInstances,
 		StatAudio->allocatedInstances,
 		StatAudio->allocatedVoices,
 		StatAudio->allocatedVoices3d,
-		StatAudio->allocatedVoicesOneShot, 
+		StatAudio->allocatedVoicesOneShot,
 		StatAudio->allocatedVoicesIdle
 	};
 
@@ -533,6 +538,10 @@ void Destroy_Application()
 	PhysX->Destroy();
 #endif
 	terrain->Shutdown();
+	for (int i = 0; i < Model.size(); i++)
+		 Model.at(i)->Close();
+	for (int i = 0; i < m_shape.size(); i++)
+		 m_shape[i].release();
 }
 
 void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
@@ -545,8 +554,6 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 	SAFE_RELEASE(pConstantBuffer);
 	ui->getDialogResManager()->OnD3D11DestroyDevice();
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
-	for (int i = 0; i < Model.size(); i++)
-		 Model.at(i)->Close();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
