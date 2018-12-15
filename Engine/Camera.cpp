@@ -212,8 +212,15 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 	}
 
 	case WM_MOUSEWHEEL:
-		// Update member var state
-		m_nMouseWheelDelta += (short)HIWORD(wParam);
+			// Update member var state
+		m_nMouseWheelDelta += (short)HIWORD(wParam);//(int)GET_WHEEL_DELTA_WPARAM(wParam);
+
+		//if (ChangeFieldOfView & Cache > m_nMouseWheelDelta)
+		//	ChangeFOVPLUS(Cache);
+
+		//if (ChangeFieldOfView & Cache < m_nMouseWheelDelta)
+		//	ChangeFOVMINUS(Cache);
+
 		break;
 	}
 	return FALSE;

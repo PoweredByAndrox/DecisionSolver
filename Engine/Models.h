@@ -77,8 +77,8 @@ namespace Engine
 
 		unique_ptr<Shaders> Shader = make_unique<Shaders>();
 
-		void GetD3DDevice() { Device = DXUTGetD3D11Device(); }
-		void GetD3DDeviceCon() { DeviceCon = DXUTGetD3D11DeviceContext(); }
+		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
+		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 
 		void Rotation();
 		auto Scale();
@@ -107,6 +107,13 @@ namespace Engine
 		void Scale();
 		void Position(vector<Mesh>);
 
+		void Release()
+		{
+			SAFE_RELEASE(Device);
+			DeviceCon->ClearState();
+			DeviceCon->Flush();
+		}
+
 		~Models() {}
 
 	private:
@@ -134,8 +141,8 @@ namespace Engine
 
 		ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
 
-		void GetD3DDevice() { Device = DXUTGetD3D11Device(); }
-		void GetD3DDeviceCon() { DeviceCon = DXUTGetD3D11DeviceContext(); }
+		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
+		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 
 		float *m_pHeightBits = new float[2.f * 2.f];
 

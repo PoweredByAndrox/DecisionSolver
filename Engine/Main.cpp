@@ -8,12 +8,12 @@
 #include "Physics.h"
 #include "File_system.h"
 #include "Audio.h"
-#include "Shaders.h"
 #include "UI.h"
 #include "MainMenu.h"
 #include "Camera.h"
 #include "Picking.h"
 #include "Terrain.h"
+#include "Render_Buffer.h"
 
 using namespace Engine;
 
@@ -31,25 +31,17 @@ using namespace Engine;
 	#pragma comment(lib, "Effects11.lib")
 #endif
 
-ID3D11InputLayout  *g_pLayout = nullptr, *g_pVertexLayout = nullptr;
-
-ID3D11VertexShader *g_pVS = nullptr;
-ID3D11PixelShader  *g_pPS = nullptr;
-
-ID3D11SamplerState *TexSamplerState = nullptr;
-ID3D11Buffer *pConstantBuffer = nullptr;
-
 Vector3 Eye = { 0.0f, 2.5f, 0.0f }, At = { 0.0f, 2.5f, 1.0f };
 
 auto file_system = make_unique<File_system>();
 vector<unique_ptr<Models>> Model;
 auto Sound = make_unique<Audio>();
-auto Shader = make_unique<Shaders>();
 auto ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
 auto g_Camera = make_unique<CFirstPersonCamera>();
 auto terrain = make_unique<Terrain>();
 auto frustum = make_unique<Frustum>();
+auto buffers = make_unique<Render_Buffer>();
 
 #ifdef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
@@ -75,17 +67,6 @@ XMVECTORF32 _Color[9] =
 	DirectX::Colors::OliveDrab,
 	DirectX::Colors::SkyBlue
 };
-
-Matrix gWorld;
-Matrix gView;
-Matrix gProjection;
-
-struct ConstantBuffer 
-{
-	Matrix mWorld;
-	Matrix mView;
-	Matrix mProjection;
-} cb;
 
 #define BUTTON_1 1
 #define BUTTON_2 2
@@ -199,7 +180,8 @@ void InitApp()
 	
 	g_Camera->SetScalers(0.010f, 6.0f);
 	g_Camera->SetRotateButtons(true, false, false);
-	
+	//g_Camera->SetChangeFOV(true);
+
 	InitProgram = true;
 }
 
@@ -248,8 +230,8 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		g_Camera->SetViewParams(Eye, At);
 		break;
 	case BUTTON_7:
-		PhysX->AddNewActor(Vector3(1.f, 5.f, -3.f), Vector3(0.5f, 0.5f, 0.5f));
-		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
+		PhysX->AddNewActor(Vector3(15.f, 15.f, 15.f), Vector3(20.5f, 20.5f, 20.5f));
+		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 20.5f, false));
 		break;
 	}
 #ifdef Never_MainMenu
@@ -271,94 +253,58 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 
 	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
 
-	ID3DBlob *VS = nullptr, *PS = nullptr;
-	V_RETURN(Shader->CompileShaderFromFile(file_system->GetResPathW(&wstring(L"VertexShader.hlsl")), &string("main"), &string("vs_4_0"),
-		&VS));
+	vector<wstring> FileShaders;
+	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"VertexShader.hlsl")));
+	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"PixelShader.hlsl")));
 
-	V_RETURN(Shader->CompileShaderFromFile(file_system->GetResPathW(&wstring(L"PixelShader.hlsl")), &string("main"), &string("ps_4_0"),
-		&PS));
+	vector<string> Functions, Version;
+	Functions.push_back(string("main"));
+	Functions.push_back(string("main"));
 
-	V_RETURN(pd3dDevice->CreateVertexShader(VS->GetBufferPointer(),
-		VS->GetBufferSize(), NULL, &g_pVS));
+	Version.push_back(string("vs_4_0"));
+	Version.push_back(string("ps_4_0"));
 
-	V_RETURN(pd3dDevice->CreatePixelShader(PS->GetBufferPointer(),
-		PS->GetBufferSize(), NULL, &g_pPS));
-
-#ifdef DEBUG
-	DXUT_SetDebugName(g_pVS, "VS");
-	DXUT_SetDebugName(g_pPS, "PS");
-#endif
-
-	const D3D11_INPUT_ELEMENT_DESC layout[] =
+	struct ConstantBuffer
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+		Matrix mWorld;
+		Matrix mView;
+		Matrix mProjection;
 	};
 
-	UINT numElements = sizeof(layout) / sizeof(layout[0]);
+	if(!buffers->isInit())
+		buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
-	V_RETURN(pd3dDevice->CreateInputLayout(layout, numElements, VS->GetBufferPointer(),
-		VS->GetBufferSize(), &g_pLayout));
+//#ifndef DEBUG
+//	DXUT_SetDebugName(g_pVS, "VS");
+//	DXUT_SetDebugName(g_pPS, "PS");
+//	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
+//#endif
 
-#ifdef DEBUG
-	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
-#endif
-
-#ifndef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj")), Shader.get()));
+#ifdef NEVER_228
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
 			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 #endif
 #ifdef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj")), Shader.get()));//, aiProcess_Triangulate, false));
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj"))));//, aiProcess_Triangulate, false));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*file_system->GetResPathW(&wstring(L"SnowTerrain.obj"))).c_str(), L"", MB_OK);
 #endif
 
-	gWorld = Matrix::Identity;
+	//gWorld = Matrix::Identity;
 	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 	
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	g_Camera->SetViewParams(Eye, At);
 
-	gProjection = Matrix::CreatePerspective(pBackBufferSurfaceDesc->Width, (FLOAT)pBackBufferSurfaceDesc->Height, 0.1f, 1000.f);
-
-	SAFE_RELEASE(VS);
-	SAFE_RELEASE(PS);
-	
-	D3D11_BUFFER_DESC bd;
-	ZeroMemory(&bd, sizeof(bd));
-
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
-
-	V_RETURN(pd3dDevice->CreateBuffer(&bd, nullptr, &pConstantBuffer));
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-	sampDesc.MinLOD = 0;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	V_RETURN(pd3dDevice->CreateSamplerState(&sampDesc, &TexSamplerState));
-
-#if defined(Never)
-	// PhysX->ModelPhysics(Model->GetMeshes());
-#endif
+	//gProjection = Matrix::CreatePerspective(pBackBufferSurfaceDesc->Width, (FLOAT)pBackBufferSurfaceDesc->Height, 0.1f, 1000.f);
 
 	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
 
-	terrain->Initialize(Shader.get(), frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
+	terrain->Initialize(frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
 		file_system->GetResPathW(&wstring(L"686.jpg"))->c_str());
 
 	return S_OK;
@@ -389,6 +335,8 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 }
 
 vector<XMVECTOR> Mass;
+
+// Add SkyBox
 
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
@@ -429,15 +377,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	if (*MM->getGameMode() != GAME_RUNNING)
 		return;
 #endif
-	ID3D11RenderTargetView* pRTV = DXUTGetD3D11RenderTargetView();
+	ID3D11RenderTargetView *pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
-	ID3D11DepthStencilView* pDSV = DXUTGetD3D11DepthStencilView();
+	ID3D11DepthStencilView *pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
-	pd3dImmediateContext->IASetInputLayout(g_pLayout);
-
-	frustum->ConstructFrustum(1000.f, cb.mWorld, cb.mProjection);
+	frustum->ConstructFrustum(1000.f, -g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
 	for (int i = 0; i < m_shape.size(); i++)
 	{
@@ -461,12 +407,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		}
 	}
 
-	cb.mWorld = XMMatrixTranspose(g_Camera->GetWorldMatrix());
-	cb.mView = XMMatrixTranspose(g_Camera->GetViewMatrix());
-	cb.mProjection = XMMatrixTranspose(g_Camera->GetProjMatrix());
-
 	for (int i = 0; i < Model.size(); i++)
-		Model.at(i)->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+		 Model.at(i)->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
@@ -478,16 +420,9 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	if (terrain->getQTerrain(position.x, position.z, height))
 		g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
 
-	pd3dImmediateContext->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
-
-	pd3dImmediateContext->VSSetShader(g_pVS, 0, 0);
-	pd3dImmediateContext->VSSetConstantBuffers(0, 1, &pConstantBuffer);
-	pd3dImmediateContext->PSSetShader(g_pPS, 0, 0);
-	pd3dImmediateContext->PSSetSamplers(0, 1, &TexSamplerState);
-
 	V(ui->getHUD()->OnRender(fElapsedTime));
 
-#ifndef DEBUG
+#ifdef DEBUG
 	ID3D11Debug* debug = 0;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void**)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -525,6 +460,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15);
 
 	Pick->tick();
+
+	if (GetAsyncKeyState(VK_LSHIFT))
+		g_Camera->SetScalers(0.010f, 6.0f * 9.0f);
+	else
+		g_Camera->SetScalers(0.010f, 6.0f);
+
+	buffers->RenderSimpleBuffer(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -535,24 +477,49 @@ void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 void Destroy_Application()
 {
 #if defined(Never)
-	PhysX->Destroy();
+	if (PhysX.operator bool())
+		PhysX->Destroy();
 #endif
-	terrain->Shutdown();
+	if (terrain.operator bool())
+		terrain->Shutdown();
+
 	for (int i = 0; i < Model.size(); i++)
-		 Model.at(i)->Close();
+	{
+		 Model[i]->Close();
+		 Model[i]->Release();
+		 Model[i].release();
+	}
+
 	for (int i = 0; i < m_shape.size(); i++)
 		 m_shape[i].release();
+
+	if (Sound.operator bool())
+		Sound.release();
+
+	if (frustum.operator bool())
+		frustum.release();
+
+	if (Pick.operator bool())
+		Pick.release();
+
+	if (file_system.operator bool())
+		file_system.release();
+
+	if (g_Camera.operator bool())
+		g_Camera.release();
+
+	if (buffers.operator bool())
+		buffers->Release();
 }
 
 void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 {
-	SAFE_RELEASE(g_pLayout);
-	SAFE_RELEASE(g_pVS);
-	SAFE_RELEASE(g_pPS);
-	SAFE_RELEASE(g_pVertexLayout);
-	SAFE_RELEASE(TexSamplerState);
-	SAFE_RELEASE(pConstantBuffer);
-	ui->getDialogResManager()->OnD3D11DestroyDevice();
+	if (ui.operator bool())
+	{
+		ui->getDialogResManager()->OnD3D11DestroyDevice();
+		ui.release();
+	}
+
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 }
 
@@ -609,11 +576,11 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			m_shape.clear();
 			PhysX->ClearAllObj();
 			break;
-		case VK_F10:
-			g_Camera->setPosCam(Vector3(4, 6, 1));
-			//PhysX->CreateJoint(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			//PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PxVec3(1.1f, 0.1f, 3.5f));
-			break;
+		//case VK_F10:
+			// g_Camera->setPosCam(Vector3(4, 6, 1));
+			// PhysX->CreateJoint(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
+			// PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PxVec3(1.1f, 0.1f, 3.5f));
+		//	break;
 		}
 #ifdef Never_MainMenu
 	if (bKeyDown)

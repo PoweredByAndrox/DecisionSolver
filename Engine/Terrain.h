@@ -6,12 +6,12 @@
 #include "Shaders.h"
 #include "File_system.h"
 #include "Camera.h"
-
-#include <WICTextureLoader.h>
+#include "Render_Buffer.h"
 
 namespace Engine
 {
 	class Terrain;
+	class Render_Buffer;
 	class QuadTerrain: public Frustum
 	{
 		private:
@@ -38,13 +38,21 @@ namespace Engine
 			void Shutdown();
 			void Render(Matrix World, Matrix View, Matrix Proj);
 
-			int GetDrawCount();
+			void Release()
+			{
+				SAFE_RELEASE(Device);
+				if (DeviceCon)
+				{
+					DeviceCon->ClearState();
+					DeviceCon->Flush();
+				}
+			}
 
 			bool GetHeightAtPosition(float positionX, float positionZ, float &height);
 
 		private:
 			const int MAX_TRIANGLES = 10000;
-			int m_triangleCount = 0, m_drawCount = 0;
+			int m_triangleCount = 0;
 
 			void CalculateMeshDimensions(int, float&, float&, float&);
 			void CreateTreeNode(NT *node, Vector2 Pos, float width);
@@ -58,6 +66,7 @@ namespace Engine
 
 			unique_ptr<Terrain> terrain;
 			unique_ptr<Frustum> frustum;
+			unique_ptr<Render_Buffer> render;
 
 				// Devices!!!
 			void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
@@ -65,8 +74,7 @@ namespace Engine
 			ID3D11Device *Device = nullptr;
 			ID3D11DeviceContext *DeviceCon = nullptr;
 	};
-
-	class Terrain: public Shaders, public File_system, public QuadTerrain
+	class Terrain: public File_system, public QuadTerrain, public Render_Buffer
 	{
 	private:
 		struct Vertex
@@ -96,10 +104,19 @@ namespace Engine
 		~Terrain() {}
 
 		void Shutdown();
-		void RenderBuffers(int Indices, Matrix World, Matrix View, Matrix Proj);
 		void Render(Matrix World, Matrix View, Matrix Proj);
-		bool Initialize(Shaders *Shader, Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain);
+		bool Initialize(Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain);
 		bool InitializeBuffers();
+
+		void Release()
+		{
+			SAFE_RELEASE(Device);
+			if (DeviceCon)
+			{
+				DeviceCon->ClearState();
+				DeviceCon->Flush();
+			}
+		}
 
 		int GetIndexCount() { return m_indexCount != 0 ? m_indexCount : throw exception("Terrain: m_indexCount == 0!!!"); }
 		int GetVertexCount() { return m_vertexCount != 0 ? m_vertexCount : throw exception("Terrain: m_vertexCount == 0!!!"); }
@@ -113,11 +130,10 @@ namespace Engine
 			else 
 				false;
 		}
-		//throw exception("Terrain: getQTerrain == false!!!"); }
+		auto getRenderObj() { if (render.operator bool()) return render.get(); }
+		auto getShaderObj() { if (Shader.operator bool()) return Shader.get(); }
 
 	private:
-		void ShutdownBuffers();
-
 		HRESULT result = S_OK;
 		
 			// For texture!!!
@@ -145,6 +161,7 @@ namespace Engine
 
 		unique_ptr<Shaders> Shader;
 		unique_ptr<QuadTerrain> QTerrain;
+		unique_ptr<Render_Buffer> render;
 
 			// Height Map!!!
 		bool LoadBitmapHeightMap(const char *TerrainBMPfile);

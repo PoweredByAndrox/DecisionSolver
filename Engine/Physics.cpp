@@ -79,8 +79,8 @@ HRESULT Engine::Physics::Init()
 		}
 		IsInitPhysX = true;
 
-		getDeviceD3D();
-		getDeviceConD3D();
+		GetD3DDevice();
+		GetD3DDeviceCon();
 		return S_OK;
 	}
 	catch (const exception&)
@@ -199,10 +199,11 @@ void Engine::Physics::_createConvexMesh()
 
 void Engine::Physics::Destroy()
 {
-	_SAFE_RELEASE(gScene); // Need To Rework It!
+	_SAFE_RELEASE(gCooking);
+	_SAFE_RELEASE(gScene);
 	_SAFE_RELEASE(gPhysics);
 	_SAFE_RELEASE(gFoundation);
-	_SAFE_RELEASE(gCooking);
+
 }
 
 void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom)

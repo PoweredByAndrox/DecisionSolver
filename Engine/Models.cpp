@@ -30,7 +30,7 @@ bool Engine::Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
 		DebugTrace(string(string("Models: Error. Scene returned nullptr with text:\n")
-			+ string(importer->GetErrorString()) + string(" Line: 32\n")).c_str());
+			+ string(importer->GetErrorString()) + string(" Line: 30\n")).c_str());
 		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
@@ -131,8 +131,7 @@ vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *m
 			}
 			else
 			{
-				if (Device == nullptr)
-					GetD3DDevice();
+				GetD3DDevice();
 				ThrowIfFailed(CreateWICTextureFromFile(Device, GetResPathW(&string(str.C_Str())).c_str(), nullptr, &texture.texture));
 			}
 			texture.type = typeName;
@@ -185,9 +184,7 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	ID3D11ShaderResourceView *texture;
 	int* size = reinterpret_cast<int*>(&Scene->mTextures[Textureindex]->mWidth);
 
-	if (Device == nullptr)
-		GetD3DDevice();
-
+	GetD3DDevice();
 	ThrowIfFailed(CreateWICTextureFromMemory(Device, reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
 
 	return texture;
@@ -207,8 +204,7 @@ HRESULT Engine::Mesh::InitShader()
 	V_RETURN(hr = Shader->CompileShaderFromFile(Engine::Mesh::GetResPathW(&wstring(L"VertexShader.hlsl")), &string("main"), &string("vs_4_0"), &vertexShaderBuffer));
 	V_RETURN(hr = Shader->CompileShaderFromFile(Engine::Mesh::GetResPathW(&wstring(L"PixelShader.hlsl")), &string("main"), &string("ps_4_0"), &pixelShaderBuffer));
 
-	if (Device == nullptr)
-		GetD3DDevice();
+	GetD3DDevice();
 
 	V_RETURN(hr = Device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader));
 	V_RETURN(hr = Device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader));
@@ -300,8 +296,7 @@ void Engine::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 	
 	//Scale();
 
-	if (DeviceCon == nullptr)
-		GetD3DDeviceCon();
+	GetD3DDeviceCon();
 
 	DeviceCon->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
 	DeviceCon->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
@@ -329,6 +324,11 @@ void Engine::Mesh::Close()
 	SAFE_RELEASE(m_layout);
 	SAFE_RELEASE(m_pixelShader);
 	SAFE_RELEASE(m_vertexShader);
+
+	SAFE_RELEASE(Device);
+	DeviceCon->ClearState();
+	DeviceCon->Flush();
+
 	for (int i = 0; i < textures.size(); i++)
 		 textures[i].texture->Release();
 }
@@ -346,8 +346,7 @@ bool Engine::Mesh::setupMesh()
 	ZeroMemory(&Data, sizeof(Data));
 	Data.pSysMem = vertices.data();
 
-	if (Device == nullptr)
-		GetD3DDevice();
+	GetD3DDevice();
 
 	V_RETURN(hr = Device->CreateBuffer(&bd, &Data, &m_vertexBuffer));
 

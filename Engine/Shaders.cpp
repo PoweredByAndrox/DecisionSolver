@@ -36,7 +36,24 @@ HRESULT Engine::Shaders::CompileShaderFromFile(wstring *szFileName, string *szEn
 	return S_OK;
 }
 
-vector<ID3DBlob> *Engine::Shaders::CompileShaderFromFile(vector<wstring> *szFileName, vector<string> *szEntryPoint, vector<string> *szShaderModel)
+vector<void *> Engine::Shaders::CompileShaderFromFile(vector<ID3DBlob *> Things)
+{
+	vector<void *> ppBlobOut;
+	ID3D11VertexShader *m_vertexShader = nullptr;
+	ID3D11PixelShader *m_pixelShader = nullptr;
+
+	GetD3DDevice();
+	Device->CreateVertexShader(Things[0]->GetBufferPointer(), Things[0]->GetBufferSize(), NULL, &m_vertexShader);
+	Device->CreatePixelShader(Things[1]->GetBufferPointer(), Things[1]->GetBufferSize(), NULL, &m_pixelShader);
+
+	ppBlobOut.clear();
+	ppBlobOut.push_back(m_vertexShader);
+	ppBlobOut.push_back(m_pixelShader);
+
+	return ppBlobOut;
+}
+
+vector<ID3DBlob *> Engine::Shaders::CreateShaderFromFile(vector<wstring> szFileName, vector<string> szEntryPoint, vector<string> szShaderModel)
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
@@ -44,40 +61,47 @@ vector<ID3DBlob> *Engine::Shaders::CompileShaderFromFile(vector<wstring> *szFile
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-	if(szFileName->size() != szEntryPoint->size() != szShaderModel->size())
+	vector<ID3DBlob *> ppBlobOut;
+	ID3DBlob *Cache = nullptr;
+	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName[0].c_str(), NULL, NULL,
+		szEntryPoint[0].c_str(), szShaderModel[0].c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
+	if (FAILED(result))
 	{
-		return nullptr;
-	}
-
-	ID3DBlob *ppBlobOut;
-
-	for (int i = 0; i < szFileName->size(); i++)
-	{
-		for (int i_1 = 0; i_1 < szEntryPoint->size(); i_1++)
-		{
-			for (int i_2 = 0; i_2 < szShaderModel->size(); i_2++)
-			{
-				ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName->at(i).c_str(), NULL, NULL, 
-					szEntryPoint->at(i_1).c_str(), szShaderModel->at(i_2).c_str(), dwShaderFlags, NULL, NULL, &ppBlobOut, &pErrorBlob, NULL));
-				if (FAILED(result))
-				{
-					if (pErrorBlob != NULL)
+		if (pErrorBlob != NULL)
 #ifdef DEBUG
-					{
-						OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-						throw exception(strcat((char*)"Shaders: line 60 return: ", (char*)pErrorBlob->GetBufferPointer()));
+		{
+			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+			throw exception(strcat((char*)"Shaders: line 67 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
-						MessageBoxA(DXUTGetHWND(),
-							string(string("Shader compiller is failed with text:\n") +
-								string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+			MessageBoxA(DXUTGetHWND(),
+				string(string("Shader compiller is failed with text:\n") +
+					string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
 #endif
-					}
-				SAFE_RELEASE(pErrorBlob);
-				return nullptr;
-				}
-			SAFE_RELEASE(pErrorBlob);
-			}
 		}
+	SAFE_RELEASE(pErrorBlob);
 	}
-	return S_OK;
+	SAFE_RELEASE(pErrorBlob);
+	ppBlobOut.push_back(Cache);
+
+	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName[1].c_str(), NULL, NULL,
+		szEntryPoint[1].c_str(), szShaderModel[1].c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
+	if (FAILED(result))
+	{
+		if (pErrorBlob != NULL)
+#ifdef DEBUG
+		{
+			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
+			throw exception(strcat((char*)"Shaders: line 88 return: ", (char *)pErrorBlob->GetBufferPointer()));
+#elif !defined(DEBUG)
+			MessageBoxA(DXUTGetHWND(),
+				string(string("Shader compiller is failed with text:\n") +
+					string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+#endif
+		}
+	SAFE_RELEASE(pErrorBlob);
+	}
+	SAFE_RELEASE(pErrorBlob);
+	ppBlobOut.push_back(Cache);
+
+	return ppBlobOut;
 }

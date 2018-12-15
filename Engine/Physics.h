@@ -137,6 +137,15 @@ namespace Engine
 						DynamicObjects.clear();
 				}
 		}
+		void Release()
+		{
+			SAFE_RELEASE(Device);
+			if (DeviceCon)
+			{
+				DeviceCon->ClearState();
+				DeviceCon->Flush();
+			}
+		}
 
 		Physics() {}
 		~Physics() {}
@@ -167,14 +176,10 @@ namespace Engine
 		PxTriangleMesh *triangleMesh = nullptr;
 
 		// ***************
-		void getDeviceD3D()
-		{
-			Device = DXUTGetD3D11Device();
-		}
-		void getDeviceConD3D()
-		{
-			DevCon = DXUTGetD3D11DeviceContext();
-		}
+		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
+		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
+		ID3D11Device *Device = nullptr;
+		ID3D11DeviceContext *DeviceCon = nullptr;
 
 		// ***************
 			// Initialized bool variables
@@ -182,10 +187,6 @@ namespace Engine
 
 		// ***************
 		ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
-
-		// ***************
-		ID3D11DeviceContext *DevCon = DXUTGetD3D11DeviceContext();
-		ID3D11Device *Device = DXUTGetD3D11Device();
 	};
 };
 #endif // !__PHYSICS_H__

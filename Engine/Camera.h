@@ -55,24 +55,26 @@ namespace Engine
 		}
 
 	protected:
-		DirectX::XMFLOAT4X4 m_mRotation;        // Matrix for arc ball's orientation
-		DirectX::XMFLOAT4X4 m_mTranslation;     // Matrix for arc ball's position
-		DirectX::XMFLOAT4X4 m_mTranslationDelta;// Matrix for arc ball's position
+		DirectX::XMFLOAT4X4 m_mRotation,			// Matrix for arc ball's orientation
+							m_mTranslation,			// Matrix for arc ball's position
+							m_mTranslationDelta;	// Matrix for arc ball's position
 
 		POINT m_Offset;                         // window offset, or upper-left corner of window
-		INT m_nWidth;                           // arc ball's window width
-		INT m_nHeight;                          // arc ball's window height
-		Vector2 m_vCenter;            // center of arc ball 
-		float m_fRadius;                        // arc ball's radius in screen coords
-		float m_fRadiusTranslation;             // arc ball's radius for translating the target
+		INT m_nWidth,                           // arc ball's window width
+			m_nHeight;                          // arc ball's window height
 
-		Vector4 m_qDown;              // Quaternion before button down
-		Vector4 m_qNow;               // Composite quaternion for current drag
+		Vector2 m_vCenter;						// center of arc ball 
+		float m_fRadius,                        // arc ball's radius in screen coords
+			  m_fRadiusTranslation;             // arc ball's radius for translating the target
+
+		Vector4 m_qDown,              // Quaternion before button down
+				m_qNow;               // Composite quaternion for current drag
+
 		bool m_bDrag;                           // Whether user is dragging arc ball
 
 		POINT m_ptLastMouse;                    // position of last mouse point
-		Vector3 m_vDownPt;            // starting point of rotation arc
-		Vector3 m_vCurrentPt;         // current point of rotation arc
+		Vector3 m_vDownPt,            // starting point of rotation arc
+				m_vCurrentPt;         // current point of rotation arc
 
 		Vector3 ScreenToVector(_In_ float fScreenPtX, _In_ float fScreenPtY)
 		{
@@ -174,6 +176,62 @@ namespace Engine
 		bool IsKeyDown(_In_ BYTE key) const { return((key & KEY_IS_DOWN_MASK) == KEY_IS_DOWN_MASK); }
 		bool WasKeyDown(_In_ BYTE key) const { return((key & KEY_WAS_DOWN_MASK) == KEY_WAS_DOWN_MASK); }
 
+		void ChangeFOVPLUS(float m_nMouseWheelDelta)
+		{
+			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
+			//	m_fFOV -= m_nMouseWheelDelta;
+			//else if (m_fFOV <= 1.0f)
+			//	m_fFOV = 1.0f;
+			//else if (m_fFOV >= 45.0f)
+			//	m_fFOV = 45.0f;
+
+			//if (m_fFOV >= 1.f)
+			//{
+				m_fFOV += m_nMouseWheelDelta / 2;
+			//}
+
+			//else if(m_fFOV < 1.f)
+			//{
+			//	m_fFOV = 1.f;
+			//	return;
+			//}
+
+			if (m_fFOV >= 45.f)
+			{
+				m_fFOV = 1.f;
+				return;
+			}
+
+		}
+		void ChangeFOVMINUS(float m_nMouseWheelDelta)
+		{
+			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
+			//	m_fFOV -= m_nMouseWheelDelta;
+			//else if (m_fFOV <= 1.0f)
+			//	m_fFOV = 1.0f;
+			//else if (m_fFOV >= 45.0f)
+			//	m_fFOV = 45.0f;
+
+			//if (m_fFOV >= 1.f)
+			//{
+			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
+				m_fFOV -= m_nMouseWheelDelta / 2;
+			//}
+
+			if (m_fFOV < 1.f)
+			//{
+				m_fFOV = 1.f;
+			//	return;
+			//}
+
+			//if (m_fFOV >= 45.f)
+			//{
+			//	m_fFOV = 1.f;
+			//	return;
+			//}
+
+		}
+
 		Vector3 ConstrainToBoundary(_In_ Vector3 v)
 		{
 			using namespace DirectX;
@@ -189,59 +247,60 @@ namespace Engine
 		void GetInput(_In_ bool bGetKeyboardInput, _In_ bool bGetMouseInput, _In_ bool bGetGamepadInput);
 
 		Matrix m_mView,                    // View matrix 
-		m_mProj;                    // Projection matrix
+			   m_mProj;                    // Projection matrix
 
 		DXUT_GAMEPAD m_GamePad[DXUT_MAX_CONTROLLERS];  // XInput controller state
 		Vector3 m_vGamePadLeftThumb,
-		m_vGamePadRightThumb;
+				m_vGamePadRightThumb;
 		double m_GamePadLastActive[DXUT_MAX_CONTROLLERS];
 
-		int m_cKeysDown;                        // Number of camera keys that are down.
 		BYTE m_aKeys[CAM_MAX_KEYS];             // State of input - KEY_WAS_DOWN_MASK|KEY_IS_DOWN_MASK
 		Vector3 m_vKeyboardDirection; // Direction vector of keyboard input
 		POINT m_ptLastMousePosition;            // Last absolute position of mouse cursor
 		int m_nCurrentButtonMask,               // mask of which buttons are down
-		m_nMouseWheelDelta;                 // Amount of middle wheel scroll (+/-) 
+			m_nMouseWheelDelta,                 // Amount of middle wheel scroll (+/-) 
+			m_cKeysDown;                        // Number of camera keys that are down.
 
 		Vector2 m_vMouseDelta;        // Mouse relative delta smoothed over a few frames
-		float m_fFramesToSmoothMouseData;       // Number of frames to smooth mouse data over
 		Vector3 m_vDefaultEye,        // Default camera eye position
-		m_vDefaultLookAt,     // Default LookAt position
-		m_vEye,               // Camera eye position
-		m_vLookAt;            // LookAt position
+				m_vDefaultLookAt,     // Default LookAt position
+				m_vEye,               // Camera eye position
+				m_vLookAt;            // LookAt position
 
 		float m_fCameraYawAngle,                // Yaw angle of camera
-		m_fCameraPitchAngle;              // Pitch angle of camera
+			  m_fCameraPitchAngle,              // Pitch angle of camera
+			  m_fFramesToSmoothMouseData;       // Number of frames to smooth mouse data over
 
 		RECT m_rcDrag;                          // Rectangle within which a drag can be initiated.
 		Vector3 m_vVelocity,          // Velocity of camera
-		m_vVelocityDrag;      // Velocity drag force
+				m_vVelocityDrag;      // Velocity drag force
 
 		float m_fDragTimer,                     // Countdown timer to apply drag
-		m_fTotalDragTimeToZero;           // Time it takes for velocity to go from full to 0
+			  m_fTotalDragTimeToZero;           // Time it takes for velocity to go from full to 0
 
 		Vector2 m_vRotVelocity;       // Velocity of camera
 
 		float m_fFOV,                           // Field of view
-		m_fAspect,                        // Aspect ratio
-		m_fNearPlane,                     // Near plane
-		m_fFarPlane,						// Far plane
+			  m_fAspect,                        // Aspect ratio
+			  m_fNearPlane,                     // Near plane
+			  m_fFarPlane,						// Far plane
 
-		m_fRotationScaler,                // Scaler for rotation
-		m_fMoveScaler;                    // Scaler for movement
+			  m_fRotationScaler,                // Scaler for rotation
+			  m_fMoveScaler;                    // Scaler for movement
 
 		bool m_bMouseLButtonDown,               // True if left button is down 
-		m_bMouseMButtonDown,               // True if middle button is down 
-		m_bMouseRButtonDown,               // True if right button is down 
-		m_bMovementDrag,                   // If true, then camera movement will slow to a stop otherwise movement is instant
-		m_bInvertPitch,                    // Invert the pitch axis
-		m_bEnablePositionMovement,         // If true, then the user can translate the camera/model 
-		m_bEnableYAxisMovement,            // If true, then camera can move in the y-axis
-		m_bClipToBoundary,                 // If true, then the camera will be clipped to the boundary
-		m_bResetCursorAfterMove;           // If true, the class will reset the cursor position so that the cursor always has space to move 
+			 m_bMouseMButtonDown,               // True if middle button is down 
+			 m_bMouseRButtonDown,               // True if right button is down 
+			 m_bMovementDrag,                   // If true, then camera movement will slow to a stop otherwise movement is instant
+			 m_bInvertPitch,                    // Invert the pitch axis
+			 m_bEnablePositionMovement,         // If true, then the user can translate the camera/model 
+			 m_bEnableYAxisMovement,            // If true, then camera can move in the y-axis
+			 m_bClipToBoundary,                 // If true, then the camera will be clipped to the boundary
+			 m_bResetCursorAfterMove;//,           // If true, the class will reset the cursor position so that the cursor always has space to move 
+			 //ChangeFieldOfView = false;
 
 		Vector3 m_vMinBoundary,       // Min point in clip boundary
-		m_vMaxBoundary;       // Max point in clip boundary
+				m_vMaxBoundary;       // Max point in clip boundary
 	};
 	class CFirstPersonCamera: public CBaseCamera
 	{
@@ -258,28 +317,41 @@ namespace Engine
 		Vector3 GetWorldAhead() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._31)); }
 		Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
 
+		auto getFOV() { return m_fFOV; }
+
+		//void SetChangeFOV(bool FOV) { ChangeFieldOfView = FOV; }
+
 		void setPosCam(_In_ Vector3 Pos)
 		{
+			if (m_vEye != Pos)
+			{
+				m_vEye = Pos;
+
+				Vector3 vLookAt = m_vEye + GetWorldAhead();
+				Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
+					mCameraWorld = XMMatrixInverse(nullptr, mView);
+				XMStoreFloat3(&m_vLookAt, vLookAt);
+				XMStoreFloat4x4(&m_mView, mView);
+				XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
+			}
 			m_vEye = Pos;
 
-			Vector3 vLookAt = m_vEye + GetWorldAhead();
-			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
-			mCameraWorld = XMMatrixInverse(nullptr, mView);
-			XMStoreFloat3(&m_vLookAt, vLookAt);
-			XMStoreFloat4x4(&m_mView, mView);
-			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
 		}
-
 		void setPosCam(_In_ float Y)
 		{
+			if (m_vEye.y != Y)
+			{
+				m_vEye.y = Y;
+
+				Vector3 vLookAt = m_vEye + GetWorldAhead();
+				Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
+					mCameraWorld = XMMatrixInverse(nullptr, mView);
+				XMStoreFloat3(&m_vLookAt, vLookAt);
+				XMStoreFloat4x4(&m_mView, mView);
+				XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
+			}
 			m_vEye.y = Y;
 
-			Vector3 vLookAt = m_vEye + GetWorldAhead();
-			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
-			mCameraWorld = XMMatrixInverse(nullptr, mView);
-			XMStoreFloat3(&m_vLookAt, vLookAt);
-			XMStoreFloat4x4(&m_mView, mView);
-			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
 		}
 
 	protected:

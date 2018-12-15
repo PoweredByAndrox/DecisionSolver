@@ -11,7 +11,18 @@ namespace Engine
 	{
 	public:
 		HRESULT CompileShaderFromFile(wstring *szFileName, string *szEntryPoint, string *szShaderModel, ID3DBlob **ppBlobOut);
-		vector<ID3DBlob> *CompileShaderFromFile(vector<wstring> *szFileName, vector<string> *szEntryPoint, vector<string> *szShaderModel);
+		vector<void *> CompileShaderFromFile(vector<ID3DBlob *> Things);
+		vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> szFileName, vector<string> szEntryPoint, vector<string> szShaderModel);
+
+		void Release()
+		{
+			SAFE_RELEASE(Device); 
+			if (DeviceCon)
+			{
+				DeviceCon->ClearState();
+				DeviceCon->Flush();
+			}
+		}
 
 		Shaders() {}
 		~Shaders() {}
@@ -22,10 +33,10 @@ namespace Engine
 		ID3DBlob *pErrorBlob = nullptr;
 
 		ID3D11Device *Device = nullptr;
-		ID3D11DeviceContext *DevCon = nullptr;
+		ID3D11DeviceContext *DeviceCon = nullptr;
 
-		void getD3DDevice() { Device = DXUTGetD3D11Device(); }
-		void getD3DDeviceContext() { DevCon = DXUTGetD3D11DeviceContext(); }
+		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
+		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 	};
 };
 

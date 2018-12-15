@@ -3,36 +3,29 @@
 
 void Engine::Terrain::Shutdown()
 {
-		// Release the vertex and index buffer.
-	ShutdownBuffers();
-
 		// Release the terrain model.
 	ShutdownTerrainModel();
 
 		// Release the height map.
 	ShutdownHeightMap();
+
+	QTerrain->Shutdown();
 }
 
 void Engine::Terrain::Render(Matrix World, Matrix View, Matrix Proj)
 {
-		// Put the vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	RenderBuffers(this->m_indexCount, World, View, Proj);
-
 	QTerrain->Render(World, View, Proj);
 }
 
-bool Engine::Terrain::Initialize(Shaders *Shader, Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain)
+bool Engine::Terrain::Initialize(Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain)
 {
-	this->Shader.reset(Shader);
-
+	Shader = make_unique<Shaders>();
 	QTerrain = make_unique<QuadTerrain>();
+	render = make_unique<Render_Buffer>();
 
-	this->GetD3DDevice();
-	if (FAILED(result = CreateWICTextureFromFile(Device, TextureTerrain, nullptr, &m_texture)))
-	{
-		throw exception("Terrain::Init::CreateWICTextureFromFile == false!!!");
-		return false;
-	}
+	GetD3DDevice();
+
+	ThrowIfFailed(render->CreateTexture(TextureTerrain));
 
 		// Initialize the terrain height map with the data from the bitmap file.
 	if (!LoadBitmapHeightMap(HMapFile))
@@ -80,9 +73,6 @@ bool Engine::Terrain::InitializeBuffers()
 {
 	int index = 0;
 	float positionX = 0.f, positionZ = 0.f;
-	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, indexData;
-	D3D11_SAMPLER_DESC samplerDesc;
 
 	GetD3DDevice();
 
@@ -96,7 +86,8 @@ bool Engine::Terrain::InitializeBuffers()
 	vertices = new Vertex[m_vertexCount];
 
 		// Create the index array.
-	auto indices = new ULONG[m_indexCount];
+	auto indices = new UINT[m_indexCount];
+	vector<UINT> indices_render;
 
 		// Load the vertex array and index array with 3D terrain model data.
 	for (int i = 0; i < m_vertexCount; i++)
@@ -104,96 +95,26 @@ bool Engine::Terrain::InitializeBuffers()
 		vertices[i].position = model[i].Pos;
 		vertices[i].texcoord = model[i].texcoord;
 		indices[i] = i;
+		indices_render.push_back(indices[i]);
 	}
 
-	if (FAILED(result = Shader->CompileShaderFromFile(Engine::Terrain::GetResPathW(&wstring(L"VertexShader.hlsl")), &string("ColorVertexShader"), &string("vs_4_0"), &vertexShaderBuffer)))
-		return false;
+	vector<wstring> FileShaders;
+	FileShaders.push_back(*Engine::Terrain::GetResPathW(&wstring(L"VertexShader.hlsl")));
+	FileShaders.push_back(*Engine::Terrain::GetResPathW(&wstring(L"PixelShader.hlsl")));
 
-	if (FAILED(result = Shader->CompileShaderFromFile(Engine::Terrain::GetResPathW(&wstring(L"PixelShader.hlsl")), &string("ColorPixelShader"), &string("ps_4_0"), &pixelShaderBuffer)))
-		return false;
+	vector<string> Functions, Version;
+	Functions.push_back(string("ColorVertexShader"));
+	Functions.push_back(string("ColorPixelShader"));
 
-	if (FAILED(result = Device->CreateVertexShader(vertexShaderBuffer->GetBufferPointer(), vertexShaderBuffer->GetBufferSize(), NULL, &m_vertexShader)))
-		return false;
+	Version.push_back(string("vs_4_0"));
+	Version.push_back(string("ps_4_0"));
 
-	if (FAILED(result = Device->CreatePixelShader(pixelShaderBuffer->GetBufferPointer(), pixelShaderBuffer->GetBufferSize(), NULL, &m_pixelShader)))
-		return false;
-
-	const D3D11_INPUT_ELEMENT_DESC polygonLayout[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
-						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	};
-
-		// Get a count of the elements in the layout.
-	auto numElements = sizeof(polygonLayout) / sizeof(polygonLayout[0]);
-
-		// Create the vertex input layout.
-	if (FAILED(result = Device->CreateInputLayout(polygonLayout, numElements, vertexShaderBuffer->GetBufferPointer(),
-		vertexShaderBuffer->GetBufferSize(), &m_layout)))
-		return false;
-
-		// Release the vertex shader buffer and pixel shader buffer since they are no longer needed.
-	SAFE_RELEASE(vertexShaderBuffer);
-	SAFE_RELEASE(pixelShaderBuffer);
-
-		// Create a texture sampler state description.
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		// Create the texture sampler state.
-	if (FAILED(result = Device->CreateSamplerState(&samplerDesc, &m_sampleState)))
-		return false;
-
-		// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
-	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	matrixBufferDesc.ByteWidth = sizeof(MatrixBuffer);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	matrixBufferDesc.MiscFlags = 0;
-	matrixBufferDesc.StructureByteStride = 0;
-
-		// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
-	if (FAILED(result = Device->CreateBuffer(&matrixBufferDesc, NULL, &m_matrixBuffer)))
-		return false;
+	if (!render->isInit())
+		render->InitTerrain(sizeof(Vertex) * m_indexCount, vertices, indices_render, &FileShaders, &Functions, &Version);
 
 	SAFE_DELETE(indices);
 
 	return true;
-}
-
-void Engine::Terrain::ShutdownBuffers()
-{
-		// Release the index buffer.
-	SAFE_RELEASE(m_indexBuffer);
-
-		// Release the all buffer.
-	SAFE_RELEASE(m_vertexBuffer);
-	SAFE_RELEASE(m_matrixBuffer);
-	SAFE_RELEASE(m_sampleState);
-
-		// Release the layout.
-	SAFE_RELEASE(m_layout);
-
-		// Release the pixel shader.
-	SAFE_RELEASE(m_pixelShader);
-
-		// Release the vertex shader.
-	SAFE_RELEASE(m_vertexShader);
-
-		// Release the array.
-	SAFE_DELETE(vertices);
 }
 
 bool Engine::Terrain::LoadBitmapHeightMap(const char *TerrainBMPfile)
@@ -453,20 +374,20 @@ void Engine::QuadTerrain::Shutdown()
 		ReleaseNode(m_parentNode);
 		SAFE_DELETE(m_parentNode);
 	}
+
+	Release();
+
+	if (render.operator bool())
+		SAFE_RELEASE(render);
+
+	if (terrain.operator bool())
+		SAFE_RELEASE(terrain);
 }
 
 void Engine::QuadTerrain::Render(Matrix World, Matrix View, Matrix Proj)
 {
-		// Reset the number of triangles that are drawn for this frame.
-	m_drawCount = 0;
-
 		// Render each node that is visible starting at the parent node and moving down the tree.
 	RenderNode(m_parentNode, World, View, Proj);
-}
-
-int Engine::QuadTerrain::GetDrawCount()
-{
-	return m_drawCount;
 }
 
 void Engine::QuadTerrain::CalculateMeshDimensions(int vertexCount, float& centerX, float& centerZ, float& meshWidth)
@@ -521,8 +442,6 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 	float offsetX = 0.f, offsetZ = 0.f;
 	Vertex *vertices = nullptr;
 	ULONG *indices = nullptr;
-	D3D11_BUFFER_DESC vertexBufferDesc, indexBufferDesc;
-	D3D11_SUBRESOURCE_DATA vertexData, indexData;
 
 		// Store the node position and size.
 	node->texcoord.x = Pos.x;
@@ -625,38 +544,12 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 	}
 
 		// Set up the description of the static vertex buffer.
-	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	vertexBufferDesc.ByteWidth = sizeof(Vertex) * vertexCount;
-	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexBufferDesc.CPUAccessFlags = 0;
-	vertexBufferDesc.MiscFlags = 0;
-	vertexBufferDesc.StructureByteStride = 0;
-
-		// Give the subresource structure a pointer to the vertex data.
-	vertexData.pSysMem = vertices;
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
 
 	GetD3DDevice();
 
-		// Now create the vertex buffer.
-	ThrowIfFailed(Device->CreateBuffer(&vertexBufferDesc, &vertexData, &node->vertexBuffer));
-
-		// Set up the description of the static index buffer.
-	indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	indexBufferDesc.ByteWidth = sizeof(ULONG) * vertexCount;
-	indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	indexBufferDesc.CPUAccessFlags = 0;
-	indexBufferDesc.MiscFlags = 0;
-	indexBufferDesc.StructureByteStride = 0;
-
-		// Give the subresource structure a pointer to the index data.
-	indexData.pSysMem = indices;
-	indexData.SysMemPitch = 0;
-	indexData.SysMemSlicePitch = 0;
-
-		// Create the index buffer.
-	ThrowIfFailed(Device->CreateBuffer(&indexBufferDesc, &indexData, &node->indexBuffer));
+		// Now create the vertex buffers.
+	node->vertexBuffer = terrain->getRenderObj()->CreateVB(int(sizeof(Vertex) * vertexCount), vertices);
+	node->indexBuffer = terrain->getRenderObj()->CreateIB(int(sizeof(ULONG) * vertexCount), indices);
 
 		// Release the vertex and index arrays now that the data is stored in the buffers in the node.
 	SAFE_DELETE(vertices);
@@ -746,13 +639,12 @@ void Engine::QuadTerrain::ReleaseNode(NT *node)
 
 void Engine::QuadTerrain::RenderNode(NT *node, Matrix World, Matrix View, Matrix Proj)
 {
-	int count = 0, indexCount = 0;
-	UINT stride = 0, offset = 0;
+	int count = 0;
 
 	// Check to see if the node can be viewed, height doesn't matter in a quad tree.
 		// If it can't be seen then none of its children can either so don't continue down the tree, this is where the speed is gained.
-	if (!frustum->CheckCube(node->texcoord.x, 0.0f, node->texcoord.y, (node->width / 2.0f)))
-		return;
+//	if (!frustum->CheckCube(node->texcoord.x, 0.0f, node->texcoord.y, (node->width / 2.0f)))
+//		return;
 
 		// If it can be seen then check all four child nodes to see if they can also be seen.
 	for (int i = 0; i < 4; i++)
@@ -768,78 +660,11 @@ void Engine::QuadTerrain::RenderNode(NT *node, Matrix World, Matrix View, Matrix
 	if (count != 0)
 		return;
 
-		// Set vertex buffer stride and offset.
-	stride = sizeof(Vertex);
-
 	GetD3DDeviceCon();
 
-		// Set the vertex buffer to active in the input assembler so it can be rendered.
-	DeviceCon->IASetVertexBuffers(0, 1, &node->vertexBuffer, &stride, &offset);
+	vector<ID3D11Buffer *> Render = { node->vertexBuffer, node->indexBuffer };
 
-		// Set the index buffer to active in the input assembler so it can be rendered.
-	DeviceCon->IASetIndexBuffer(node->indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
-		// Set the type of primitive that should be rendered from this vertex buffer, in this case triangles.
-	DeviceCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		// Determine the number of indices in this node.
-	indexCount = node->triangleCount * 3;
-
-		// Call the terrain shader to render the polygons in this node.
-	terrain->RenderBuffers(indexCount, World, View, Proj);
-
-		// Increase the count of the number of polygons that have been rendered during this frame.
-	m_drawCount += node->triangleCount;
-}
-
-void Engine::Terrain::RenderBuffers(int Indices, Matrix World, Matrix View, Matrix Proj)
-{
-	UINT stride = 0, offset = 0;
-
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBuffer *dataPtr = nullptr;
-
-	GetD3DDeviceCon();
-
-	stride = sizeof(Vertex);
-
-	DeviceCon->IASetInputLayout(m_layout);
-
-		// Set the vertex and pixel shaders that will be used to render this triangle.
-	DeviceCon->VSSetShader(m_vertexShader, NULL, 0);
-	DeviceCon->PSSetShader(m_pixelShader, NULL, 0);
-
-		// Set the sampler state in the pixel shader.
-	DeviceCon->PSSetSamplers(0, 1, &m_sampleState);
-
-		// Transpose the matrices to prepare them for the shader.
-	auto worldMatrix = XMMatrixTranspose(World);
-	auto viewMatrix = XMMatrixTranspose(View);
-	auto projectionMatrix = XMMatrixTranspose(Proj);
-
-		// Lock the constant buffer so it can be written to.
-	ThrowIfFailed(DeviceCon->Map(m_matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
-
-		// Get a pointer to the data in the constant buffer.
-	dataPtr = (MatrixBuffer*)mappedResource.pData;
-
-		// Copy the matrices into the constant buffer.
-	dataPtr->world = worldMatrix;
-	dataPtr->view = viewMatrix;
-	dataPtr->projection = projectionMatrix;
-
-		// Unlock the constant buffer.
-	DeviceCon->Unmap(m_matrixBuffer, 0);
-
-		// Set shader texture resource in the pixel shader.
-	DeviceCon->PSSetShaderResources(0, 1, &m_texture);
-
-		// Finanly set the constant buffer in the vertex shader with the updated values.
-	DeviceCon->VSSetConstantBuffers(0, 1, &m_matrixBuffer);
-
-		// Render the triangle.
-	DeviceCon->DrawIndexed(Indices, 0, 0);
-
+	terrain->getRenderObj()->RenderTerrain(World, View, Proj, node->triangleCount * 3, Render, sizeof(Vertex));
 }
 
 bool Engine::QuadTerrain::GetHeightAtPosition(float positionX, float positionZ, float &height)

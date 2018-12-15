@@ -173,6 +173,7 @@
     </ClCompile>
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Picking.cpp" />
+    <ClCompile Include="Render_Buffer.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="UI.cpp" />
@@ -186,10 +187,10 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Picking.h" />
+    <ClInclude Include="Render_Buffer.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="UI.h" />
-    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\shaders\PixelShader.hlsl">
