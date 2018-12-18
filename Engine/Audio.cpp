@@ -25,7 +25,7 @@ void Engine::Audio::AddNewSound()
 	ListSoundsFile = getFilesInFolder(&wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
 	{
-		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile[i].c_str());
+		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i).c_str());
 
 		sound.push_back(soundEffect[i]->CreateInstance());
 		if (!sound[i])

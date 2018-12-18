@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "Shaders.h"
-#include "Models.h"
 
 #include "d3dx9effect.h"
 
@@ -21,12 +20,12 @@ HRESULT Engine::Shaders::CompileShaderFromFile(wstring *szFileName, string *szEn
 		if (pErrorBlob != NULL)
 #ifdef DEBUG
 		{
-			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			throw exception(strcat((char*)"Shaders: line 17 return: ", (char*)pErrorBlob->GetBufferPointer()));
+			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
+			throw exception(strcat((char *)"Shaders: line 17 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
 			MessageBoxA(DXUTGetHWND(),
 				string(string("Shader compiller is failed with text:\n") +
-					string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+					string((char *)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
 #endif
 		}
 		SAFE_RELEASE(pErrorBlob);
@@ -43,8 +42,8 @@ vector<void *> Engine::Shaders::CompileShaderFromFile(vector<ID3DBlob *> Things)
 	ID3D11PixelShader *m_pixelShader = nullptr;
 
 	GetD3DDevice();
-	Device->CreateVertexShader(Things[0]->GetBufferPointer(), Things[0]->GetBufferSize(), NULL, &m_vertexShader);
-	Device->CreatePixelShader(Things[1]->GetBufferPointer(), Things[1]->GetBufferSize(), NULL, &m_pixelShader);
+	Device->CreateVertexShader(Things.at(0)->GetBufferPointer(), Things.at(0)->GetBufferSize(), NULL, &m_vertexShader);
+	Device->CreatePixelShader(Things.at(1)->GetBufferPointer(), Things.at(1)->GetBufferSize(), NULL, &m_pixelShader);
 
 	ppBlobOut.clear();
 	ppBlobOut.push_back(m_vertexShader);
@@ -63,19 +62,19 @@ vector<ID3DBlob *> Engine::Shaders::CreateShaderFromFile(vector<wstring> szFileN
 
 	vector<ID3DBlob *> ppBlobOut;
 	ID3DBlob *Cache = nullptr;
-	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName[0].c_str(), NULL, NULL,
-		szEntryPoint[0].c_str(), szShaderModel[0].c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
+	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName.at(0).c_str(), NULL, NULL,
+		szEntryPoint.at(0).c_str(), szShaderModel.at(0).c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
 #ifdef DEBUG
 		{
-			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			throw exception(strcat((char*)"Shaders: line 67 return: ", (char *)pErrorBlob->GetBufferPointer()));
+			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
+			throw exception(strcat((char *)"Shaders: line 67 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
 			MessageBoxA(DXUTGetHWND(),
 				string(string("Shader compiller is failed with text:\n") +
-					string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+					string((char *)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
 #endif
 		}
 	SAFE_RELEASE(pErrorBlob);
@@ -83,19 +82,19 @@ vector<ID3DBlob *> Engine::Shaders::CreateShaderFromFile(vector<wstring> szFileN
 	SAFE_RELEASE(pErrorBlob);
 	ppBlobOut.push_back(Cache);
 
-	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName[1].c_str(), NULL, NULL,
-		szEntryPoint[1].c_str(), szShaderModel[1].c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
+	ThrowIfFailed(result = D3DX11CompileFromFileW(szFileName.at(1).c_str(), NULL, NULL,
+		szEntryPoint.at(1).c_str(), szShaderModel.at(1).c_str(), dwShaderFlags, NULL, NULL, &Cache, &pErrorBlob, NULL));
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
 #ifdef DEBUG
 		{
-			OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-			throw exception(strcat((char*)"Shaders: line 88 return: ", (char *)pErrorBlob->GetBufferPointer()));
+			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
+			throw exception(strcat((char *)"Shaders: line 88 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
 			MessageBoxA(DXUTGetHWND(),
 				string(string("Shader compiller is failed with text:\n") +
-					string((char*)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
+					string((char *)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
 #endif
 		}
 	SAFE_RELEASE(pErrorBlob);

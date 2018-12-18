@@ -89,13 +89,13 @@ XMVECTORF32 _Color[9] =
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 768
 
+#define Check0 16
+
 //**************
 	// Test
-bool StopIT = false;
+bool StopIT = false, InitProgram = false;
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
-
-bool InitProgram = false;
 
 void InitApp()
 {
@@ -158,6 +158,8 @@ void InitApp()
 	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
 	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
 	
+	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Disable/Enable Movement The Terrain"), 0, 0, 125, 22);
+
 	if (!Sound->IsInitSounSystem())
 		Sound->Init();
 
@@ -175,7 +177,7 @@ void InitApp()
 	MM->getDlgVID()->SetCallback(OnGUIEvent);
 #endif
 
-	//g_Camera.SetClipToBoundary(true, &D3DXVECTOR3(4, 6, 3), &D3DXVECTOR3(1, 2, 5));
+	//g_Camera.SetClipToBoundary(true, &Vector3(4, 6, 3), &Vector3(1, 2, 5));
 	//g_Camera->SetEnableYAxisMovement(false);
 	
 	g_Camera->SetScalers(0.010f, 6.0f);
@@ -209,11 +211,15 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	case BUTTON_2:
 	{
 		auto PosCam = PxVec3(g_Camera->GetEyePt().x, -g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+		auto Obj = PhysX->GetPhysDynamicObject();
+
+		if (Obj.size() == 0)
+			break;
+		PhysX->AddTorque(Obj.at(rand() % Obj.size()), PosCam,
 			PxForceMode::Enum::eIMPULSE);
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+		PhysX->AddTorque(Obj.at(rand() % Obj.size()), PosCam,
 			PxForceMode::Enum::eFORCE);
-		PhysX->AddTorque(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PosCam,
+		PhysX->AddTorque(Obj.at(rand() % Obj.size()), PosCam,
 			PxForceMode::Enum::eVELOCITY_CHANGE);
 		break;
 	}
@@ -232,6 +238,25 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 	case BUTTON_7:
 		PhysX->AddNewActor(Vector3(15.f, 15.f, 15.f), Vector3(20.5f, 20.5f, 20.5f));
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 20.5f, false));
+		break;
+	case Check0:
+		if (ui->getObjCheckBox()->size() > 0)
+		{
+			auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
+			if (!ObjCheck)
+				break;
+
+			if (ObjCheck->GetChecked())
+			{
+				ObjCheck->SetChecked(false);
+				break;
+			}
+			else
+			{
+				ObjCheck->SetChecked(true);
+				break;
+			}
+		}
 		break;
 	}
 #ifdef Never_MainMenu
@@ -271,20 +296,14 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		Matrix mProjection;
 	};
 
-	if(!buffers->isInit())
-		buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
+	if (!buffers->isInit())
+		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
-//#ifndef DEBUG
-//	DXUT_SetDebugName(g_pVS, "VS");
-//	DXUT_SetDebugName(g_pPS, "PS");
-//	DXUT_SetDebugName(g_pLayout, "Vertices Shader");
-//#endif
-
-#ifdef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj"))));
+#ifndef NEVER_228
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("cyborg.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
-			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
+			*file_system->GetResPathW(&wstring(L"cyborg.obj"))).c_str(), L"", MB_OK);
 #endif
 #ifdef NEVER_228
 	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj"))));//, aiProcess_Triangulate, false));
@@ -321,10 +340,13 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 
 		// *******
-	ui->SetLocationButton(ui->getHUD(), 0, X, Y);
-	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25);
-	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25);
-	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25);
+	ui->SetLocationButton(ui->getHUD(), 0, X, Y, false);
+	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25, false);
+	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, false);
+	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, false);
+
+	if (ui->getObjCheckBox()->size() > 0)
+		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox()->size() - 1, X - 150, Y += 25, false);
 
 	return S_OK;
 }
@@ -336,7 +358,56 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 
 vector<XMVECTOR> Mass;
 
-// Add SkyBox
+ToDo("Need To Move In Picking Class!")
+/* 
+HRESULT pick()
+{
+	HRESULT hr;
+	Vector3 vPickRayDir;
+	Vector3 vPickRayOrig;
+	const auto *pd3dsdBackBuffer = DXUTGetDXGIBackBufferSurfaceDesc();
+
+	//g_nNumIntersections = 0L;
+
+	// Get the pick ray from the mouse position
+	if (GetCapture())
+	{
+		const Matrix *pmatProj = &g_Camera->GetProjMatrix();
+
+		POINT ptCursor;
+		GetCursorPos(&ptCursor);
+		ScreenToClient(DXUTGetHWND(), &ptCursor);
+
+		// Compute the vector of the pick ray in screen space
+		Vector3 v;
+		v.x = (((2.0f * ptCursor.x) / pd3dsdBackBuffer->Width) - 1) / pmatProj->_11;
+		v.y = -(((2.0f * ptCursor.y) / pd3dsdBackBuffer->Height) - 1) / pmatProj->_22;
+		v.z = 1.0f;
+
+		// Get the inverse view matrix
+		const Matrix matView = g_Camera->GetViewMatrix();
+		const Matrix matWorld = g_Camera->GetWorldMatrix();
+		Matrix mWorldView = matWorld * matView;
+		Matrix m;
+		m = XMMatrixInverse(NULL, mWorldView);
+
+		// Transform the screen space pick ray into 3D space
+		vPickRayDir.x = v.x * m._11 + v.y * m._21 + v.z * m._31;
+		vPickRayDir.y = v.x * m._12 + v.y * m._22 + v.z * m._32;
+		vPickRayDir.z = v.x * m._13 + v.y * m._23 + v.z * m._33;
+		vPickRayOrig.x = m._41;
+		vPickRayOrig.y = m._42;
+		vPickRayOrig.z = m._43;
+	}
+
+	// Get the picked triangle
+	if (GetCapture())
+	{
+	}
+
+	return S_OK;
+}
+*/
 
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
@@ -381,9 +452,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
 	ID3D11DepthStencilView *pDSV = DXUTGetD3D11DepthStencilView();
-	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
+	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 
-	frustum->ConstructFrustum(1000.f, -g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+
 
 	for (int i = 0; i < m_shape.size(); i++)
 	{
@@ -393,7 +465,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 			vector<PxQuat> aq;
 			vector<Vector4> q;
 			vector<PxVec3> pos;
-			for (int i1 = 0; i1 < PhysX->GetPhysDynamicObject().size(); i1++)
+			for (int i1 = 0; i1 < Obj.size(); i1++)
 			{
 				aq.push_back(Obj.at(i1)->getGlobalPose().q);
 				q.push_back(Vector4(aq.back().x, aq.back().y, aq.back().z, aq.back().w));
@@ -407,24 +479,28 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		}
 	}
 
-	for (int i = 0; i < Model.size(); i++)
-		 Model.at(i)->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
-
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	if (ui->getObjCheckBox()->size() > 0)
+	{
+		auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
+		if (!ObjCheck)
+			return;
 
-		// Get the current position of the camera.
-	auto position = g_Camera->GetEyePt();
-	float height = 2.0f;
+		if (ObjCheck->GetChecked())
+		{
+			auto position = g_Camera->GetEyePt();
+			float height = 2.0f;
 
-		// Get the height of the triangle that is directly underneath the given camera position.
-	if (terrain->getQTerrain(position.x, position.z, height))
-		g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
+			if (terrain->getQTerrain(position.x, position.z, height))
+				g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
+		}
+	}
 
 	V(ui->getHUD()->OnRender(fElapsedTime));
 
 #ifdef DEBUG
-	ID3D11Debug* debug = 0;
-	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void**)&debug);
+	ID3D11Debug *debug = nullptr;
+	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
@@ -435,13 +511,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	int PosText = 0;
 	auto *PosCam = &Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
 	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), PosCam);
-	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5);
+	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5, false);
 
 	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
-	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH / 2, -3);
+	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH / 2, -3, false);
 
 	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysX->GetPhysDynamicObject().size());
-	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15);
+	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15, false);
 
 	auto StatAudio = Sound->getStaticsSound();
 
@@ -457,16 +533,20 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	};
 
 	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
-	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15);
+	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15, false);
 
-	Pick->tick();
+	//Pick->tick();
 
 	if (GetAsyncKeyState(VK_LSHIFT))
 		g_Camera->SetScalers(0.010f, 6.0f * 9.0f);
 	else
 		g_Camera->SetScalers(0.010f, 6.0f);
 
+	for (int i = 0; i < Model.size(); i++)
+		Model.at(i)->Render(g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+
 	buffers->RenderSimpleBuffer(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -485,13 +565,13 @@ void Destroy_Application()
 
 	for (int i = 0; i < Model.size(); i++)
 	{
-		 Model[i]->Close();
-		 Model[i]->Release();
-		 Model[i].release();
+		 Model.at(i)->Close();
+		 Model.at(i)->Release();
+		 Model.at(i).release();
 	}
 
 	for (int i = 0; i < m_shape.size(); i++)
-		 m_shape[i].release();
+		 m_shape.at(i).release();
 
 	if (Sound.operator bool())
 		Sound.release();
@@ -576,11 +656,6 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			m_shape.clear();
 			PhysX->ClearAllObj();
 			break;
-		//case VK_F10:
-			// g_Camera->setPosCam(Vector3(4, 6, 1));
-			// PhysX->CreateJoint(PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()),
-			// PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size()), PxVec3(1.1f, 0.1f, 3.5f));
-		//	break;
 		}
 #ifdef Never_MainMenu
 	if (bKeyDown)
@@ -621,11 +696,17 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 		auto T = PhysX->getScene();
 		const PxTransform& camPose = PxTransform(PxVec3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z));
 		PxVec3 forward = -PxMat33(camPose.q)[1];
-		auto PosObjPhys = PhysX->GetPhysDynamicObject().at(rand() % PhysX->GetPhysDynamicObject().size());
+		auto PosObjPhys = PhysX->GetPhysDynamicObject();
+		if (PosObjPhys.size() == 0)
+			return;
+
 		if (T->raycast(camPose.p + forward, forward, Vector3::Distance(
 			Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z),
-			Vector3(PosObjPhys->getGlobalPose().p.x, PosObjPhys->getGlobalPose().p.y, PosObjPhys->getGlobalPose().p.z)), hit, PxHitFlags(PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eUV)))
-			PhysX->AddTorque(PosObjPhys, -hit.block.position, PxForceMode::Enum::eACCELERATION);
+			Vector3(PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.x, PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.y, 
+				PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.z)), hit,
+			PxHitFlags(PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eUV)))
+
+			PhysX->AddTorque(PosObjPhys.at(rand() % PosObjPhys.size()), -hit.block.position, PxForceMode::Enum::eACCELERATION);
 		Pick->letGo();
 	}
 //	Pick->moveCursor(DXUTGetWindowWidth() / 2, DXUTGetWindowHeight() / 2);

@@ -23,7 +23,7 @@ namespace Engine
 
 		HRESULT AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H);
 
-		void SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y);
+		void SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y, bool Align);
 		void SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text);
 
 		void SetTextButton(CDXUTDialog *Dial, int ID, string *Text, float Format[3]);
@@ -38,7 +38,7 @@ namespace Engine
 		void SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> Format);
 		void SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, XMVECTOR Format);
 
-		void SetLocationStatic(CDXUTDialog *Dial, int ID, int X, int Y);
+		void SetLocationStatic(CDXUTDialog *Dial, int ID, int X, int Y, bool Align);
 		void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text);
 
 		void SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format[3]);
@@ -54,6 +54,8 @@ namespace Engine
 		void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> Format);
 		void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, Vector3 *Format);
 		void SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, size_t Format);
+
+		void SetLocationCheck(CDXUTDialog *Dial, int ID, int X, int Y, bool Align);
 
 		HRESULT AddSlider(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Min, int Max);
 		HRESULT AddSlider_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y,

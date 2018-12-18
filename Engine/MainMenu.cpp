@@ -184,8 +184,8 @@ void MainMenu::setGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, 
 	USES_CONVERSION;
 	for (int i = 1; i < ui->getObjButton()->size() + ui->getObjSlider()->size(); i++)
 	{
-		if (strstr(W2A(getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)).c_str())
-			, W2A(getComponentName_By_ID(ui.get(), i).c_str()))) /// Audio Button
+		if (strstr(W2A(getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)).c_str()),
+			W2A(getComponentName_By_ID(ui.get(), i).c_str()))) /// Audio Button
 		{
 			gameMode = GAME_AUDIO_MENU;
 			break;

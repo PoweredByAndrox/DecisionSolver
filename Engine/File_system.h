@@ -28,6 +28,15 @@ public:
 	vector<wstring> getFilesInFolder(wstring *File);
 	vector<wstring> getFilesInFolder(wstring *File, bool Recursive = false, bool onlyFile = false);
 
+	vector<string> getFilesInFolder(string *File, bool Recursive, bool onlyFile);
+	vector<string> getFilesInFolder(string *File);
+
+	string &replaceAll(string &context, string const &from, string const &to);
+	string &replaceAll(string &context, string const &from, string const &to, string const &also);
+
+	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to);
+	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also);
+
 private:
 	path p;
 };

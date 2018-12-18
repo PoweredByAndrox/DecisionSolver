@@ -164,9 +164,14 @@ HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text)
 	return S_OK;
 }
 
-void UI::SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y)
+void UI::SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
 {
-	Dial->GetButton(ObjButton.at(ID))->SetLocation(X, Y);
+	if (!Align)
+		Dial->GetButton(ObjButton.at(ID))->SetLocation(X, Y);
+	else
+	{
+
+	}
 }
 
 void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text)
@@ -270,7 +275,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, XMVECTOR Format)
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetLocationStatic(CDXUTDialog *Dial, int ID, int X, int Y)
+void UI::SetLocationStatic(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
 {
 	Dial->GetStatic(ObjStatic.at(ID))->SetLocation(X, Y);
 }
@@ -370,6 +375,20 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format)
 	snprintf(buff, sizeof(buff), string(*Text + string("X:%.1f, Y:%.1f, Z:%.1f")).c_str(),
 		Format->x, Format->y, Format->z);
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
+}
+
+void UI::SetLocationCheck(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
+{
+	if (!Align)
+		Dial->GetCheckBox(ObjCheckBox.at(ID))->SetLocation(X, Y);
+	else
+	{
+		auto HeightBuff = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
+		auto WidthComponent = Dial->GetCheckBox(ObjCheckBox.at(ID))->m_width;
+		auto Cache = HeightBuff - (WidthComponent + 100);
+		//while (Cache)
+		Dial->GetCheckBox(ObjCheckBox.at(ID))->UpdateRects();//(Cache, Y);
+	}
 }
 
 int UI::getAllComponentsCount() 

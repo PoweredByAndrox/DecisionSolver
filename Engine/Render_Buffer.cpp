@@ -3,25 +3,20 @@
 
 HRESULT Engine::Render_Buffer::InitSimpleBuffer(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader, int ConstBuff_Width)
 {
-	D3D11_BUFFER_DESC matrixBufferDesc;
-
-	Shader = make_unique<Shaders>();
-
-	Buffer_blob = Shader->CreateShaderFromFile(*ShaderFile, *Func, *VersionShader);
-	Buffers = Shader->CompileShaderFromFile(Buffer_blob);
+	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(*ShaderFile, *Func, *VersionShader));
 
 	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
 	m_pixelShader = (ID3D11PixelShader *) Buffers[1]; // PS
 
-	ZeroMemory(&matrixBufferDesc, sizeof(matrixBufferDesc));
+	ZeroMemory(&bd, sizeof(bd));
 
-	matrixBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-	matrixBufferDesc.ByteWidth = sizeof(ConstantBuffer);
-	matrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	matrixBufferDesc.CPUAccessFlags = 0;
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(ConstantBuffer);
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = 0;
 	GetD3DDevice();
 
-	V_RETURN(Device->CreateBuffer(&matrixBufferDesc, NULL, &m_pConstBuffer));
+	V_RETURN(Device->CreateBuffer(&bd, NULL, &m_pConstBuffer));
 
 	const D3D11_INPUT_ELEMENT_DESC L_Element[] =
 	{
@@ -117,7 +112,16 @@ void Engine::Render_Buffer::RenderSimpleBuffer(Matrix World, Matrix View, Matrix
 HRESULT Engine::Render_Buffer::InitTerrain(UINT SizeofVertex, void *vertices, vector<UINT> indices,
 	vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader)
 {
-	InitSimpleBuffer(ShaderFile, Func, VersionShader, 0);
+	InitSimpleBuffer(ShaderFile, Func, VersionShader);
+
+	if (m_vertexBuffer)
+		SAFE_RELEASE(m_vertexBuffer);
+
+	if (m_indexBuffer)
+		SAFE_RELEASE(m_indexBuffer);
+
+	if (m_layout)
+		SAFE_RELEASE(m_layout);
 
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = D3D11_USAGE_DEFAULT;
@@ -141,40 +145,92 @@ HRESULT Engine::Render_Buffer::InitTerrain(UINT SizeofVertex, void *vertices, ve
 
 	V_RETURN(Device->CreateBuffer(&bd, &Data, &m_indexBuffer));
 
-	D3D11_INPUT_ELEMENT_DESC polygonLayout[2];
-	polygonLayout[0].SemanticName = "POSITION";
-	polygonLayout[0].SemanticIndex = 0;
-	polygonLayout[0].Format = DXGI_FORMAT_R32G32B32_FLOAT;
-	polygonLayout[0].InputSlot = 0;
-	polygonLayout[0].AlignedByteOffset = 0;
-	polygonLayout[0].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[0].InstanceDataStepRate = 0;
+	const D3D11_INPUT_ELEMENT_DESC L_Element[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
 
-	polygonLayout[1].SemanticName = "TEXCOORD";
-	polygonLayout[1].SemanticIndex = 0;
-	polygonLayout[1].Format = DXGI_FORMAT_R32G32_FLOAT;
-	polygonLayout[1].InputSlot = 0;
-	polygonLayout[1].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-	polygonLayout[1].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-	polygonLayout[1].InstanceDataStepRate = 0;
+	UINT numElements = sizeof(L_Element) / sizeof(L_Element[0]);
+
+	V_RETURN(Device->CreateInputLayout(L_Element, numElements, Buffer_blob[0]->GetBufferPointer(), Buffer_blob[0]->GetBufferSize(), &m_layout));
+
+	CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+	init = true;
+	return hr;
+}
+
+HRESULT Engine::Render_Buffer::InitModels(UINT SizeofVertex, void *vertices, vector<UINT> indices,
+	vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader)
+{
+	InitSimpleBuffer(ShaderFile, Func, VersionShader);
+
+	if (m_vertexBuffer)
+		SAFE_RELEASE(m_vertexBuffer);
+
+	if (m_indexBuffer)
+		SAFE_RELEASE(m_indexBuffer);
+
+	ZeroMemory(&bd, sizeof(bd));
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = SizeofVertex;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA Data;
+	ZeroMemory(&Data, sizeof(Data));
+	Data.pSysMem = vertices;
+
+	GetD3DDevice();
+	V_RETURN(Device->CreateBuffer(&bd, &Data, &m_vertexBuffer));
+
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.ByteWidth = sizeof(UINT) * indices.size();
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = 0;
+
+	Data.pSysMem = indices.data();
+
+	V_RETURN(Device->CreateBuffer(&bd, &Data, &m_indexBuffer));
+
+	const D3D11_INPUT_ELEMENT_DESC L_Element[] =
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+						 D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+	};
+
+	UINT numElements = sizeof(L_Element) / sizeof(L_Element[0]);
+
+	V_RETURN(Device->CreateInputLayout(L_Element, numElements, Buffer_blob[0]->GetBufferPointer(), Buffer_blob[0]->GetBufferSize(), &m_layout));
+
+	CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+
+	init = true;
+	return hr;
+}
+
+HRESULT Engine::Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags)
+{
+	if (m_pConstBuffer)
+		SAFE_RELEASE(m_pConstBuffer);
 
 	ZeroMemory(&bd, sizeof(bd));
 
-	bd.Usage = D3D11_USAGE_DYNAMIC;
+	bd.Usage = Usage;
 	bd.ByteWidth = sizeof(ConstantBuffer);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	bd.CPUAccessFlags = CPUAccessFlags;
 	bd.MiscFlags = 0;
 	bd.StructureByteStride = 0;
 
 	GetD3DDevice();
-
 	V_RETURN(Device->CreateBuffer(&bd, NULL, &m_pConstBuffer));
-
-	return hr;
 }
 
-HRESULT Engine::Render_Buffer::CreateTexture(const wchar_t * TextrFName)
+HRESULT Engine::Render_Buffer::CreateTexture(const wchar_t *TextrFName)
 {
 	GetD3DDevice();
 	ThrowIfFailed(hr = CreateWICTextureFromFile(Device, TextrFName, nullptr, &m_texture));
@@ -224,6 +280,41 @@ void Engine::Render_Buffer::RenderTerrain(Matrix World, Matrix View, Matrix Proj
 	DeviceCon->DrawIndexed(Indices, 0, 0);
 }
 
+void Engine::Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, UINT stride)
+{
+	UINT offset = 0;
+	//D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+	GetD3DDeviceCon();
+
+	DeviceCon->IASetInputLayout(m_layout);
+
+	DeviceCon->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
+	DeviceCon->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
+	DeviceCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//ThrowIfFailed(DeviceCon->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
+
+	//auto dataPtr = (ConstantBuffer *)mappedResource.pData;
+
+	//dataPtr->mWorld = XMMatrixMultiply(World, View);
+	//dataPtr->mView = XMMatrixTranspose(View);
+	//dataPtr->mProj = XMMatrixTranspose(Proj);
+
+	//DeviceCon->Unmap(m_pConstBuffer, 0);
+	//DeviceCon->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
+
+	DeviceCon->VSSetShader(m_vertexShader, 0, 0);
+
+	DeviceCon->PSSetShader(m_pixelShader, 0, 0);
+	DeviceCon->PSSetSamplers(0, 1, &m_sampleState);
+
+	DeviceCon->PSSetShaderResources(0, 1, &RenderTextr);
+
+	DeviceCon->DrawIndexed(SizeIndices, 0, 0);
+}
+
 void Engine::Render_Buffer::Release()
 {
 	SAFE_RELEASE(m_texture);
@@ -240,6 +331,7 @@ void Engine::Render_Buffer::Release()
 	{
 		DeviceCon->ClearState();
 		DeviceCon->Flush();
+		SAFE_RELEASE(DeviceCon);
 	}
 
 	if (Shader.operator bool())

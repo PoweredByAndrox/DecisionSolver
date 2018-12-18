@@ -184,9 +184,6 @@ namespace Engine
 		// ***************
 			// Initialized bool variables
 		bool IsInitPhysX = false;
-
-		// ***************
-		ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
 	};
 };
 #endif // !__PHYSICS_H__

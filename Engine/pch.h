@@ -1,16 +1,18 @@
 #pragma once
 #include <vector>
-#include <DirectXMath.h>
 #include <stdio.h> 
 #include <direct.h>
 #include <tchar.h>
 #include <memory>
+
 #include <d3dcompiler.h>
 
 #include <d3dx11.h>
 #include <dxgi1_2.h>
 
+	// DXTK
 #include <SimpleMath.h>
+#include <DirectXMath.h>
 
 	// Included for use USES_CONVERSION (or A2W, W2A)
 #include <AtlConv.h>
@@ -28,8 +30,12 @@
 #include "DXUTmisc.h"
 #include "DXUTgui.h"
 
-	// For ThrowIfFailed
-#include "../Src/PlatformHelpers.h"
+// *********
+		/// DXTK
+	#include "GeometricPrimitive.h"
+		/// For ThrowIfFailed
+	#include "../Src/PlatformHelpers.h"
+// *********
 
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
@@ -48,12 +54,21 @@ using namespace spdlog;
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dx11.lib")
+
 #pragma comment (lib, "DxErr.lib")
 #pragma comment (lib, "Dxgi.lib")
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment (lib, "D3DCSX.lib")
+
 #pragma comment (lib, "DXUT.lib")
 #pragma comment (lib, "DXUTOpt.lib")
+
 #pragma comment (lib, "assimp-vc140-mt.lib")
+
 #pragma comment (lib, "DirectXTK.lib")
+
+	// For Debug!!!
+#define MacroStr(x)   #x
+#define MacroStr2(x)  MacroStr(x)
+#define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))

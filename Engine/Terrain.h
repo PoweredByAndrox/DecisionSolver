@@ -74,7 +74,7 @@ namespace Engine
 			ID3D11Device *Device = nullptr;
 			ID3D11DeviceContext *DeviceCon = nullptr;
 	};
-	class Terrain: public File_system, public QuadTerrain, public Render_Buffer
+	class Terrain: public QuadTerrain, public Render_Buffer
 	{
 	private:
 		struct Vertex

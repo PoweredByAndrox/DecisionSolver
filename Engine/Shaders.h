@@ -21,6 +21,7 @@ namespace Engine
 			{
 				DeviceCon->ClearState();
 				DeviceCon->Flush();
+				SAFE_DELETE(DeviceCon);
 			}
 		}
 
@@ -34,7 +35,6 @@ namespace Engine
 
 		ID3D11Device *Device = nullptr;
 		ID3D11DeviceContext *DeviceCon = nullptr;
-
 		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 	};
