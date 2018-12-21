@@ -47,7 +47,7 @@ namespace Engine
 			this->setupMesh();
 		}
 
-		void Draw();
+		void Draw(Matrix World, Matrix View, Matrix Proj);
 
 		void Close();
 
@@ -67,11 +67,6 @@ namespace Engine
 	class Models: public Mesh, public Render_Buffer
 	{
 	public:
-		struct ConstantBuffer
-		{
-			Matrix World, View, Proj;
-		} cb;
-
 		bool Load(string *Filename);
 		bool Load(string *Filename, UINT Flags, bool ConvertToLH);
 
@@ -96,12 +91,14 @@ namespace Engine
 			}
 		}
 
-		void Rotation(Vector3 rotaxis, float Angel);
-		void Scale(float Scale);
-		void Position(Vector3 Pos);
+		void SetWorld(Matrix World) { this->World = World; }
+		Matrix GetWorld() { return this->World; }
+
+		Matrix Rotation(Vector3 rotaxis, float Angel);
+		Matrix Scale(float Scale);
+		Matrix Position(Vector3 Pos);
 
 		~Models() {}
-
 	private:
 		HRESULT hr = S_OK;
 
@@ -128,6 +125,8 @@ namespace Engine
 		ID3D11DeviceContext *DeviceCon = nullptr;
 		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
+
+		Matrix World = XMMatrixIdentity();
 	};
 };
 #endif // !__MODELS_H__

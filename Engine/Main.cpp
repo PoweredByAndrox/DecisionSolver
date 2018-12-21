@@ -31,7 +31,7 @@ using namespace Engine;
 	#pragma comment(lib, "Effects11.lib")
 #endif
 
-Vector3 Eye = { 0.0f, 2.5f, 0.0f }, At = { 0.0f, 2.5f, 1.0f };
+Vector3 Eye = { 100.f, 2.5f, 100.f }, At = { 0.0f, 2.5f, 1.0f };
 
 auto file_system = make_unique<File_system>();
 vector<unique_ptr<Models>> Model;
@@ -160,12 +160,14 @@ void InitApp()
 	
 	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Disable/Enable Movement The Terrain"), 0, 0, 125, 22);
 
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	if (!Sound->IsInitSounSystem())
 		Sound->Init();
-
+	Sound->AddNewSound();
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 #if defined(Never)
 	if (!PhysX->IsPhysicsInit())
-		PhysX->Init();
+		PhysX->Init(terrain.get());
 #endif
 
 #ifdef Never_MainMenu
@@ -224,20 +226,20 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		break;
 	}
 	case BUTTON_3:
-		Sound->doPlay();
+		//Sound->doPlay();
 		break;
 	case BUTTON_4:
-		Sound->doPause();
+		//Sound->doPause();
 		break;
 	case BUTTON_5:
-		Sound->doStop();
+		//Sound->doStop();
 		break;
 	case BUTTON_6:
 		g_Camera->SetViewParams(Eye, At);
 		break;
 	case BUTTON_7:
-		PhysX->AddNewActor(Vector3(15.f, 15.f, 15.f), Vector3(20.5f, 20.5f, 20.5f));
-		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 20.5f, false));
+		PhysX->AddNewActor(Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z), Vector3(0.5f, 0.5f, 0.5f));
+		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
 		if (ui->getObjCheckBox()->size() > 0)
@@ -270,8 +272,6 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	if (!InitProgram)
 		InitApp();
 
-	Sound->AddNewSound();
-
 #ifdef Never_MainMenu
 	MM->setGameMode(GAME_RUNNING);
 #endif
@@ -300,10 +300,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
 #ifndef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("cyborg.obj"))));
+	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
-			*file_system->GetResPathW(&wstring(L"cyborg.obj"))).c_str(), L"", MB_OK);
+			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 #endif
 #ifdef NEVER_228
 	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj"))));//, aiProcess_Triangulate, false));
@@ -312,14 +312,12 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 			*file_system->GetResPathW(&wstring(L"SnowTerrain.obj"))).c_str(), L"", MB_OK);
 #endif
 
-	//gWorld = Matrix::Identity;
+	PhysX->AddNewActor(Vector3(100.f, 0.f, 100.f), Vector3(0.5f, 0.5f, 0.5f));
 	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
-	
+
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 	g_Camera->SetViewParams(Eye, At);
-
-	//gProjection = Matrix::CreatePerspective(pBackBufferSurfaceDesc->Width, (FLOAT)pBackBufferSurfaceDesc->Height, 0.1f, 1000.f);
 
 	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
 
@@ -442,7 +440,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	}
 #endif
 
-	Sound->Update();
+	// Sound->Update();
+
+	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
+	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 
 #ifdef Never_MainMenu // Need To Move In Thread
 	if (*MM->getGameMode() != GAME_RUNNING)
@@ -454,22 +455,20 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ID3D11DepthStencilView *pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 
-	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
-
+	auto PhysObj = PhysX->GetPhysDynamicObject();
 
 	for (int i = 0; i < m_shape.size(); i++)
 	{
-		auto Obj = PhysX->GetPhysDynamicObject();
-		if (!Obj.empty())
+		if (!PhysObj.empty())
 		{
 			vector<PxQuat> aq;
 			vector<Vector4> q;
 			vector<PxVec3> pos;
-			for (int i1 = 0; i1 < Obj.size(); i1++)
+			for (int i1 = 0; i1 < PhysObj.size(); i1++)
 			{
-				aq.push_back(Obj.at(i1)->getGlobalPose().q);
+				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
 				q.push_back(Vector4(aq.back().x, aq.back().y, aq.back().z, aq.back().w));
-				pos.push_back(Obj.at(i1)->getGlobalPose().p);
+				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
 				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
 					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix()//, 
@@ -480,6 +479,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	}
 
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+
 	if (ui->getObjCheckBox()->size() > 0)
 	{
 		auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
@@ -496,9 +496,9 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		}
 	}
 
-	V(ui->getHUD()->OnRender(fElapsedTime));
+	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
-#ifdef DEBUG
+#ifndef DEBUG
 	ID3D11Debug *debug = nullptr;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -516,23 +516,24 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
 	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH / 2, -3, false);
 
-	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysX->GetPhysDynamicObject().size());
+	auto ObjStatic = PhysX->GetPhysStaticObject();
+	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysObj.size() + ObjStatic.size());
 	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15, false);
 
-	auto StatAudio = Sound->getStaticsSound();
+	//auto StatAudio = Sound->getStaticsSound();
 
-	vector<size_t> SoundInformatio =
-	{
-		StatAudio->playingOneShots,
-		StatAudio->playingInstances,
-		StatAudio->allocatedInstances,
-		StatAudio->allocatedVoices,
-		StatAudio->allocatedVoices3d,
-		StatAudio->allocatedVoicesOneShot,
-		StatAudio->allocatedVoicesIdle
-	};
+	//vector<size_t> SoundInformatio =
+	//{
+	//	StatAudio->playingOneShots,
+	//	StatAudio->playingInstances,
+	//	StatAudio->allocatedInstances,
+	//	StatAudio->allocatedVoices,
+	//	StatAudio->allocatedVoices3d,
+	//	StatAudio->allocatedVoicesOneShot,
+	//	StatAudio->allocatedVoicesIdle
+	//};
 
-	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
+	//ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
 	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15, false);
 
 	//Pick->tick();
@@ -547,6 +548,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	buffers->RenderSimpleBuffer(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
+	V(ui->getHUD()->OnRender(fElapsedTime));
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -635,6 +637,7 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	return 0;
 }
 
+float Scale = 0.0f;
 void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
 	if(bKeyDown)
@@ -651,10 +654,20 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 				StopIT = false;
 				break;
 			}
+
+			// **********
+			Scale = 0.0f;
+
 			break;
 		case VK_F9:
 			m_shape.clear();
 			PhysX->ClearAllObj();
+			break;
+		case VK_F10:
+			Model.at(0)->SetWorld(Model.at(0)->Scale(Scale += Scale + 1.0f));
+			break;
+		case VK_F11:
+			Model.at(0)->SetWorld(Model.at(0)->Position(g_Camera->GetEyePt()));
 			break;
 		}
 #ifdef Never_MainMenu

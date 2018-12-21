@@ -28,7 +28,7 @@ namespace Engine
 		HRESULT CreateTexture(const wchar_t *TextrFName);
 
 		ID3D11Buffer *CreateVB(int ByteWidth, void *vertices);
-		ID3D11Buffer *CreateIB(int ByteWidthInds, ULONG *indices);
+		ID3D11Buffer *CreateIB(int ByteWidthInds, UINT *indices);
 		HRESULT CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
 
 		void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0);

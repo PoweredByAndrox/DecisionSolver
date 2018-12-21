@@ -19,7 +19,6 @@ void Engine::Terrain::Render(Matrix World, Matrix View, Matrix Proj)
 
 bool Engine::Terrain::Initialize(Frustum *frustum, const char *HMapFile, const wchar_t *TextureTerrain)
 {
-	Shader = make_unique<Shaders>();
 	QTerrain = make_unique<QuadTerrain>();
 	render = make_unique<Render_Buffer>();
 
@@ -86,16 +85,14 @@ bool Engine::Terrain::InitializeBuffers()
 	vertices = new Vertex[m_vertexCount];
 
 		// Create the index array.
-	auto indices = new UINT[m_indexCount];
-	vector<UINT> indices_render;
+	indices.resize(m_indexCount);
 
 		// Load the vertex array and index array with 3D terrain model data.
 	for (int i = 0; i < m_vertexCount; i++)
 	{
 		vertices[i].position = model[i].Pos;
 		vertices[i].texcoord = model[i].texcoord;
-		indices[i] = i;
-		indices_render.push_back(indices[i]);
+		indices[i] = (UINT)i;
 	}
 
 	vector<wstring> FileShaders;
@@ -110,9 +107,7 @@ bool Engine::Terrain::InitializeBuffers()
 	Version.push_back(string("ps_4_0"));
 
 	if (!render->isInit())
-		render->InitTerrain(sizeof(Vertex) * m_indexCount, vertices, indices_render, &FileShaders, &Functions, &Version);
-
-	SAFE_DELETE(indices);
+		 render->InitTerrain(sizeof(Vertex) * m_indexCount, vertices, indices, &FileShaders, &Functions, &Version);
 
 	return true;
 }
@@ -441,7 +436,6 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 	int numTriangles = 0, vertexCount = 0.f, index = 0.f, vertexIndex = 0.f;
 	float offsetX = 0.f, offsetZ = 0.f;
 	Vertex *vertices = nullptr;
-	ULONG *indices = nullptr;
 
 		// Store the node position and size.
 	node->texcoord.x = Pos.x;
@@ -502,7 +496,8 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 	vertices = new Vertex[vertexCount];
 
 		// Create the index array.
-	indices = new ULONG[vertexCount];
+	vector<UINT> indices;
+	indices.resize(vertexCount);
 
 	node->vertexArray.resize(vertexCount);
 
@@ -549,11 +544,10 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 
 		// Now create the vertex buffers.
 	node->vertexBuffer = terrain->getRenderObj()->CreateVB(int(sizeof(Vertex) * vertexCount), vertices);
-	node->indexBuffer = terrain->getRenderObj()->CreateIB(int(sizeof(ULONG) * vertexCount), indices);
+	node->indexBuffer = terrain->getRenderObj()->CreateIB(int(sizeof(UINT) * vertexCount), indices.data());
 
 		// Release the vertex and index arrays now that the data is stored in the buffers in the node.
 	SAFE_DELETE(vertices);
-	SAFE_DELETE(indices);
 }
 
 int Engine::QuadTerrain::CountTriangles(Vector2 Pos, float width)

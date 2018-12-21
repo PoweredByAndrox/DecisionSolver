@@ -46,21 +46,7 @@ bool Engine::Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
 void Engine::Models::Render(Matrix View, Matrix Proj)
 {
 	for (int i = 0; i < meshes.size(); i++)
-		meshes.at(i).Draw();
-
-	cb.View = View;
-	cb.Proj = Proj;
-
-	//Reset cube1World
-	//cb.World = XMMatrixIdentity();
-
-	//Define cube1's world space matrix
-//	Vector4 rotaxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-//	auto Rotation = XMMatrixRotationAxis(rotaxis, 5);
-//	auto Translation = Matrix::CreateTranslation(Pos);// XMMatrixTranslation(0.0f, 0.0f, 4.0f);
-
-	//Set cube1's world space using the transformations
-//	World = Translation * Rotation;
+		meshes.at(i).Draw(World, View, Proj);
 }
 
 Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
@@ -85,7 +71,7 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 
 
 		if (mesh->mTextureCoords[0])
-			vertex.texcoord = Vector2((float)mesh->mTextureCoords[0][i].x, (float)mesh->mTextureCoords[0][i].y);
+			vertex.texcoord = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 		else
 			vertex.texcoord = Vector2(0.f, 0.f);
 
@@ -207,19 +193,19 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	return texture;
 }
 
-void Engine::Models::Rotation(Vector3 rotaxis, float Angel)
+Matrix Engine::Models::Rotation(Vector3 rotaxis, float Angel)
 {
-	cb.World = Matrix::CreateFromAxisAngle(Vector3(rotaxis.x, rotaxis.y, rotaxis.z), Angel);
+	return Matrix::CreateFromAxisAngle(rotaxis, Angel);
 }
 
-void Engine::Models::Scale(float Scale)
+Matrix Engine::Models::Scale(float Scale)
 {
-	cb.World = cb.World.CreateScale(Scale);
+	return Matrix::CreateScale(Scale);
 }
 
-void Engine::Models::Position(Vector3 Pos)
+Matrix Engine::Models::Position(Vector3 Pos)
 {
-	cb.World = cb.World.CreateTranslation(Pos);
+	return Matrix::CreateTranslation(Pos);
 }
 
 /*
@@ -239,10 +225,9 @@ void Engine::Models::Position(float Z)
 }
 */
 
-void Engine::Mesh::Draw()
+void Engine::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 {
-	render->RenderModels(model->cb.World, model->cb.View, model->cb.Proj,
-		indices.size(), textures[0].texture, sizeof(VERTEX));
+	render->RenderModels(World, View, Proj, indices.size(), textures[0].texture, sizeof(VERTEX));
 }
 
 void Engine::Mesh::Close()

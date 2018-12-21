@@ -69,7 +69,7 @@ ID3D11Buffer *Engine::Render_Buffer::CreateVB(int ByteWidth, void *vertices)
 	return VB;
 }
 
-ID3D11Buffer *Engine::Render_Buffer::CreateIB(int ByteWidthInds, ULONG *indices)
+ID3D11Buffer *Engine::Render_Buffer::CreateIB(int ByteWidthInds, UINT *indices)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;
 	D3D11_SUBRESOURCE_DATA indexData;
@@ -283,7 +283,7 @@ void Engine::Render_Buffer::RenderTerrain(Matrix World, Matrix View, Matrix Proj
 void Engine::Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, UINT stride)
 {
 	UINT offset = 0;
-	//D3D11_MAPPED_SUBRESOURCE mappedResource;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 	GetD3DDeviceCon();
 
@@ -294,16 +294,16 @@ void Engine::Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj,
 
 	DeviceCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	//ThrowIfFailed(DeviceCon->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
+	ThrowIfFailed(DeviceCon->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
 
-	//auto dataPtr = (ConstantBuffer *)mappedResource.pData;
+	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
 
-	//dataPtr->mWorld = XMMatrixMultiply(World, View);
-	//dataPtr->mView = XMMatrixTranspose(View);
-	//dataPtr->mProj = XMMatrixTranspose(Proj);
+	dataPtr->mWorld = XMMatrixTranspose(World);
+	dataPtr->mView = XMMatrixTranspose(View);
+	dataPtr->mProj = XMMatrixTranspose(Proj);
 
-	//DeviceCon->Unmap(m_pConstBuffer, 0);
-	//DeviceCon->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
+	DeviceCon->Unmap(m_pConstBuffer, 0);
+	DeviceCon->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
 
 	DeviceCon->VSSetShader(m_vertexShader, 0, 0);
 

@@ -8,6 +8,7 @@
 
 #include <foundation/PxSimpleTypes.h>
 #include <foundation/PxVec3.h>
+#include <foundation/PxFoundation.h>
 
 #include <extensions/PxD6Joint.h>
 #include <extensions/PxSphericalJoint.h>
@@ -21,17 +22,10 @@
 
 #include <PxSimulationEventCallback.h>
 
-
-#include <foundation/PxFoundation.h>
-
 #include "DirectXHelpers.h"
 #include "GeometricPrimitive.h"
 #include "Effects.h"
-#include "Models.h"
-
-//#include "DirectXMath.h"
-using namespace SimpleMath;
-
+#include "Terrain.h"
 
 #if defined(DEBUG) && !defined(_M_X64)
 #pragma comment(lib, "PhysX3DEBUG_x86.lib")
@@ -83,14 +77,12 @@ namespace Engine
 {
 #define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
 
-	using namespace std;
 	using namespace physx;
-	using namespace Engine;
 
-	class Physics : public Models
+	class Physics: public Terrain
 	{
 	public:
-		HRESULT Init();
+		HRESULT Init(Terrain *terrain);
 
 		void Simulation(bool StopIT, float Timestep);
 
@@ -109,8 +101,8 @@ namespace Engine
 			sphericalJoint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
 		}
 
-		vector<PxRigidDynamic*> GetPhysDynamicObject() { return DynamicObjects; }
-		vector<PxRigidStatic*> GetPhysStaticObject() { return StaticObjects; }
+		vector<PxRigidDynamic *> GetPhysDynamicObject() { return DynamicObjects; }
+		vector<PxRigidStatic *> GetPhysStaticObject() { return StaticObjects; }
 		//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
 		void AddNewActor(Vector3 Pos, Vector3 Geom);
@@ -122,9 +114,9 @@ namespace Engine
 		bool IsPhysicsInit() { return IsInitPhysX; }
 		void _createConvexMesh();
 
-		auto *getTriMesh() { return &triangleMesh; }
-		auto getScene() { return gScene; }
-		auto getPhysics() { return gPhysics; }
+		auto getTriMesh() { if (triangleMesh) return triangleMesh; }
+		auto getScene() { if (gScene) return gScene; }
+		auto getPhysics() { if (gPhysics) return gPhysics; }
 
 		void ClearAllObj()
 		{
@@ -137,6 +129,7 @@ namespace Engine
 						DynamicObjects.clear();
 				}
 		}
+
 		void Release()
 		{
 			SAFE_RELEASE(Device);
@@ -144,12 +137,12 @@ namespace Engine
 			{
 				DeviceCon->ClearState();
 				DeviceCon->Flush();
+				SAFE_RELEASE(DeviceCon);
 			}
 		}
 
 		Physics() {}
 		~Physics() {}
-
 	private:
 		// ***************
 		PxDefaultErrorCallback gDefaultErrorCallback;
@@ -163,13 +156,14 @@ namespace Engine
 		PxRigidStatic *gPlane = nullptr;
 		PxRigidDynamic *gBox = nullptr;
 		PxCooking *gCooking = nullptr;
+		PxPvd *gPvd = nullptr;
 
 		// ***************
 		HRESULT hr = S_OK;
 
 		// ***************
-		vector<PxRigidDynamic*> DynamicObjects;
-		vector<PxRigidStatic*> StaticObjects;
+		vector<PxRigidDynamic *> DynamicObjects;
+		vector<PxRigidStatic *> StaticObjects;
 
 		// ***************
 		PxRigidDynamic *meshActor = nullptr;
@@ -184,6 +178,8 @@ namespace Engine
 		// ***************
 			// Initialized bool variables
 		bool IsInitPhysX = false;
+
+		unique_ptr<Terrain> terrain;
 	};
 };
 #endif // !__PHYSICS_H__

@@ -49,7 +49,6 @@ namespace Engine
 			}
 
 			bool GetHeightAtPosition(float positionX, float positionZ, float &height);
-
 		private:
 			const int MAX_TRIANGLES = 10000;
 			int m_triangleCount = 0;
@@ -130,8 +129,11 @@ namespace Engine
 			else 
 				false;
 		}
+
 		auto getRenderObj() { if (render.operator bool()) return render.get(); }
-		auto getShaderObj() { if (Shader.operator bool()) return Shader.get(); }
+
+		auto getVertices() { if (vertices) return vertices; }
+		auto getIndices() { if (indices.size() > 0) return indices; }
 
 	private:
 		HRESULT result = S_OK;
@@ -145,10 +147,10 @@ namespace Engine
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 		ID3D11Device *Device = nullptr;
 		ID3D11DeviceContext *DeviceCon = nullptr;
+
 		ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_matrixBuffer = nullptr;
 
 		int m_terrainWidth = 257, m_terrainHeight = 257, m_vertexCount = 0, m_indexCount = 0;
-
 		float m_heightScale = 6.f;
 
 		ID3D10Blob *vertexShaderBuffer = nullptr, *pixelShaderBuffer = nullptr;
@@ -159,7 +161,6 @@ namespace Engine
 		ID3D11SamplerState *m_sampleState = nullptr;
 		ID3D11ShaderResourceView *m_texture = nullptr;
 
-		unique_ptr<Shaders> Shader;
 		unique_ptr<QuadTerrain> QTerrain;
 		unique_ptr<Render_Buffer> render;
 
@@ -169,6 +170,8 @@ namespace Engine
 		void SetTerrainCoordinates();
 		bool BuildTerrainModel();
 		void ShutdownTerrainModel();
+
+		vector<UINT> indices;
 	};
 };
 #endif // !__TERRAIN__H_
