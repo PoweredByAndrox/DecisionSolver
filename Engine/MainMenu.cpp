@@ -11,20 +11,21 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 		DebugTrace("MainMenu: Init failed. Line: 6\n");
 		throw exception("UI has not been initialized!!!");
 		InitMainMenu = false;
+		return E_FAIL;
 	}
 	if (!sound->IsInitSounSystem())
 	{
 		DebugTrace("MainMenu: Init failed. Line: 12\n");
 		throw exception("Audio has not been initialized!!!");
 		InitMainMenu = false;
+		return E_FAIL;
 	}
 	this->ui = unique_ptr<UI>(ui);
 	Sound = unique_ptr<Audio>(sound);
 	MainMenuDlg.Init(ui->getDialogResManager());
 	AudioMenuDlg.Init(ui->getDialogResManager());
 	VideoMenuDlg.Init(ui->getDialogResManager());
-	int iY = ((300 - 30 * 6) / 2),
-		i = ui->getAllComponentsCount();
+	int iY = ((300 - 30 * 6) / 2), i = ui->getAllComponentsCount();
 	vector<int> ID =
 	{
 		i += 1,

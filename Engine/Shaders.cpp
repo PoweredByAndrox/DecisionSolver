@@ -18,8 +18,8 @@ HRESULT Engine::Shaders::CompileShaderFromFile(wstring *szFileName, string *szEn
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
-#ifdef DEBUG
 		{
+#ifdef DEBUG
 			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
 			throw exception(strcat((char *)"Shaders: line 17 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
@@ -67,8 +67,8 @@ vector<ID3DBlob *> Engine::Shaders::CreateShaderFromFile(vector<wstring> szFileN
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
-#ifdef DEBUG
 		{
+#ifdef DEBUG
 			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
 			throw exception(strcat((char *)"Shaders: line 67 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)
@@ -87,8 +87,8 @@ vector<ID3DBlob *> Engine::Shaders::CreateShaderFromFile(vector<wstring> szFileN
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
-#ifdef DEBUG
 		{
+#ifdef DEBUG
 			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
 			throw exception(strcat((char *)"Shaders: line 88 return: ", (char *)pErrorBlob->GetBufferPointer()));
 #elif !defined(DEBUG)

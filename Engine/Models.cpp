@@ -9,7 +9,7 @@ bool Engine::Models::Load(string *Filename)
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
 		DebugTrace(string(string("Models: Error. Scene returned nullptr with text:\n") 
-				+ string(importer->GetErrorString())).c_str());
+			+ string(importer->GetErrorString())).c_str());
 		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
@@ -51,15 +51,15 @@ void Engine::Models::Render(Matrix View, Matrix Proj)
 
 Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 {
-	vector<VERTEX> vertices;
-	vector<UINT> indices;
+	vector<VERTEX> verticesCache;
+	vector<UINT> indicesCache;
 	vector<Texture> textures;
 
 	if (mesh->mMaterialIndex >= 0)
 	{
-		aiMaterial* mat = Scene->mMaterials[mesh->mMaterialIndex];
+		aiMaterial *mat = Scene->mMaterials[mesh->mMaterialIndex];
 
-		if (Textype.empty()) 
+		if (Textype.empty())
 			Textype = determineTextureType(Scene, mat);
 	}
 
@@ -69,19 +69,21 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 
 		vertex.Position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
-
 		if (mesh->mTextureCoords[0])
 			vertex.texcoord = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 		else
 			vertex.texcoord = Vector2(0.f, 0.f);
 
 		vertices.push_back(vertex);
+		verticesCache.push_back(vertex);
 	}
 
 	for (int i = 0; i < mesh->mNumFaces; i++)
-		 for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-			  indices.push_back(mesh->mFaces[i].mIndices[j]);
-
+		for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
+		{
+			indices.push_back(mesh->mFaces[i].mIndices[j]);
+			indicesCache.push_back(mesh->mFaces[i].mIndices[j]);
+		}
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial *material = Scene->mMaterials[mesh->mMaterialIndex];
@@ -104,7 +106,7 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 				*/
 	}
 
-	return Mesh(vertices, indices, textures, this);
+	return Mesh(verticesCache, indicesCache, textures, this);
 }
 
 vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
@@ -193,19 +195,19 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	return texture;
 }
 
-Matrix Engine::Models::Rotation(Vector3 rotaxis, float Angel)
+void Engine::Models::Rotation(Vector3 rotaxis, float Angel)
 {
-	return Matrix::CreateFromAxisAngle(rotaxis, Angel);
+	SetWorld(GetWorld() * Matrix::CreateFromAxisAngle(rotaxis, Angel));
 }
 
-Matrix Engine::Models::Scale(float Scale)
+void Engine::Models::Scale(Vector3 Scale)
 {
-	return Matrix::CreateScale(Scale);
+	SetWorld(GetWorld() * XMMatrixScalingFromVector(Scale));
 }
 
-Matrix Engine::Models::Position(Vector3 Pos)
+void Engine::Models::Position(Vector3 Pos)
 {
-	return Matrix::CreateTranslation(Pos);
+	SetWorld(GetWorld() * Matrix::CreateTranslation(Pos));
 }
 
 /*

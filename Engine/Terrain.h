@@ -76,11 +76,6 @@ namespace Engine
 	class Terrain: public QuadTerrain, public Render_Buffer
 	{
 	private:
-		struct Vertex
-		{
-			Vector3 position = { 0.f, 0.f, 0.f };
-			Vector2 texcoord = { 0.f, 0.f };
-		} *vertices;
 		struct MatrixBuffer
 		{
 			Matrix world;
@@ -101,6 +96,12 @@ namespace Engine
 	public:
 		Terrain() {}
 		~Terrain() {}
+
+		struct Vertex
+		{
+			Vector3 position = { 0.f, 0.f, 0.f };
+			Vector2 texcoord = { 0.f, 0.f };
+		} *vertices;
 
 		void Shutdown();
 		void Render(Matrix World, Matrix View, Matrix Proj);

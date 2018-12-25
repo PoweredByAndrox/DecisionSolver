@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Physics.h"
 
-HRESULT Engine::Physics::Init(Terrain *terrain)
+HRESULT Engine::Physics::Init(Models *Model)
 {
 	try
 	{
-		this->terrain.reset(terrain);
+		this->Model.reset(Model);
 
 		gFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		if (gFoundation == nullptr)
@@ -16,11 +16,11 @@ HRESULT Engine::Physics::Init(Terrain *terrain)
 			IsInitPhysX = false;
 		}
 
-		gPvd = PxCreatePvd(*gFoundation);
-		PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-		gPvd->connect(*transport, PxPvdInstrumentationFlag::ePROFILE);
+		//gPvd = PxCreatePvd(*gFoundation);
+		//PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
+		//gPvd->connect(*transport, PxPvdInstrumentationFlag::ePROFILE);
 
-		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
+		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
 		if (gPhysics == nullptr)
 		{
 			DebugTrace("Physics: gPhysics failed.\n");
@@ -110,38 +110,39 @@ void Engine::Physics::Simulation(bool StopIT, float Timestep)
 	}
 }
 
-void Engine::Physics::_createConvexMesh()
+void Engine::Physics::_createTriMesh()
 {
-	auto ObjVertx = terrain->getVertices();
-	auto ObjIndx = terrain->getIndices();
+	auto ObjVertx = Model->getVertices();
+	auto ObjIndx = Model->getIndices();
 
-	PxU32 NumVerticies = terrain->GetVertexCount();
-	PxU32 NumTriangles = terrain->GetIndexCount() / 3;
+	PxU32 NumVerticies = ObjVertx.size();
+	PxU32 NumTriangles = ObjIndx.size() / 3;
 
-	vector<PxVec3> verts;
-	verts.resize(NumVerticies / 3);
+	vector<PxVec3> verts; verts.resize(NumVerticies / 3);
 
+	/*
 	int ii = -1;
 	for (int i = 0; i < NumVerticies / 3; i++)
 	{
 		++ii;
-		verts[i].x = ObjVertx[ii].position.x;
-		verts[i].y = ObjVertx[++ii].position.y;
-		verts[i].z = ObjVertx[++ii].position.z;
+		verts[i].x = ObjVertx[ii].Position.x;
+		verts[i].y = ObjVertx[++ii].Position.y;
+		verts[i].z = ObjVertx[++ii].Position.z;
 	}
 
 	PxU32 *tris = new PxU32[NumTriangles];
 	for (int i = NumTriangles - 1; i >= 0; i--)
-		tris[i] = ObjIndx[i];
+		tris[i] = ObjIndx.at(i);
+	*/
 
 	PxTriangleMeshDesc TriMeshDesc;
-	TriMeshDesc.points.count = NumVerticies;
+	TriMeshDesc.points.count = ObjVertx.size();
 	TriMeshDesc.points.stride = sizeof(PxVec3);
-	TriMeshDesc.points.data = (PxVec3 *)ObjVertx;
+	TriMeshDesc.points.data = ObjVertx.data();
 
-	TriMeshDesc.triangles.count = NumTriangles;
+	TriMeshDesc.triangles.count = ObjIndx.size();
 	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
-	TriMeshDesc.triangles.data = (PxU32 *)ObjIndx.data();
+	TriMeshDesc.triangles.data = ObjIndx.data();
 	if (!TriMeshDesc.isValid())
 	{
 		DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
@@ -174,12 +175,12 @@ void Engine::Physics::_createConvexMesh()
 
 void Engine::Physics::Destroy()
 {
-	if (gPvd)
-	{
-		PxPvdTransport *transport = gPvd->getTransport();
-		gPvd->release();
-		transport->release();
-	}
+	//if (gPvd)
+	//{
+	//	PxPvdTransport *transport = gPvd->getTransport();
+	//	gPvd->release();
+	//	transport->release();
+	//}
 	_SAFE_RELEASE(gCooking);
 	_SAFE_RELEASE(gScene);
 	_SAFE_RELEASE(gPhysics);
@@ -199,7 +200,7 @@ void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom)
 
 	if (!CM)
 	{
-	//	_createConvexMesh();
+		_createTriMesh();
 		CM = true;
 	}
 }

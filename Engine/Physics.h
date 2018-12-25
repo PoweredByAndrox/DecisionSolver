@@ -25,7 +25,7 @@
 #include "DirectXHelpers.h"
 #include "GeometricPrimitive.h"
 #include "Effects.h"
-#include "Terrain.h"
+#include "Models.h"
 
 #if defined(DEBUG) && !defined(_M_X64)
 #pragma comment(lib, "PhysX3DEBUG_x86.lib")
@@ -54,7 +54,7 @@
 #pragma comment(lib, "PhysX3Common_x86.lib")
 #pragma comment(lib, "PhysX3Extensions.lib")
 #pragma comment(lib, "PxFoundation_x86.lib")
-#pragma comment(lib, "PxPvdSDK_x86.lib")
+//#pragma comment(lib, "PxPvdSDK_x86.lib")
 #pragma comment(lib, "SceneQuery.lib")
 #pragma comment(lib, "SimulationController.lib")
 #pragma comment(lib, "PhysX3CharacterKinematic_x86.lib")
@@ -79,10 +79,10 @@ namespace Engine
 
 	using namespace physx;
 
-	class Physics: public Terrain
+	class Physics: public Models
 	{
 	public:
-		HRESULT Init(Terrain *terrain);
+		HRESULT Init(Models *Model);
 
 		void Simulation(bool StopIT, float Timestep);
 
@@ -112,7 +112,7 @@ namespace Engine
 		void Destroy();
 
 		bool IsPhysicsInit() { return IsInitPhysX; }
-		void _createConvexMesh();
+		void _createTriMesh();
 
 		auto getTriMesh() { if (triangleMesh) return triangleMesh; }
 		auto getScene() { if (gScene) return gScene; }
@@ -156,7 +156,7 @@ namespace Engine
 		PxRigidStatic *gPlane = nullptr;
 		PxRigidDynamic *gBox = nullptr;
 		PxCooking *gCooking = nullptr;
-		PxPvd *gPvd = nullptr;
+		//PxPvd *gPvd = nullptr;
 
 		// ***************
 		HRESULT hr = S_OK;
@@ -179,7 +179,7 @@ namespace Engine
 			// Initialized bool variables
 		bool IsInitPhysX = false;
 
-		unique_ptr<Terrain> terrain;
+		unique_ptr<Models> Model;
 	};
 };
 #endif // !__PHYSICS_H__

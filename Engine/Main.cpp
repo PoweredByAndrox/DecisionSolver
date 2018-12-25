@@ -94,7 +94,6 @@ XMVECTORF32 _Color[9] =
 //**************
 	// Test
 bool StopIT = false, InitProgram = false;
-
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
 
 void InitApp()
@@ -104,7 +103,10 @@ void InitApp()
 	ui->getHUD()->SetCallback(OnGUIEvent);
 
 	vector<int> CountOfButtons =
-	{ 1, 2, 3, 4, 5, 6, 7 };
+	{
+		1, 2, 3,
+		4, 5, 6, 7 
+	};
 	vector<wstring> NameOfButtons = 
 	{
 		L"Change Buffer Color",
@@ -138,7 +140,9 @@ void InitApp()
 		VK_F8
 	};
 	vector<int> CountOfStatics =
-	{ 8, 9, 10, 11 };
+	{
+		8, 9, 10, 11
+	};
 	vector<wstring> NameOfStatics =
 	{
 		L"SomeText#1",
@@ -165,10 +169,6 @@ void InitApp()
 		Sound->Init();
 	Sound->AddNewSound();
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
-#if defined(Never)
-	if (!PhysX->IsPhysicsInit())
-		PhysX->Init(terrain.get());
-#endif
 
 #ifdef Never_MainMenu
 	if (!MM->IsInitMainMenu())
@@ -226,13 +226,19 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		break;
 	}
 	case BUTTON_3:
-		//Sound->doPlay();
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		Sound->doPlay();
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		break;
 	case BUTTON_4:
-		//Sound->doPause();
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		Sound->doPause();
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		break;
 	case BUTTON_5:
-		//Sound->doStop();
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		Sound->doStop();
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		break;
 	case BUTTON_6:
 		g_Camera->SetViewParams(Eye, At);
@@ -242,7 +248,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
-		if (ui->getObjCheckBox()->size() > 0)
+		if (!ui->getObjCheckBox()->empty())
 		{
 			auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
 			if (!ObjCheck)
@@ -300,20 +306,28 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
 #ifndef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("nanosuit.obj"))));
+	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
-			*file_system->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
-#endif
-#ifdef NEVER_228
-	Model.push_back(make_unique<Models>(file_system->GetResPathA(&string("SnowTerrain.obj"))));//, aiProcess_Triangulate, false));
-	if (Model.empty())
-		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
-			*file_system->GetResPathW(&wstring(L"SnowTerrain.obj"))).c_str(), L"", MB_OK);
+			*buffers->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
+
+	Model.at(0)->Position(Vector3(100.f, 0.f, 100.f));
 #endif
 
-	PhysX->AddNewActor(Vector3(100.f, 0.f, 100.f), Vector3(0.5f, 0.5f, 0.5f));
-	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
+#ifndef NEVER_228
+	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("planet.obj"))));//, aiProcess_Triangulate, false));
+	if (Model.empty())
+		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
+			*buffers->GetResPathW(&wstring(L"planet.obj"))).c_str(), L"", MB_OK);
+
+	//Model.at(1)->Scale(Vector3(2.f, 2.f, 2.f));
+	//Model.at(1)->Position(Vector3(50.f, 50.f, 100.f));
+#endif
+
+#if defined(Never)
+	if (!PhysX->IsPhysicsInit())
+		PhysX->Init(Model[1].get());
+#endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
@@ -324,6 +338,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	terrain->Initialize(frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
 		file_system->GetResPathW(&wstring(L"686.jpg"))->c_str());
 
+	PhysX->AddNewActor(Vector3(100.f, 0.f, 100.f), Vector3(0.5f, 0.5f, 0.5f));
+	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
+
 	return S_OK;
 }
 
@@ -332,7 +349,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 {
 	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
-	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
+	float fAspectRatio = pBackBufferSurfaceDesc->Width / (float)pBackBufferSurfaceDesc->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
@@ -343,7 +360,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, false);
 	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, false);
 
-	if (ui->getObjCheckBox()->size() > 0)
+	if (!ui->getObjCheckBox()->empty())
 		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox()->size() - 1, X - 150, Y += 25, false);
 
 	return S_OK;
@@ -440,7 +457,9 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	}
 #endif
 
-	// Sound->Update();
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+	 Sound->Update();
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
 	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
@@ -480,20 +499,18 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
-	if (ui->getObjCheckBox()->size() > 0)
+	if (!ui->getObjCheckBox()->empty())
 	{
 		auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
-		if (!ObjCheck)
-			return;
+		if (ObjCheck)
+			if (ObjCheck->GetChecked())
+			{
+				auto position = g_Camera->GetEyePt();
+				float height = 2.0f;
 
-		if (ObjCheck->GetChecked())
-		{
-			auto position = g_Camera->GetEyePt();
-			float height = 2.0f;
-
-			if (terrain->getQTerrain(position.x, position.z, height))
-				g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
-		}
+				if (terrain->getQTerrain(position.x, position.z, height))
+					g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
+			}
 	}
 
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
@@ -520,20 +537,22 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysObj.size() + ObjStatic.size());
 	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15, false);
 
-	//auto StatAudio = Sound->getStaticsSound();
+#ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+	auto StatAudio = Sound->getStaticsSound();
+	vector<size_t> SoundInformatio =
+	{
+		StatAudio->playingOneShots,
+		StatAudio->playingInstances,
+		StatAudio->allocatedInstances,
+		StatAudio->allocatedVoices,
+		StatAudio->allocatedVoices3d,
+		StatAudio->allocatedVoicesOneShot,
+		StatAudio->allocatedVoicesIdle
+	};
 
-	//vector<size_t> SoundInformatio =
-	//{
-	//	StatAudio->playingOneShots,
-	//	StatAudio->playingInstances,
-	//	StatAudio->allocatedInstances,
-	//	StatAudio->allocatedVoices,
-	//	StatAudio->allocatedVoices3d,
-	//	StatAudio->allocatedVoicesOneShot,
-	//	StatAudio->allocatedVoicesIdle
-	//};
+	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
+#endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
-	//ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
 	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15, false);
 
 	//Pick->tick();
@@ -664,10 +683,11 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			PhysX->ClearAllObj();
 			break;
 		case VK_F10:
-			Model.at(0)->SetWorld(Model.at(0)->Scale(Scale += Scale + 1.0f));
+			Model.at(1)->Scale(Vector3(Scale = Scale + 1.0f, Scale = Scale + 1.0f, Scale = Scale + 1.0f));
 			break;
 		case VK_F11:
-			Model.at(0)->SetWorld(Model.at(0)->Position(g_Camera->GetEyePt()));
+			Model.at(0)->Position(Vector3(100.f, 0.f, 100.f));
+			Model.at(1)->Position(Vector3(50.f, 50.f, 100.f));
 			break;
 		}
 #ifdef Never_MainMenu
@@ -702,7 +722,7 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 	int xPos, int yPos, void* pUserContext)
 {
 	g_Camera->SetEnablePositionMovement(true);
-
+	/*
 	if (bRightButtonDown)
 	{
 		PxRaycastBuffer hit;
@@ -722,6 +742,7 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 			PhysX->AddTorque(PosObjPhys.at(rand() % PosObjPhys.size()), -hit.block.position, PxForceMode::Enum::eACCELERATION);
 		Pick->letGo();
 	}
+	*/
 //	Pick->moveCursor(DXUTGetWindowWidth() / 2, DXUTGetWindowHeight() / 2);
 //	Pick->lazyPick();
 	

@@ -94,9 +94,12 @@ namespace Engine
 		void SetWorld(Matrix World) { this->World = World; }
 		Matrix GetWorld() { return this->World; }
 
-		Matrix Rotation(Vector3 rotaxis, float Angel);
-		Matrix Scale(float Scale);
-		Matrix Position(Vector3 Pos);
+		void Rotation(Vector3 rotaxis, float Angel);
+		void Scale(Vector3 Scale);
+		void Position(Vector3 Pos);
+
+		auto getIndices() { if (!indices.empty()) return indices; }
+		auto getVertices() { if (!vertices.empty()) return vertices; }
 
 		~Models() {}
 	private:
@@ -111,6 +114,8 @@ namespace Engine
 		aiMesh *mesh = nullptr;
 
 		vector<Mesh> meshes;
+		vector<VERTEX> vertices;
+		vector<UINT> indices;
 
 		void processNode(aiNode *node, const aiScene *Scene);
 		Mesh processMesh(aiMesh *mesh, const aiScene *Scene);
