@@ -41,9 +41,6 @@ namespace Engine
 			this->indices = indices;
 			this->textures = textures;
 
-			if (!this->model.operator bool())
-				this->model.reset(model);
-
 			this->setupMesh();
 		}
 
@@ -61,8 +58,7 @@ namespace Engine
 
 		void setupMesh();
 
-		unique_ptr<Render_Buffer> render = make_unique<Render_Buffer>();
-		unique_ptr<Models> model;
+		Render_Buffer *render = new Render_Buffer;
 	};
 	class Models: public Mesh, public Render_Buffer
 	{
@@ -101,6 +97,8 @@ namespace Engine
 		auto getIndices() { if (!indices.empty()) return indices; }
 		auto getVertices() { if (!vertices.empty()) return vertices; }
 
+		auto getMeshes() { if (!meshes.empty()) return meshes; }
+
 		~Models() {}
 	private:
 		HRESULT hr = S_OK;
@@ -132,6 +130,8 @@ namespace Engine
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 
 		Matrix World = XMMatrixIdentity();
+
+		unique_ptr<Mesh> model = make_unique<Mesh>();
 	};
 };
 #endif // !__MODELS_H__

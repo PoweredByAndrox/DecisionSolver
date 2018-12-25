@@ -82,7 +82,7 @@ namespace Engine
 	class Physics: public Models
 	{
 	public:
-		HRESULT Init(Models *Model);
+		HRESULT Init();
 
 		void Simulation(bool StopIT, float Timestep);
 
@@ -112,7 +112,7 @@ namespace Engine
 		void Destroy();
 
 		bool IsPhysicsInit() { return IsInitPhysX; }
-		void _createTriMesh();
+		void _createTriMesh(Models *Model);
 
 		auto getTriMesh() { if (triangleMesh) return triangleMesh; }
 		auto getScene() { if (gScene) return gScene; }
@@ -178,8 +178,6 @@ namespace Engine
 		// ***************
 			// Initialized bool variables
 		bool IsInitPhysX = false;
-
-		unique_ptr<Models> Model;
 	};
 };
 #endif // !__PHYSICS_H__

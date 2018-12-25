@@ -87,23 +87,23 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 	if (mesh->mMaterialIndex >= 0)
 	{
 		aiMaterial *material = Scene->mMaterials[mesh->mMaterialIndex];
-		
+
 		vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", Scene);
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
-					///It doesn't work!
-				/*vector<Texture> specularMaps = loadMaterialTextures(material,
-					aiTextureType_SPECULAR, "texture_specular", Scene);
-				textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+		///It doesn't work!
+	/*vector<Texture> specularMaps = loadMaterialTextures(material,
+		aiTextureType_SPECULAR, "texture_specular", Scene);
+	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-				vector<Texture> normalMaps = loadMaterialTextures(material,
-					aiTextureType_HEIGHT, "texture_normal", Scene);
-				textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+	vector<Texture> normalMaps = loadMaterialTextures(material,
+		aiTextureType_HEIGHT, "texture_normal", Scene);
+	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-				vector<Texture> heightMaps = loadMaterialTextures(material,
-					aiTextureType_AMBIENT, "texture_height", Scene);
-				textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-				*/
+	vector<Texture> heightMaps = loadMaterialTextures(material,
+		aiTextureType_AMBIENT, "texture_height", Scene);
+	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+	*/
 	}
 
 	return Mesh(verticesCache, indicesCache, textures, this);
@@ -141,7 +141,7 @@ vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *m
 			}
 			texture.type = typeName;
 			texture.path = GetResPathA(&string(str.C_Str()))->c_str();
-			
+
 			textures.push_back(texture);
 
 			this->Textures_loaded.push_back(texture);
@@ -150,13 +150,13 @@ vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *m
 	return textures;
 }
 
-void Engine::Models::processNode(aiNode *node, const aiScene *scene)
+void Engine::Models::processNode(aiNode *node, const aiScene *Scene)
 {
 	for (int i = 0; i < node->mNumMeshes; i++)
-		meshes.push_back(this->processMesh(scene->mMeshes[node->mMeshes[i]], scene));
+		meshes.push_back(this->processMesh(Scene->mMeshes[node->mMeshes[i]], Scene));
 
 	for (int i = 0; i < node->mNumChildren; i++)
-		processNode(node->mChildren[i], scene);
+		processNode(node->mChildren[i], Scene);
 }
 
 string Engine::Models::determineTextureType(const aiScene *Scene, aiMaterial *mat)
@@ -164,7 +164,7 @@ string Engine::Models::determineTextureType(const aiScene *Scene, aiMaterial *ma
 	aiString textypeStr;
 	mat->GetTexture(aiTextureType_DIFFUSE, 0, &textypeStr);
 	string textypeteststr = textypeStr.C_Str();
-	if (textypeteststr == "*0" || textypeteststr == "*1" || textypeteststr == "*2" 
+	if (textypeteststr == "*0" || textypeteststr == "*1" || textypeteststr == "*2"
 		|| textypeteststr == "*3" || textypeteststr == "*4" || textypeteststr == "*5")
 	{
 		if (Scene->mTextures[0]->mHeight == 0)
@@ -244,13 +244,16 @@ void Engine::Mesh::Close()
 
 	for (int i = 0; i < textures.size(); i++)
 		 textures.at(i).texture->Release();
+
+	if (render)
+		SAFE_DELETE(render);
 }
 
 void Engine::Mesh::setupMesh()
 {
 	vector<wstring> FileShaders;
-	FileShaders.push_back(*model->getFS()->GetResPathW(&wstring(L"VertexShader.hlsl")));
-	FileShaders.push_back(*model->getFS()->GetResPathW(&wstring(L"PixelShader.hlsl")));
+	FileShaders.push_back(*render->GetResPathW(&wstring(L"VertexShader.hlsl")));
+	FileShaders.push_back(*render->GetResPathW(&wstring(L"PixelShader.hlsl")));
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("main"));

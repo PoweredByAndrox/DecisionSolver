@@ -1,0 +1,8 @@
+newmtl Dflt
+Ka 0 0 0
+Ns 8.16617
+Ks 1 1 1
+Kd 0.571734 0.571734 0.571734
+map_Kd vue_ready_shast0.jpg
+map_D vue_ready_shast1.jpg
+map_Bump vue_ready_shast2.jpg

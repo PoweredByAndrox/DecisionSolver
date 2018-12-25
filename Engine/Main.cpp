@@ -305,13 +305,20 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	if (!buffers->isInit())
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
+#if defined(Never)
+	if (!PhysX->IsPhysicsInit())
+		PhysX->Init();
+#endif
+
 #ifndef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
 			*buffers->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 
-	Model.at(0)->Position(Vector3(100.f, 0.f, 100.f));
+	PhysX->_createTriMesh(Model.back().get());
+
+	//Model.back()->Position(Vector3(100.f, 0.f, 100.f));
 #endif
 
 #ifndef NEVER_228
@@ -320,13 +327,23 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*buffers->GetResPathW(&wstring(L"planet.obj"))).c_str(), L"", MB_OK);
 
-	//Model.at(1)->Scale(Vector3(2.f, 2.f, 2.f));
-	//Model.at(1)->Position(Vector3(50.f, 50.f, 100.f));
+	PhysX->_createTriMesh(Model.back().get());
+
+	//Model.back()->Scale(Vector3(2.f, 2.f, 2.f));
+	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
 #endif
 
-#if defined(Never)
-	if (!PhysX->IsPhysicsInit())
-		PhysX->Init(Model[1].get());
+#ifdef NEVER_228
+	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
+	if (Model.empty())
+		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
+			*buffers->GetResPathW(&wstring(L"vue_ready_shasta.obj"))).c_str(), L"", MB_OK);
+
+	//Model.back()->Scale(Vector3(0.01, 0.01, 0.01));
+
+	PhysX->_createTriMesh(Model.back().get());
+
+	//Model.back()->Position(Vector3(0.f, -35.f, 0.f));
 #endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
@@ -497,7 +514,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 		}
 	}
 
-	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	//terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 
 	if (!ui->getObjCheckBox()->empty())
 	{
@@ -681,13 +698,6 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 		case VK_F9:
 			m_shape.clear();
 			PhysX->ClearAllObj();
-			break;
-		case VK_F10:
-			Model.at(1)->Scale(Vector3(Scale = Scale + 1.0f, Scale = Scale + 1.0f, Scale = Scale + 1.0f));
-			break;
-		case VK_F11:
-			Model.at(0)->Position(Vector3(100.f, 0.f, 100.f));
-			Model.at(1)->Position(Vector3(50.f, 50.f, 100.f));
 			break;
 		}
 #ifdef Never_MainMenu
