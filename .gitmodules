@@ -16,3 +16,6 @@
 [submodule "submodules/DXTK"]
 	path = submodules/DXTK
 	url = https://github.com/Microsoft/DirectXTK
+[submodule "submodules/tinyXML2"]
+	path = submodules/tinyXML2
+	url = https://github.com/leethomason/tinyxml2.git
