@@ -65,13 +65,6 @@ HRESULT Engine::Physics::Init()
 		gScene->addActor(*gPlane);
 
 		StaticObjects.push_back(gPlane);
-
-		PxTransform boxPos(PxVec3(0.5f, 5.0f, 0.5f));
-		PxBoxGeometry boxGeometry(PxVec3(0.5f, 0.5f, 0.5f));
-		gBox = PxCreateDynamic(*gPhysics, boxPos, boxGeometry, *gMaterial, 1.0f);
-
-		gScene->addActor(*gBox);
-		DynamicObjects.push_back(gBox);
 		
 		PxCookingParams params(gPhysics->getTolerancesScale());
 		params.meshWeldTolerance = 0.001f;

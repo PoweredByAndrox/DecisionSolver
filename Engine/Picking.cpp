@@ -29,20 +29,8 @@
 
 #include "pch.h"
 
-//#include "PxScene.h"
-//#include "PxQueryReport.h"
-//#include "PxBatchQueryDesc.h"
-//#include "extensions/PxJoint.h"
-//#include "PxRigidDynamic.h"
-//#include "extensions/PxDistanceJoint.h"
-//#include "extensions/PxSphericalJoint.h"
-//#include "PxArticulationLink.h"
-//#include "PxShape.h"
 #include "Picking.h"
 
-//#if PX_UNIX_FAMILY
-//#include <stdio.h>
-//#endif
 
 using namespace Engine;	// PT: please DO NOT indent the whole file
 using namespace physx;
@@ -92,18 +80,38 @@ void Picking::tick()
 
 void Picking::computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y) const
 {
-	// compute picking ray
-//	const PxVec3 rayOrig = unProject(x, y, 0.0f);	// PT: what the frell is that?
-	const PxVec3 rayOrig = PxVec3(Camera->GetEyePt().x, Camera->GetEyePt().y, Camera->GetEyePt().z);
-	const PxVec3 rayDir = (unProject(x, y, 1.0f) - rayOrig).getNormalized();
+	Vector3 vPickRayDir, vPickRayOrig, v;
 
-	orig = rayOrig;
-	dir = rayDir;
+	const Matrix pmatProj = Camera->GetProjMatrix();
+	Matrix mWorldView = Camera->GetWorldMatrix() * Camera->GetViewMatrix();
+	Matrix m;
+
+	POINT ptCursor;
+	GetCursorPos(&ptCursor);
+	ScreenToClient(DXUTGetHWND(), &ptCursor);
+
+		// Compute the vector of the pick ray in screen space
+	v.x = -(((2.f * ptCursor.x) / DXUTGetDXGIBackBufferSurfaceDesc()->Width)) / pmatProj._11;
+	v.y = -(((2.f * ptCursor.y) / DXUTGetDXGIBackBufferSurfaceDesc()->Height) - 1) / pmatProj._22;
+	v.z = 2.f;
+
+		// Get the inverse view matrix
+	m = XMMatrixInverse(NULL, mWorldView);
+
+		// Transform the screen space pick ray into 3D space
+	vPickRayDir.x = v.x * m._11 + v.y * m._21 + v.z * m._31;
+	vPickRayDir.y = v.x * m._12 + v.y * m._22 + v.z * m._32;
+	vPickRayDir.z = v.x * m._13 + v.y * m._23 + v.z * m._33;
+	vPickRayOrig.x = m._41;
+	vPickRayOrig.y = m._42;
+	vPickRayOrig.z = m._43;
+
+	orig = PxVec3(vPickRayOrig.x, vPickRayOrig.y, vPickRayOrig.z);
+	dir = PxVec3(vPickRayDir.x, vPickRayDir.y, vPickRayDir.z).getNormalized();
 }
 
 bool Picking::pick(int x, int y)
 {
-	
 	auto *scene = PhysX->getScene();
 
 	PxVec3 rayOrig, rayDir;
@@ -112,6 +120,7 @@ bool Picking::pick(int x, int y)
 	// raycast rigid bodies in scene
 	PxRaycastHit hit; hit.shape = nullptr;
 	PxRaycastBuffer hit1;
+
 	scene->raycast(rayOrig, rayDir, PX_MAX_F32, hit1, PxHitFlag::ePOSITION);
 	hit = hit1.block;
 
@@ -157,7 +166,6 @@ Engine::PxActor* Picking::letGo()
 		mMouseJoint->release();
 		mMouseJoint = nullptr;
 
-		//	SAFE_RELEASE(mMouseActor);			// PT: releasing immediately crashes
 		PX_ASSERT(!mMouseActorToDelete);
 		mMouseActorToDelete = mMouseActor;	// PT: instead, we mark for deletion next frame
 	}
@@ -234,64 +242,4 @@ void Picking::moveActor(int x, int y)
 	const PxVec3 pos = rayOrig + mDistanceToPicked * rayDir;
 
 	mMouseActor->setKinematicTarget(PxTransform(pos, PxQuat(PxIdentity)));
-}
-
-//----------------------------------------------------------------------------//
-
-PxVec3 Picking::unProject(int x, int y, float depth) const
-{
-	const auto projection = Camera->GetProjMatrix();
-	//const PxTransform view = getCamera().getViewMatrix().getInverse();
-	auto view = Camera->GetViewMatrix().Invert();
-
-	const PxF32 outX = (float)x / (float)DXUTGetWindowWidth();
-	const PxF32 outY = (float)y / (float)DXUTGetWindowHeight();
-
-	return //unproject(projection, view, 
-		PxVec3(outX * 2 - 1, outY * 2 - 1, depth * 2 - 1);
-}
-
-//----------------------------------------------------------------------------//
-
-void Picking::project(const physx::PxVec3& v, int& xi, int& yi, float& depth) const
-{
-	auto projection = Camera->GetProjMatrix();
-	//const PxTransform 
-	auto view = Camera->GetViewMatrix().Invert();
-
-/*
-	Vector3 ray_origin = Vector3(0, 0, 0);
-	for (float x = -1.f; x <= 1.f; x += 2.f / W)
-	{
-		for (float y = -1.f; y <= 1.f; y += 2.f / H) 
-		{
-			Vector3 ray_direction = Normalize(Vector3(x, y, -1.f)) - ray_origin;
-			Vector3 ray_in_model = Unproject(ray_direction, 0.f, 0.f, 
-											 width, height, znear, zfar, 
-											 proj, view, model);
-		}
-	}
-*/
-
-	//Vector4 screenPoint(v.x, v.y, v.z, 1);
-
-	//Matrix invprojview = -(view * Camera->GetProjMatrix());
-
-	//Vector4 nearPoint = XMVectorMultiply(invprojview, screenPoint);
-	//if (nearPoint.w) nearPoint *= 1.0f / nearPoint.w;
-	//PxVec3 pos(nearPoint.x, nearPoint.y, nearPoint.z);
-
-	/////* Map x, y and z to range 0-1 */
-	//pos.x = (pos.x + 1) * 0.5f;
-	//pos.y = (pos.y + 1) * 0.5f;
-	//pos.z = (pos.z + 1) * 0.5f;
-
-	///* Map x,y to viewport */
-	//pos.x *= DXUTGetWindowWidth();
-	//pos.y *= DXUTGetWindowHeight();
-
-	//depth = (float)pos.z;
-
-	//xi = (int)(pos.x + 0.5);
-	//yi = (int)(pos.y + 0.5);
 }

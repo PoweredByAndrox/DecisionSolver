@@ -71,7 +71,6 @@ namespace Engine
 		// returns picked actor
 		PxActor*					letGo();
 		void						tick();
-		void						project(const physx::PxVec3& v, int& xi, int& yi, float& depth)	const;
 
 #ifdef VISUALIZE_PICKING_RAYS
 		struct Ray
@@ -85,7 +84,6 @@ namespace Engine
 	private:
 		void						grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin);
 		void						moveActor(int x, int y);
-		PxVec3						unProject(int x, int y, float depth)	const;
 
 		PxActor*					mSelectedActor;
 

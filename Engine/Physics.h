@@ -96,7 +96,7 @@ namespace Engine
 			PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
 			distanceJoint->setProjectionLinearTolerance(0.5f);
 #endif
-			PxSphericalJoint* sphericalJoint = PxSphericalJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2,
+			PxSphericalJoint *sphericalJoint = PxSphericalJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2,
 				PxTransform(-OffSet));
 			sphericalJoint->setSphericalJointFlag(PxSphericalJointFlag::eLIMIT_ENABLED, true);
 		}

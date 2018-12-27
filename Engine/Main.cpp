@@ -31,7 +31,7 @@ using namespace Engine;
 	#pragma comment(lib, "Effects11.lib")
 #endif
 
-Vector3 Eye = { 100.f, 2.5f, 100.f }, At = { 0.0f, 2.5f, 1.0f };
+Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 2.0f, 1.f };
 
 auto file_system = make_unique<File_system>();
 vector<unique_ptr<Models>> Model;
@@ -161,8 +161,9 @@ void InitApp()
 	vector<int> X = { 35, 35, 35, 35 }, W = { 125, 125, 125, 125 }, H = { 22, 22, 22, 22 };
 	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
 	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
-	
+#ifdef _NEVER
 	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Disable/Enable Movement The Terrain"), 0, 0, 125, 22);
+#endif // _NEVER
 
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	if (!Sound->IsInitSounSystem())
@@ -310,7 +311,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		PhysX->Init();
 #endif
 
-#ifndef NEVER_228
+#ifdef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
@@ -321,7 +322,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	//Model.back()->Position(Vector3(100.f, 0.f, 100.f));
 #endif
 
-#ifndef NEVER_228
+#ifdef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("planet.obj"))));//, aiProcess_Triangulate, false));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
@@ -333,17 +334,17 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
 #endif
 
-#ifdef NEVER_228
+#ifndef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*buffers->GetResPathW(&wstring(L"vue_ready_shasta.obj"))).c_str(), L"", MB_OK);
 
-	//Model.back()->Scale(Vector3(0.01, 0.01, 0.01));
+	Model.back()->Scale(Vector3(0.05, 0.05, 0.05));
 
-	PhysX->_createTriMesh(Model.back().get());
+	//PhysX->_createTriMesh(Model.back().get());
 
-	//Model.back()->Position(Vector3(0.f, -35.f, 0.f));
+	Model.back()->Position(Vector3(-22.f, -14.5f, 0.f));
 #endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
@@ -352,12 +353,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 
 	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
 
+#ifdef _NEVER
 	terrain->Initialize(frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
 		file_system->GetResPathW(&wstring(L"686.jpg"))->c_str());
-
-	PhysX->AddNewActor(Vector3(100.f, 0.f, 100.f), Vector3(0.5f, 0.5f, 0.5f));
-	m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
-
+#endif // _NEVER
 	return S_OK;
 }
 
@@ -390,56 +389,15 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 
 vector<XMVECTOR> Mass;
 
-ToDo("Need To Move In Picking Class!")
-/* 
-HRESULT pick()
+//ToDo("Need To Move In Picking Class!")
+
+POINT getPos()
 {
-	HRESULT hr;
-	Vector3 vPickRayDir;
-	Vector3 vPickRayOrig;
-	const auto *pd3dsdBackBuffer = DXUTGetDXGIBackBufferSurfaceDesc();
-
-	//g_nNumIntersections = 0L;
-
-	// Get the pick ray from the mouse position
-	if (GetCapture())
-	{
-		const Matrix *pmatProj = &g_Camera->GetProjMatrix();
-
-		POINT ptCursor;
-		GetCursorPos(&ptCursor);
-		ScreenToClient(DXUTGetHWND(), &ptCursor);
-
-		// Compute the vector of the pick ray in screen space
-		Vector3 v;
-		v.x = (((2.0f * ptCursor.x) / pd3dsdBackBuffer->Width) - 1) / pmatProj->_11;
-		v.y = -(((2.0f * ptCursor.y) / pd3dsdBackBuffer->Height) - 1) / pmatProj->_22;
-		v.z = 1.0f;
-
-		// Get the inverse view matrix
-		const Matrix matView = g_Camera->GetViewMatrix();
-		const Matrix matWorld = g_Camera->GetWorldMatrix();
-		Matrix mWorldView = matWorld * matView;
-		Matrix m;
-		m = XMMatrixInverse(NULL, mWorldView);
-
-		// Transform the screen space pick ray into 3D space
-		vPickRayDir.x = v.x * m._11 + v.y * m._21 + v.z * m._31;
-		vPickRayDir.y = v.x * m._12 + v.y * m._22 + v.z * m._32;
-		vPickRayDir.z = v.x * m._13 + v.y * m._23 + v.z * m._33;
-		vPickRayOrig.x = m._41;
-		vPickRayOrig.y = m._42;
-		vPickRayOrig.z = m._43;
-	}
-
-	// Get the picked triangle
-	if (GetCapture())
-	{
-	}
-
-	return S_OK;
+	POINT ptCursor;
+	GetCursorPos(&ptCursor);
+	ScreenToClient(DXUTGetHWND(), &ptCursor);
+	return ptCursor;
 }
-*/
 
 void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
@@ -513,9 +471,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 			}
 		}
 	}
-
-	//terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
-
+#ifdef _NEVER
+	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 	if (!ui->getObjCheckBox()->empty())
 	{
 		auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
@@ -529,8 +486,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 					g_Camera->setPosCam(Vector3(position.x, height + 2.0f, position.z));
 			}
 	}
-
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+#endif // _NEVER
 
 #ifndef DEBUG
 	ID3D11Debug *debug = nullptr;
@@ -572,7 +529,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15, false);
 
-	//Pick->tick();
+	//Pick->moveCursor(DXUTGetDXGIBackBufferSurfaceDesc()->Width / 2, DXUTGetDXGIBackBufferSurfaceDesc()->Height / 2);
+	Pick->tick();
+
+	ui->SetTextStatic(ui->getHUD(), 3, &string("Is Picked Object?: "), (size_t)Pick->isPicked());
 
 	if (GetAsyncKeyState(VK_LSHIFT))
 		g_Camera->SetScalers(0.010f, 6.0f * 9.0f);
@@ -673,7 +633,6 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	return 0;
 }
 
-float Scale = 0.0f;
 void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
 	if(bKeyDown)
@@ -690,10 +649,6 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 				StopIT = false;
 				break;
 			}
-
-			// **********
-			Scale = 0.0f;
-
 			break;
 		case VK_F9:
 			m_shape.clear();
@@ -732,30 +687,20 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 	int xPos, int yPos, void* pUserContext)
 {
 	g_Camera->SetEnablePositionMovement(true);
-	/*
+
 	if (bRightButtonDown)
 	{
-		PxRaycastBuffer hit;
-		auto T = PhysX->getScene();
-		const PxTransform& camPose = PxTransform(PxVec3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z));
-		PxVec3 forward = -PxMat33(camPose.q)[1];
-		auto PosObjPhys = PhysX->GetPhysDynamicObject();
-		if (PosObjPhys.size() == 0)
-			return;
-
-		if (T->raycast(camPose.p + forward, forward, Vector3::Distance(
-			Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z),
-			Vector3(PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.x, PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.y, 
-				PosObjPhys.at(rand() % PosObjPhys.size())->getGlobalPose().p.z)), hit,
-			PxHitFlags(PxHitFlag::ePOSITION | PxHitFlag::eNORMAL | PxHitFlag::eDISTANCE | PxHitFlag::eUV)))
-
-			PhysX->AddTorque(PosObjPhys.at(rand() % PosObjPhys.size()), -hit.block.position, PxForceMode::Enum::eACCELERATION);
-		Pick->letGo();
+		Pick->moveCursor(getPos().x, getPos().y);
+		Pick->lazyPick(); // Pick Object
+		return;
 	}
-	*/
-//	Pick->moveCursor(DXUTGetWindowWidth() / 2, DXUTGetWindowHeight() / 2);
-//	Pick->lazyPick();
-	
+
+	if (Pick->isPicked())
+	{
+		Pick->moveCursor(getPos().x, getPos().y);
+		Pick->letGo(); // Drop Object. Deleting next frame
+		return;
+	}
 }
 
 bool CALLBACK OnDeviceRemoved(void* pUserContext)
