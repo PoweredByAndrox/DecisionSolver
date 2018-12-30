@@ -1,7 +1,7 @@
-#include "pch.h"
 #pragma once
 #ifndef __UI_H__
 #define __UI_H__
+#include "pch.h"
 
 namespace Engine
 {

@@ -1,7 +1,8 @@
+#pragma once
 #ifndef __RENDER_BUFFER_H__
 #define __RENDER_BUFFER_H__
-#pragma once
 #include "pch.h"
+
 #include "Shaders.h"
 #include "File_system.h"
 
@@ -44,7 +45,7 @@ namespace Engine
 		bool isInit() { return init; }
 		auto getVB() { if (m_vertexBuffer) return m_vertexBuffer; }
 		auto getIB() { if (m_indexBuffer)  return m_indexBuffer; }
-		auto getFS() { if (FS.operator bool()) return FS.get(); }
+		auto getFS() { if (FS) return FS; }
 
 	private:
 		// **********
@@ -67,8 +68,8 @@ namespace Engine
 		ID3D11ShaderResourceView *m_texture = nullptr;
 		D3D11_BUFFER_DESC bd;
 
-		unique_ptr<Shaders> Shader = make_unique<Shaders>();
-		unique_ptr<File_system> FS = make_unique<File_system>();
+		Shaders *Shader = new Shaders;
+		File_system *FS = new File_system;
 
 		vector<ID3DBlob *> Buffer_blob;
 		vector<void *> Buffers;

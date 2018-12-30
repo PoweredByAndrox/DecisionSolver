@@ -1,15 +1,16 @@
 #pragma once
 #ifndef __SOUND_SYSTEM_H__
 #define __SOUND_SYSTEM_H__
-#include "File_system.h"
 #include "pch.h"
+
+#include "File_system.h"
 #include <Audio.h>
 
 #pragma comment(lib, "DirectXTKAudioDX.lib")
 
 namespace Engine
 {
-	class Audio : public File_system
+	class Audio: public File_system
 	{
 	public:
 		void Init();

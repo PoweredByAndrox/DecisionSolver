@@ -1,8 +1,8 @@
+#pragma once
 #ifndef __TERRAIN__H_
 #define __TERRAIN__H_
-#pragma once
-
 #include "pch.h"
+
 #include "Shaders.h"
 #include "File_system.h"
 #include "Camera.h"

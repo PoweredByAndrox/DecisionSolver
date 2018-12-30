@@ -1,7 +1,8 @@
-#include "pch.h"
+#pragma once
 #ifndef __MAIN_MENU_H__
 #define __MAIN_MENU_H__
-#pragma once
+#include "pch.h"
+
 #include "File_system.h"
 #include "UI.h"
 #include "Audio.h"

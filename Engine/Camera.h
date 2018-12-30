@@ -1,6 +1,7 @@
+#pragma once
 #ifndef __CAMERA_H__
 #define __CAMERA_H__
-#pragma once
+#include "pch.h"
 
 namespace Engine
 {

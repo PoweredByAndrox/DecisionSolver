@@ -10,10 +10,11 @@
 #include "Audio.h"
 #include "UI.h"
 #include "MainMenu.h"
-#include "Camera.h"
 #include "Picking.h"
 #include "Terrain.h"
 #include "Render_Buffer.h"
+#include "MainActor.h"
+#include "GameObjects.h"
 
 using namespace Engine;
 
@@ -38,10 +39,11 @@ vector<unique_ptr<Models>> Model;
 auto Sound = make_unique<Audio>();
 auto ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
-auto g_Camera = make_unique<CFirstPersonCamera>();
 auto terrain = make_unique<Terrain>();
 auto frustum = make_unique<Frustum>();
 auto buffers = make_unique<Render_Buffer>();
+auto mainActor = make_unique<MainActor>();
+//auto gameObject = make_unique<GameObjects>();
 
 #ifdef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
@@ -183,8 +185,8 @@ void InitApp()
 	//g_Camera.SetClipToBoundary(true, &Vector3(4, 6, 3), &Vector3(1, 2, 5));
 	//g_Camera->SetEnableYAxisMovement(false);
 	
-	g_Camera->SetScalers(0.010f, 6.0f);
-	g_Camera->SetRotateButtons(true, false, false);
+	mainActor->SetupCamera();
+
 	//g_Camera->SetChangeFOV(true);
 
 	InitProgram = true;
@@ -213,7 +215,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		break;
 	case BUTTON_2:
 	{
-		auto PosCam = PxVec3(g_Camera->GetEyePt().x, -g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
+		auto PosCam = PxVec3(mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z);
 		auto Obj = PhysX->GetPhysDynamicObject();
 
 		if (Obj.size() == 0)
@@ -230,11 +232,13 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		Sound->doPlay();
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		mainActor->Hit(1.f);
 		break;
 	case BUTTON_4:
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		Sound->doPause();
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		mainActor->ChangeHealth(4.f, '+');
 		break;
 	case BUTTON_5:
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
@@ -242,10 +246,10 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		break;
 	case BUTTON_6:
-		g_Camera->SetViewParams(Eye, At);
+		mainActor->getObjCamera()->SetViewParams(Eye, At);
 		break;
 	case BUTTON_7:
-		PhysX->AddNewActor(Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z), Vector3(0.5f, 0.5f, 0.5f));
+		PhysX->AddNewActor(mainActor->getPosition(), Vector3(0.5f, 0.5f, 0.5f));
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
@@ -311,6 +315,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 		PhysX->Init();
 #endif
 
+//	gameObject->Load(buffers->GetResPathA(&string("vue_ready_shasta.obj")));
+
 #ifdef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
 	if (Model.empty())
@@ -334,7 +340,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
 #endif
 
-#ifndef NEVER_228
+#ifdef NEVER_228
 	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
 	if (Model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
@@ -348,10 +354,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
-	g_Camera->SetViewParams(Eye, At);
+	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetViewParams(Eye, At);
 
-	Pick->SetObjClasses(PhysX.get(), g_Camera.get());
+	Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
 
 #ifdef _NEVER
 	terrain->Initialize(frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
@@ -366,7 +372,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (float)pBackBufferSurfaceDesc->Height;
-	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 
@@ -384,13 +390,10 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
-	g_Camera->FrameMove(fElapsedTime);
+	mainActor->getObjCamera()->FrameMove(fElapsedTime);
 }
 
 vector<XMVECTOR> Mass;
-
-//ToDo("Need To Move In Picking Class!")
-
 POINT getPos()
 {
 	POINT ptCursor;
@@ -437,7 +440,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
 	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
-	g_Camera->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
 
 #ifdef Never_MainMenu // Need To Move In Thread
 	if (*MM->getGameMode() != GAME_RUNNING)
@@ -465,7 +468,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
 				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
-					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix()//, 
+					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix()//, 
 					//_Color[rand() % 9 + 1]
 				);
 			}
@@ -495,12 +498,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
-#if defined(Never)
 	PhysX->Simulation(StopIT, fElapsedTime);
-#endif
 
 	int PosText = 0;
-	auto *PosCam = &Vector3(g_Camera->GetEyePt().x, g_Camera->GetEyePt().y, g_Camera->GetEyePt().z);
+	auto *PosCam = &mainActor->getPosition();
 	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), PosCam);
 	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5, false);
 
@@ -532,17 +533,16 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	//Pick->moveCursor(DXUTGetDXGIBackBufferSurfaceDesc()->Width / 2, DXUTGetDXGIBackBufferSurfaceDesc()->Height / 2);
 	Pick->tick();
 
-	ui->SetTextStatic(ui->getHUD(), 3, &string("Is Picked Object?: "), (size_t)Pick->isPicked());
+	ui->SetTextStatic(ui->getHUD(), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
 
 	if (GetAsyncKeyState(VK_LSHIFT))
-		g_Camera->SetScalers(0.010f, 6.0f * 9.0f);
+		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f * 9.0f);
 	else
-		g_Camera->SetScalers(0.010f, 6.0f);
+		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f);
 
-	for (int i = 0; i < Model.size(); i++)
-		Model.at(i)->Render(g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
-	buffers->RenderSimpleBuffer(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
+	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	V(ui->getHUD()->OnRender(fElapsedTime));
 }
@@ -561,12 +561,7 @@ void Destroy_Application()
 	if (terrain.operator bool())
 		terrain->Shutdown();
 
-	for (int i = 0; i < Model.size(); i++)
-	{
-		 Model.at(i)->Close();
-		 Model.at(i)->Release();
-		 Model.at(i).release();
-	}
+	mainActor->Destroy();
 
 	for (int i = 0; i < m_shape.size(); i++)
 		 m_shape.at(i).release();
@@ -583,8 +578,8 @@ void Destroy_Application()
 	if (file_system.operator bool())
 		file_system.release();
 
-	if (g_Camera.operator bool())
-		g_Camera.release();
+	if (mainActor.operator bool())
+		mainActor.release();
 
 	if (buffers.operator bool())
 		buffers->Release();
@@ -611,7 +606,7 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
-	g_Camera->HandleMessages(hWnd, uMsg, wParam, lParam);
+	mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
 
 #ifdef Never_MainMenu
 	switch (*MM->getGameMode())
@@ -686,7 +681,7 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 	bool bSideButton1Down, bool bSideButton2Down, int nMouseWheelDelta,
 	int xPos, int yPos, void* pUserContext)
 {
-	g_Camera->SetEnablePositionMovement(true);
+	mainActor->getObjCamera()->SetEnablePositionMovement(true);
 
 	if (bRightButtonDown)
 	{

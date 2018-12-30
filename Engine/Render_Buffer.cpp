@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "Render_Buffer.h"
 
 HRESULT Engine::Render_Buffer::InitSimpleBuffer(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader, int ConstBuff_Width)
@@ -333,7 +334,5 @@ void Engine::Render_Buffer::Release()
 		DeviceCon->Flush();
 		SAFE_RELEASE(DeviceCon);
 	}
-
-	if (Shader.operator bool())
-		Shader.release();
+	SAFE_DELETE(Shader);
 }

@@ -69,11 +69,13 @@ namespace Engine
 		void Render(Matrix View, Matrix Proj);
 
 		Models(void) {}
-		Models(string *Filename) { if (!Load(Filename)) throw exception("Models::load == false!!!"); }
+		Models(string *Filename) { if (!Load(Filename)) throw exception("Models::load == false!!!"); else AllModel.push_back(*this); }
 		Models(string *Filename, UINT Flags, bool ConvertToLH)
 		{
-			if (!Load(Filename, Flags, ConvertToLH)) 
+			if (!Load(Filename, Flags, ConvertToLH))
 				throw exception("Models::load == false!!!");
+			else
+				AllModel.push_back(*this);
 		}
 
 		void Release()
@@ -85,6 +87,16 @@ namespace Engine
 				DeviceCon->Flush();
 				SAFE_RELEASE(DeviceCon);
 			}
+			SAFE_DELETE(model);
+
+			int Cache = 0;
+			if (!AllModel.empty())
+				while (AllModel.size() != 0)
+				{
+					AllModel.at(Cache++).Close();
+					AllModel.at(Cache).Release();
+					AllModel.erase(AllModel.begin());
+				}
 		}
 
 		void SetWorld(Matrix World) { this->World = World; }
@@ -98,6 +110,8 @@ namespace Engine
 		auto getVertices() { if (!vertices.empty()) return vertices; }
 
 		auto getMeshes() { if (!meshes.empty()) return meshes; }
+
+		int getCountModels() { if (!AllModel.empty()) return AllModel.size(); }
 
 		~Models() {}
 	private:
@@ -115,6 +129,8 @@ namespace Engine
 		vector<VERTEX> vertices;
 		vector<UINT> indices;
 
+		vector<Models> AllModel;
+
 		void processNode(aiNode *node, const aiScene *Scene);
 		Mesh processMesh(aiMesh *mesh, const aiScene *Scene);
 
@@ -131,7 +147,7 @@ namespace Engine
 
 		Matrix World = XMMatrixIdentity();
 
-		unique_ptr<Mesh> model = make_unique<Mesh>();
+		Mesh *model = new Mesh;
 	};
 };
 #endif // !__MODELS_H__

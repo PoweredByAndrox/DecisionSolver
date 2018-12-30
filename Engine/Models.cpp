@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "Models.h"
 
 bool Engine::Models::Load(string *Filename)
@@ -16,6 +17,8 @@ bool Engine::Models::Load(string *Filename)
 	GetD3DDevice();
 	
 	processNode(pScene->mRootNode, pScene);
+
+	AllModel.push_back(*this);
 
 	return true;
 }
@@ -39,6 +42,8 @@ bool Engine::Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
 	GetD3DDevice();
 
 	processNode(pScene->mRootNode, pScene);
+
+	AllModel.push_back(*this);
 
 	return true;
 }
@@ -92,7 +97,8 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 		///It doesn't work!
-	/*vector<Texture> specularMaps = loadMaterialTextures(material,
+	/*
+	vector<Texture> specularMaps = loadMaterialTextures(material,
 		aiTextureType_SPECULAR, "texture_specular", Scene);
 	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
@@ -213,17 +219,17 @@ void Engine::Models::Position(Vector3 Pos)
 /*
 void Engine::Models::Position(float X)
 {
-	cb.World = Matrix::CreateTranslation(Pos);
+	cb.World = Matrix::CreateTranslation(X);
 }
 
 void Engine::Models::Position(float Y)
 {
-	cb.World = Matrix::CreateTranslation(Pos);
+	cb.World = Matrix::CreateTranslation(Y);
 }
 
 void Engine::Models::Position(float Z)
 {
-	cb.World = Matrix::CreateTranslation(Pos);
+	cb.World = Matrix::CreateTranslation(Z);
 }
 */
 

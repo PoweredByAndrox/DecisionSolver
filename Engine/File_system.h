@@ -1,6 +1,7 @@
 #pragma once
 #ifndef __FILE_SYSTEM_H__
 #define __FILE_SYSTEM_H__
+#include "pch.h"
 
 #include "boost/filesystem.hpp"
 #include <algorithm>
