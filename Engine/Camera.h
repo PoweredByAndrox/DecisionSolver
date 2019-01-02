@@ -177,7 +177,7 @@ namespace Engine
 		bool IsKeyDown(_In_ BYTE key) const { return((key & KEY_IS_DOWN_MASK) == KEY_IS_DOWN_MASK); }
 		bool WasKeyDown(_In_ BYTE key) const { return((key & KEY_WAS_DOWN_MASK) == KEY_WAS_DOWN_MASK); }
 
-		void ChangeFOVPLUS(float m_nMouseWheelDelta)
+		void ChangeFOV(float m_nMouseWheelDelta)
 		{
 			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
 			//	m_fFOV -= m_nMouseWheelDelta;
@@ -188,7 +188,7 @@ namespace Engine
 
 			//if (m_fFOV >= 1.f)
 			//{
-				m_fFOV += m_nMouseWheelDelta / 2;
+				m_fFOV += m_nMouseWheelDelta;
 			//}
 
 			//else if(m_fFOV < 1.f)
@@ -197,39 +197,11 @@ namespace Engine
 			//	return;
 			//}
 
-			if (m_fFOV >= 45.f)
-			{
-				m_fFOV = 1.f;
-				return;
-			}
-
-		}
-		void ChangeFOVMINUS(float m_nMouseWheelDelta)
-		{
-			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
-			//	m_fFOV -= m_nMouseWheelDelta;
-			//else if (m_fFOV <= 1.0f)
-			//	m_fFOV = 1.0f;
-			//else if (m_fFOV >= 45.0f)
-			//	m_fFOV = 45.0f;
-
-			//if (m_fFOV >= 1.f)
-			//{
-			//if (m_fFOV >= 1.0f && m_fFOV <= 45.0f)
-				m_fFOV -= m_nMouseWheelDelta / 2;
-			//}
-
-			if (m_fFOV < 1.f)
-			//{
-				m_fFOV = 1.f;
-			//	return;
-			//}
-
-			//if (m_fFOV >= 45.f)
-			//{
-			//	m_fFOV = 1.f;
-			//	return;
-			//}
+		//	if (m_fFOV >= 45.f)
+		//	{
+		//		m_fFOV = 1.f;
+		//		return;
+		//	}
 
 		}
 
@@ -297,8 +269,10 @@ namespace Engine
 			 m_bEnablePositionMovement,         // If true, then the user can translate the camera/model 
 			 m_bEnableYAxisMovement,            // If true, then camera can move in the y-axis
 			 m_bClipToBoundary,                 // If true, then the camera will be clipped to the boundary
-			 m_bResetCursorAfterMove;//,           // If true, the class will reset the cursor position so that the cursor always has space to move 
-			 //ChangeFieldOfView = false;
+			 m_bResetCursorAfterMove,           // If true, the class will reset the cursor position so that the cursor always has space to move 
+			 ChangeFieldOfView = false,
+			 isJump,
+			 isFreefall;
 
 		Vector3 m_vMinBoundary,       // Min point in clip boundary
 				m_vMaxBoundary;       // Max point in clip boundary
@@ -320,7 +294,7 @@ namespace Engine
 
 		auto getFOV() { return m_fFOV; }
 
-		//void SetChangeFOV(bool FOV) { ChangeFieldOfView = FOV; }
+		void SetChangeFOV(bool FOV) { ChangeFieldOfView = FOV; }
 
 		void setPosCam(_In_ Vector3 Pos)
 		{

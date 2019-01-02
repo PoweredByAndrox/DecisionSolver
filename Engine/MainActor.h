@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #ifndef __MAIN_ACTOR_H__
 #define __MAIN_ACTOR_H__
 #include "pch.h"
@@ -19,10 +19,24 @@ namespace Engine
 
 		void ChangeHealth(float Value, char Char)
 		{
-			if (Char == '+')
-				Health += Value;
-			else if (!(Health <= 0))
-				Health -= Value;
+			if (Char == 'G' & !IsGod)
+			{
+				IsGod = true;
+				return;
+			}
+			else if (Char == 'G' & IsGod)
+			{
+				IsGod = false;
+				return;
+			}
+
+			if (!IsGod)
+			{
+				if (Char == '+')
+					Health += Value;
+				else if (!(Health <= 0) & (Char == '-'))
+					Health -= Value;
+			}
 		}
 
 		virtual void Update();
@@ -31,7 +45,8 @@ namespace Engine
 
 		void Hit(float Value)
 		{
-			ChangeHealth(Value, '-');
+			if (!IsGod)
+				ChangeHealth(Value, '-');
 		}
 
 		void ChangePosition(Vector3 Pos)
@@ -43,6 +58,8 @@ namespace Engine
 		{
 			gCamera->SetScalers(0.010f, 6.0f);
 			gCamera->SetRotateButtons(true, false, false);
+			gCamera->SetEnableYAxisMovement(true);
+			SetChangeFOV(false);
 		}
 
 		Vector3 getPosition() { return Position; }
@@ -50,17 +67,23 @@ namespace Engine
 		float getHealthActor() { return Health; }
 
 	private:
-		//**********
+			//**********
 		float FOV = 0.80f;
 		Vector3 Position = { 0.f, 2.5f, 0.f };
 
-		//**********
+			//**********
 		bool IsDead = false;
 		float Health = 100.0f;
 
+			//**********
 		unique_ptr<CFirstPersonCamera> gCamera = make_unique<CFirstPersonCamera>();
 
+			//**********
 		Vector3 GetPostitionFromCamera() { return gCamera->GetEyePt(); }
+
+			//**********
+		//It is cheat
+		bool IsGod = false;
 	};
 }
 #endif // !__MAIN_ACTOR_H__

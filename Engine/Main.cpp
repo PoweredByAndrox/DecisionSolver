@@ -43,14 +43,12 @@ auto terrain = make_unique<Terrain>();
 auto frustum = make_unique<Frustum>();
 auto buffers = make_unique<Render_Buffer>();
 auto mainActor = make_unique<MainActor>();
+auto PhysX = make_unique<Physics>();
+
 //auto gameObject = make_unique<GameObjects>();
 
 #ifdef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
-#endif
-
-#if defined(Never)
-	auto PhysX = make_unique<Physics>();
 #endif
 
 HRESULT hr = S_OK;
@@ -96,7 +94,7 @@ XMVECTORF32 _Color[9] =
 //**************
 	// Test
 bool StopIT = false, InitProgram = false;
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl *pControl, void* pUserContext);
 
 void InitApp()
 {
@@ -163,9 +161,8 @@ void InitApp()
 	vector<int> X = { 35, 35, 35, 35 }, W = { 125, 125, 125, 125 }, H = { 22, 22, 22, 22 };
 	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
 	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
-#ifdef _NEVER
-	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Disable/Enable Movement The Terrain"), 0, 0, 125, 22);
-#endif // _NEVER
+
+	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22);
 
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	if (!Sound->IsInitSounSystem())
@@ -183,7 +180,6 @@ void InitApp()
 #endif
 
 	//g_Camera.SetClipToBoundary(true, &Vector3(4, 6, 3), &Vector3(1, 2, 5));
-	//g_Camera->SetEnableYAxisMovement(false);
 	
 	mainActor->SetupCamera();
 
@@ -199,7 +195,7 @@ bool CALLBACK IsD3D11DeviceAcceptable(const CD3D11EnumAdapterInfo *AdapterInfo,
 	return true;
 }
 
-bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pUserContext)
+bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings *pDeviceSettings, void* pUserContext)
 {
 	return true;
 }
@@ -244,6 +240,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 		Sound->doStop();
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
+		mainActor->ChangeHealth(0.f, 'G');
 		break;
 	case BUTTON_6:
 		mainActor->getObjCamera()->SetViewParams(Eye, At);
@@ -277,8 +274,8 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 #endif
 }
 
-HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, 
-	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
+HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, 
+	const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc, void* pUserContext)
 {
 	if (!InitProgram)
 		InitApp();
@@ -310,10 +307,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	if (!buffers->isInit())
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
-#if defined(Never)
 	if (!PhysX->IsPhysicsInit())
 		PhysX->Init();
-#endif
 
 //	gameObject->Load(buffers->GetResPathA(&string("vue_ready_shasta.obj")));
 
@@ -354,7 +349,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 #endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 	mainActor->getObjCamera()->SetViewParams(Eye, At);
 
 	Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
@@ -366,13 +361,13 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice,
 	return S_OK;
 }
 
-HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChain* pSwapChain,
-	const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
+HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChain *pSwapChain,
+	const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc, void* pUserContext)
 {
 	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (float)pBackBufferSurfaceDesc->Height;
-	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 
@@ -393,7 +388,7 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 	mainActor->getObjCamera()->FrameMove(fElapsedTime);
 }
 
-vector<XMVECTOR> Mass;
+vector<Vector3> Mass;
 POINT getPos()
 {
 	POINT ptCursor;
@@ -402,7 +397,7 @@ POINT getPos()
 	return ptCursor;
 }
 
-void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* pd3dImmediateContext,
+void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3dImmediateContext,
 	double fTime, float fElapsedTime, void* pUserContext)
 {
 	//g_Camera->SetNumberOfFramesToSmoothMouseData(fElapsedTime);
@@ -440,12 +435,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
 	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
-	mainActor->getObjCamera()->SetProjParams(D3DX_PI / 3, fAspectRatio, 0.1f, 1000.0f);
+	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 
 #ifdef Never_MainMenu // Need To Move In Thread
 	if (*MM->getGameMode() != GAME_RUNNING)
 		return;
 #endif
+
 	ID3D11RenderTargetView *pRTV = DXUTGetD3D11RenderTargetView();
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
@@ -491,6 +487,14 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	}
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 #endif // _NEVER
+
+	auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
+	if (ObjCheck)
+		if (ObjCheck->GetChecked())
+			//mainActor->getObjCamera()->SetEnableYAxisMovement(true);
+			mainActor->getObjCamera()->SetJump(fElapsedTime);
+		else 
+			mainActor->getObjCamera()->SetEnableYAxisMovement(false);
 
 #ifndef DEBUG
 	ID3D11Debug *debug = nullptr;
@@ -554,10 +558,9 @@ void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 
 void Destroy_Application()
 {
-#if defined(Never)
 	if (PhysX.operator bool())
 		PhysX->Destroy();
-#endif
+
 	if (terrain.operator bool())
 		terrain->Shutdown();
 
@@ -597,7 +600,7 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
-	bool* pbNoFurtherProcessing, void* pUserContext)
+	bool *pbNoFurtherProcessing, void* pUserContext)
 {
 	*pbNoFurtherProcessing = ui->getDialogResManager()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)

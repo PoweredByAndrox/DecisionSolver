@@ -95,8 +95,7 @@ void Engine::CBaseCamera::SetProjParams(float fFOV, float fAspect, float fNearPl
 	m_fNearPlane = fNearPlane;
 	m_fFarPlane = fFarPlane;
 
-	XMMATRIX mProj = XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane);
-	XMStoreFloat4x4(&m_mProj, mProj);
+	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
 }
 
 _Use_decl_annotations_
@@ -214,13 +213,10 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 
 	case WM_MOUSEWHEEL:
 			// Update member var state
-		m_nMouseWheelDelta += (short)HIWORD(wParam);//(int)GET_WHEEL_DELTA_WPARAM(wParam);
+		m_nMouseWheelDelta = 0;
+		m_nMouseWheelDelta += (int)GET_WHEEL_DELTA_WPARAM(wParam);
 
-		//if (ChangeFieldOfView & Cache > m_nMouseWheelDelta)
-		//	ChangeFOVPLUS(Cache);
-
-		//if (ChangeFieldOfView & Cache < m_nMouseWheelDelta)
-		//	ChangeFOVMINUS(Cache);
+		ChangeFOV(m_nMouseWheelDelta);
 
 		break;
 	}
@@ -261,8 +257,8 @@ void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, 
 
 	if (bGetGamepadInput)
 	{
-		m_vGamePadLeftThumb = XMFLOAT3(0, 0, 0);
-		m_vGamePadRightThumb = XMFLOAT3(0, 0, 0);
+		m_vGamePadLeftThumb = Vector3::Zero;
+		m_vGamePadRightThumb = Vector3::Zero;
 
 		// Get controller state
 		for (DWORD iUserIndex = 0; iUserIndex < DXUT_MAX_CONTROLLERS; iUserIndex++)
@@ -376,7 +372,7 @@ void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 			}
 			else
 				// Zero velocity
-				m_vVelocity = XMFLOAT3(0, 0, 0);
+				m_vVelocity = Vector3::Zero;
 		}
 	}
 	else
