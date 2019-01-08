@@ -11,8 +11,8 @@ void Engine::MainActor::Update()
 
 	Position = gCamera->GetEyePt();
 
-	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
-	gCamera->SetProjParams(gCamera->getFOV(), fAspectRatio, 0.1f, 1000.0f);
+	gCamera->SetProjParams(gCamera->getFOV(), (DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height),
+		0.1f, 1000.0f);
 }
 
 void Engine::MainActor::Render(Matrix View, Matrix Proj)

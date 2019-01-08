@@ -83,8 +83,8 @@ void Picking::computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y) cons
 {
 	Vector3 vPickRayDir, vPickRayOrig, v;
 
-	const Matrix pmatProj = Camera->GetProjMatrix();
-	Matrix mWorldView = Camera->GetWorldMatrix() * Camera->GetViewMatrix();
+	const Matrix pmatProj = camera->GetProjMatrix();
+	Matrix mWorldView = camera->GetWorldMatrix() * camera->GetViewMatrix();
 	Matrix m;
 
 	POINT ptCursor;
@@ -159,7 +159,7 @@ bool Picking::pick(int x, int y)
 
 //----------------------------------------------------------------------------//
 
-Engine::PxActor* Picking::letGo()
+PxActor *Picking::letGo()
 {
 	// let go any picked actor
 	if (mMouseJoint)
@@ -171,7 +171,7 @@ Engine::PxActor* Picking::letGo()
 		mMouseActorToDelete = mMouseActor;	// PT: instead, we mark for deletion next frame
 	}
 
-	PxActor* returnedActor = mSelectedActor;
+	PxActor *returnedActor = mSelectedActor;
 
 	mSelectedActor = nullptr;
 
@@ -182,8 +182,7 @@ Engine::PxActor* Picking::letGo()
 
 void Picking::grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin)
 {
-	if (!mSelectedActor
-		|| (mSelectedActor->getType() != PxActorType::eRIGID_DYNAMIC
+	if (!mSelectedActor || (mSelectedActor->getType() != PxActorType::eRIGID_DYNAMIC
 			&& mSelectedActor->getType() != PxActorType::eARTICULATION_LINK))
 		return;
 

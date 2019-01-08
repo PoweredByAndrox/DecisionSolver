@@ -7,64 +7,8 @@
 
 using namespace DirectX;
 
-Engine::CBaseCamera::CBaseCamera() noexcept:
-    m_mView{},
-    m_mProj{},
-    m_GamePad{},
-    m_vGamePadLeftThumb(0,0,0),
-    m_vGamePadRightThumb(0,0,0),
-    m_GamePadLastActive{},
-    m_cKeysDown(0),
-    m_aKeys{},
-    m_vKeyboardDirection(0,0,0),
-    m_ptLastMousePosition{ 0, 0 },
-    m_nCurrentButtonMask(0),
-    m_nMouseWheelDelta(0),
-    m_vMouseDelta(0, 0),
-    m_fFramesToSmoothMouseData(2.0f),
-    m_vDefaultEye(0, 0, 0),
-    m_vDefaultLookAt(0, 0, 0),
-    m_vEye(0, 0, 0),
-    m_vLookAt(0, 0, 0),
-    m_fCameraYawAngle(0.0f),
-    m_fCameraPitchAngle(0.0f),
-    m_rcDrag{},
-    m_vVelocity(0, 0, 0),
-    m_vVelocityDrag(0, 0, 0),
-    m_fDragTimer(0.0f),
-    m_fTotalDragTimeToZero(0.25),
-    m_vRotVelocity(0, 0),
-    m_fFOV(0),
-    m_fAspect(0),
-    m_fNearPlane(0),
-    m_fFarPlane(1),
-    m_fRotationScaler(0.01f),
-    m_fMoveScaler(5.0f),
-    m_bMouseLButtonDown(false),
-    m_bMouseMButtonDown(false),
-    m_bMouseRButtonDown(false),
-    m_bMovementDrag(false),
-    m_bInvertPitch(false),
-    m_bEnablePositionMovement(true),
-    m_bEnableYAxisMovement(true),
-    m_bClipToBoundary(false),
-    m_bResetCursorAfterMove(false),
-    m_vMinBoundary(-1, -1, -1),
-    m_vMaxBoundary(1, 1, 1)
-{
-	// Setup the view matrix
-	SetViewParams(Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f));
-
-	// Setup the projection matrix
-	SetProjParams(XM_PI / 4, 1.0f, 1.0f, 1000.0f);
-
-	GetCursorPos(&m_ptLastMousePosition);
-
-	SetRect(&m_rcDrag, LONG_MIN, LONG_MIN, LONG_MAX, LONG_MAX);
-}
-
 _Use_decl_annotations_
-void Engine::CBaseCamera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
+void Engine::Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
 	XMStoreFloat3(&m_vEye, vEyePt);
 	XMStoreFloat3(&m_vDefaultEye, vEyePt);
@@ -72,7 +16,7 @@ void Engine::CBaseCamera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	XMStoreFloat3(&m_vLookAt, vLookatPt);
 	XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
 
-	// Calc the view matrix
+		// Calc the view matrix
 	XMMATRIX mView = XMMatrixLookAtLH(vEyePt, vLookatPt, g_XMIdentityR1);
 	XMStoreFloat4x4(&m_mView, mView);
 
@@ -87,9 +31,9 @@ void Engine::CBaseCamera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 }
 
 _Use_decl_annotations_
-void Engine::CBaseCamera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
+void Engine::Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
 {
-	// Set attributes for the projection matrix
+		// Set attributes for the projection matrix
 	m_fFOV = fFOV;
 	m_fAspect = fAspect;
 	m_fNearPlane = fNearPlane;
@@ -99,7 +43,7 @@ void Engine::CBaseCamera::SetProjParams(float fFOV, float fAspect, float fNearPl
 }
 
 _Use_decl_annotations_
-LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT Engine::Camera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(hWnd);
 	UNREFERENCED_PARAMETER(lParam);
@@ -137,13 +81,13 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 	case WM_MBUTTONDBLCLK:
 	case WM_LBUTTONDBLCLK:
 	{
-		// Compute the drag rectangle in screen coord.
+			// Compute the drag rectangle in screen coord.
 		POINT ptCursor =
 		{
 			(short)LOWORD(lParam), (short)HIWORD(lParam)
 		};
 
-		// Update member var state
+			// Update member var state
 		if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK) && PtInRect(&m_rcDrag, ptCursor))
 		{
 			m_bMouseLButtonDown = true;
@@ -169,7 +113,7 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 	case WM_MBUTTONUP:
 	case WM_LBUTTONUP:
 	{
-		// Update member var state
+			// Update member var state
 		if (uMsg == WM_LBUTTONUP)
 		{
 			m_bMouseLButtonDown = false;
@@ -186,7 +130,7 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 			m_nCurrentButtonMask &= ~MOUSE_RIGHT_BUTTON;
 		}
 
-		// Release the capture if no mouse buttons down
+			// Release the capture if no mouse buttons down
 		if (!m_bMouseLButtonDown && !m_bMouseRButtonDown && !m_bMouseMButtonDown)
 			ReleaseCapture();
 		break;
@@ -224,32 +168,55 @@ LRESULT Engine::CBaseCamera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam,
 }
 
 _Use_decl_annotations_
-void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
+void Engine::Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
 {
 	if (bGetKeyboardInput)
 	{
-		m_vKeyboardDirection = Vector3(0, 0, 0);
+		PxTransform Pos(0.f, 0.f, 0.f);
+		m_vKeyboardDirection = Vector3(0.f, 0.f, 0.f);
 
-		// Update acceleration vector based on keyboard state
+			// Update acceleration vector based on keyboard state
 		if (IsKeyDown(m_aKeys[CAM_MOVE_FORWARD]))
+		{
 			m_vKeyboardDirection.z += 1.0f;
+			Pos.p.z = m_vKeyboardDirection.z;
+		}
 
 		if (IsKeyDown(m_aKeys[CAM_MOVE_BACKWARD]))
+		{
 			m_vKeyboardDirection.z -= 1.0f;
+			Pos.p.z = m_vKeyboardDirection.z;
+		}
 
 		if (m_bEnableYAxisMovement)
 		{
 			if (IsKeyDown(m_aKeys[CAM_MOVE_UP]))
+			{
 				m_vKeyboardDirection.y += 1.0f;
+				Pos.p.y = m_vKeyboardDirection.y;
+
+			}
+
 			if (IsKeyDown(m_aKeys[CAM_MOVE_DOWN]))
+			{
 				m_vKeyboardDirection.y -= 1.0f;
+				Pos.p.y = m_vKeyboardDirection.y;
+			}
 		}
 
 		if (IsKeyDown(m_aKeys[CAM_STRAFE_RIGHT]))
+		{
 			m_vKeyboardDirection.x += 1.0f;
+			Pos.p.x = m_vKeyboardDirection.x;
+		}
 
 		if (IsKeyDown(m_aKeys[CAM_STRAFE_LEFT]))
+		{
 			m_vKeyboardDirection.x -= 1.0f;
+			Pos.p.x = m_vKeyboardDirection.x;
+		}
+		PhysX->getActrCamera()->setGlobalPose(Pos);
+
 	}
 
 	if (bGetMouseInput)
@@ -260,19 +227,19 @@ void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, 
 		m_vGamePadLeftThumb = Vector3::Zero;
 		m_vGamePadRightThumb = Vector3::Zero;
 
-		// Get controller state
+			// Get controller state
 		for (DWORD iUserIndex = 0; iUserIndex < DXUT_MAX_CONTROLLERS; iUserIndex++)
 		{
 			DXUTGetGamepadState(iUserIndex, &m_GamePad[iUserIndex], true, true);
 
-			// Mark time if the controller is in a non-zero state
+				// Mark time if the controller is in a non-zero state
 			if (m_GamePad[iUserIndex].wButtons || m_GamePad[iUserIndex].sThumbLX || m_GamePad[iUserIndex].sThumbLY ||
 				m_GamePad[iUserIndex].sThumbRX || m_GamePad[iUserIndex].sThumbRY || m_GamePad[iUserIndex].bLeftTrigger ||
 				m_GamePad[iUserIndex].bRightTrigger)
 				m_GamePadLastActive[iUserIndex] = DXUTGetTime();
 		}
 
-		// Find out which controller was non-zero last
+			// Find out which controller was non-zero last
 		int iMostRecentlyActive = -1;
 		double fMostRecentlyActiveTime = 0.0f;
 		for (DWORD iUserIndex = 0; iUserIndex < DXUT_MAX_CONTROLLERS; iUserIndex++)
@@ -282,7 +249,7 @@ void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, 
 				iMostRecentlyActive = iUserIndex;
 			}
 
-		// Use the most recent non-zero controller if its connected
+			// Use the most recent non-zero controller if its connected
 		if (iMostRecentlyActive >= 0 && m_GamePad[iMostRecentlyActive].bConnected)
 		{
 			m_vGamePadLeftThumb.x = m_GamePad[iMostRecentlyActive].fThumbLX;
@@ -296,25 +263,25 @@ void Engine::CBaseCamera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, 
 	}
 }
 
-void Engine::CBaseCamera::UpdateMouseDelta()
+void Engine::Camera::UpdateMouseDelta()
 {
-	// Get current position of mouse
+		// Get current position of mouse
 	POINT ptCurMousePos;
 	GetCursorPos(&ptCurMousePos);
 
-	// Calc how far it's moved since last frame
+		// Calc how far it's moved since last frame
 	POINT ptCurMouseDelta;
 	ptCurMouseDelta.x = ptCurMousePos.x - m_ptLastMousePosition.x;
 	ptCurMouseDelta.y = ptCurMousePos.y - m_ptLastMousePosition.y;
 
-	// Record current position for next time
+		// Record current position for next time
 	m_ptLastMousePosition = ptCurMousePos;
 
 	if (m_bResetCursorAfterMove && DXUTIsActive())
 	{
 		POINT ptCenter;
 
-		// Get the center of the current monitor
+			// Get the center of the current monitor
 		MONITORINFO mi;
 		mi.cbSize = sizeof(MONITORINFO);
 		DXUTGetMonitorInfo(DXUTMonitorFromWindow(DXUTGetHWND(), MONITOR_DEFAULTTONEAREST), &mi);
@@ -332,7 +299,7 @@ void Engine::CBaseCamera::UpdateMouseDelta()
 	m_vRotVelocity.y = m_vMouseDelta.y * m_fRotationScaler;
 }
 
-void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
+void Engine::Camera::UpdateVelocity(_In_ float fElapsedTime)
 {
 	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
@@ -346,12 +313,12 @@ void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 
 	vAccel = XMVector3Normalize(vAccel);
 
-	// Scale the acceleration vector
+		// Scale the acceleration vector
 	vAccel *= m_fMoveScaler;
 
 	if (m_bMovementDrag)
 	{
-		// Is there any acceleration this frame?
+			// Is there any acceleration this frame?
 		if (XMVectorGetX(XMVector3LengthSq(vAccel)) > 0)
 		{
 			XMStoreFloat3(&m_vVelocity, vAccel);
@@ -360,10 +327,10 @@ void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 		}
 		else
 		{
-			// If no key being pressed, then slowly decrease velocity to 0
+				// If no key being pressed, then slowly decrease velocity to 0
 			if (m_fDragTimer > 0)
 			{
-				// Drag until timer is <= 0
+					// Drag until timer is <= 0
 				Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vVelocityDrag = XMLoadFloat3(&m_vVelocityDrag);
 
 				vVelocity -= vVelocityDrag * fElapsedTime;
@@ -371,16 +338,16 @@ void Engine::CBaseCamera::UpdateVelocity(_In_ float fElapsedTime)
 				m_fDragTimer -= fElapsedTime;
 			}
 			else
-				// Zero velocity
+					// Zero velocity
 				m_vVelocity = Vector3::Zero;
 		}
 	}
 	else
-		// No drag, so immediately change the velocity
+			// No drag, so immediately change the velocity
 		XMStoreFloat3(&m_vVelocity, vAccel);
 }
 
-Engine::D3DUtil_CameraKeys Engine::CBaseCamera::MapKey(_In_ UINT nKey)
+Engine::D3DUtil_CameraKeys Engine::Camera::MapKey(_In_ UINT nKey)
 {
 	switch (nKey)
 	{
@@ -412,7 +379,7 @@ Engine::D3DUtil_CameraKeys Engine::CBaseCamera::MapKey(_In_ UINT nKey)
 	case 'E':
 		return CAM_MOVE_UP;
 
-	case VK_NUMPAD4:
+case VK_NUMPAD4:
 		return CAM_STRAFE_LEFT;
 	case VK_NUMPAD6:
 		return CAM_STRAFE_RIGHT;
@@ -431,16 +398,16 @@ Engine::D3DUtil_CameraKeys Engine::CBaseCamera::MapKey(_In_ UINT nKey)
 	return CAM_UNKNOWN;
 }
 
-void Engine::CBaseCamera::Reset()
+void Engine::Camera::Reset()
 {
 	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
 
 	SetViewParams(vDefaultEye, vDefaultLookAt);
+
+	PhysX->getActrCamera()->setGlobalPose(PxTransform(vDefaultEye.x, vDefaultEye.y, vDefaultEye.z));
 }
 
-Engine::CFirstPersonCamera::CFirstPersonCamera() noexcept: m_mCameraWorld {}, m_nActiveButtonMask(0x07), m_bRotateWithoutButtonDown(false) {}
-
-void Engine::CFirstPersonCamera::FrameMove(_In_ float fElapsedTime)
+void Engine::Camera::FrameMove(_In_ float fElapsedTime)
 {
 	if (DXUTGetGlobalTimer()->IsStopped())
 		if (DXUTGetFPS() == 0.0f)
@@ -451,58 +418,61 @@ void Engine::CFirstPersonCamera::FrameMove(_In_ float fElapsedTime)
 	if (IsKeyDown(m_aKeys[CAM_RESET]))
 		Reset();
 
-	// Get keyboard/mouse/gamepad input
+		// Get keyboard/mouse/gamepad input
 	GetInput(m_bEnablePositionMovement, (m_nActiveButtonMask & m_nCurrentButtonMask) || m_bRotateWithoutButtonDown, true);
 
-	// Get amount of velocity based on the keyboard input and drag (if any)
+		// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
 
-	// Simple euler method to calculate position delta
+		// Simple euler method to calculate position delta
 	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
 
-	// If rotating the camera 
+		// If rotating the camera 
 	if ((m_nActiveButtonMask & m_nCurrentButtonMask) || m_bRotateWithoutButtonDown || m_vGamePadRightThumb.x != 0 ||
 		m_vGamePadRightThumb.z != 0)
 	{
-		// Update the pitch & yaw angle based on mouse movement
+			// Update the pitch & yaw angle based on mouse movement
 		float fYawDelta = m_vRotVelocity.x, fPitchDelta = m_vRotVelocity.y;
 
-		// Invert pitch if requested
+			// Invert pitch if requested
 		if (m_bInvertPitch)
 			fPitchDelta = -fPitchDelta;
 
 		m_fCameraPitchAngle += fPitchDelta;
 		m_fCameraYawAngle += fYawDelta;
 
-		// Limit pitch to straight up or straight down
+			// Limit pitch to straight up or straight down
 		m_fCameraPitchAngle = max(-XM_PI / 2.0f, m_fCameraPitchAngle);
 		m_fCameraPitchAngle = min(+XM_PI / 2.0f, m_fCameraPitchAngle);
 	}
 
-	// Make a rotation matrix based on the camera's yaw & pitch
+		// Make a rotation matrix based on the camera's yaw & pitch
 	Matrix mCameraRot = XMMatrixRotationRollPitchYaw(m_fCameraPitchAngle, m_fCameraYawAngle, 0);
 
-	// Transform vectors based on camera's rotation matrix
+		// Transform vectors based on camera's rotation matrix
 	Vector3 vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot), vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
 
-	// Transform the position delta by the camera's rotation 
+		// Transform the position delta by the camera's rotation 
 	if (!m_bEnableYAxisMovement)
 		mCameraRot = XMMatrixRotationRollPitchYaw(0.0f, m_fCameraYawAngle, 0.0f);
 	Vector3 vPosDeltaWorld = XMVector3TransformCoord(vPosDelta, mCameraRot),
+		
 		// Move the eye position 
-	vEye
-	= m_vEye;
-
+	vEye = m_vEye;
 	vEye += vPosDeltaWorld;
+
 	if (m_bClipToBoundary)
 		vEye = ConstrainToBoundary(vEye);
+
 	XMStoreFloat3(&m_vEye, vEye);
 
-	// Update the lookAt position based on the eye position
+	PhysX->getActrCamera()->setGlobalPose(PxTransform(vEye.x, vEye.y, vEye.z));
+
+		// Update the lookAt position based on the eye position
 	Vector3 vLookAt = vEye + vWorldAhead;
 	XMStoreFloat3(&m_vLookAt, vLookAt);
 
-	// Update the view matrix
+		// Update the view matrix
 	Matrix mView = XMMatrixLookAtLH(vEye, vLookAt, vWorldUp);
 	XMStoreFloat4x4(&m_mView, mView);
 
@@ -511,7 +481,7 @@ void Engine::CFirstPersonCamera::FrameMove(_In_ float fElapsedTime)
 }
 
 _Use_decl_annotations_
-void Engine::CFirstPersonCamera::SetRotateButtons(bool bLeft, bool bMiddle, bool bRight, bool bRotateWithoutButtonDown)
+void Engine::Camera::SetRotateButtons(bool bLeft, bool bMiddle, bool bRight, bool bRotateWithoutButtonDown)
 {
 	m_nActiveButtonMask = (bLeft ? MOUSE_LEFT_BUTTON : 0) | (bMiddle ? MOUSE_MIDDLE_BUTTON : 0) | (bRight ? MOUSE_RIGHT_BUTTON : 0);
 	m_bRotateWithoutButtonDown = bRotateWithoutButtonDown;
@@ -521,7 +491,6 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 {
 	float zMinimum = 0.f, r = 0.f;
 	Matrix matrix;
-
 
 	zMinimum = -projectionMatrix._43 / projectionMatrix._33;
 	r = screenDepth / (screenDepth - zMinimum);
@@ -576,11 +545,8 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 bool Engine::Frustum::CheckPoint(float x, float y, float z)
 {
 	for (int i = 0; i < 6; i++)
-	{
-		float ret = XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(x, y, z, 1.0f)));
-		if (ret < 0.0f)
+		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(x, y, z, 1.0f))) < 0.0f)
 			return false;
-	}
 
 	return true;
 }

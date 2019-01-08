@@ -54,18 +54,18 @@ namespace Engine
 		};
 	};
 
-	class Picking: public Physics, public CFirstPersonCamera
+	class Picking: public Camera
 	{
 	public:
 		Picking();
-		Picking(Physics *PhysX, CFirstPersonCamera *Camera) { this->PhysX = PhysX; this->Camera = Camera; }
+		Picking(Physics *PhysX, Camera *Camera) { this->PhysX = PhysX; this->camera = Camera; }
 		~Picking();
 
 		PX_FORCE_INLINE	void						lazyPick() { pick(mMouseScreenX, mMouseScreenY); }
 		bool						isPicked() const;
 		bool						pick(int x, int y);
 		void						moveCursor(PxI32 x, PxI32 y);
-		void SetObjClasses(Physics *PhysX, CFirstPersonCamera *Camera) { this->PhysX = PhysX; this->Camera = Camera; }
+		void SetObjClasses(Physics *PhysX, Camera *camera) { this->PhysX = PhysX; this->camera = camera; }
 		//void						moveCursor(PxReal deltaDepth);
 
 		void						computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y)	const;
@@ -102,7 +102,7 @@ namespace Engine
 		int							mMouseScreenX, mMouseScreenY;
 
 		Physics *PhysX 			   = nullptr;
-		CFirstPersonCamera *Camera = nullptr;
+		Camera *camera = nullptr;
 #ifdef VISUALIZE_PICKING_RAYS
 		std::vector<Ray>			mRays;
 #endif

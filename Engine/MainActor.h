@@ -8,7 +8,7 @@
 
 namespace Engine
 {
-	class MainActor: public GameObjects, public CFirstPersonCamera
+	class MainActor: public GameObjects, public Camera
 	{
 	public:
 
@@ -54,18 +54,25 @@ namespace Engine
 			gCamera->setPosCam(Pos);
 		}
 
-		void SetupCamera()
+		void SetupCamera(Physics *PhysX)
 		{
+			this->PhysX.reset(PhysX); 
+
+			gCamera = make_unique<Camera>();
+
+			ThrowIfFailed(gCamera->Init(PhysX));
+
 			gCamera->SetScalers(0.010f, 6.0f);
 			gCamera->SetRotateButtons(true, false, false);
 			gCamera->SetEnableYAxisMovement(true);
 			SetChangeFOV(false);
 		}
 
+		void SetPhysXForActor(Physics *PhysX) { this->PhysX.reset(PhysX); }
+
 		Vector3 getPosition() { return Position; }
 		auto getObjCamera() { if (gCamera.operator bool()) return gCamera.get(); }
 		float getHealthActor() { return Health; }
-
 	private:
 			//**********
 		float FOV = 0.80f;
@@ -76,10 +83,13 @@ namespace Engine
 		float Health = 100.0f;
 
 			//**********
-		unique_ptr<CFirstPersonCamera> gCamera = make_unique<CFirstPersonCamera>();
+		unique_ptr<Camera> gCamera;
 
 			//**********
 		Vector3 GetPostitionFromCamera() { return gCamera->GetEyePt(); }
+
+			//**********
+		unique_ptr<Physics> PhysX;
 
 			//**********
 		//It is cheat

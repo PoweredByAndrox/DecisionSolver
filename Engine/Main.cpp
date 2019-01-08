@@ -35,7 +35,7 @@ using namespace Engine;
 Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 2.0f, 1.f };
 
 auto file_system = make_unique<File_system>();
-vector<unique_ptr<Models>> Model;
+vector<unique_ptr<Models>> model;
 auto Sound = make_unique<Audio>();
 auto ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
@@ -162,7 +162,7 @@ void InitApp()
 	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
 	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
 
-	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22);
+	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22, 1);
 
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	if (!Sound->IsInitSounSystem())
@@ -180,8 +180,11 @@ void InitApp()
 #endif
 
 	//g_Camera.SetClipToBoundary(true, &Vector3(4, 6, 3), &Vector3(1, 2, 5));
-	
-	mainActor->SetupCamera();
+
+	if (!PhysX->IsPhysicsInit())
+		PhysX->Init();
+
+	mainActor->SetupCamera(PhysX.get());
 
 	//g_Camera->SetChangeFOV(true);
 
@@ -246,7 +249,8 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		mainActor->getObjCamera()->SetViewParams(Eye, At);
 		break;
 	case BUTTON_7:
-		PhysX->AddNewActor(mainActor->getPosition(), Vector3(0.5f, 0.5f, 0.5f));
+		PhysX->AddNewActor(Vector3(mainActor->getPosition().x, mainActor->getPosition().y + 10.f, mainActor->getPosition().z),
+			Vector3(0.5f, 0.5f, 0.5f), rand() % 90 + 1);
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
@@ -297,55 +301,43 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 	Version.push_back(string("vs_4_0"));
 	Version.push_back(string("ps_4_0"));
 
-	struct ConstantBuffer
-	{
-		Matrix mWorld;
-		Matrix mView;
-		Matrix mProjection;
-	};
-
 	if (!buffers->isInit())
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
-	if (!PhysX->IsPhysicsInit())
-		PhysX->Init();
-
-//	gameObject->Load(buffers->GetResPathA(&string("vue_ready_shasta.obj")));
-
-#ifdef NEVER_228
-	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
-	if (Model.empty())
+#ifndef NEVER_228
+	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
+	if (model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
 			*buffers->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 
-	PhysX->_createTriMesh(Model.back().get());
+	PhysX->_createTriMesh(model.back().get());
 
 	//Model.back()->Position(Vector3(100.f, 0.f, 100.f));
 #endif
 
-#ifdef NEVER_228
-	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("planet.obj"))));//, aiProcess_Triangulate, false));
-	if (Model.empty())
+#ifndef NEVER_228
+	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("planet.obj"))));//, aiProcess_Triangulate, false));
+	if (model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*buffers->GetResPathW(&wstring(L"planet.obj"))).c_str(), L"", MB_OK);
 
-	PhysX->_createTriMesh(Model.back().get());
+	PhysX->_createTriMesh(model.back().get());
 
 	//Model.back()->Scale(Vector3(2.f, 2.f, 2.f));
 	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
 #endif
 
-#ifdef NEVER_228
-	Model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
-	if (Model.empty())
+#ifndef NEVER_228
+	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
+	if (model.empty())
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*buffers->GetResPathW(&wstring(L"vue_ready_shasta.obj"))).c_str(), L"", MB_OK);
 
-	Model.back()->Scale(Vector3(0.05, 0.05, 0.05));
+	model.back()->Scale(Vector3(0.05, 0.05, 0.05));
 
 	//PhysX->_createTriMesh(Model.back().get());
 
-	Model.back()->Position(Vector3(-22.f, -14.5f, 0.f));
+	model.back()->Position(Vector3(-22.f, -14.5f, 0.f));
 #endif
 
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
@@ -372,13 +364,13 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChai
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 
 		// *******
-	ui->SetLocationButton(ui->getHUD(), 0, X, Y, false);
-	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25, false);
-	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, false);
-	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, false);
+	ui->SetLocationButton(ui->getHUD(), 0, X, Y, true);
+	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25, true);
+	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, true);
+	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, true);
 
 	if (!ui->getObjCheckBox()->empty())
-		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox()->size() - 1, X - 150, Y += 25, false);
+		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox()->size() - 1, X - 150, Y += 25, true);
 
 	return S_OK;
 }
@@ -470,6 +462,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 			}
 		}
 	}
+
 #ifdef _NEVER
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 	if (!ui->getObjCheckBox()->empty())
@@ -491,9 +484,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
 	if (ObjCheck)
 		if (ObjCheck->GetChecked())
-			//mainActor->getObjCamera()->SetEnableYAxisMovement(true);
-			mainActor->getObjCamera()->SetJump(fElapsedTime);
-		else 
+			mainActor->getObjCamera()->SetEnableYAxisMovement(true);
+		else
 			mainActor->getObjCamera()->SetEnableYAxisMovement(false);
 
 #ifndef DEBUG
@@ -546,9 +538,30 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 
 	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
+	for (int i = 0; i < model.size(); i++)
+		model.at(i)->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	V(ui->getHUD()->OnRender(fElapsedTime));
+
+	//auto ActrCamera = PhysX->getActrCamera();
+	//if (ActrCamera)
+	//{
+	//	PxQuat aq;
+	//	Vector4 q;
+	//	PxVec3 pos;
+	//	aq = ActrCamera->getGlobalPose().q;
+	//	q = Vector4(aq.x, aq.y, aq.z, aq.w);
+	//	pos = ActrCamera->getGlobalPose().p;
+
+	//	mainActor->getObjCamera()->setPosCam(Vector3(pos.x, pos.y, pos.z));
+	//	for (int i = 0; i < m_shape.size(); i++)
+	//		m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq.x, aq.y, aq.z, aq.w))
+	//			* XMMatrixTranslation(pos.x, pos.y-5.f, pos.z),
+	//			mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+	//	//ActrCamera->setGlobalPose(PxTransform(mainActor->getPosition().x, mainActor->getPosition().y - 5.f, mainActor->getPosition().z));
+	//}
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -609,7 +622,10 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
 	if (*pbNoFurtherProcessing)
 		return 0;
-	mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
+
+	auto ObjCamera = mainActor->getObjCamera();
+	if (ObjCamera)
+		mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
 
 #ifdef Never_MainMenu
 	switch (*MM->getGameMode())
@@ -652,6 +668,8 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			m_shape.clear();
 			PhysX->ClearAllObj();
 			break;
+		case VK_F10:
+			m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
 		}
 #ifdef Never_MainMenu
 	if (bKeyDown)

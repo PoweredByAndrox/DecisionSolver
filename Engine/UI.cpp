@@ -14,7 +14,7 @@ HRESULT UI::Init()
 	}
 	catch (const exception ex)
 	{
-		DebugTrace("UI: Init failed. Line: 12\n");
+		DebugTrace("UI: Init failed.\n");
 		throw exception("Init == nullptr!!!");
 		InitUI = false;
 		return E_FAIL;
@@ -37,7 +37,7 @@ HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text)
 	{
 		//if (ID->size() != Text.size())
 		//{
-		//	DebugTrace("UI: AddButton failed. An equal number of ID elements and text is required. Line: 36\n");
+		//	DebugTrace("UI: AddButton failed. An equal number of ID elements and text is required.\n");
 		//	throw exception("ID.size() != Text.size()!!!");
 		//	return E_FAIL;
 		//}
@@ -47,7 +47,7 @@ HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text)
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddButton failed. Line: 45\n");
+		DebugTrace("UI: AddButton failed.\n");
 		throw exception("AddButton failed!!!");
 		return E_FAIL;
 	}
@@ -65,7 +65,7 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	{
 		if (ID->size() != Text->size() && Y->size() != Keys->size())
 		{
-			DebugTrace("UI: AddButton_Massive failed. An equal number of ID elements and text is required. Line: 63\n");
+			DebugTrace("UI: AddButton_Massive failed. An equal number of ID elements and TEXT is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -73,12 +73,13 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 		{
 			ObjButton.push_back(ID->at(i));
 			ObjNameButton.push_back(Text->at(i));
-			Dial->AddButton(ID->at(i), Text->at(i).c_str(), 35, Y->at(i), 125, 22, Keys->at(i));
+			auto W = (Text->at(i).size() + Text->at(i).length()) * 5;
+			Dial->AddButton(ID->at(i), Text->at(i).c_str(), 0, Y->at(i), W, 22, Keys->at(i));
 		}
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddButton_Massive failed. Line: 76\n");
+		DebugTrace("UI: AddButton_Massive failed.\n");
 		throw exception("AddButton_Massive failed!!!");
 		return E_FAIL;
 	}
@@ -91,7 +92,7 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	{
 		if (ID->size() != Text->size())
 		{
-			DebugTrace("UI: AddButton_Massive failed. An equal number of ID elements and text is required. Line: 89\n");
+			DebugTrace("UI: AddButton_Massive failed. An equal number of ID elements and text is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -104,7 +105,7 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddButton_Massive failed. Line: 102\n");
+		DebugTrace("UI: AddButton_Massive failed.\n");
 		throw exception("AddButton_Massive failed!!!");
 		return E_FAIL;
 	}
@@ -117,7 +118,7 @@ HRESULT UI::AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddStatic_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 115\n");
+			DebugTrace("UI: AddStatic_Massive failed. An equal number of ID elements and text and X\\Y is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -125,12 +126,12 @@ HRESULT UI::AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 		{
 			ObjStatic.push_back(ID->at(i));
 			ObjNameStatic.push_back(Text->at(i));
-			Dial->AddStatic(ID->at(i), Text->at(i).c_str(), X->at(i), Y->at(i), W->at(i), H->at(i));
+			Dial->AddStatic(ID->at(i), Text->at(i).c_str(), X->at(i), Y->at(i), Text->at(i).size(), H->at(i));
 		}
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddStatic_Massive failed. Line: 128\n");
+		DebugTrace("UI: AddStatic_Massive failed.\n");
 		throw exception("AddStatic_Massive failed!!!");
 		return E_FAIL;
 	}
@@ -148,7 +149,7 @@ HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text)
 	{
 		//if (ID.size() != Text.size())
 		//{
-		//	DebugTrace("UI: AddStatic failed. An equal number of ID elements and text is required. Line: 67\n");
+		//	DebugTrace("UI: AddStatic failed. An equal number of ID elements and text is required.\n");
 		//	throw exception("ID.size() != Text.size()!!!");
 		//	return E_FAIL;
 		//}
@@ -158,7 +159,7 @@ HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text)
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddStatic failed. Line: 156\n");
+		DebugTrace("UI: AddStatic failed.\n");
 		throw exception("AddStatic failed!!!");
 		return E_FAIL;
 	}
@@ -171,7 +172,12 @@ void UI::SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
 		Dial->GetButton(ObjButton.at(ID))->SetLocation(X, Y);
 	else
 	{
-
+		auto HeightBuff = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
+		auto WidthComponent = Dial->GetButton(ObjButton.at(ID))->m_width + Dial->GetButton(ObjButton.at(ID))->m_height;
+		auto Cache = DXUTGetDXGIBackBufferSurfaceDesc()->Width - WidthComponent;
+		auto ObjBtn = Dial->GetButton(ObjButton.at(ID));
+		if (ObjBtn)
+			ObjBtn->SetLocation(Cache, Y);
 	}
 }
 
@@ -373,9 +379,16 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
-	snprintf(buff, sizeof(buff), string(*Text + string("X:%.1f, Y:%.1f, Z:%.1f")).c_str(),
+	string CacheText;
+
+	snprintf(buff, sizeof(buff), (CacheText = string(*Text + string("X:%.1f, Y:%.1f, Z:%.1f"))).c_str(),
 		Format->x, Format->y, Format->z);
-	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
+	auto ObjStatcs = Dial->GetStatic(ObjStatic.at(ID));
+	if (ObjStatcs)
+	{
+		ObjStatcs->SetText(A2W(buff));
+		ObjStatcs->SetSize(Text->size(), ObjStatcs->m_height);
+	}
 }
 
 void UI::SetLocationCheck(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
@@ -385,10 +398,11 @@ void UI::SetLocationCheck(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
 	else
 	{
 		auto HeightBuff = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
-		auto WidthComponent = Dial->GetCheckBox(ObjCheckBox.at(ID))->m_width;
-		auto Cache = HeightBuff - (WidthComponent + 100);
-		//while (Cache)
-		Dial->GetCheckBox(ObjCheckBox.at(ID))->UpdateRects();//(Cache, Y);
+		auto WidthComponent = Dial->GetCheckBox(ObjCheckBox.at(ID))->m_width + Dial->GetCheckBox(ObjCheckBox.at(ID))->m_height;
+		auto Cache = DXUTGetDXGIBackBufferSurfaceDesc()->Width - WidthComponent;
+		auto ObjCBK = Dial->GetCheckBox(ObjCheckBox.at(ID));
+		if (ObjCBK)
+				ObjCBK->SetLocation(Cache, Y);
 	}
 }
 
@@ -430,7 +444,7 @@ HRESULT UI::AddSlider(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, in
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddSlider failed. Line: 409\n");
+		DebugTrace("UI: AddSlider failed.\n");
 		throw exception("AddSlider failed!!!");
 		return E_FAIL;
 	}
@@ -452,7 +466,7 @@ HRESULT UI::AddSlider_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddSlider_Mass failed. Line: 431\n");
+		DebugTrace("UI: AddSlider_Mass failed.\n");
 		throw exception("AddSlider_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -469,7 +483,7 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox failed. Line: 445\n");
+		DebugTrace("UI: AddCheckBox failed.\n");
 		throw exception("AddCheckBox failed!!!");
 		return E_FAIL;
 	}
@@ -482,7 +496,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 458\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -496,7 +510,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox_Mass failed. Line: 472\n");
+		DebugTrace("UI: AddCheckBox_Mass failed.\n");
 		throw exception("AddCheckBox_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -513,7 +527,7 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox failed. Line: 489\n");
+		DebugTrace("UI: AddCheckBox failed.\n");
 		throw exception("AddCheckBox failed!!!");
 		return E_FAIL;
 	}
@@ -526,7 +540,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 502\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -540,7 +554,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox_Mass failed. Line: 516\n");
+		DebugTrace("UI: AddCheckBox_Mass failed.\n");
 		throw exception("AddCheckBox_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -553,11 +567,12 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	{
 		ObjCheckBox.push_back(ID);
 		ObjNameCheckBox.push_back(Text->c_str());
+		auto W = (Text->size() + Text->length()) * 4;
 		Dial->AddCheckBox(ID, ObjNameCheckBox.back().c_str(), X, Y, W, H);
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox failed. Line: 533\n");
+		DebugTrace("UI: AddCheckBox failed.\n");
 		throw exception("AddCheckBox failed!!!");
 		return E_FAIL;
 	}
@@ -570,7 +585,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	{
 		if (ID->size() != Text->size() && Y->size() != X->size())
 		{
-			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required. Line: 546\n");
+			DebugTrace("UI: AddCheckBox_Massive failed. An equal number of ID elements and text and X\\Y is required.\n");
 			throw exception("ID.size() != Text.size()!!!");
 			return E_FAIL;
 		}
@@ -584,7 +599,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddCheckBox_Mass failed. Line: 560\n");
+		DebugTrace("UI: AddCheckBox_Mass failed.\n");
 		throw exception("AddCheckBox_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -601,7 +616,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox failed. Line: 576\n");
+		DebugTrace("UI: AddComboBox failed.\n");
 		throw exception("AddComboBox failed!!!");
 		return E_FAIL;
 	}
@@ -622,7 +637,7 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox_Mass failed. Line: 601\n");
+		DebugTrace("UI: AddComboBox_Mass failed.\n");
 		throw exception("AddComboBox_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -639,7 +654,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox failed. Line: 612\n");
+		DebugTrace("UI: AddComboBox failed.\n");
 		throw exception("AddComboBox failed!!!");
 		return E_FAIL;
 	}
@@ -660,7 +675,7 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox_Mass failed. Line: 632\n");
+		DebugTrace("UI: AddComboBox_Mass failed.\n");
 		throw exception("AddComboBox_Mass failed!!!");
 		return E_FAIL;
 	}
@@ -677,7 +692,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox failed. Line: 648\n");
+		DebugTrace("UI: AddComboBox failed.\n");
 		throw exception("AddComboBox failed!!!");
 		return E_FAIL;
 	}
@@ -699,7 +714,7 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	}
 	catch (const exception&)
 	{
-		DebugTrace("UI: AddComboBox_Mass failed. Line: 668\n");
+		DebugTrace("UI: AddComboBox_Mass failed.\n");
 		throw exception("AddComboBox_Mass failed!!!");
 		return E_FAIL;
 	}

@@ -166,6 +166,22 @@ void Engine::Physics::_createTriMesh(Models *Model)
 	}
 }
 
+void Engine::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
+{
+	gActorCamera = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
+	gActorCamera->setMass(5.0f);
+//	gScene->addActor(*gActorCamera);
+
+	PxTransform relativePose(PxQuat(PxHalfPi, PxVec3(0.f, 0.f, 1.f)));
+	PxShape *aCapsuleShape = PxRigidActorExt::createExclusiveShape(*gActorCamera, PxCapsuleGeometry(1.5f, 1.f), *gMaterial);
+	aCapsuleShape->setLocalPose(relativePose);
+	PxRigidBodyExt::updateMassAndInertia(*gActorCamera, 0.5f);
+
+	gScene->addActor(*gActorCamera);
+
+	// DynamicObjects.push_back(gActorCamera);
+}
+
 void Engine::Physics::Destroy()
 {
 	//if (gPvd)
@@ -180,11 +196,11 @@ void Engine::Physics::Destroy()
 	_SAFE_RELEASE(gFoundation);
 }
 
-void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom)
+void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass)
 {
-	PxTransform boxPos(PxVec3(Pos.x, Pos.y, Pos.z));
-	PxBoxGeometry boxGeometry(PxVec3(Geom.x, Geom.y, Geom.z));
-	gBox = PxCreateDynamic(*gPhysics, boxPos, boxGeometry, *gMaterial, 1.0f);
+	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
+
+	gBox->setMass(Mass);
 
 	gScene->addActor(*gBox);
 	DynamicObjects.push_back(gBox);

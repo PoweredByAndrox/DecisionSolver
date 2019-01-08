@@ -19,8 +19,12 @@
 #include <extensions/PxDefaultCpuDispatcher.h>
 #include <extensions/PxShapeExt.h>
 #include <extensions/PxSimpleFactory.h>
+#include <extensions/PxRaycastCCD.h>
 
 #include <PxSimulationEventCallback.h>
+
+#include <characterkinematic/PxController.h>
+#include <characterkinematic/PxControllerBehavior.h>
 
 #include "DirectXHelpers.h"
 #include "GeometricPrimitive.h"
@@ -72,12 +76,12 @@
 #pragma comment(lib, "PxPvdSDK_x64.lib")
 #pragma comment(lib, "PhysX3Extensions.lib")
 #endif
+using namespace physx;
 
 namespace Engine
 {
 #define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
 
-	using namespace physx;
 
 	class Physics: public Models
 	{
@@ -105,7 +109,7 @@ namespace Engine
 		vector<PxRigidStatic *> GetPhysStaticObject() { return StaticObjects; }
 		//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
-		void AddNewActor(Vector3 Pos, Vector3 Geom);
+		void AddNewActor(Vector3 Pos, Vector3 Geom, float Mass);
 
 		PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
 
@@ -117,6 +121,8 @@ namespace Engine
 		auto getTriMesh() { if (triangleMesh) return triangleMesh; }
 		auto getScene() { if (gScene) return gScene; }
 		auto getPhysics() { if (gPhysics) return gPhysics; }
+		auto getMaterial() { if (gMaterial) return gMaterial; }
+		auto getActrCamera() { if (gActorCamera) return gActorCamera; }
 
 		void ClearAllObj()
 		{
@@ -141,6 +147,8 @@ namespace Engine
 			}
 		}
 
+		void SetPhysicsForCamera(Vector3 Pos, Vector3 Geom);
+
 		Physics() {}
 		~Physics() {}
 	private:
@@ -154,7 +162,7 @@ namespace Engine
 		PxMaterial *gMaterial = nullptr;
 		PxScene *gScene = nullptr;
 		PxRigidStatic *gPlane = nullptr;
-		PxRigidDynamic *gBox = nullptr;
+		PxRigidDynamic *gBox = nullptr, *gActorCamera = nullptr;
 		PxCooking *gCooking = nullptr;
 		//PxPvd *gPvd = nullptr;
 
@@ -176,7 +184,7 @@ namespace Engine
 		ID3D11DeviceContext *DeviceCon = nullptr;
 
 		// ***************
-			// Initialized bool variables
+			// Initialized bool variable
 		bool IsInitPhysX = false;
 	};
 };

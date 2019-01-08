@@ -12,7 +12,6 @@ namespace Engine
 	class GameObjects: public Physics
 	{
 	public:
-		//virtual void Render() = 0;
 		virtual void Render(Matrix View, Matrix Proj) = 0;
 		virtual void Update() = 0;
 		virtual void Destroy() = 0;
@@ -30,7 +29,6 @@ namespace Engine
 		bool isInit = false;
 
 			//********
-		unique_ptr<Physics> PhysX = make_unique<Physics>();
 		//Audio *Sound = new Audio;
 
 			//********
