@@ -49,7 +49,7 @@ namespace Engine
 			try
 			{
 				this->PhysX.reset(PhysX);
-				PhysX->SetPhysicsForCamera(Vector3(0.f, 0.f, 0.f), Vector3(2.f, 2.f, 2.f));
+				PhysX->SetPhysicsForCamera(Vector3(0.f, 0.f, 0.f), Vector3(1.f, 1.f, 1.f));
 			}
 			catch (const exception&)
 			{

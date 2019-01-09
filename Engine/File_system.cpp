@@ -7,7 +7,7 @@ File_system::File_system()
 	p = _wgetcwd(NULL, 512);
 	if (p.empty())
 	{
-		DebugTrace("File_system: Error getting path. Line: 7\n");
+		DebugTrace("File_system: Error getting path.\n");
 		throw exception("p == empty!!!");
 	}
 }
@@ -94,7 +94,24 @@ string *File_system::GetResPathA(string *File)
 				else
 					*File = ResPath + string("sounds/") + string(*File);
 			}
-
+			else if (ext == ".xml")
+			{
+				if (!boost::filesystem::exists(ResPath + string("text/") + string(*File)))
+				{
+					auto cache = getFilesInFolder(&string(ResPath + string("text/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
+						if (filename == string(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + string("text/") + string(*File);
+			}
 			else
 			{
 				*File = "Unsupported File!";
@@ -191,6 +208,24 @@ wstring *File_system::GetResPathW(wstring *File)
 				else
 					*File = ResPath + wstring(L"sounds/") + wstring(*File);
 			}
+			else if (ext == ".xml")
+			{
+				if (!boost::filesystem::exists(ResPath + wstring(L"text/") + wstring(*File)))
+				{
+					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"text/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
+						if (filename == wstring(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + wstring(L"text/") + wstring(*File);
+			}
 			else
 			{
 				*File = wstring(L"Unsupported File!");
@@ -210,7 +245,6 @@ wstring *File_system::GetResPathW(wstring *File)
 		throw exception("ResPath == empty!!!");
 		return &wstring(L"");
 	}
-
 }
 
 wstring File_system::GetResPathW(string *File)
@@ -595,4 +629,45 @@ vector<string> File_system::getFilesInFolder(string *File)
 	}
 
 	return files;
+}
+/*
+vector<wstring> File_system::getDataFromFile(wstring *File)
+{
+	USES_CONVERSION;
+
+	auto FileName = GetResPathW(File)->c_str();
+	auto streamObj = std::ifstream(FileName);
+	streamObj.open(FileName);
+	if (!streamObj.is_open())
+	{
+		throw exception("File_system::getDataFromFile() == nullptr");
+		return nullptr;
+	}
+	else
+	{
+		string Returned_val;
+		streamObj >> Returned_val;
+
+		if (!Returned_val.empty())
+			return &wstring(A2W(Returned_val.data()));
+		else
+			return nullptr;
+	}
+}
+*/
+
+string File_system::getDataFromFile(string *File)
+{
+	auto FileName = GetResPathA(File)->c_str();
+	string Returned_val, Cache;
+	auto streamObj = std::ifstream(FileName);
+
+	while (!streamObj.eof())
+	{
+		getline(streamObj, Cache);
+		Returned_val.append(Cache);
+	}
+
+	if (!Returned_val.empty())
+		return Returned_val;
 }

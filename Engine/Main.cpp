@@ -183,8 +183,11 @@ void InitApp()
 
 	if (!PhysX->IsPhysicsInit())
 		PhysX->Init();
-
-	mainActor->SetupCamera(PhysX.get());
+	if (!mainActor->IsInit())
+	{
+		mainActor->Init(PhysX.get());
+		mainActor->SetupCamera();
+	}
 
 	//g_Camera->SetChangeFOV(true);
 

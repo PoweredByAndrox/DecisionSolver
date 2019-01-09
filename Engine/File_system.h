@@ -38,6 +38,9 @@ public:
 	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to);
 	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also);
 
+		// Work With Files
+	//wstring *getDataFromFile(wstring *File);
+	string getDataFromFile(string *File);
 private:
 	path p;
 };

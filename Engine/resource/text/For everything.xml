@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<test>
-	<oneSection>Here</oneSection>
-</test> <!--My First Comment In This XML File)-->
+<Main_Actor>
+	<First_Dialog>Hello!</First_Dialog>
+	<Second_Dialog>How are you?!</Second_Dialog>
+	<Thirt_Dialog>Bye!</Thirt_Dialog>
+</Main_Actor> <!--My First Comment In This XML File)-->

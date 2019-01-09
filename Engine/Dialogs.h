@@ -16,24 +16,28 @@ namespace Engine
 		Dialogs() {}
 		~Dialogs() {}
 
-		HRESULT Init(File_system *FS);
+		HRESULT Init();
 		HRESULT LoadFile(string *FileName);
 	
-		void getAllReplices();
-
+		//*******
+			// Get Main Actor Dialogs Replices In Vector Strings!
+		void getMAReplices();
 		bool IsInit() { return InitClass; }
+
+		vector<string> getReplices() { if (!Replices.empty()) return Replices; }
 	private:
 			//********
 		bool InitClass = false;
 
 			//********
-		unique_ptr<File_system> FS;
+		unique_ptr<File_system> FS = make_unique<File_system>();
 
 			//********
 		unique_ptr<tinyxml2::XMLDocument> doc;
 
 			//********
-		vector<string> Replices;
+		vector<string> Replices; // Only Text
+		vector<XMLNode *> Nodes; // Only Identifier
 	};
 }
 #endif // !__DIALOGS_H__

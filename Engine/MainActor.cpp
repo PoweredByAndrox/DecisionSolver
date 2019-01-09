@@ -20,5 +20,18 @@ void Engine::MainActor::Render(Matrix View, Matrix Proj)
 	Update();
 }
 
+HRESULT Engine::MainActor::Init(Physics *PhysX)
+{
+	if (!DLG->IsInit())
+		ThrowIfFailed(DLG->Init());
+	DLG->LoadFile(&string("For everything.xml"));
+	DLG->getMAReplices();
+
+	this->PhysX.reset(PhysX);
+
+	InitClass = true;
+	return S_OK;
+}
+
 void Engine::MainActor::Destroy()
 {}

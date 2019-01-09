@@ -5,10 +5,11 @@
 
 #include "GameObjects.h"
 #include "Camera.h"
+#include "Dialogs.h"
 
 namespace Engine
 {
-	class MainActor: public GameObjects, public Camera
+	class MainActor: public GameObjects, public Camera, public Dialogs
 	{
 	public:
 
@@ -54,13 +55,11 @@ namespace Engine
 			gCamera->setPosCam(Pos);
 		}
 
-		void SetupCamera(Physics *PhysX)
+		void SetupCamera()
 		{
-			this->PhysX.reset(PhysX); 
-
 			gCamera = make_unique<Camera>();
 
-			ThrowIfFailed(gCamera->Init(PhysX));
+			ThrowIfFailed(gCamera->Init(PhysX.get()));
 
 			gCamera->SetScalers(0.010f, 6.0f);
 			gCamera->SetRotateButtons(true, false, false);
@@ -68,19 +67,20 @@ namespace Engine
 			SetChangeFOV(false);
 		}
 
-		void SetPhysXForActor(Physics *PhysX) { this->PhysX.reset(PhysX); }
+		HRESULT Init(Physics *PhysX);
 
 		Vector3 getPosition() { return Position; }
 		auto getObjCamera() { if (gCamera.operator bool()) return gCamera.get(); }
 		float getHealthActor() { return Health; }
+
+		bool IsInit() { return InitClass; }
 	private:
 			//**********
-		float FOV = 0.80f;
 		Vector3 Position = { 0.f, 2.5f, 0.f };
 
 			//**********
-		bool IsDead = false;
-		float Health = 100.0f;
+		bool IsDead = false, InitClass = false;
+		float Health = 100.0f, FOV = 0.80f;
 
 			//**********
 		unique_ptr<Camera> gCamera;
@@ -94,6 +94,9 @@ namespace Engine
 			//**********
 		//It is cheat
 		bool IsGod = false;
+
+			//**********
+		unique_ptr<Dialogs> DLG = make_unique<Dialogs>();
 	};
 }
 #endif // !__MAIN_ACTOR_H__
