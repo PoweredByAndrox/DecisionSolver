@@ -16,16 +16,13 @@ namespace Engine
 		GAME_AUDIO_MENU,
 		GAME_VIDEO_MENU
 	};
-};
 
-namespace Engine
-{
-	class MainMenu : public UI, public Audio
+	class MainMenu: public UI, public Audio
 	{
 	public:
 		HRESULT Init(UI *ui, Audio *sound);
 
-		void setGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext);
+		void setGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext);
 
 		MainMenu() {}
 		~MainMenu() {}
@@ -70,9 +67,9 @@ namespace Engine
 		unique_ptr<UI> ui;
 		unique_ptr<Audio> Sound;
 
-		CDXUTDialog MainMenuDlg;   // dialog for main menu
-		CDXUTDialog VideoMenuDlg;  // dialog for video menu
-		CDXUTDialog AudioMenuDlg;  // dialog for audio menu
+		Dialog MainMenuDlg;   // dialog for main menu
+		Dialog VideoMenuDlg;  // dialog for video menu
+		Dialog AudioMenuDlg;  // dialog for audio menu
 	};
 };
 #endif // !__MAIN_MENU_H__

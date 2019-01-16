@@ -40,7 +40,8 @@ public:
 
 		// Work With Files
 	//wstring *getDataFromFile(wstring *File);
-	string getDataFromFile(string *File);
+	string getDataFromFile(string *File, bool LineByline);
+	vector<string> getDataFromFileVector(string *File, bool LineByline);
 private:
 	path p;
 };

@@ -34,10 +34,12 @@ using namespace Engine;
 
 Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 2.0f, 1.f };
 
+HRESULT hr = S_OK;
+
 auto file_system = make_unique<File_system>();
 vector<unique_ptr<Models>> model;
 auto Sound = make_unique<Audio>();
-auto ui = make_unique<UI>();
+unique_ptr<UI> ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
 auto terrain = make_unique<Terrain>();
 auto frustum = make_unique<Frustum>();
@@ -45,13 +47,9 @@ auto buffers = make_unique<Render_Buffer>();
 auto mainActor = make_unique<MainActor>();
 auto PhysX = make_unique<Physics>();
 
-//auto gameObject = make_unique<GameObjects>();
-
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
 #endif
-
-HRESULT hr = S_OK;
 
 static XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
 
@@ -94,7 +92,7 @@ XMVECTORF32 _Color[9] =
 //**************
 	// Test
 bool StopIT = false, InitProgram = false;
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl *pControl, void* pUserContext);
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext);
 
 void InitApp()
 {
@@ -163,14 +161,15 @@ void InitApp()
 	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
 
 	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22, 1);
-
+	//ui->getHUD()->GetManager()->AddTexture(L"D:/DecisionSolver/Engine/resource/textures/UI/dxutcontrols.dds");
+	
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
-	if (!Sound->IsInitSounSystem())
+	if (!Sound->IsInitSoundSystem())
 		Sound->Init();
 	Sound->AddNewSound();
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	if (!MM->IsInitMainMenu())
 		MM->Init(ui.get(), Sound.get());
 
@@ -208,7 +207,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings *pDeviceSettings, void* pU
 
 vector<unique_ptr<GeometricPrimitive>> m_shape;
 
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext)
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext)
 {
 	switch (nControlID)
 	{
@@ -220,7 +219,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		auto PosCam = PxVec3(mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z);
 		auto Obj = PhysX->GetPhysDynamicObject();
 
-		if (Obj.size() == 0)
+		if (Obj.empty())
 			break;
 		PhysX->AddTorque(Obj.at(rand() % Obj.size()), PosCam,
 			PxForceMode::Enum::eIMPULSE);
@@ -257,9 +256,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, vo
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
-		if (!ui->getObjCheckBox()->empty())
+		if (!ui->getObjCheckBox().empty())
 		{
-			auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
+			auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox().at(0));
 			if (!ObjCheck)
 				break;
 
@@ -287,13 +286,15 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 	if (!InitProgram)
 		InitApp();
 
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	MM->setGameMode(GAME_RUNNING);
 #endif
 
-	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
+	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext(),
+		file_system->GetResPathW(&wstring(L"Font.dds"))->c_str()));
 
-	vector<wstring> FileShaders;
+	vector<wstring> FileShaders;    
+
 	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"VertexShader.hlsl")));
 	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"PixelShader.hlsl")));
 
@@ -313,9 +314,10 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
 			*buffers->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
 
-	PhysX->_createTriMesh(model.back().get());
+	//PhysX->_createTriMesh(model.back().get());
 
-	//Model.back()->Position(Vector3(100.f, 0.f, 100.f));
+	model.back()->Position(Vector3(10.f, 0.f, 15.f));
+	model.back()->Scale(Vector3(3.f, 3.f, 3.f));
 #endif
 
 #ifndef NEVER_228
@@ -324,7 +326,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
 			*buffers->GetResPathW(&wstring(L"planet.obj"))).c_str(), L"", MB_OK);
 
-	PhysX->_createTriMesh(model.back().get());
+	//PhysX->_createTriMesh(model.back().get());
 
 	//Model.back()->Scale(Vector3(2.f, 2.f, 2.f));
 	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
@@ -365,15 +367,15 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChai
 	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
-
+	
 		// *******
 	ui->SetLocationButton(ui->getHUD(), 0, X, Y, true);
 	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25, true);
 	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, true);
 	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, true);
-
-	if (!ui->getObjCheckBox()->empty())
-		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox()->size() - 1, X - 150, Y += 25, true);
+	
+//	if (!ui->getObjCheckBox().empty())
+//		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox().front(), X - 150, Y += 25, false);
 
 	return S_OK;
 }
@@ -396,7 +398,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	double fTime, float fElapsedTime, void* pUserContext)
 {
 	//g_Camera->SetNumberOfFramesToSmoothMouseData(fElapsedTime);
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	switch (*MM->getGameMode())
 	{
 	case GAME_RUNNING:
@@ -407,8 +409,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		MM->getDlgAUD()->SetVisible(false);
 		MM->getDlgVID()->SetVisible(false);
 		DXUTSetCursorSettings(true, true);
-		g_Camera->SetRotateButtons(true, 0, 0);
-		g_Camera->SetResetCursorAfterMove(false);
+		mainActor->getObjCamera()->SetRotateButtons(true, 0, 0);
+		mainActor->getObjCamera()->SetResetCursorAfterMove(false);
 		break;
 	case GAME_AUDIO_MENU:
 		MM->getDlgAUD()->OnRender(fElapsedTime);
@@ -432,7 +434,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	float fAspectRatio = DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 
-#ifdef Never_MainMenu // Need To Move In Thread
+#ifndef Never_MainMenu // Need To Move In Thread
 	if (*MM->getGameMode() != GAME_RUNNING)
 		return;
 #endif
@@ -450,12 +452,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		if (!PhysObj.empty())
 		{
 			vector<PxQuat> aq;
-			vector<Vector4> q;
 			vector<PxVec3> pos;
 			for (int i1 = 0; i1 < PhysObj.size(); i1++)
 			{
 				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
-				q.push_back(Vector4(aq.back().x, aq.back().y, aq.back().z, aq.back().w));
 				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
 				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
@@ -484,7 +484,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 #endif // _NEVER
 
-	auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox()->at(0));
+	auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox().at(0));
 	if (ObjCheck)
 		if (ObjCheck->GetChecked())
 			mainActor->getObjCamera()->SetEnableYAxisMovement(true);
@@ -498,7 +498,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 #endif
 
 	PhysX->Simulation(StopIT, fElapsedTime);
-
+	
 	int PosText = 0;
 	auto *PosCam = &mainActor->getPosition();
 	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), PosCam);
@@ -545,26 +545,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		model.at(i)->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
-
+	
 	V(ui->getHUD()->OnRender(fElapsedTime));
-
-	//auto ActrCamera = PhysX->getActrCamera();
-	//if (ActrCamera)
-	//{
-	//	PxQuat aq;
-	//	Vector4 q;
-	//	PxVec3 pos;
-	//	aq = ActrCamera->getGlobalPose().q;
-	//	q = Vector4(aq.x, aq.y, aq.z, aq.w);
-	//	pos = ActrCamera->getGlobalPose().p;
-
-	//	mainActor->getObjCamera()->setPosCam(Vector3(pos.x, pos.y, pos.z));
-	//	for (int i = 0; i < m_shape.size(); i++)
-	//		m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq.x, aq.y, aq.z, aq.w))
-	//			* XMMatrixTranslation(pos.x, pos.y-5.f, pos.z),
-	//			mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
-	//	//ActrCamera->setGlobalPose(PxTransform(mainActor->getPosition().x, mainActor->getPosition().y - 5.f, mainActor->getPosition().z));
-	//}
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -577,8 +559,8 @@ void Destroy_Application()
 	if (PhysX.operator bool())
 		PhysX->Destroy();
 
-	if (terrain.operator bool())
-		terrain->Shutdown();
+	//if (terrain.operator bool())
+	//	terrain->Shutdown();
 
 	mainActor->Destroy();
 
@@ -611,7 +593,6 @@ void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 		ui->getDialogResManager()->OnD3D11DestroyDevice();
 		ui.release();
 	}
-
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 }
 
@@ -626,16 +607,16 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	if (*pbNoFurtherProcessing)
 		return 0;
 
-	auto ObjCamera = mainActor->getObjCamera();
-	if (ObjCamera)
-		mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
-
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	switch (*MM->getGameMode())
 	{
 	case GAME_RUNNING:
-		g_Camera->HandleMessages(hWnd, uMsg, wParam, lParam);
+	{
+		auto ObjCamera = mainActor->getObjCamera();
+		if (ObjCamera)
+			mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
 		break;
+	}
 	case GAME_MAIN_MENU:
 		MM->getDlgMM()->MsgProc(hWnd, uMsg, wParam, lParam);
 		break;
@@ -674,7 +655,7 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 		case VK_F10:
 			m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
 		}
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	if (bKeyDown)
 	{
 		switch (nChar)

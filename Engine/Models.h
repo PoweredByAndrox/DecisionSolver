@@ -113,6 +113,8 @@ namespace Engine
 
 		int getCountModels() { if (!AllModel.empty()) return AllModel.size(); }
 
+		Vector3 getPosition() { return GetWorld().Invert().Translation(); }
+
 		~Models() {}
 	private:
 		HRESULT hr = S_OK;

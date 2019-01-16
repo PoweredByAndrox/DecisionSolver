@@ -28,7 +28,7 @@
 #include "DXUT.h"
 #include "SDKmisc.h"
 #include "DXUTmisc.h"
-#include "DXUTgui.h"
+#include "GUI.h"
 
 // *********
 		/// DXTK

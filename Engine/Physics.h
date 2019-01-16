@@ -164,7 +164,8 @@ namespace Engine
 		PxRigidStatic *gPlane = nullptr;
 		PxRigidDynamic *gBox = nullptr, *gActorCamera = nullptr;
 		PxCooking *gCooking = nullptr;
-		//PxPvd *gPvd = nullptr;
+		PxPvd *gPvd = nullptr;
+		PxPvdTransport *transport = nullptr;
 
 		// ***************
 		HRESULT hr = S_OK;

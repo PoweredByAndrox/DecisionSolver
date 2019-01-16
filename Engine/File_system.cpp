@@ -656,17 +656,43 @@ vector<wstring> File_system::getDataFromFile(wstring *File)
 }
 */
 
-string File_system::getDataFromFile(string *File)
+string File_system::getDataFromFile(string *File, bool LineByline)
 {
 	auto FileName = GetResPathA(File)->c_str();
 	string Returned_val, Cache;
 	auto streamObj = std::ifstream(FileName);
+	if (LineByline)
+		while (!streamObj.eof())
+		{
+			getline(streamObj, Cache);
+			Returned_val.append(Cache);
+		}
+	else
+		while (!streamObj.eof())
+			streamObj >> Returned_val;
 
-	while (!streamObj.eof())
-	{
-		getline(streamObj, Cache);
-		Returned_val.append(Cache);
-	}
+	if (!Returned_val.empty())
+		return Returned_val;
+}
+
+vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
+{
+	auto FileName = GetResPathA(File)->c_str();
+	vector<string> Returned_val;
+	string Cache;
+	auto streamObj = std::ifstream(FileName);
+	if (LineByline)
+		while (!streamObj.eof())
+		{
+			getline(streamObj, Cache);
+			Returned_val.back().append(Cache);
+		}
+	else
+		while (!streamObj.eof())
+		{
+			streamObj >> Cache;
+			Returned_val.push_back(Cache);
+		}
 
 	if (!Returned_val.empty())
 		return Returned_val;

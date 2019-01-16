@@ -21,17 +21,17 @@ HRESULT UI::Init()
 	}
 }
 
-HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key)
+HRESULT UI::AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key)
 {
 	return S_OK;
 }
 
-HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text, int X, int Y, int W, int H)
+HRESULT UI::AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H)
 {
 	return S_OK;
 }
 
-HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text)
+HRESULT UI::AddButton(Dialog *Dial, int ID, wstring Text)
 {
 	try
 	{
@@ -54,12 +54,12 @@ HRESULT UI::AddButton(CDXUTDialog *Dial, int ID, wstring Text)
 	return S_OK;
 }
 
-HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key)
+HRESULT UI::AddStatic(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *Keys)
+HRESULT UI::AddButton_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *Keys)
 {
 	try
 	{
@@ -86,7 +86,7 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	return S_OK;
 }
 
-HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y)
+HRESULT UI::AddButton_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y)
 {
 	try
 	{
@@ -112,7 +112,7 @@ HRESULT UI::AddButton_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	return S_OK;
 }
 
-HRESULT UI::AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
+HRESULT UI::AddStatic_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
 {
 	try
 	{
@@ -138,12 +138,12 @@ HRESULT UI::AddStatic_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	return S_OK;
 }
 
-HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text, int X, int Y, int W, int H)
+HRESULT UI::AddStatic(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H)
 {
 	return E_NOTIMPL;
 }
 
-HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text)
+HRESULT UI::AddStatic(Dialog *Dial, int ID, wstring Text)
 {
 	try
 	{
@@ -166,7 +166,7 @@ HRESULT UI::AddStatic(CDXUTDialog *Dial, int ID, wstring Text)
 	return S_OK;
 }
 
-void UI::SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
+void UI::SetLocationButton(Dialog *Dial, int ID, int X, int Y, bool Align)
 {
 	if (!Align)
 		Dial->GetButton(ObjButton.at(ID))->SetLocation(X, Y);
@@ -181,12 +181,12 @@ void UI::SetLocationButton(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
 	}
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text)
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text)
 {
 	Dial->GetButton(ObjButton.at(ID))->SetText(Text->c_str());
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, float Format[3])
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text, float Format[3])
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -196,7 +196,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, float Format[3]
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, float Format[3])
+void UI::SetTextButton(Dialog *Dial, int ID, string *Text, float Format[3])
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -206,7 +206,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, float Format[3])
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, XMMATRIX Format)
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text, XMMATRIX Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -216,7 +216,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, XMMATRIX Format
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, XMMATRIX Format)
+void UI::SetTextButton(Dialog *Dial, int ID, string *Text, XMMATRIX Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -226,7 +226,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, XMMATRIX Format)
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, float Format)
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text, float Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -235,7 +235,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, float Format)
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, float Format)
+void UI::SetTextButton(Dialog *Dial, int ID, string *Text, float Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -244,7 +244,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, float Format)
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> Format)
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text, vector<size_t> Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -253,7 +253,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> 
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> Format)
+void UI::SetTextButton(Dialog *Dial, int ID, string *Text, vector<size_t> Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -262,7 +262,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> F
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, XMVECTOR Format)
+void UI::SetTextButton(Dialog *Dial, int ID, wstring *Text, XMVECTOR Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -272,7 +272,7 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, wstring *Text, XMVECTOR Format
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, XMVECTOR Format)
+void UI::SetTextButton(Dialog *Dial, int ID, string *Text, XMVECTOR Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -282,17 +282,17 @@ void UI::SetTextButton(CDXUTDialog *Dial, int ID, string *Text, XMVECTOR Format)
 	ZeroMemory(buff, sizeof(buff));
 }
 
-void UI::SetLocationStatic(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
+void UI::SetLocationStatic(Dialog *Dial, int ID, int X, int Y, bool Align)
 {
 	Dial->GetStatic(ObjStatic.at(ID))->SetLocation(X, Y);
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text)
 {
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(Text->c_str());
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format[3])
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, float Format[3])
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -301,7 +301,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format[3]
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format[3])
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, float Format[3])
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -310,7 +310,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format[3])
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, XMMATRIX Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, XMMATRIX Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -319,7 +319,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, XMMATRIX Format
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, XMMATRIX Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, XMMATRIX Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -328,7 +328,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, XMMATRIX Format)
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, float Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -336,7 +336,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, float Format)
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, float Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -344,7 +344,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, float Format)
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, vector<size_t> Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -355,7 +355,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, vector<size_t> 
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, vector<size_t> Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -366,7 +366,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, vector<size_t> F
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, Vector3 *Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, Vector3 *Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -375,7 +375,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, Vector3 *Format
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, Vector3 *Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -391,7 +391,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, Vector3 *Format)
 	}
 }
 
-void UI::SetLocationCheck(CDXUTDialog *Dial, int ID, int X, int Y, bool Align)
+void UI::SetLocationCheck(Dialog *Dial, int ID, int X, int Y, bool Align)
 {
 	if (!Align)
 		Dial->GetCheckBox(ObjCheckBox.at(ID))->SetLocation(X, Y);
@@ -434,7 +434,7 @@ vector<int> *UI::addToBackComponentBy_ID(int ID)
 	return &cache;
 }
 
-HRESULT UI::AddSlider(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Min, int Max)
+HRESULT UI::AddSlider(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Min, int Max)
 {
 	try
 	{
@@ -451,7 +451,7 @@ HRESULT UI::AddSlider(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, in
 	return S_OK;
 }
 
-HRESULT UI::AddSlider_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Min, vector<int> *Max, vector<int> *DefValue)
+HRESULT UI::AddSlider_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Min, vector<int> *Max, vector<int> *DefValue)
 {	
 	try
 	{
@@ -473,7 +473,7 @@ HRESULT UI::AddSlider_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked, int HotKey)
+HRESULT UI::AddCheckBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked, int HotKey)
 {
 	try
 	{
@@ -490,7 +490,7 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked, vector<int> *HotKey)
+HRESULT UI::AddCheckBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked, vector<int> *HotKey)
 {
 	try
 	{
@@ -517,7 +517,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked)
+HRESULT UI::AddCheckBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked)
 {
 	try
 	{
@@ -534,7 +534,7 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked)
+HRESULT UI::AddCheckBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked)
 {
 	try
 	{
@@ -561,7 +561,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H)
+HRESULT UI::AddCheckBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H)
 {
 	try
 	{
@@ -579,7 +579,7 @@ HRESULT UI::AddCheckBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
+HRESULT UI::AddCheckBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
 {
 	try
 	{
@@ -606,7 +606,7 @@ HRESULT UI::AddCheckBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked, int HotKey)
+HRESULT UI::AddComboBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked, int HotKey)
 {
 	try
 	{
@@ -623,7 +623,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked, vector<int> *HotKey)
+HRESULT UI::AddComboBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked, vector<int> *HotKey)
 {
 	try
 	{
@@ -644,7 +644,7 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked)
+HRESULT UI::AddComboBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Checked)
 {
 	try
 	{
@@ -661,7 +661,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked)
+HRESULT UI::AddComboBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H, vector<int> *Checked)
 {
 	try
 	{
@@ -682,7 +682,7 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H)
+HRESULT UI::AddComboBox(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H)
 {
 	try
 	{
@@ -699,7 +699,7 @@ HRESULT UI::AddComboBox(CDXUTDialog *Dial, int ID, wstring *Text, int X, int Y, 
 	return S_OK;
 }
 
-HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
+HRESULT UI::AddComboBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y, vector<int> *W, vector<int> *H)
 {
 	try
 	{
@@ -721,92 +721,8 @@ HRESULT UI::AddComboBox_Mass(CDXUTDialog *Dial, vector<int> *ID, vector<wstring>
 	return S_OK;
 }
 
-int UI::getComponentBy_ID(UI *ui, int ID)
-{
-	vector<int> cache;
-	for (int i1 = 0; i1 < ui->getAllComponentsCount(); i1++)
-	{
-		if (ID == i1)
-		{
-			cache.push_back(i1);
-			for (int i = 0; i < ui->getDialogResManager()->m_Dialogs.size(); i++)
-			{
-				if (ui->getDialogResManager()->m_Dialogs.at(i)->GetCheckBox(i1))
-					return cache[0];
 
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetButton(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetComboBox(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetSlider(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetStatic(i1))
-					return cache[0];
-			}
-		}
-	}
-}
-
-int UI::getComponentBy_ID(UI *ui, vector<int> *Obj, int ID)
-{
-	vector<int> cache;
-	for (int i1 = 0; i1 < Obj->size(); i1++)
-	{
-		if (ID == i1)
-		{
-			cache.push_back(i1);
-			for (int i = 0; i < ui->getDialogResManager()->m_Dialogs.size(); i++)
-			{
-				if (ui->getDialogResManager()->m_Dialogs.at(i)->GetCheckBox(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetButton(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetComboBox(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetSlider(i1))
-					return cache[0];
-
-				else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetStatic(i1))
-					return cache[0];
-			}
-		}
-	}
-}
-
-wstring UI::getComponentName_By_ID(UI *ui, int ID)
-{
-	for (int i = 0; i < ui->getDialogResManager()->m_Dialogs.size(); i++)
-	{
-		if (ui->getDialogResManager()->m_Dialogs.at(i)->GetCheckBox(ID))
-			for (int i = 0; i < ui->getObjCheckBox()->size(); i++)
-				 return ui->getObjNameCheckBox()->at(i);
-
-		else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetButton(ID))
-			for (int i = 0; i < ui->getObjButton()->size(); i++)
-				 return ui->getObjNameButton()->at(i);
-
-		else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetComboBox(ID))
-			for (int i = 0; i < ui->getObjComboBox()->size(); i++)
-				 return ui->getObjNameComboBox()->at(i);
-
-		else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetSlider(ID))
-			for (int i = 0; i < ui->getObjSlider()->size(); i++)
-				 return ui->getObjNameSlider()->at(i);
-
-		else if (ui->getDialogResManager()->m_Dialogs.at(i)->GetStatic(ID))
-			for (int i = 0; i < ui->getObjStatic()->size(); i++)
-				 return ui->getObjNameStatic()->at(i);
-	}
-	return L"";
-}
-
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, size_t Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, wstring *Text, size_t Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;
@@ -815,7 +731,7 @@ void UI::SetTextStatic(CDXUTDialog *Dial, int ID, wstring *Text, size_t Format)
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
 }
 
-void UI::SetTextStatic(CDXUTDialog *Dial, int ID, string *Text, size_t Format)
+void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, size_t Format)
 {
 	char buff[FILENAME_MAX];
 	USES_CONVERSION;

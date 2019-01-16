@@ -2,6 +2,8 @@
 
 #include "Physics.h"
 
+#define USING_PVD_IN_FILE 0
+
 HRESULT Engine::Physics::Init()
 {
 	try
@@ -15,9 +17,26 @@ HRESULT Engine::Physics::Init()
 			IsInitPhysX = false;
 		}
 
-		//gPvd = PxCreatePvd(*gFoundation);
-		//PxPvdTransport* transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
-		//gPvd->connect(*transport, PxPvdInstrumentationFlag::ePROFILE);
+		gPvd = PxCreatePvd(*gFoundation);
+		if (!gPvd)
+		{
+			DebugTrace("Physics: gPvd failed.\n");
+			throw exception("gPvd == nullptr!!!");
+			return E_FAIL;
+			IsInitPhysX = false;
+		}
+
+		transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
+		//transport = PxDefaultPvdFileTransportCreate("sample.pxd2");
+		if (!transport)
+		{
+			DebugTrace("Physics: Transport failed.\n");
+			throw exception("Transport == nullptr!!!");
+			return E_FAIL;
+			IsInitPhysX = false;
+		}
+
+		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
 		if (gPhysics == nullptr)
@@ -62,6 +81,7 @@ HRESULT Engine::Physics::Init()
 			throw exception("gPlane == nullptr!!!");
 			return E_FAIL;
 		}
+
 		gPlane->createShape(PxPlaneGeometry(), *gMaterial);
 		gScene->addActor(*gPlane);
 
@@ -79,6 +99,7 @@ HRESULT Engine::Physics::Init()
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
+
 		IsInitPhysX = true;
 
 		GetD3DDevice();
@@ -99,6 +120,9 @@ void Engine::Physics::Simulation(bool StopIT, float Timestep)
 	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
+
+		if (gPvd->isConnected())
+			transport->flush();
 	}
 }
 
@@ -184,12 +208,15 @@ void Engine::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position
 
 void Engine::Physics::Destroy()
 {
-	//if (gPvd)
-	//{
-	//	PxPvdTransport *transport = gPvd->getTransport();
-	//	gPvd->release();
-	//	transport->release();
-	//}
+	if (gPvd)
+	{
+		PxPvdTransport *transport = gPvd->getTransport();
+		if (transport->isConnected())
+			transport->flush();
+		gPvd->disconnect();
+		gPvd->release();
+		transport->release();
+	}
 	_SAFE_RELEASE(gCooking);
 	_SAFE_RELEASE(gScene);
 	_SAFE_RELEASE(gPhysics);

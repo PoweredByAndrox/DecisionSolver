@@ -203,17 +203,17 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 
 void Engine::Models::Rotation(Vector3 rotaxis, float Angel)
 {
-	SetWorld(GetWorld() * Matrix::CreateFromAxisAngle(rotaxis, Angel));
+	SetWorld(GetWorld() = Matrix::CreateFromAxisAngle(rotaxis, Angel));
 }
 
 void Engine::Models::Scale(Vector3 Scale)
 {
-	SetWorld(GetWorld() * XMMatrixScalingFromVector(Scale));
+	SetWorld(GetWorld() = XMMatrixScalingFromVector(Scale));
 }
 
 void Engine::Models::Position(Vector3 Pos)
 {
-	SetWorld(GetWorld() * Matrix::CreateTranslation(Pos));
+	SetWorld(GetWorld() = Matrix::CreateTranslation(Pos));
 }
 
 /*

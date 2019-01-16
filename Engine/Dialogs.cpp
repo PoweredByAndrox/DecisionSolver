@@ -23,7 +23,7 @@ HRESULT Engine::Dialogs::LoadFile(string *FileName)
 		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile: \n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
-	if (doc->Parse(getDataFromFile(FileName).c_str()) > 0)
+	if (doc->Parse(getDataFromFile(FileName, true).c_str()) > 0)
 	{
 		throw exception(string(string("Dialogs->LoadFile()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;

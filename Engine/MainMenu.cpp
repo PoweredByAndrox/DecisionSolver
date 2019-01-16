@@ -1,28 +1,26 @@
 #include "pch.h"
-
 #include "MainMenu.h"
 
 using namespace Engine;
-
 
 HRESULT MainMenu::Init(UI *ui, Audio *sound)
 {
 	if (!ui->IsInitUI())
 	{
-		DebugTrace("MainMenu: Init failed. Line: 6\n");
-		throw exception("UI has not been initialized!!!");
+		DebugTrace("MainMenu: Init failed.\n");
+		throw exception("UI hasn't been initialized!!!");
 		InitMainMenu = false;
 		return E_FAIL;
 	}
-	if (!sound->IsInitSounSystem())
+	/*if (!sound->IsInitSounSystem())
 	{
-		DebugTrace("MainMenu: Init failed. Line: 12\n");
-		throw exception("Audio has not been initialized!!!");
+		DebugTrace("MainMenu: Init failed.\n");
+		throw exception("Audio hasn't been initialized!!!");
 		InitMainMenu = false;
 		return E_FAIL;
-	}
+	}*/
 	this->ui = unique_ptr<UI>(ui);
-	Sound = unique_ptr<Audio>(sound);
+	//Sound = unique_ptr<Audio>(sound);
 	MainMenuDlg.Init(ui->getDialogResManager());
 	AudioMenuDlg.Init(ui->getDialogResManager());
 	VideoMenuDlg.Init(ui->getDialogResManager());
@@ -179,47 +177,114 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 	InitMainMenu = true;
 	return S_OK;
 }
-
-void MainMenu::setGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, void* pUserContext)
+bool FindSubStr(wstring &context, wstring const &from)
 {
-	//switch (nControlID) // 13
-	USES_CONVERSION;
-	for (int i = 1; i < ui->getObjButton()->size() + ui->getObjSlider()->size(); i++)
+	auto Pos = context.find(from);
+	if (Pos != std::string::npos)
+		//found
+		return true;
+	else
+		//not found
+		return false;
+}
+
+void MainMenu::setGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext)
+{
+	int ID = 0;
+	wstring Text;
+	MainMenuDlg.GetManager()->AddTexture(L"C:\\1.png");
+	Dialog Dialogs[] = { MainMenuDlg, VideoMenuDlg, AudioMenuDlg };
+
+	for (int i = 0; i < 3; i++)
 	{
-		if (strstr(W2A(getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)).c_str()),
-			W2A(getComponentName_By_ID(ui.get(), i).c_str()))) /// Audio Button
+		for (ID = 0; ID < ui->getObjButton().size() + ui->getObjSlider().size(); ID++)
 		{
-			gameMode = GAME_AUDIO_MENU;
-			break;
+			auto ObjButton = Dialogs[i].GetButton(ID);
+			if (ObjButton)
+			{
+				if (ObjButton->m_bMouseOver)
+				{
+					Text = ObjButton->GetText();
+					break;
+				}
+				else
+					continue;
+			}
+
+			auto ObjSlider = Dialogs[i].GetSlider(ID);
+			if (ObjSlider)
+			{
+				if (ObjSlider->m_bMouseOver)
+					break;
+				else
+					continue;
+			}
 		}
-		else if (getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)) == getComponentName_By_ID(ui.get(), i)) /// Video Button
-		{
-			gameMode = GAME_VIDEO_MENU;
-			VideoMenuDlg.EnableNonUserEvents(true);
-			//VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->SetChecked(!DXUTIsWindowed());
-			//VideoMenuDlg.EnableNonUserEvents(false);
-			//VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->SetChecked(DXUTGetDeviceSettings().d3d9.pp.MultiSampleType != D3DMULTISAMPLE_NONE);
-			//VideoMenuDlg.GetComboBox(IDC_RESOLUTION)->SetSelectedByData(
-			//	UintToPtr(MAKELONG(DXUTGetDXGIBackBufferSurfaceDesc()->Height,
-			//		DXUTGetDXGIBackBufferSurfaceDesc()->Height)));
+		if (!Text.empty())
 			break;
-		}
-		else if (getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)) == getComponentName_By_ID(ui.get(), i)) /// Resume Button
-		{
-			gameMode = GAME_RUNNING;
-			DXUTSetCursorSettings(false, true);
-			break;
-		}
-		else if (getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)) == getComponentName_By_ID(ui.get(), i)) /// Quit Button
-		{
-			DXUTShutdown(0);
-			break;
-		}
-		else if (getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)) == getComponentName_By_ID(ui.get(), i))
-		{
-			gameMode = GAME_MAIN_MENU;
-			break;
-		}
+	}
+
+	if (ID == nControlID && FindSubStr(Text, wstring(L"Audio")))
+	{
+		gameMode = GAME_AUDIO_MENU;
+		return;
+	}
+	else if (ID == nControlID && FindSubStr(Text, wstring(L"Video")))
+	{
+		gameMode = GAME_VIDEO_MENU;
+		VideoMenuDlg.EnableNonUserEvents(true);
+		//VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->SetChecked(!DXUTIsWindowed());
+		//VideoMenuDlg.EnableNonUserEvents(false);
+		//VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->SetChecked(DXUTGetDeviceSettings().d3d9.pp.MultiSampleType != D3DMULTISAMPLE_NONE);
+		//VideoMenuDlg.GetComboBox(IDC_RESOLUTION)->SetSelectedByData(
+		//	UintToPtr(MAKELONG(DXUTGetDXGIBackBufferSurfaceDesc()->Height,
+		//		DXUTGetDXGIBackBufferSurfaceDesc()->Height)));
+		return;
+	}
+	else if (ID == nControlID && FindSubStr(Text, wstring(L"Resume")))
+	{
+		gameMode = GAME_RUNNING;
+		DXUTSetCursorSettings(false, true);
+		return;
+	}
+	else if (ID == nControlID && FindSubStr(Text, wstring(L"Quit")))
+	{
+		DXUTShutdown(0);
+		return;
+	}
+	else if (ID == nControlID && FindSubStr(Text, wstring(L"Apply")))
+	{
+		//bool bAA = VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->GetChecked();
+		UINT nRes;
+		nRes = PtrToInt(VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+			ui->getObjComboBox(), &wstring(L"For Aspect")))->GetSelectedData());
+		int nWidth;
+		nWidth = LOWORD(nRes);
+		int nHeight;
+		nHeight = HIWORD(nRes);
+		bool bFullscreen;
+		//	bFullscreen = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
+
+		DXUTDeviceSettings ds;
+		ds = DXUTGetDeviceSettings();
+		//ds.d3d11.MultiSampleType = (bAA) ? D3DMULTISAMPLE_4_SAMPLES : D3DMULTISAMPLE_NONE;
+	//	ds.d3d11.sd.Windowed = (BOOL)!bFullscreen;
+		ds.d3d11.sd.BufferDesc.Width = nWidth;
+		ds.d3d11.sd.BufferDesc.Height = nHeight;
+
+		// Change the device settings
+		//g_Render.bDetectOptimalSettings = false;
+		DXUTCreateDeviceFromSettings(&ds);
+		//g_Render.bDetectOptimalSettings = true;
+		return;
+	}
+	else if (ID == nControlID && FindSubStr(Text, wstring(L"Back")))
+	{
+		gameMode = GAME_MAIN_MENU;
+		return;
+	}
+}
+/*		
 		//case IDC_SOUNDFX_SCALE:
 			//g_audioState.fSoundFXVolume = (float)(AudioMenuDlg.GetSlider(IDC_SOUNDFX_SCALE)->GetValue() /
 			//	100.0f);
@@ -229,32 +294,6 @@ void MainMenu::setGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, 
 		{
 			Sound->changeSoundVol((float)(AudioMenuDlg.GetSlider(ui->getComponentID_By_Name(ui.get(),
 				ui->getObjSlider(), &wstring(L"For Music Volume")))->GetValue() / 100.0f));
-			break;
-		}
-		else if (getComponentName_By_ID(ui.get(), getComponentBy_ID(ui.get(), nControlID)) == getComponentName_By_ID(ui.get(), i)) /// Apply Change Video Graphics
-		{
-			//bool bAA = VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->GetChecked();
-			UINT nRes;
-			nRes = PtrToInt(VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-				ui->getObjComboBox(), &wstring(L"For Aspect")))->GetSelectedData());
-			int nWidth;
-			nWidth = LOWORD(nRes);
-			int nHeight;
-			nHeight = HIWORD(nRes);
-			bool bFullscreen;
-			//	bFullscreen = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
-
-			DXUTDeviceSettings ds;
-			ds = DXUTGetDeviceSettings();
-			//ds.d3d11.MultiSampleType = (bAA) ? D3DMULTISAMPLE_4_SAMPLES : D3DMULTISAMPLE_NONE;
-		//	ds.d3d11.sd.Windowed = (BOOL)!bFullscreen;
-			ds.d3d11.sd.BufferDesc.Width = nWidth;
-			ds.d3d11.sd.BufferDesc.Height = nHeight;
-
-			// Change the device settings
-			//g_Render.bDetectOptimalSettings = false;
-			DXUTCreateDeviceFromSettings(&ds);
-			//g_Render.bDetectOptimalSettings = true;
 			break;
 		}
 		//case 19:
@@ -269,105 +308,105 @@ void MainMenu::setGUIEvent(UINT nEvent, int nControlID, CDXUTControl* pControl, 
 		}
 	}
 }
+/*
+void MainMenu::UpdateAspectRatioList(DXUTDeviceSettings* pDS)
+{
+	bool bFullScreenChecked = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
 
-//void MainMenu::UpdateAspectRatioList(DXUTDeviceSettings* pDS)
-//{
-//	bool bFullScreenChecked = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
-//
-//	// If windowed, then display a predefined list.  If fullscreen, then 
-//	// use the list of mode the HW device supports 
-//	CD3D9EnumDeviceSettingsCombo* pDeviceSettingsCombo = DXUTGetD3D9Enumeration()->GetDeviceSettingsCombo
-//	(&pDS->d3d11);
-//	if (pDeviceSettingsCombo == NULL)
-//		return;
-//	CGrowableArray <D3DDISPLAYMODE>* pDMList;
-//	if (!bFullScreenChecked)
-//		pDMList = &g_Render.aWindowedDMList;
-//	else
-//		pDMList = &pDeviceSettingsCombo->pAdapterInfo->displayModeList;
-//
-//	UINT nAdapterMonitorWidth = g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].right -
-//		g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].left;
-//	UINT nAdapterMonitorHeight = g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].bottom -
-//		g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].top;
-//
-//	CGrowableArray <float> aspectRatioList;
-//	for (int i = 0; i < pDMList->GetSize(); i++)
-//	{
-//		D3DDISPLAYMODE dm = pDMList->GetAt(i);
-//
-//		// Use this display mode only if it meets certain min requirements
-//		if ((bFullScreenChecked && dm.Height >= 600) ||
-//			(!bFullScreenChecked && dm.Width <= nAdapterMonitorWidth && dm.Height <= nAdapterMonitorHeight))
-//		{
-//			// Calc the aspect ratio of this mode, and create a list of aspect ratios 
-//			float fAspect = (float)dm.Width / (float)dm.Height;
-//			bool bFound = false;
-//			for (int iAspect = 0; iAspect < aspectRatioList.GetSize(); iAspect++)
-//			{
-//				if (fabsf(aspectRatioList.GetAt(iAspect) - fAspect) < 0.05f)
-//				{
-//					bFound = true;
-//					break;
-//				}
-//			}
-//			if (!bFound)
-//				aspectRatioList.Add(fAspect);
-//		}
-//	}
-//
-//	// Sort aspect ratio list
-//	if (aspectRatioList.GetData())
-//		qsort(aspectRatioList.GetData(), aspectRatioList.GetSize(), sizeof(float), SortAspectRatios);
-//
-//	// Store the currently selected aspect ratio so it can be restored later
-//	float fCurrentlySelectedAspect = 0.0f;
-//	if (g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->GetNumItems() > 0)
-//	{
-//		void* pD = g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->GetSelectedData();
-//		fCurrentlySelectedAspect = *(float*)(void*)&pD;
-//	}
-//
-//	// Build the UI list of aspect ratios
-//	g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->RemoveAllItems();
-//	for (int i = 0; i < aspectRatioList.GetSize(); i++)
-//	{
-//		WCHAR sz[256];
-//		float fAspect = aspectRatioList.GetAt(i);
-//
-//		// Make user friendly strings for common aspect ratios
-//		if (fabsf(fAspect - 1.3333f) < 0.05f) swprintf_s(sz, 256, L"4:3");
-//		else if (fabsf(fAspect - 1.25f) < 0.05f) swprintf_s(sz, 256, L"5:4");
-//		else if (fabsf(fAspect - 1.77f) < 0.05f) swprintf_s(sz, 256, L"16:9");
-//		else if (fabsf(fAspect - 1.6f) < 0.05f) swprintf_s(sz, 256, L"16:10");
-//		else if (fabsf(fAspect - 1.5f) < 0.05f) swprintf_s(sz, 256, L"3:2");
-//		else if (fabsf(fAspect - 0.8f) < 0.05f) swprintf_s(sz, 256, L"4:5");
-//		else if (fabsf(fAspect - 1.66f) < 0.05f) swprintf_s(sz, 256, L"5:3");
-//		else if (fabsf(fAspect - 0.75f) < 0.05f) swprintf_s(sz, 256, L"3:4");
-//		else if (fabsf(fAspect - 0.5625f) < 0.05f) swprintf_s(sz, 256, L"9:16");
-//		else
-//			swprintf_s(sz, 256, L"%0.2f:1", fAspect);
-//
-//		g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->AddItem(sz, UintToPtr(*(DWORD*)&fAspect));
-//	}
-//
-//	// Important: if nothing was selected before, then default to the desktop resolution
-//	// Defaulting to the aspect ratio of the desktop is the best default aspect ratio
-//	// since the desktop resolution can be assumed to be setup correctly for the display device
-//	if (fCurrentlySelectedAspect == 0.0f)
-//	{
-//		D3DDISPLAYMODE dmDesktop;
-//		DXUTGetDesktopResolution(pDS->d3d11.AdapterOrdinal, &dmDesktop.Width, &dmDesktop.Height);
-//		g_Render.fDesktopAspectRatio = dmDesktop.Width / (FLOAT)dmDesktop.Height;
-//		fCurrentlySelectedAspect = g_Render.fDesktopAspectRatio;
-//	}
-//	g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->SetSelectedByData(UintToPtr
-//	(*(DWORD*)&fCurrentlySelectedAspect));
-//
-//	// Now update resolution list
-//	UpdateResolutionList(pDS);
-//}
+	// If windowed, then display a predefined list.  If fullscreen, then 
+	// use the list of mode the HW device supports 
+	CD3D9EnumDeviceSettingsCombo* pDeviceSettingsCombo = DXUTGetD3D9Enumeration()->GetDeviceSettingsCombo
+	(&pDS->d3d11);
+	if (pDeviceSettingsCombo == NULL)
+		return;
+	CGrowableArray <D3DDISPLAYMODE>* pDMList;
+	if (!bFullScreenChecked)
+		pDMList = &g_Render.aWindowedDMList;
+	else
+		pDMList = &pDeviceSettingsCombo->pAdapterInfo->displayModeList;
 
+	UINT nAdapterMonitorWidth = g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].right -
+		g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].left;
+	UINT nAdapterMonitorHeight = g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].bottom -
+		g_Render.rcAdapterWork[pDS->d3d11.AdapterOrdinal].top;
+
+	CGrowableArray <float> aspectRatioList;
+	for (int i = 0; i < pDMList->GetSize(); i++)
+	{
+		D3DDISPLAYMODE dm = pDMList->GetAt(i);
+
+		// Use this display mode only if it meets certain min requirements
+		if ((bFullScreenChecked && dm.Height >= 600) ||
+			(!bFullScreenChecked && dm.Width <= nAdapterMonitorWidth && dm.Height <= nAdapterMonitorHeight))
+		{
+			// Calc the aspect ratio of this mode, and create a list of aspect ratios 
+			float fAspect = (float)dm.Width / (float)dm.Height;
+			bool bFound = false;
+			for (int iAspect = 0; iAspect < aspectRatioList.GetSize(); iAspect++)
+			{
+				if (fabsf(aspectRatioList.GetAt(iAspect) - fAspect) < 0.05f)
+				{
+					bFound = true;
+					break;
+				}
+			}
+			if (!bFound)
+				aspectRatioList.Add(fAspect);
+		}
+	}
+
+	// Sort aspect ratio list
+	if (aspectRatioList.GetData())
+		qsort(aspectRatioList.GetData(), aspectRatioList.GetSize(), sizeof(float), SortAspectRatios);
+
+	// Store the currently selected aspect ratio so it can be restored later
+	float fCurrentlySelectedAspect = 0.0f;
+	if (g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->GetNumItems() > 0)
+	{
+		void* pD = g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->GetSelectedData();
+		fCurrentlySelectedAspect = *(float*)(void*)&pD;
+	}
+
+	// Build the UI list of aspect ratios
+	g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->RemoveAllItems();
+	for (int i = 0; i < aspectRatioList.GetSize(); i++)
+	{
+		WCHAR sz[256];
+		float fAspect = aspectRatioList.GetAt(i);
+
+		// Make user friendly strings for common aspect ratios
+		if (fabsf(fAspect - 1.3333f) < 0.05f) swprintf_s(sz, 256, L"4:3");
+		else if (fabsf(fAspect - 1.25f) < 0.05f) swprintf_s(sz, 256, L"5:4");
+		else if (fabsf(fAspect - 1.77f) < 0.05f) swprintf_s(sz, 256, L"16:9");
+		else if (fabsf(fAspect - 1.6f) < 0.05f) swprintf_s(sz, 256, L"16:10");
+		else if (fabsf(fAspect - 1.5f) < 0.05f) swprintf_s(sz, 256, L"3:2");
+		else if (fabsf(fAspect - 0.8f) < 0.05f) swprintf_s(sz, 256, L"4:5");
+		else if (fabsf(fAspect - 1.66f) < 0.05f) swprintf_s(sz, 256, L"5:3");
+		else if (fabsf(fAspect - 0.75f) < 0.05f) swprintf_s(sz, 256, L"3:4");
+		else if (fabsf(fAspect - 0.5625f) < 0.05f) swprintf_s(sz, 256, L"9:16");
+		else
+			swprintf_s(sz, 256, L"%0.2f:1", fAspect);
+
+		g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->AddItem(sz, UintToPtr(*(DWORD*)&fAspect));
+	}
+
+	// Important: if nothing was selected before, then default to the desktop resolution
+	// Defaulting to the aspect ratio of the desktop is the best default aspect ratio
+	// since the desktop resolution can be assumed to be setup correctly for the display device
+	if (fCurrentlySelectedAspect == 0.0f)
+	{
+		D3DDISPLAYMODE dmDesktop;
+		DXUTGetDesktopResolution(pDS->d3d11.AdapterOrdinal, &dmDesktop.Width, &dmDesktop.Height);
+		g_Render.fDesktopAspectRatio = dmDesktop.Width / (FLOAT)dmDesktop.Height;
+		fCurrentlySelectedAspect = g_Render.fDesktopAspectRatio;
+	}
+	g_Render.VideoMenuDlg.GetComboBox(IDC_ASPECT)->SetSelectedByData(UintToPtr
+	(*(DWORD*)&fCurrentlySelectedAspect));
+
+	// Now update resolution list
+	UpdateResolutionList(pDS);
+}
+*/
 //--------------------------------------------------------------------------------------
 // Updates the resolution list for D3D11
 //--------------------------------------------------------------------------------------

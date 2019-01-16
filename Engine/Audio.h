@@ -32,7 +32,7 @@ namespace Engine
 		~Audio() {}
 
 		// ************
-		bool IsInitSounSystem() { return InitSoundSystem; }
+		bool IsInitSoundSystem() { return InitSoundSystem; }
 		auto *getStaticsSound() { return &audEngine.get()->GetStatistics(); }
 
 	private:
