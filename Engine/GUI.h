@@ -298,7 +298,6 @@ namespace Engine
 		bool m_bKeyboardInput;
 		bool m_bMouseInput;
 
-
 		//************
 			// Getting ALL Controls In Current Dialog
 		auto getAllControls() { if (!m_Controls.empty()) return m_Controls; }
@@ -310,14 +309,12 @@ namespace Engine
 
 
 		//************
-			// Get Next Dialogs From Current
-		auto getNextDialogs() { if (m_pNextDialog) return m_pNextDialog; }
-
-
-		//************
-			// Get Prevous Dialogs From Current
+			// Get Previous Dialogs From Current
 		auto getPrevDialogs() { if (m_pPrevDialog) return m_pPrevDialog; }
 
+		//************
+			// Get Control Mouse Over
+		auto getControlMouseOver() { return m_pControlMouseOver; }
 	private:
 		int m_nDefaultControlID;
 
@@ -581,7 +578,6 @@ namespace Engine
 		UINT m_Index;              // Index within the control list
 
 		vector<Element *> m_Elements;  // All display elements
-
 	protected:
 		virtual void UpdateRects();
 
@@ -604,7 +600,6 @@ namespace Engine
 
 		Element element;
 	};
-
 
 	//-----------------------------------------------------------------------------
 	// Static control
@@ -657,6 +652,9 @@ namespace Engine
 
 		virtual void Render(_In_ float fElapsedTime) override;
 
+		//********
+			// Get Press Bool
+		auto getPressed() { return m_bPressed; }
 	protected:
 		bool m_bPressed;
 	};
@@ -685,7 +683,6 @@ namespace Engine
 
 		bool GetChecked() const { return m_bChecked; }
 		void SetChecked(_In_ bool bChecked) { SetCheckedInternal(bChecked, false); }
-
 	protected:
 		virtual void SetCheckedInternal(_In_ bool bChecked, _In_ bool bFromInput);
 
@@ -713,7 +710,6 @@ namespace Engine
 		void SetChecked(_In_ bool bChecked, _In_ bool bClearGroup = true) { SetCheckedInternal(bChecked, bClearGroup, false); }
 		void SetButtonGroup(_In_ UINT nButtonGroup) { m_nButtonGroup = nButtonGroup; }
 		UINT GetButtonGroup() const { return m_nButtonGroup; }
-
 	protected:
 		virtual void SetCheckedInternal(_In_ bool bChecked, _In_ bool bClearGroup, _In_ bool bFromInput);
 		UINT m_nButtonGroup;
@@ -723,7 +719,7 @@ namespace Engine
 	//-----------------------------------------------------------------------------
 	// Scrollbar control
 	//-----------------------------------------------------------------------------
-	class ScrollBar : public Control
+	class ScrollBar: public Control
 	{
 	public:
 		ScrollBar(_In_opt_ Dialog *pDialog = nullptr) noexcept;
@@ -754,7 +750,6 @@ namespace Engine
 
 		void Scroll(_In_ int nDelta);    // Scroll by nDelta items (plus or minus)
 		void ShowItem(_In_ int nIndex);  // Ensure that item nIndex is displayed, scroll if necessary
-
 	protected:
 		// ARROWSTATE indicates the state of the arrow buttons.
 		// CLEAR            No arrow is down.

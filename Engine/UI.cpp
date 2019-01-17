@@ -394,19 +394,19 @@ void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, Vector3 *Format)
 void UI::SetLocationCheck(Dialog *Dial, int ID, int X, int Y, bool Align)
 {
 	if (!Align)
-		Dial->GetCheckBox(ObjCheckBox.at(ID))->SetLocation(X, Y);
+		Dial->GetCheckBox(ID)->SetLocation(X, Y);
 	else
 	{
 		auto HeightBuff = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
-		auto WidthComponent = Dial->GetCheckBox(ObjCheckBox.at(ID))->m_width + Dial->GetCheckBox(ObjCheckBox.at(ID))->m_height;
+		auto WidthComponent = Dial->GetCheckBox(ID)->m_width + 400;
 		auto Cache = DXUTGetDXGIBackBufferSurfaceDesc()->Width - WidthComponent;
-		auto ObjCBK = Dial->GetCheckBox(ObjCheckBox.at(ID));
+		auto ObjCBK = Dial->GetCheckBox(ID);
 		if (ObjCBK)
 				ObjCBK->SetLocation(Cache, Y);
 	}
 }
 
-int UI::getAllComponentsCount() 
+int UI::getAllComponentsCount()
 {
 	vector<int> cache;
 	for (int i = 0; i < ObjButton.size(); i++)

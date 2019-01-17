@@ -136,21 +136,19 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 
 	iY = ((300 - 30 * 6) / 2);
 	i = ui->getAllComponentsCount();
-	X.clear();	X = { 50, 30 };	Y.clear();	Y = { iY += 22, iY += 22 }; W.clear();
+	X.clear();	X = { 50, 30 };	Y.clear();	Y = { iY += 22, iY }; W.clear();
 	W = { 50, 75 }; H.clear(); H = { 22, 22 }; IDStatic.clear(); IDStatic = { i += 1, i += 1 };
 	TextStatic.clear(); TextStatic = { L"Aspect:", L"Resolution:" };
 
 	ui->AddStatic_Mass(&VideoMenuDlg, &IDStatic, &TextStatic, &X, &Y, &W, &H);
 
-	iY = ((300 - 30 * 6) / 2);
 	i = ui->getAllComponentsCount();
 	X.clear();	X = { (250 - 125) /2, (250 - 125) /2 };	Y.clear();	
-	Y = { iY += 35, iY += 30 }; IDStatic.clear(); IDStatic = { i += 1, i += 1 };
+	Y = { 150, 175 }; IDStatic.clear(); IDStatic = { i += 1, i += 1 };
 	TextStatic.clear(); TextStatic = { L"Apply", L"Back" };
 
 	ui->AddButton_Mass(&VideoMenuDlg, &IDStatic, &TextStatic, &X, &Y);
 
-	iY = ((300 - 30 * 6) / 2);
 	i = ui->getAllComponentsCount();
 	X.clear(); X = { (250 - 200) /2, (250 - 200) /2 };
 	Y.clear(); Y = { iY += 30, iY += 26 }; W.clear(); W = { 200, 200 }; 
@@ -159,10 +157,9 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 
 	ui->AddCheckBox_Mass(&VideoMenuDlg, &IDStatic, &TextStatic, &X, &Y, &W, &H);
 
-	iY = ((300 - 30 * 6) / 2);
 	i = ui->getAllComponentsCount();
 	X.clear(); X = { 100, 100 };
-	Y.clear(); Y = { iY, iY }; W.clear(); W = { 100, 100 };
+	Y.clear(); Y = { iY += 30, iY += 26 }; W.clear(); W = { 100, 100 };
 	H.clear(); H = { 22, 22 }; IDStatic.clear(); IDStatic = { i += 1, i += 1 };
 	TextStatic.clear(); TextStatic = { L"For Aspect",L"For Resolution" };
 	ui->AddComboBox_Mass(&VideoMenuDlg, &IDStatic, &TextStatic, &X, &Y, &W, &H);
@@ -188,101 +185,83 @@ bool FindSubStr(wstring &context, wstring const &from)
 		return false;
 }
 
-void MainMenu::setGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext)
+void MainMenu::setGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
 {
-	int ID = 0;
-	wstring Text;
-	MainMenuDlg.GetManager()->AddTexture(L"C:\\1.png");
-	Dialog Dialogs[] = { MainMenuDlg, VideoMenuDlg, AudioMenuDlg };
+	//MainMenuDlg VideoMenuDlg AudioMenuDlg
+	Button *Cache_Button = nullptr;
+	Slider *Cache_Slider = nullptr;
 
-	for (int i = 0; i < 3; i++)
+	if (pControl->GetType() == CONTROL_TYPE::CONTROL_BUTTON)
 	{
-		for (ID = 0; ID < ui->getObjButton().size() + ui->getObjSlider().size(); ID++)
+		Cache_Button = (Button *)pControl;
+		if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Audio")))
 		{
-			auto ObjButton = Dialogs[i].GetButton(ID);
-			if (ObjButton)
-			{
-				if (ObjButton->m_bMouseOver)
-				{
-					Text = ObjButton->GetText();
-					break;
-				}
-				else
-					continue;
-			}
-
-			auto ObjSlider = Dialogs[i].GetSlider(ID);
-			if (ObjSlider)
-			{
-				if (ObjSlider->m_bMouseOver)
-					break;
-				else
-					continue;
-			}
+			gameMode = GAME_AUDIO_MENU;
+			return;
 		}
-		if (!Text.empty())
-			break;
-	}
+		else if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Video")))
+		{
+			gameMode = GAME_VIDEO_MENU;
+			VideoMenuDlg.EnableNonUserEvents(true);
+			//VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->SetChecked(!DXUTIsWindowed());
+			//VideoMenuDlg.EnableNonUserEvents(false);
+			//VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->SetChecked(DXUTGetDeviceSettings().d3d9.pp.MultiSampleType != D3DMULTISAMPLE_NONE);
+			//VideoMenuDlg.GetComboBox(IDC_RESOLUTION)->SetSelectedByData(
+			//	UintToPtr(MAKELONG(DXUTGetDXGIBackBufferSurfaceDesc()->Height,
+			//		DXUTGetDXGIBackBufferSurfaceDesc()->Height)));
+			return;
+		}
+		else if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Resume")))
+		{
+			gameMode = GAME_RUNNING;
+			DXUTSetCursorSettings(false, true);
+			return;
+		}
+		else if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Quit")))
+		{
+			DXUTShutdown(0);
+			return;
+		}
+		else if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Apply")))
+		{
+			//bool bAA = VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->GetChecked();
+			UINT nRes;
+			for (int i = 0; i < VideoMenuDlg.getAllControls().size(); i++)
+				if (VideoMenuDlg.getAllControls().at(i)->GetType() == CONTROL_TYPE::CONTROL_COMBOBOX)
+				{
+					ComboBox *Stat = (ComboBox *)VideoMenuDlg.getAllControls().at(i);
+					if (FindSubStr(wstring(Stat->GetText()), wstring(L"For Aspect")))
+						nRes = (UINT)Stat->GetSelectedData();
+				}
 
-	if (ID == nControlID && FindSubStr(Text, wstring(L"Audio")))
-	{
-		gameMode = GAME_AUDIO_MENU;
-		return;
-	}
-	else if (ID == nControlID && FindSubStr(Text, wstring(L"Video")))
-	{
-		gameMode = GAME_VIDEO_MENU;
-		VideoMenuDlg.EnableNonUserEvents(true);
-		//VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->SetChecked(!DXUTIsWindowed());
-		//VideoMenuDlg.EnableNonUserEvents(false);
-		//VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->SetChecked(DXUTGetDeviceSettings().d3d9.pp.MultiSampleType != D3DMULTISAMPLE_NONE);
-		//VideoMenuDlg.GetComboBox(IDC_RESOLUTION)->SetSelectedByData(
-		//	UintToPtr(MAKELONG(DXUTGetDXGIBackBufferSurfaceDesc()->Height,
-		//		DXUTGetDXGIBackBufferSurfaceDesc()->Height)));
-		return;
-	}
-	else if (ID == nControlID && FindSubStr(Text, wstring(L"Resume")))
-	{
-		gameMode = GAME_RUNNING;
-		DXUTSetCursorSettings(false, true);
-		return;
-	}
-	else if (ID == nControlID && FindSubStr(Text, wstring(L"Quit")))
-	{
-		DXUTShutdown(0);
-		return;
-	}
-	else if (ID == nControlID && FindSubStr(Text, wstring(L"Apply")))
-	{
-		//bool bAA = VideoMenuDlg.GetCheckBox(IDC_ANTI_ALIASING)->GetChecked();
-		UINT nRes;
-		nRes = PtrToInt(VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-			ui->getObjComboBox(), &wstring(L"For Aspect")))->GetSelectedData());
-		int nWidth;
-		nWidth = LOWORD(nRes);
-		int nHeight;
-		nHeight = HIWORD(nRes);
-		bool bFullscreen;
-		//	bFullscreen = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
+			int nWidth;
+			nWidth = LOWORD(nRes);
+			int nHeight;
+			nHeight = HIWORD(nRes);
+			bool bFullscreen;
+			//	bFullscreen = VideoMenuDlg.GetCheckBox(IDC_FULLSCREEN)->GetChecked();
 
-		DXUTDeviceSettings ds;
-		ds = DXUTGetDeviceSettings();
-		//ds.d3d11.MultiSampleType = (bAA) ? D3DMULTISAMPLE_4_SAMPLES : D3DMULTISAMPLE_NONE;
-	//	ds.d3d11.sd.Windowed = (BOOL)!bFullscreen;
-		ds.d3d11.sd.BufferDesc.Width = nWidth;
-		ds.d3d11.sd.BufferDesc.Height = nHeight;
+			DXUTDeviceSettings ds;
+			ds = DXUTGetDeviceSettings();
+			//ds.d3d11.MultiSampleType = (bAA) ? D3DMULTISAMPLE_4_SAMPLES : D3DMULTISAMPLE_NONE;
+		//	ds.d3d11.sd.Windowed = (BOOL)!bFullscreen;
+			ds.d3d11.sd.BufferDesc.Width = nWidth;
+			ds.d3d11.sd.BufferDesc.Height = nHeight;
 
-		// Change the device settings
-		//g_Render.bDetectOptimalSettings = false;
-		DXUTCreateDeviceFromSettings(&ds);
-		//g_Render.bDetectOptimalSettings = true;
-		return;
+			// Change the device settings
+			//g_Render.bDetectOptimalSettings = false;
+			DXUTCreateDeviceFromSettings(&ds);
+			//g_Render.bDetectOptimalSettings = true;
+			return;
+		}
+		else if (Cache_Button != nullptr & FindSubStr(wstring(Cache_Button->GetText()), wstring(L"Back")))
+		{
+			gameMode = GAME_MAIN_MENU;
+			return;
+		}
 	}
-	else if (ID == nControlID && FindSubStr(Text, wstring(L"Back")))
-	{
-		gameMode = GAME_MAIN_MENU;
-		return;
-	}
+	else if (pControl->GetType() == CONTROL_TYPE::CONTROL_SLIDER)
+		Cache_Slider = (Slider *)pControl;
 }
 /*		
 		//case IDC_SOUNDFX_SCALE:

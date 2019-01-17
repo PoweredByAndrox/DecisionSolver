@@ -275,7 +275,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* p
 		}
 		break;
 	}
-#ifdef Never_MainMenu
+#ifndef Never_MainMenu
 	MM->setGUIEvent(nEvent, nControlID, pControl, pUserContext);
 #endif
 }
@@ -374,8 +374,8 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChai
 	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, true);
 	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, true);
 	
-//	if (!ui->getObjCheckBox().empty())
-//		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox().front(), X - 150, Y += 25, false);
+	if (!ui->getObjCheckBox().empty())
+		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox().front(), X - 150, Y += 25, true);
 
 	return S_OK;
 }
@@ -404,6 +404,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	case GAME_RUNNING:
 		break;
 	case GAME_MAIN_MENU:
+		MM->getDlgMM()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
 		MM->getDlgMM()->OnRender(fElapsedTime);
 		MM->getDlgMM()->SetVisible(true);
 		MM->getDlgAUD()->SetVisible(false);
@@ -413,12 +414,14 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		mainActor->getObjCamera()->SetResetCursorAfterMove(false);
 		break;
 	case GAME_AUDIO_MENU:
+		MM->getDlgAUD()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
 		MM->getDlgAUD()->OnRender(fElapsedTime);
 		MM->getDlgAUD()->SetVisible(true);
 		MM->getDlgMM()->SetVisible(false);
 		MM->getDlgVID()->SetVisible(false);
 		break;
 	case GAME_VIDEO_MENU:
+		MM->getDlgVID()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
 		MM->getDlgVID()->OnRender(fElapsedTime);
 		MM->getDlgVID()->SetVisible(true);
 		MM->getDlgAUD()->SetVisible(false);
@@ -545,7 +548,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		model.at(i)->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
-	
+
 	V(ui->getHUD()->OnRender(fElapsedTime));
 }
 
