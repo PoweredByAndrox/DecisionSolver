@@ -99,9 +99,6 @@ namespace Engine
 				}
 		}
 
-		void SetWorld(Matrix World) { this->World = World; }
-		Matrix GetWorld() { return this->World; }
-
 		void Rotation(Vector3 rotaxis, float Angel);
 		void Scale(Vector3 Scale);
 		void Position(Vector3 Pos);
@@ -113,7 +110,7 @@ namespace Engine
 
 		int getCountModels() { if (!AllModel.empty()) return AllModel.size(); }
 
-		Vector3 getPosition() { return GetWorld().Invert().Translation(); }
+		Vector3 getPosition() { return position.Invert().Translation(); }
 
 		~Models() {}
 	private:
@@ -147,7 +144,9 @@ namespace Engine
 		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
 		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
 
-		Matrix World = XMMatrixIdentity();
+		Matrix position = XMMatrixIdentity();
+		Matrix scale = XMMatrixIdentity();
+		Matrix rotate = XMMatrixIdentity();
 
 		Mesh *model = new Mesh;
 	};

@@ -10,8 +10,11 @@
 
 #include <usp10.h>
 #include <dimm.h>
-#include "File_system.h"
 #include <WICTextureLoader.h>
+
+#include "File_system.h"
+#include "Shaders.h"
+
 
 #ifdef DXUT_AUTOLIB
 #pragma comment( lib, "usp10.lib" )
@@ -405,7 +408,7 @@ namespace Engine
 	//-----------------------------------------------------------------------------
 	// Manages shared resources of dialogs
 	//-----------------------------------------------------------------------------
-	class DialogResourceManager
+	class DialogResourceManager: public Shaders
 	{
 	public:
 		DialogResourceManager() noexcept;
@@ -414,7 +417,7 @@ namespace Engine
 		bool MsgProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 		// D3D11 specific
-		HRESULT OnD3D11CreateDevice(_In_ ID3D11Device *pd3dDevice, _In_ ID3D11DeviceContext *pd3d11DeviceContext, LPCWSTR UIPath);
+		HRESULT OnD3D11CreateDevice(_In_ LPCWSTR UIPath, _In_ LPCWSTR ShaderFile);
 		HRESULT OnD3D11ResizedSwapChain(_In_ ID3D11Device *pd3dDevice, _In_ const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc);
 		void OnD3D11ReleasingSwapChain();
 		void OnD3D11DestroyDevice();
@@ -482,6 +485,8 @@ namespace Engine
 
 		vector<TextureNode *> m_TextureCache;   // Shared textures
 		vector<FontNode *> m_FontCache;         // Shared fonts
+
+		unique_ptr<Shaders> shader = make_unique<Shaders>();
 	};
 
 

@@ -6,7 +6,6 @@
 //
 // http://go.microsoft.com/fwlink/?LinkId=320437
 //--------------------------------------------------------------------------------------
-//#include "DXUTgui.h"
 #include "pch.h"
 
 #include "DXUT.h"
@@ -51,7 +50,7 @@ inline XMFLOAT4 D3DCOLOR_TO_D3DCOLORVALUE(DWORD c)
 		((c >> 24) & 0xFF) / 255.0f);
 }
 
-// DXUT_MAX_EDITBOXLENGTH is the maximum string length allowed in edit boxes,
+// MAX_EDITBOXLENGTH is the maximum string length allowed in edit boxes,
 // including the nul terminator.
 // 
 // Uniscribe does not support strings having bigger-than-16-bits length.
@@ -65,7 +64,7 @@ Control *Dialog::s_pControlPressed = nullptr;      // The control currently pres
 
 ID3D11Buffer *g_pFontBuffer = nullptr;
 UINT g_FontBufferBytes = 0;
-vector<Engine::SpriteVertex> g_FontVertices;
+vector<SpriteVertex> g_FontVertices;
 ID3D11ShaderResourceView *g_pFont = nullptr;
 ID3D11InputLayout *g_pInputLayout = nullptr;
 
@@ -216,7 +215,7 @@ void Engine::EndText11(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3d11Devi
 	if (g_FontVertices.empty())
 		return;
 
-	// ensure our buffer size can hold our sprites
+		// ensure our buffer size can hold our sprites
 	UINT FontDataBytes = static_cast<UINT>(g_FontVertices.size() * sizeof(SpriteVertex));
 	if (g_FontBufferBytes < FontDataBytes)
 	{
@@ -238,7 +237,7 @@ void Engine::EndText11(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3d11Devi
 		DXUT_SetDebugName(g_pFontBuffer, "DXUT Text11");
 	}
 
-	// Copy the sprites over
+		// Copy the sprites over
 	D3D11_BOX destRegion;
 	destRegion.left = 0;
 	destRegion.right = FontDataBytes;
@@ -257,7 +256,7 @@ void Engine::EndText11(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3d11Devi
 	pd3d11DeviceContext->PSGetShaderResources(0, 1, &pOldTexture);
 	pd3d11DeviceContext->PSSetShaderResources(0, 1, &g_pFont);
 
-	// Draw
+		// Draw
 	UINT Stride = sizeof(SpriteVertex);
 	UINT Offset = 0;
 	pd3d11DeviceContext->IASetVertexBuffers(0, 1, &g_pFontBuffer, &Stride, &Offset);
@@ -270,10 +269,6 @@ void Engine::EndText11(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3d11Devi
 
 	g_FontVertices.clear();
 }
-
-//======================================================================================
-// CDXUTDialog class
-//======================================================================================
 
 Dialog::Dialog() noexcept :
     m_bNonUserEvents(false),
@@ -360,11 +355,11 @@ void Dialog::Init(DialogResourceManager *pManager, bool bRegisterDialog,
 _Use_decl_annotations_
 void Dialog::SetCallback(PCALLBACKGUIEVENT pCallback, void* pUserContext)
 {
-	// If this assert triggers, you need to call CDXUTDialog::Init() first.  This change
+	// If this assert triggers, you need to call Dialog::Init() first.  This change
 	// was made so that the DXUT's GUI could become seperate and optional from DXUT's core.  The 
-	// creation and interfacing with CDXUTDialogResourceManager is now the responsibility 
+	// creation and interfacing with DialogResourceManager is now the responsibility 
 	// of the application if it wishes to use DXUT's GUI.
-	assert(m_pManager && L"To fix call Dialog::Init() first.  See comments for details.");
+	assert(m_pManager && L"To fix call Dialog::Init() first. See comments for details.");
 
 	m_pCallbackEvent = pCallback;
 	m_pCallbackEventUserContext = pUserContext;
@@ -377,10 +372,10 @@ void Dialog::RemoveControl(_In_ int ID)
 	{
 		if ((*it)->GetID() == ID)
 		{
-			// Clean focus first
+				// Clean focus first
 			ClearFocus();
 
-			// Clear references to this control
+				// Clear references to this control
 			if (s_pControlFocus == (*it))
 				s_pControlFocus = nullptr;
 			if (s_pControlPressed == (*it))
@@ -434,31 +429,31 @@ void Dialog::Refresh()
 //--------------------------------------------------------------------------------------
 HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 {
-	// If this assert triggers, you need to call CDXUTDialogResourceManager::On*Device() from inside
+	// If this assert triggers, you need to call DialogResourceManager::On*Device() from inside
 	// the application's device callbacks.  See the SDK samples for an example of how to do this.
 	assert(m_pManager->GetD3D11Device() && L"To fix hook up DialogResourceManager to device callbacks. See comments for details");
 
-	// See if the dialog needs to be refreshed
+		// See if the dialog needs to be refreshed
 	if (m_fTimeLastRefresh < s_fTimeRefresh)
 	{
 		m_fTimeLastRefresh = DXUTGetTime();
 		Refresh();
 	}
 
-	// For invisible dialog, out now.
+		// For invisible dialog, out now.
 	if (!m_bVisible || (m_bMinimized && !m_bCaption))
 		return S_OK;
 
 	auto pd3dDevice = m_pManager->GetD3D11Device();
 	auto pd3dDeviceContext = m_pManager->GetD3D11DeviceContext();
 
-	// Set up a state block here and restore it when finished drawing all the controls
+		// Set up a state block here and restore it when finished drawing all the controls
 	m_pManager->StoreD3D11State(pd3dDeviceContext);
 
 	bool bBackgroundIsVisible = (m_colorTopLeft | m_colorTopRight | m_colorBottomRight | m_colorBottomLeft) & 0xff000000;
 	if (!m_bMinimized && bBackgroundIsVisible)
 	{
-		// Convert the draw rectangle from screen coordinates to clip space coordinates.
+			// Convert the draw rectangle from screen coordinates to clip space coordinates.
 		float Left, Right, Top, Bottom;
 		Left = m_x * 2.0f / m_pManager->m_nBackBufferWidth - 1.0f;
 		Right = (m_x + m_width) * 2.0f / m_pManager->m_nBackBufferWidth - 1.0f;
@@ -495,13 +490,13 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 	auto pTextureNode = GetTexture(0);
 	pd3dDeviceContext->PSSetShaderResources(0, 1, &pTextureNode->pTexResView11);
 
-	// Sort depth back to front
+		// Sort depth back to front
 	m_pManager->BeginSprites11();
 	BeginText11();
 
 	m_pManager->ApplyRenderUI11(pd3dDeviceContext);
 
-	// Render the caption if it's enabled.
+		// Render the caption if it's enabled.
 	if (m_bCaption)
 	{
 		// DrawSprite will offset the rect down by
@@ -517,13 +512,12 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 		DrawTextGUI(wszOutput, &m_CapElement, &rc, true);
 	}
 
-	// If the dialog is minimized, skip rendering
-	// its controls.
+		// If the dialog is minimized, skip rendering its controls.
 	if (!m_bMinimized)
 	{
 		for (auto it = m_Controls.cbegin(); it != m_Controls.cend(); ++it)
 		{
-			// Focused control is drawn last
+				// Focused control is drawn last
 			if (*it == s_pControlFocus)
 				continue;
 
@@ -534,7 +528,7 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 			s_pControlFocus->Render(fElapsedTime);
 	}
 
-	// End sprites
+		// End sprites
 	if (m_bCaption)
 	{
 		m_pManager->EndSprites11(pd3dDevice, pd3dDeviceContext);
@@ -549,12 +543,11 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 _Use_decl_annotations_
 void Dialog::SendEvent(UINT nEvent, bool bTriggeredByUser, Control* pControl)
 {
-	// If no callback has been registered there's nowhere to send the event to
+		// If no callback has been registered there's nowhere to send the event to
 	if (!m_pCallbackEvent)
 		return;
 
-	// Discard events triggered programatically if these types of events haven't been
-	// enabled
+		// Discard events triggered programatically if these types of events haven't been enabled
 	if (!bTriggeredByUser && !m_bNonUserEvents)
 		return;
 
@@ -565,7 +558,7 @@ void Dialog::SendEvent(UINT nEvent, bool bTriggeredByUser, Control* pControl)
 _Use_decl_annotations_
 HRESULT Dialog::SetFont(UINT index, LPCWSTR strFaceName, LONG height, LONG weight)
 {
-	// If this assert triggers, you need to call CDXUTDialog::Init() first.  This change
+	// If this assert triggers, you need to call Dialog::Init() first.  This change
 	// was made so that the DXUT's GUI could become seperate and optional from DXUT's core.  The 
 	// creation and interfacing with DialogResourceManager is now the responsibility 
 	// of the application if it wishes to use DXUT's GUI.
@@ -594,9 +587,9 @@ FontNode *Dialog::GetFont(_In_ UINT index) const
 _Use_decl_annotations_
 HRESULT Dialog::SetTexture(UINT index, LPCWSTR strFilename)
 {
-	// If this assert triggers, you need to call CDXUTDialog::Init() first.  This change
+	// If this assert triggers, you need to call Dialog::Init() first.  This change
 	// was made so that the DXUT's GUI could become seperate and optional from DXUT's core.  The 
-	// creation and interfacing with CDXUTDialogResourceManager is now the responsibility 
+	// creation and interfacing with DialogResourceManager is now the responsibility 
 	// of the application if it wishes to use DXUT's GUI.
 	assert(m_pManager && L"To fix this, call Dialog::Init() first. See comments for details.");
 	_Analysis_assume_(m_pManager);
@@ -613,9 +606,9 @@ HRESULT Dialog::SetTexture(UINT index, LPCWSTR strFilename)
 _Use_decl_annotations_
 HRESULT Dialog::SetTexture(UINT index, LPCWSTR strResourceName, HMODULE hResourceModule)
 {
-	// If this assert triggers, you need to call CDXUTDialog::Init() first.  This change
+	// If this assert triggers, you need to call Dialog::Init() first.  This change
 	// was made so that the DXUT's GUI could become seperate and optional from DXUT's core.  The 
-	// creation and interfacing with CDXUTDialogResourceManager is now the responsibility 
+	// creation and interfacing with DialogResourceManager is now the responsibility 
 	// of the application if it wishes to use DXUT's GUI.
 	assert(m_pManager && L"To fix this, call Dialog::Init() first. See comments for details.");
 	_Analysis_assume_(m_pManager);
@@ -717,9 +710,7 @@ bool Dialog::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// Call OnFocusIn()/OnFocusOut() of the control that currently has the focus
 		// as the application is activated/deactivated.  This matches the Windows
 		// behavior.
-		if (s_pControlFocus &&
-			s_pControlFocus->m_pDialog == this &&
-			s_pControlFocus->GetEnabled())
+		if (s_pControlFocus && s_pControlFocus->m_pDialog == this && s_pControlFocus->GetEnabled())
 			if (wParam)
 				s_pControlFocus->OnFocusIn();
 			else
@@ -947,8 +938,7 @@ HRESULT Dialog::SetDefaultElement(UINT nControlType, UINT iElement, Element *pEl
 	// If this Element type already exist in the list, simply update the stored Element
 	for (auto it = m_DefaultElements.begin(); it != m_DefaultElements.end(); ++it)
 	{
-		if ((*it)->nControlType == nControlType &&
-			(*it)->iElement == iElement)
+		if ((*it)->nControlType == nControlType && (*it)->iElement == iElement)
 		{
 			(*it)->element = *pElement;
 			return S_OK;
@@ -1362,8 +1352,8 @@ _Use_decl_annotations_
 HRESULT Dialog::DrawSprite(Element *pElement, const RECT *prcDest, float fDepth)
 {
 	// No need to draw fully transparent layers
-//	if (pElement->TextureColor.Current.w == 0)
-//		return S_OK;
+	//if (pElement->TextureColor.Current.w == 0)
+	//	return S_OK;
 
 	RECT rcTexture = pElement->rcTexture;
 
@@ -1483,16 +1473,11 @@ HRESULT Dialog::DrawTextGUI(LPCWSTR strText, Element *pElement, const RECT *prcD
 		OffsetRect(&rcShadow, 1, 1);
 
 		Vector4 vShadowColor(0, 0, 0, 1.0f);
-		DrawText11(pd3dDevice, pd3d11DeviceContext,
-			strText, rcShadow, vShadowColor,
-			fBBWidth, fBBHeight, bCenter);
-
+		DrawText11(pd3dDevice, pd3d11DeviceContext, strText, rcShadow, vShadowColor, fBBWidth, fBBHeight, bCenter);
 	}
 
 	Vector4 vFontColor(pElement->FontColor.Current.x, pElement->FontColor.Current.y, pElement->FontColor.Current.z, 1.0f);
-	Engine::DrawText11(pd3dDevice, pd3d11DeviceContext,
-		strText, rcScreen, vFontColor,
-		fBBWidth, fBBHeight, bCenter);
+	Engine::DrawText11(pd3dDevice, pd3d11DeviceContext, strText, rcScreen, vFontColor, fBBWidth, fBBHeight, bCenter);
 
 	return S_OK;
 }
@@ -1577,11 +1562,9 @@ bool Dialog::OnCycleFocus(_In_ bool bForward)
 			}
 
 			if (!pDialog || !pControl)
-			{
 				// No dialog has been registered yet or no controls have been
 				// added to the dialogs. Cannot proceed.
 				return true;
-			}
 		}
 		else
 		{
@@ -1598,20 +1581,15 @@ bool Dialog::OnCycleFocus(_In_ bool bForward)
 			}
 
 			if (!pDialog || !pControl)
-			{
 				// No dialog has been registered yet or no controls have been
 				// added to the dialogs. Cannot proceed.
 				return true;
-			}
 		}
 	}
 	else if (s_pControlFocus->m_pDialog != this)
-	{
 		// If a control belonging to another dialog has focus, let that other
 		// dialog handle this event by returning false.
-		//
 		return false;
-	}
 	else
 	{
 		// Focused control belongs to this dialog. Cycle to the
@@ -1706,7 +1684,6 @@ void Dialog::InitDefaultElements()
 	// Assign the Element
 	SetDefaultElement(CONTROL_STATIC, 0, &Element);
 
-
 	//-------------------------------------
 	// Button
 	//-------------------------------------
@@ -1720,7 +1697,6 @@ void Dialog::InitDefaultElements()
 	// Assign the Element
 	SetDefaultElement(CONTROL_BUTTON, 0, &Element);
 
-
 	//-------------------------------------
 	// Button - Fill layer
 	//-------------------------------------
@@ -1730,10 +1706,8 @@ void Dialog::InitDefaultElements()
 	Element.TextureColor.States[STATE_PRESSED] = D3DCOLOR_ARGB(60, 0, 0, 0);
 	Element.TextureColor.States[STATE_FOCUS] = D3DCOLOR_ARGB(30, 255, 255, 255);
 
-
 	// Assign the Element
 	SetDefaultElement(CONTROL_BUTTON, 1, &Element);
-
 
 	//-------------------------------------
 	// CheckBox - Box
@@ -1758,7 +1732,6 @@ void Dialog::InitDefaultElements()
 	// Assign the Element
 	SetDefaultElement(CONTROL_CHECKBOX, 1, &Element);
 
-
 	//-------------------------------------
 	// RadioButton - Box
 	//-------------------------------------
@@ -1773,7 +1746,6 @@ void Dialog::InitDefaultElements()
 	// Assign the Element
 	SetDefaultElement(CONTROL_RADIOBUTTON, 0, &Element);
 
-
 	//-------------------------------------
 	// RadioButton - Check
 	//-------------------------------------
@@ -1782,7 +1754,6 @@ void Dialog::InitDefaultElements()
 
 	// Assign the Element
 	SetDefaultElement(CONTROL_RADIOBUTTON, 1, &Element);
-
 
 	//-------------------------------------
 	// ComboBox - Main
@@ -1862,8 +1833,7 @@ void Dialog::InitDefaultElements()
 	//-------------------------------------
 	// ScrollBar - Track
 	//-------------------------------------
-	int nScrollBarStartX = 196;
-	int nScrollBarStartY = 191;
+	int nScrollBarStartX = 196, nScrollBarStartY = 191;
 	SetRect(&rcTexture, nScrollBarStartX + 0, nScrollBarStartY + 21, nScrollBarStartX + 22, nScrollBarStartY + 32);
 	Element.SetTexture(0, &rcTexture);
 	Element.TextureColor.States[STATE_DISABLED] = D3DCOLOR_ARGB(255, 200, 200, 200);
@@ -1970,7 +1940,7 @@ void Dialog::InitDefaultElements()
 }
 
 //--------------------------------------------------------------------------------------
-DialogResourceManager::DialogResourceManager() noexcept :
+DialogResourceManager::DialogResourceManager() noexcept:
     m_pVSRenderUI11(nullptr),
     m_pPSRenderUI11(nullptr),
     m_pPSRenderUIUntex11(nullptr),
@@ -2020,155 +1990,61 @@ bool DialogResourceManager::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM 
 }
 
 _Use_decl_annotations_
-HRESULT DialogResourceManager::OnD3D11CreateDevice(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3d11DeviceContext, LPCWSTR UIPath)
+HRESULT DialogResourceManager::OnD3D11CreateDevice(LPCWSTR UIPath, LPCWSTR ShaderFile)
 {
-	m_pd3d11Device = pd3dDevice;
-	m_pd3d11DeviceContext = pd3d11DeviceContext;
+	m_pd3d11Device = DXUTGetD3D11Device();
+	m_pd3d11DeviceContext = DXUTGetD3D11DeviceContext();
 
 	HRESULT hr = S_OK;
-	CHAR g_strUIEffectFile[] = \
-		"Texture2D g_Texture;"\
-		""\
-		"SamplerState Sampler"\
-		"{"\
-		"    Filter = MIN_MAG_MIP_LINEAR;"\
-		"    AddressU = Wrap;"\
-		"    AddressV = Wrap;"\
-		"};"\
-		""\
-		"BlendState UIBlend"\
-		"{"\
-		"    AlphaToCoverageEnable = FALSE;"\
-		"    BlendEnable[0] = TRUE;"\
-		"    SrcBlend = SRC_ALPHA;"\
-		"    DestBlend = INV_SRC_ALPHA;"\
-		"    BlendOp = ADD;"\
-		"    SrcBlendAlpha = ONE;"\
-		"    DestBlendAlpha = ZERO;"\
-		"    BlendOpAlpha = ADD;"\
-		"    RenderTargetWriteMask[0] = 0x0F;"\
-		"};"\
-		""\
-		"BlendState NoBlending"\
-		"{"\
-		"    BlendEnable[0] = FALSE;"\
-		"    RenderTargetWriteMask[0] = 0x0F;"\
-		"};"\
-		""\
-		"DepthStencilState DisableDepth"\
-		"{"\
-		"    DepthEnable = false;"\
-		"};"\
-		"DepthStencilState EnableDepth"\
-		"{"\
-		"    DepthEnable = true;"\
-		"};"\
-		"struct VS_OUTPUT"\
-		"{"\
-		"    float4 Pos : POSITION;"\
-		"    float4 Dif : COLOR;"\
-		"    float2 Tex : TEXCOORD;"\
-		"};"\
-		""\
-		"VS_OUTPUT VS( float3 vPos : POSITION,"\
-		"              float4 Dif : COLOR,"\
-		"              float2 vTexCoord0 : TEXCOORD )"\
-		"{"\
-		"    VS_OUTPUT Output;"\
-		""\
-		"    Output.Pos = float4( vPos, 1.0f );"\
-		"    Output.Dif = Dif;"\
-		"    Output.Tex = vTexCoord0;"\
-		""\
-		"    return Output;"\
-		"}"\
-		""\
-		"float4 PS( VS_OUTPUT In ) : SV_Target"\
-		"{"\
-		"    return g_Texture.Sample( Sampler, In.Tex ) * In.Dif;"\
-		"}"\
-		""\
-		"float4 PSUntex( VS_OUTPUT In ) : SV_Target"\
-		"{"\
-		"    return In.Dif;"\
-		"}"\
-		""\
-		"technique10 RenderUI"\
-		"{"\
-		"    pass P0"\
-		"    {"\
-		"        SetVertexShader( CompileShader( vs_4_0, VS() ) );"\
-		"        SetGeometryShader( NULL );"\
-		"        SetPixelShader( CompileShader( ps_4_0, PS() ) );"\
-		"        SetDepthStencilState( DisableDepth, 0 );"\
-		"        SetBlendState( UIBlend, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF );"\
-		"    }"\
-		"}"\
-		"technique10 RenderUIUntex"\
-		"{"\
-		"    pass P0"\
-		"    {"\
-		"        SetVertexShader( CompileShader( vs_4_0, VS() ) );"\
-		"        SetGeometryShader( NULL );"\
-		"        SetPixelShader( CompileShader( ps_4_0, PSUntex() ) );"\
-		"        SetDepthStencilState( DisableDepth, 0 );"\
-		"        SetBlendState( UIBlend, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF );"\
-		"    }"\
-		"}"\
-		"technique10 RestoreState"\
-		"{"\
-		"    pass P0"\
-		"    {"\
-		"        SetDepthStencilState( EnableDepth, 0 );"\
-		"        SetBlendState( NoBlending, float4( 0.0f, 0.0f, 0.0f, 0.0f ), 0xFFFFFFFF );"\
-		"    }"\
-		"}";
 
 	// Compile Shaders
-	ID3DBlob *pVSBlob = nullptr,
-		*pPSBlob = nullptr,
-		*pPSUntexBlob = nullptr;
+	vector<wstring> FileShaders;
+	FileShaders.push_back(ShaderFile);
+	FileShaders.push_back(ShaderFile);
+	FileShaders.push_back(ShaderFile);
 
-	const UINT g_uUIEffectFileSize = sizeof(g_strUIEffectFile);
+	vector<string> Functions, Version;
+	Functions.push_back(string("VS"));
+	Functions.push_back(string("PS"));
+	Functions.push_back(string("PSUntex"));
 
-	V_RETURN(D3DCompile(g_strUIEffectFile, g_uUIEffectFileSize, "none", nullptr, nullptr, "VS", "vs_4_0_level_9_1",
-		D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &pVSBlob, nullptr));
-	V_RETURN(D3DCompile(g_strUIEffectFile, g_uUIEffectFileSize, "none", nullptr, nullptr, "PS", "ps_4_0_level_9_1",
-		D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &pPSBlob, nullptr));
-	V_RETURN(D3DCompile(g_strUIEffectFile, g_uUIEffectFileSize, "none", nullptr, nullptr, "PSUntex", "ps_4_0_level_9_1",
-		D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY, 0, &pPSUntexBlob, nullptr));
+	Version.push_back(string("vs_4_0_level_9_1"));
+	Version.push_back(string("ps_4_0_level_9_1"));
+	Version.push_back(string("ps_4_0_level_9_1"));
 
-	// Create Shaders
-	V_RETURN(pd3dDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), nullptr, &m_pVSRenderUI11));
-	DXUT_SetDebugName(m_pVSRenderUI11, "CDXUTDialogResourceManager");
+	vector<ID3DBlob *> pBlobs;
+	auto Buffers  = shader->CompileShaderFromFile(
+		pBlobs = shader->CreateShaderFromFile(FileShaders, Functions, Version, D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY));
+	
+	m_pVSRenderUI11 = (ID3D11VertexShader *)Buffers.at(0);
+	m_pPSRenderUI11 = (ID3D11PixelShader *)Buffers.at(1);
+	m_pPSRenderUIUntex11 = (ID3D11PixelShader *)Buffers.at(2);
 
-	V_RETURN(pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPSRenderUI11));
-	DXUT_SetDebugName(m_pPSRenderUI11, "CDXUTDialogResourceManager");
-
-	V_RETURN(pd3dDevice->CreatePixelShader(pPSUntexBlob->GetBufferPointer(), pPSUntexBlob->GetBufferSize(), nullptr, &m_pPSRenderUIUntex11));
-	DXUT_SetDebugName(m_pPSRenderUIUntex11, "CDXUTDialogResourceManager");
+	DXUT_SetDebugName(m_pVSRenderUI11, "DialogResourceManager");
+	DXUT_SetDebugName(m_pPSRenderUI11, "DialogResourceManager");
+	DXUT_SetDebugName(m_pPSRenderUIUntex11, "DialogResourceManager");
 
 	// States
 	D3D11_DEPTH_STENCIL_DESC DSDesc = {};
-	DSDesc.DepthEnable = FALSE;
+	DSDesc.DepthEnable = false;
 	DSDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	DSDesc.DepthFunc = D3D11_COMPARISON_LESS;
-	DSDesc.StencilEnable = FALSE;
-	V_RETURN(pd3dDevice->CreateDepthStencilState(&DSDesc, &m_pDepthStencilStateUI11));
+	DSDesc.StencilEnable = false;
+	V(m_pd3d11Device->CreateDepthStencilState(&DSDesc, &m_pDepthStencilStateUI11));
 	DXUT_SetDebugName(m_pDepthStencilStateUI11, "DialogResourceManager");
 
 	D3D11_RASTERIZER_DESC RSDesc;
-	RSDesc.AntialiasedLineEnable = FALSE;
+	RSDesc.AntialiasedLineEnable = false;
 	RSDesc.CullMode = D3D11_CULL_BACK;
 	RSDesc.DepthBias = 0;
 	RSDesc.DepthBiasClamp = 0.0f;
-	RSDesc.DepthClipEnable = TRUE;
+	RSDesc.DepthClipEnable = true;
 	RSDesc.FillMode = D3D11_FILL_SOLID;
-	RSDesc.FrontCounterClockwise = FALSE;
-	RSDesc.MultisampleEnable = TRUE;
-	RSDesc.ScissorEnable = FALSE;
+	RSDesc.FrontCounterClockwise = false;
+	RSDesc.MultisampleEnable = true;
+	RSDesc.ScissorEnable = false;
 	RSDesc.SlopeScaledDepthBias = 0.0f;
-	V_RETURN(pd3dDevice->CreateRasterizerState(&RSDesc, &m_pRasterizerStateUI11));
+	V(m_pd3d11Device->CreateRasterizerState(&RSDesc, &m_pRasterizerStateUI11));
 	DXUT_SetDebugName(m_pRasterizerStateUI11, "DialogResourceManager");
 
 	D3D11_BLEND_DESC BSDesc = {};
@@ -2181,7 +2057,7 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(ID3D11Device *pd3dDevice, ID3
 	BSDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	BSDesc.RenderTarget[0].RenderTargetWriteMask = 0x0F;
 
-	V_RETURN(pd3dDevice->CreateBlendState(&BSDesc, &m_pBlendStateUI11));
+	V(m_pd3d11Device->CreateBlendState(&BSDesc, &m_pBlendStateUI11));
 	DXUT_SetDebugName(m_pBlendStateUI11, "DialogResourceManager");
 
 	D3D11_SAMPLER_DESC SSDesc = {};
@@ -2193,12 +2069,12 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(ID3D11Device *pd3dDevice, ID3
 	SSDesc.MaxAnisotropy = 16;
 	SSDesc.MinLOD = 0;
 	SSDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	if (pd3dDevice->GetFeatureLevel() < D3D_FEATURE_LEVEL_9_3)
+	if (m_pd3d11Device->GetFeatureLevel() < D3D_FEATURE_LEVEL_9_3)
 	{
 		SSDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 		SSDesc.MaxAnisotropy = 0;
 	}
-	V_RETURN(pd3dDevice->CreateSamplerState(&SSDesc, &m_pSamplerStateUI11));
+	V(m_pd3d11Device->CreateSamplerState(&SSDesc, &m_pSamplerStateUI11));
 	DXUT_SetDebugName(m_pSamplerStateUI11, "DialogResourceManager");
 
 	// Create the texture objects in the cache arrays.
@@ -2216,13 +2092,8 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(ID3D11Device *pd3dDevice, ID3
 		{ "TEXCOORD",  0, DXGI_FORMAT_R32G32_FLOAT,       0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	V_RETURN(pd3dDevice->CreateInputLayout(layout, ARRAYSIZE(layout), pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), &m_pInputLayout11));
+	V(m_pd3d11Device->CreateInputLayout(layout, ARRAYSIZE(layout), pBlobs.at(0)->GetBufferPointer(), pBlobs.at(0)->GetBufferSize(), &m_pInputLayout11));
 	DXUT_SetDebugName(m_pInputLayout11, "DialogResourceManager");
-
-	// Release the blobs
-	SAFE_RELEASE(pVSBlob);
-	SAFE_RELEASE(pPSBlob);
-	SAFE_RELEASE(pPSUntexBlob);
 
 	// Create a vertex buffer quad for rendering later
 	D3D11_BUFFER_DESC BufDesc;
@@ -2231,11 +2102,11 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(ID3D11Device *pd3dDevice, ID3
 	BufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	BufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	BufDesc.MiscFlags = 0;
-	V_RETURN(pd3dDevice->CreateBuffer(&BufDesc, nullptr, &m_pVBScreenQuad11));
+	V(m_pd3d11Device->CreateBuffer(&BufDesc, nullptr, &m_pVBScreenQuad11));
 	DXUT_SetDebugName(m_pVBScreenQuad11, "DialogResourceManager");
 
 	// Init the D3D11 font
-	InitFont11(pd3dDevice, m_pInputLayout11, UIPath);
+	InitFont11(m_pd3d11Device, m_pInputLayout11, UIPath);
 
 	return S_OK;
 }
@@ -2269,18 +2140,18 @@ void DialogResourceManager::OnD3D11DestroyDevice()
 		SAFE_RELEASE((*it)->pTexture11);
 	}
 
-	// D3D11
+		// D3D11
 	SAFE_RELEASE(m_pVBScreenQuad11);
 	SAFE_RELEASE(m_pSpriteBuffer11);
 	m_SpriteBufferBytes11 = 0;
 	SAFE_RELEASE(m_pInputLayout11);
 
-	// Shaders
+		// Shaders
 	SAFE_RELEASE(m_pVSRenderUI11);
 	SAFE_RELEASE(m_pPSRenderUI11);
 	SAFE_RELEASE(m_pPSRenderUIUntex11);
 
-	// States
+		// States
 	SAFE_RELEASE(m_pDepthStencilStateUI11);
 	SAFE_RELEASE(m_pRasterizerStateUI11);
 	SAFE_RELEASE(m_pBlendStateUI11);
@@ -2320,14 +2191,14 @@ void DialogResourceManager::RestoreD3D11State(_In_ ID3D11DeviceContext *pd3dImme
 //--------------------------------------------------------------------------------------
 void DialogResourceManager::ApplyRenderUI11(_In_ ID3D11DeviceContext *pd3dImmediateContext)
 {
-	// Shaders
+		// Shaders
 	pd3dImmediateContext->VSSetShader(m_pVSRenderUI11, nullptr, 0);
 	pd3dImmediateContext->HSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->DSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->PSSetShader(m_pPSRenderUI11, nullptr, 0);
 
-	// States
+		// States
 	pd3dImmediateContext->OMSetDepthStencilState(m_pDepthStencilStateUI11, 0);
 	pd3dImmediateContext->RSSetState(m_pRasterizerStateUI11);
 	float BlendFactor[4] = { 0, 0, 0, 0 };
@@ -2338,14 +2209,14 @@ void DialogResourceManager::ApplyRenderUI11(_In_ ID3D11DeviceContext *pd3dImmedi
 //--------------------------------------------------------------------------------------
 void DialogResourceManager::ApplyRenderUIUntex11(_In_ ID3D11DeviceContext *pd3dImmediateContext)
 {
-	// Shaders
+		// Shaders
 	pd3dImmediateContext->VSSetShader(m_pVSRenderUI11, nullptr, 0);
 	pd3dImmediateContext->HSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->DSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->GSSetShader(nullptr, nullptr, 0);
 	pd3dImmediateContext->PSSetShader(m_pPSRenderUIUntex11, nullptr, 0);
 
-	// States
+		// States
 	pd3dImmediateContext->OMSetDepthStencilState(m_pDepthStencilStateUI11, 0);
 	pd3dImmediateContext->RSSetState(m_pRasterizerStateUI11);
 	float BlendFactor[4] = { 0, 0, 0, 0 };
@@ -2363,8 +2234,7 @@ void DialogResourceManager::BeginSprites11()
 _Use_decl_annotations_
 void DialogResourceManager::EndSprites11(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3dImmediateContext)
 {
-
-	// ensure our buffer size can hold our sprites
+		// ensure our buffer size can hold our sprites
 	UINT SpriteDataBytes = static_cast<UINT>(m_SpriteVertices.size() * sizeof(SpriteVertex));
 	if (m_SpriteBufferBytes11 < SpriteDataBytes)
 	{
@@ -2380,7 +2250,7 @@ void DialogResourceManager::EndSprites11(ID3D11Device *pd3dDevice, ID3D11DeviceC
 
 		if (FAILED(pd3dDevice->CreateBuffer(&BufferDesc, nullptr, &m_pSpriteBuffer11)))
 		{
-			m_pSpriteBuffer11 = nullptr;
+			SAFE_DELETE(m_pSpriteBuffer11);
 			m_SpriteBufferBytes11 = 0;
 			return;
 		}
@@ -2426,8 +2296,8 @@ bool DialogResourceManager::RegisterDialog(_In_ Dialog *pDialog)
 
 	// Set up next and prev pointers.
 	if (m_Dialogs.size() > 1)
-		m_Dialogs[m_Dialogs.size() - 2]->SetNextDialog(pDialog);
-	m_Dialogs[m_Dialogs.size() - 1]->SetNextDialog(m_Dialogs[0]);
+		m_Dialogs.at(m_Dialogs.size() - 2)->SetNextDialog(pDialog);
+	m_Dialogs.at(m_Dialogs.size() - 1)->SetNextDialog(m_Dialogs.at(0));
 
 	return true;
 }
@@ -2438,7 +2308,7 @@ void DialogResourceManager::UnregisterDialog(_In_ Dialog *pDialog)
 	// Search for the dialog in the list.
 	for (size_t i = 0; i < m_Dialogs.size(); ++i)
 	{
-		if (m_Dialogs[i] == pDialog)
+		if (m_Dialogs.at(i) == pDialog)
 		{
 			m_Dialogs.erase(m_Dialogs.begin() + i);
 			if (!m_Dialogs.empty())
@@ -2455,7 +2325,7 @@ void DialogResourceManager::UnregisterDialog(_In_ Dialog *pDialog)
 				else
 					r = int(i);
 
-				m_Dialogs[l]->SetNextDialog(m_Dialogs[r]);
+				m_Dialogs.at(l)->SetNextDialog(m_Dialogs.at(r));
 			}
 			return;
 		}
@@ -2478,9 +2348,8 @@ int DialogResourceManager::AddFont(LPCWSTR strFaceName, LONG height, LONG weight
 	for (size_t i = 0; i < m_FontCache.size(); ++i)
 	{
 		auto pFontNode = m_FontCache[i];
-		size_t nLen = 0;
-		nLen = wcsnlen(strFaceName, MAX_PATH);
-		if (0 == _wcsnicmp(pFontNode->strFace, strFaceName, nLen) && pFontNode->nHeight == height && pFontNode->nWeight == weight)
+		if (0 == _wcsnicmp(pFontNode->strFace, strFaceName, wcsnlen(strFaceName, MAX_PATH))
+			&& pFontNode->nHeight == height && pFontNode->nWeight == weight)
 			return static_cast<int>(i);
 	}
 
@@ -2508,10 +2377,8 @@ int DialogResourceManager::AddTexture(_In_z_ LPCWSTR strFilename)
 	for (size_t i = 0; i < m_TextureCache.size(); ++i)
 	{
 		auto pTextureNode = m_TextureCache[i];
-		size_t nLen = 0;
-		nLen = wcsnlen(strFilename, MAX_PATH);
 		// Sources must match
-		if (pTextureNode->bFileSource && 0 == _wcsnicmp(pTextureNode->strFilename, strFilename, nLen))
+		if (pTextureNode->bFileSource && 0 == _wcsnicmp(pTextureNode->strFilename, strFilename, wcsnlen(strFilename, MAX_PATH)))
 			return static_cast<int>(i);
 	}
 
@@ -2538,23 +2405,17 @@ int DialogResourceManager::AddTexture(LPCWSTR strResourceName, HMODULE hResource
 	for (size_t i = 0; i < m_TextureCache.size(); i++)
 	{
 		auto pTextureNode = m_TextureCache[i];
-		if (!pTextureNode->bFileSource &&      // Sources must match
-			pTextureNode->hResourceModule == hResourceModule) // Module handles must match
+		// Sources must match
+		if (!pTextureNode->bFileSource && pTextureNode->hResourceModule == hResourceModule) // Module handles must match
 		{
 			if (IS_INTRESOURCE(strResourceName))
-			{
 					// Integer-based ID
 				if ((INT_PTR)strResourceName == pTextureNode->nResourceID)
 					return static_cast<int>(i);
-			}
 			else
-			{
 					// String-based ID
-				size_t nLen = 0;
-				nLen = wcsnlen(strResourceName, MAX_PATH);
-				if (0 == _wcsnicmp(pTextureNode->strFilename, strResourceName, nLen))
+				if (0 == _wcsnicmp(pTextureNode->strFilename, strResourceName, wcsnlen(strResourceName, MAX_PATH)))
 					return static_cast<int>(i);
-			}
 		}
 	}
 
@@ -2596,37 +2457,13 @@ HRESULT DialogResourceManager::CreateTexture11(_In_ UINT iTexture)
 	}
 	else
 	{
-		// Make sure there's a texture to create
+			// Make sure there's a texture to create
 		if (pTextureNode->strFilename[0] == 0)
 			return S_OK;
 
 		ID3D11Resource *pRes;
 
-/*
-		D3DX11_IMAGE_INFO SrcInfo;
-		D3DX11GetImageInfoFromFile(pTextureNode->strFilename, NULL, &SrcInfo, NULL);
-
-		// Create texture from file
-		D3DX11_IMAGE_LOAD_INFO loadInfo;
-		loadInfo.Width = D3DX11_DEFAULT;
-		loadInfo.Height = D3DX11_DEFAULT;
-		loadInfo.Depth = D3DX11_DEFAULT;
-		loadInfo.FirstMipLevel = 0;
-		loadInfo.MipLevels = 1;
-		loadInfo.Usage = D3D11_USAGE_DEFAULT;
-		loadInfo.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-		loadInfo.CpuAccessFlags = 0;
-		loadInfo.MiscFlags = 0;
-		loadInfo.Format = MAKE_TYPELESS(SrcInfo.Format);
-		loadInfo.Filter = D3DX11_FILTER_NONE;
-		loadInfo.MipFilter = D3DX11_FILTER_NONE;
-		loadInfo.pSrcInfo = &SrcInfo;
-*/
-
-		//if (FAILED(hr = D3DX11CreateTextureFromFile(DXUTGetD3D11Device(), pTextureNode->strFilename, &loadInfo, NULL, &pRes, NULL)))
 		ThrowIfFailed(CreateDDSTextureFromFile(DXUTGetD3D11Device(), pTextureNode->strFilename, &pRes, &pTextureNode->pTexResView11, NULL));
-		//	return DXTRACE_ERR(L"D3DX11CreateResourceFromFileEx", hr);
 
 		DXUT_SetDebugName(pRes, "DXUT GUI Texture");
 		hr = pRes->QueryInterface(__uuidof(ID3D11Texture2D), (LPVOID*)&pTextureNode->pTexture11);
@@ -2634,13 +2471,13 @@ HRESULT DialogResourceManager::CreateTexture11(_In_ UINT iTexture)
 		if (FAILED(hr))
 			return hr;
 	}
-	// Store dimensions
+		// Store dimensions
 	D3D11_TEXTURE2D_DESC desc;
 	pTextureNode->pTexture11->GetDesc(&desc);
 	pTextureNode->dwWidth = desc.Width;
 	pTextureNode->dwHeight = desc.Height;
 
-	// Create resource view
+		// Create resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC SRVDesc;
 	SRVDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	SRVDesc.Format = desc.Format;
@@ -2653,10 +2490,6 @@ HRESULT DialogResourceManager::CreateTexture11(_In_ UINT iTexture)
 
 	return hr;
 }
-
-//======================================================================================
-// CDXUTControl class
-//======================================================================================
 
 Control::Control(_In_opt_ Dialog *pDialog) noexcept
 {
@@ -2709,7 +2542,7 @@ HRESULT Control::SetElement(_In_ UINT iElement, _In_ Element *pElement)
 	if (!pElement)
 		return E_INVALIDARG;
 
-	// Make certain the array is this large
+		// Make certain the array is this large
 	for (size_t i = m_Elements.size(); i <= iElement; i++)
 	{
 		auto pNewElement = new (nothrow) Element();
@@ -2719,7 +2552,7 @@ HRESULT Control::SetElement(_In_ UINT iElement, _In_ Element *pElement)
 		m_Elements.push_back(pNewElement);
 	}
 
-	// Update the data
+		// Update the data
 	auto pCurElement = m_Elements[iElement];
 	*pCurElement = *pElement;
 
@@ -2741,10 +2574,6 @@ void Control::UpdateRects()
 {
 	SetRect(&m_rcBoundingBox, m_x, m_y, m_x + m_width, m_y + m_height);
 }
-
-//======================================================================================
-// CDXUTStatic class
-//======================================================================================
 
 //--------------------------------------------------------------------------------------
 Static::Static(_In_opt_ Dialog *pDialog) noexcept
@@ -2785,11 +2614,11 @@ void Static::Render(_In_ float fElapsedTime)
 _Use_decl_annotations_
 HRESULT Static::GetTextCopy(LPCWSTR strDest, UINT bufferCount) const
 {
-	// Validate incoming parameters
+		// Validate incoming parameters
 	if (!strDest || bufferCount == 0)
 		return E_INVALIDARG;
 
-	// Copy the window text
+		// Copy the window text
 	wcscpy_s(const_cast<WCHAR*>(strDest), bufferCount, m_strText);
 
 	return S_OK;
@@ -2807,10 +2636,6 @@ HRESULT Static::SetText(_In_z_ LPCWSTR strText)
 	wcscpy_s(m_strText, MAX_PATH, strText);
 	return S_OK;
 }
-
-//======================================================================================
-// CDXUTButton class
-//======================================================================================
 
 Button::Button(_In_opt_ Dialog *pDialog) noexcept
 {
@@ -2876,7 +2701,7 @@ bool Button::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPara
 	{
 		if (ContainsPoint(pt))
 		{
-			// Pressed while inside the control
+				// Pressed while inside the control
 			m_bPressed = true;
 			SetCapture(DXUTGetHWND());
 
@@ -2899,7 +2724,7 @@ bool Button::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPara
 			if (!m_pDialog->m_bKeyboardInput)
 				m_pDialog->ClearFocus();
 
-			// Button click
+				// Button click
 			if (ContainsPoint(pt))
 				m_pDialog->SendEvent(EVENT_BUTTON_CLICKED, true, this);
 
@@ -2925,13 +2750,9 @@ void Button::Render(_In_ float fElapsedTime)
 	CONTROL_STATE iState = STATE_NORMAL;
 
 	if (!m_bVisible)
-	{
 		iState = STATE_HIDDEN;
-	}
 	else if (!m_bEnabled)
-	{
 		iState = STATE_DISABLED;
-	}
 	else if (m_bPressed)
 	{
 		iState = STATE_PRESSED;
@@ -2947,11 +2768,9 @@ void Button::Render(_In_ float fElapsedTime)
 		nOffsetY = -2;
 	}
 	else if (m_bHasFocus)
-	{
 		iState = STATE_FOCUS;
-	}
 
-	// Background fill layer
+		// Background fill layer
 	auto pElement = m_Elements[0];
 
 	float fBlendRate = (iState == STATE_PRESSED) ? 0.0f : 0.8f;
@@ -2959,28 +2778,23 @@ void Button::Render(_In_ float fElapsedTime)
 	RECT rcWindow = m_rcBoundingBox;
 	OffsetRect(&rcWindow, nOffsetX, nOffsetY);
 
-
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	pElement->FontColor.Blend(iState, fElapsedTime, fBlendRate);
 
 	m_pDialog->DrawSprite(pElement, &rcWindow, FAR_BUTTON_DEPTH);
 	m_pDialog->DrawTextGUI(m_strText, pElement, &rcWindow, false, true);
 
-	// Main button
+		// Main button
 	pElement = m_Elements[1];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	pElement->FontColor.Blend(iState, fElapsedTime, fBlendRate);
 
 	m_pDialog->DrawSprite(pElement, &rcWindow, NEAR_BUTTON_DEPTH);
 	m_pDialog->DrawTextGUI(m_strText, pElement, &rcWindow, false, true);
 }
-
-//======================================================================================
-// CDXUTCheckBox class
-//======================================================================================
 
 CheckBox::CheckBox( _In_opt_ Dialog *pDialog ) noexcept :
     m_bChecked(false),
@@ -3046,7 +2860,7 @@ bool CheckBox::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPa
 	{
 		if (ContainsPoint(pt))
 		{
-			// Pressed while inside the control
+				// Pressed while inside the control
 			m_bPressed = true;
 			SetCapture(DXUTGetHWND());
 
@@ -3066,7 +2880,7 @@ bool CheckBox::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPa
 			m_bPressed = false;
 			ReleaseCapture();
 
-			// Button click
+				// Button click
 			if (ContainsPoint(pt))
 				SetCheckedInternal(!m_bChecked, true);
 
@@ -3112,6 +2926,7 @@ void CheckBox::Render(_In_ float fElapsedTime)
 {
 	if (m_bVisible == false)
 		return;
+
 	CONTROL_STATE iState = STATE_NORMAL;
 
 	if (m_bVisible == false)
@@ -3143,10 +2958,6 @@ void CheckBox::Render(_In_ float fElapsedTime)
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcButton, FAR_BUTTON_DEPTH);
 }
-
-//======================================================================================
-// CDXUTRadioButton class
-//======================================================================================
 
 RadioButton::RadioButton(_In_opt_ Dialog *pDialog) noexcept :
 	m_nButtonGroup(0)
@@ -3214,7 +3025,7 @@ bool RadioButton::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM 
 	{
 		if (ContainsPoint(pt))
 		{
-			// Pressed while inside the control
+				// Pressed while inside the control
 			m_bPressed = true;
 			SetCapture(DXUTGetHWND());
 
@@ -3234,7 +3045,7 @@ bool RadioButton::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM 
 			m_bPressed = false;
 			ReleaseCapture();
 
-			// Button click
+				// Button click
 			if (ContainsPoint(pt))
 			{
 				m_pDialog->ClearRadioButtonGroup(m_nButtonGroup);
@@ -3263,10 +3074,6 @@ void RadioButton::SetCheckedInternal(bool bChecked, bool bClearGroup, bool bFrom
 	m_bChecked = bChecked;
 	m_pDialog->SendEvent(EVENT_RADIOBUTTON_CHANGED, bFromInput, this);
 }
-
-//======================================================================================
-// CDXUTComboBox class
-//======================================================================================
 
 ComboBox::ComboBox( _In_opt_ Dialog *pDialog ) noexcept :
     m_iSelected(-1),
@@ -3326,7 +3133,7 @@ void ComboBox::UpdateRects()
 	m_rcDropdownText.top += static_cast<int>(0.1f * RectHeight(m_rcDropdown));
 	m_rcDropdownText.bottom -= static_cast<int>(0.1f * RectHeight(m_rcDropdown));
 
-	// Update the scrollbar's rects
+		// Update the scrollbar's rects
 	m_ScrollBar.SetLocation(m_rcDropdown.right, m_rcDropdown.top + 2);
 	m_ScrollBar.SetSize(m_nSBWidth, RectHeight(m_rcDropdown) - 2);
 	auto pFontNode = m_pDialog->GetManager()->GetFontNode(m_Elements[2]->iFont);
@@ -3334,8 +3141,7 @@ void ComboBox::UpdateRects()
 	{
 		m_ScrollBar.SetPageSize(RectHeight(m_rcDropdownText) / pFontNode->nHeight);
 
-		// The selected item may have been scrolled off the page.
-		// Ensure that it is in page again.
+			// The selected item may have been scrolled off the page. Ensure that it is in page again.
 		m_ScrollBar.ShowItem(m_iSelected);
 	}
 }
@@ -3344,7 +3150,6 @@ void ComboBox::UpdateRects()
 void ComboBox::OnFocusOut()
 {
 	Button::OnFocusOut();
-
 	m_bOpened = false;
 }
 
@@ -3357,7 +3162,7 @@ bool ComboBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (!m_bEnabled || !m_bVisible)
 		return false;
 
-	// Let the scroll bar have a chance to handle it first
+		// Let the scroll bar have a chance to handle it first
 	if (m_ScrollBar.HandleKeyboard(uMsg, wParam, lParam))
 		return true;
 
@@ -3385,7 +3190,7 @@ bool ComboBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			break;
 
 		case VK_F4:
-			// Filter out auto-repeats
+				// Filter out auto-repeats
 			if (lParam & REPEAT_MASK)
 				return true;
 
@@ -3427,6 +3232,7 @@ bool ComboBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 			return true;
 		}
+
 		break;
 	}
 	}
@@ -3436,161 +3242,155 @@ bool ComboBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //--------------------------------------------------------------------------------------
 _Use_decl_annotations_
-bool ComboBox::HandleMouse( UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lParam )
+bool ComboBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lParam)
 {
-    if( !m_bEnabled || !m_bVisible )
-        return false;
+	if (!m_bEnabled || !m_bVisible)
+		return false;
 
-    // Let the scroll bar handle it first.
-    if( m_ScrollBar.HandleMouse( uMsg, pt, wParam, lParam ) )
-        return true;
+		// Let the scroll bar handle it first.
+	if (m_ScrollBar.HandleMouse(uMsg, pt, wParam, lParam))
+		return true;
 
-    switch( uMsg )
-    {
-        case WM_MOUSEMOVE:
-        {
-            if( m_bOpened && PtInRect( &m_rcDropdown, pt ) )
-            {
-                // Determine which item has been selected
-                for( size_t i = 0; i < m_Items.size(); i++ )
-                {
-                    auto pItem = m_Items[ i ];
-                    if( pItem->bVisible &&
-                        PtInRect( &pItem->rcActive, pt ) )
-                    {
-                        m_iFocused = static_cast<int>( i );
-                    }
-                }
-                return true;
-            }
-            break;
-        }
+	switch (uMsg)
+	{
+	case WM_MOUSEMOVE:
+	{
+		if (m_bOpened && PtInRect(&m_rcDropdown, pt))
+		{
+				// Determine which item has been selected
+			for (size_t i = 0; i < m_Items.size(); i++)
+			{
+				auto pItem = m_Items[i];
+				if (pItem->bVisible && PtInRect(&pItem->rcActive, pt))
+					m_iFocused = static_cast<int>(i);
+			}
+			return true;
+		}
+		break;
+	}
 
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONDBLCLK:
-            {
-                if( ContainsPoint( pt ) )
-                {
-                    // Pressed while inside the control
-                    m_bPressed = true;
-                    SetCapture( DXUTGetHWND() );
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONDBLCLK:
+	{
+		if (ContainsPoint(pt))
+		{
+				// Pressed while inside the control
+			m_bPressed = true;
+			SetCapture(DXUTGetHWND());
 
-                    if( !m_bHasFocus )
-                        m_pDialog->RequestFocus( this );
+			if (!m_bHasFocus)
+				m_pDialog->RequestFocus(this);
 
-                    // Toggle dropdown
-                    if( m_bHasFocus )
-                    {
-                        m_bOpened = !m_bOpened;
+				// Toggle dropdown
+			if (m_bHasFocus)
+			{
+				m_bOpened = !m_bOpened;
 
-                        if( !m_bOpened )
-                        {
-                            if( !m_pDialog->m_bKeyboardInput )
-                                m_pDialog->ClearFocus();
-                        }
-                    }
+				if (!m_bOpened)
+					if (!m_pDialog->m_bKeyboardInput)
+						m_pDialog->ClearFocus();
+			}
 
-                    return true;
-                }
+			return true;
+		}
 
-                // Perhaps this click is within the dropdown
-                if( m_bOpened && PtInRect( &m_rcDropdown, pt ) )
-                {
-                    // Determine which item has been selected
-                    for( size_t i = m_ScrollBar.GetTrackPos(); i < m_Items.size(); i++ )
-                    {
-                        auto pItem = m_Items[ i ];
-                        if( pItem->bVisible &&
-                            PtInRect( &pItem->rcActive, pt ) )
-                        {
-                            m_iFocused = m_iSelected = static_cast<int>( i );
-                            m_pDialog->SendEvent( EVENT_COMBOBOX_SELECTION_CHANGED, true, this );
-                            m_bOpened = false;
+			// Perhaps this click is within the dropdown
+		if (m_bOpened && PtInRect(&m_rcDropdown, pt))
+		{
+				// Determine which item has been selected
+			for (size_t i = m_ScrollBar.GetTrackPos(); i < m_Items.size(); i++)
+			{
+				auto pItem = m_Items[i];
+				if (pItem->bVisible &&
+					PtInRect(&pItem->rcActive, pt))
+				{
+					m_iFocused = m_iSelected = static_cast<int>(i);
+					m_pDialog->SendEvent(EVENT_COMBOBOX_SELECTION_CHANGED, true, this);
+					m_bOpened = false;
 
-                            if( !m_pDialog->m_bKeyboardInput )
-                                m_pDialog->ClearFocus();
+					if (!m_pDialog->m_bKeyboardInput)
+						m_pDialog->ClearFocus();
 
-                            break;
-                        }
-                    }
+					break;
+				}
+			}
 
-                    return true;
-                }
+			return true;
+		}
 
-                // Mouse click not on main control or in dropdown, fire an event if needed
-                if( m_bOpened )
-                {
-                    m_iFocused = m_iSelected;
+			// Mouse click not on main control or in dropdown, fire an event if needed
+		if (m_bOpened)
+		{
+			m_iFocused = m_iSelected;
 
-                    m_pDialog->SendEvent( EVENT_COMBOBOX_SELECTION_CHANGED, true, this );
-                    m_bOpened = false;
-                }
+			m_pDialog->SendEvent(EVENT_COMBOBOX_SELECTION_CHANGED, true, this);
+			m_bOpened = false;
+		}
 
-                // Make sure the control is no longer in a pressed state
-                m_bPressed = false;
+			// Make sure the control is no longer in a pressed state
+		m_bPressed = false;
 
-                // Release focus if appropriate
-                if( !m_pDialog->m_bKeyboardInput )
-                {
-                    m_pDialog->ClearFocus();
-                }
+			// Release focus if appropriate
+		if (!m_pDialog->m_bKeyboardInput)
+			m_pDialog->ClearFocus();
 
-                break;
-            }
+		break;
+	}
 
-        case WM_LBUTTONUP:
-        {
-            if( m_bPressed && ContainsPoint( pt ) )
-            {
-                // Button click
-                m_bPressed = false;
-                ReleaseCapture();
-                return true;
-            }
+	case WM_LBUTTONUP:
+	{
+		if (m_bPressed && ContainsPoint(pt))
+		{
+				// Button click
+			m_bPressed = false;
+			ReleaseCapture();
+			return true;
+		}
 
-            break;
-        }
+		break;
+	}
 
-        case WM_MOUSEWHEEL:
-        {
-            int zDelta = ( short )HIWORD( wParam ) / WHEEL_DELTA;
-            if( m_bOpened )
-            {
-                UINT uLines = 0;
-                if ( !SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &uLines, 0) )
-                    uLines = 0;
-                m_ScrollBar.Scroll( -zDelta * uLines );
-            }
-            else
-            {
-                if( zDelta > 0 )
-                {
-                    if( m_iFocused > 0 )
-                    {
-                        m_iFocused--;
-                        m_iSelected = m_iFocused;
+	case WM_MOUSEWHEEL:
+	{
+		int zDelta = (short)HIWORD(wParam) / WHEEL_DELTA;
+		if (m_bOpened)
+		{
+			UINT uLines = 0;
+			if (!SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, &uLines, 0))
+				uLines = 0;
+			m_ScrollBar.Scroll(-zDelta * uLines);
+		}
+		else
+		{
+			if (zDelta > 0)
+			{
+				if (m_iFocused > 0)
+				{
+					m_iFocused--;
+					m_iSelected = m_iFocused;
 
-                        if( !m_bOpened )
-                            m_pDialog->SendEvent( EVENT_COMBOBOX_SELECTION_CHANGED, true, this );
-                    }
-                }
-                else
-                {
-                    if( m_iFocused + 1 < ( int )GetNumItems() )
-                    {
-                        m_iFocused++;
-                        m_iSelected = m_iFocused;
+					if (!m_bOpened)
+						m_pDialog->SendEvent(EVENT_COMBOBOX_SELECTION_CHANGED, true, this);
+				}
+			}
+			else
+			{
+				if (m_iFocused + 1 < (int)GetNumItems())
+				{
+					m_iFocused++;
+					m_iSelected = m_iFocused;
 
-                        if( !m_bOpened )
-                            m_pDialog->SendEvent( EVENT_COMBOBOX_SELECTION_CHANGED, true, this );
-                    }
-                }
-            }
-            return true;
-        }
-    };
+					if (!m_bOpened)
+						m_pDialog->SendEvent(EVENT_COMBOBOX_SELECTION_CHANGED, true, this);
+				}
+			}
+		}
 
-    return false;
+		return true;
+	}
+	};
+
+	return false;
 }
 
 //--------------------------------------------------------------------------------------
@@ -3625,34 +3425,32 @@ void ComboBox::Render(_In_ float fElapsedTime)
 	if (!m_bOpened)
 		iState = STATE_HIDDEN;
 
-	// Dropdown box
+		// Dropdown box
 	auto pElement = m_Elements[2];
 
-	// If we have not initialized the scroll bar page size,
-	// do that now.
+		// If we have not initialized the scroll bar page size, do that now.
 	static bool bSBInit;
 	if (!bSBInit)
 	{
-		// Update the page size of the scroll bar
+			// Update the page size of the scroll bar
 		if (m_pDialog->GetManager()->GetFontNode(pElement->iFont)->nHeight)
-			m_ScrollBar.SetPageSize(RectHeight(m_rcDropdownText) /
-				m_pDialog->GetManager()->GetFontNode(pElement->iFont)->nHeight);
+			m_ScrollBar.SetPageSize(RectHeight(m_rcDropdownText) / m_pDialog->GetManager()->GetFontNode(pElement->iFont)->nHeight);
 		else
 			m_ScrollBar.SetPageSize(RectHeight(m_rcDropdownText));
 		bSBInit = true;
 	}
 
-	// Scroll bar
+		// Scroll bar
 	if (m_bOpened)
 		m_ScrollBar.Render(fElapsedTime);
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime);
 	pElement->FontColor.Blend(iState, fElapsedTime);
 
 	m_pDialog->DrawSprite(pElement, &m_rcDropdown, NEAR_BUTTON_DEPTH);
 
-	// Selection outline
+		// Selection outline
 	auto pSelectionElement = m_Elements[3];
 	pSelectionElement->TextureColor.Current = pElement->TextureColor.Current;
 	pSelectionElement->FontColor.SetCurrent(pSelectionElement->FontColor.States[STATE_NORMAL]);
@@ -3667,7 +3465,7 @@ void ComboBox::Render(_In_ float fElapsedTime)
 		{
 			auto pItem = m_Items[i];
 
-			// Make sure there's room left in the dropdown
+				// Make sure there's room left in the dropdown
 			nRemainingHeight -= pFont->nHeight;
 			if (nRemainingHeight < 0)
 			{
@@ -3691,15 +3489,12 @@ void ComboBox::Render(_In_ float fElapsedTime)
 					m_pDialog->DrawTextGUI(pItem->strText, pSelectionElement, &pItem->rcActive);
 				}
 				else
-				{
 					m_pDialog->DrawTextGUI(pItem->strText, pElement, &pItem->rcActive);
-				}
 			}
 		}
 	}
 
-	int nOffsetX = 0;
-	int nOffsetY = 0;
+	int nOffsetX = 0, nOffsetY = 0;
 
 	iState = STATE_NORMAL;
 
@@ -3726,10 +3521,10 @@ void ComboBox::Render(_In_ float fElapsedTime)
 
 	float fBlendRate = (iState == STATE_PRESSED) ? 0.0f : 0.8f;
 
-	// Button
+		// Button
 	pElement = m_Elements[1];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 
 	RECT rcWindow = m_rcButton;
@@ -3739,10 +3534,10 @@ void ComboBox::Render(_In_ float fElapsedTime)
 	if (m_bOpened)
 		iState = STATE_PRESSED;
 
-	// Main text box
+		// Main text box
 	pElement = m_Elements[0];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	pElement->FontColor.Blend(iState, fElapsedTime, fBlendRate);
 
@@ -3750,7 +3545,7 @@ void ComboBox::Render(_In_ float fElapsedTime)
 
 	if (m_iSelected >= 0 && m_iSelected < (int)m_Items.size())
 	{
-		auto pItem = m_Items[m_iSelected];
+		auto pItem = m_Items.at(m_iSelected);
 		if (pItem)
 			m_pDialog->DrawTextGUI(pItem->strText, pElement, &m_rcText, false, true);
 	}
@@ -3760,16 +3555,14 @@ void ComboBox::Render(_In_ float fElapsedTime)
 _Use_decl_annotations_
 HRESULT ComboBox::AddItem(LPCWSTR strText, void* pData)
 {
-	// Validate parameters
+		// Validate parameters
 	if (!strText)
 		return E_INVALIDARG;
 
-	// Create a new item and set the data
+		// Create a new item and set the data
 	auto pItem = new (nothrow) ComboBoxItem;
 	if (!pItem)
-	{
 		return DXTRACE_ERR_MSGBOX(L"new", E_OUTOFMEMORY);
-	}
 
 	ZeroMemory(pItem, sizeof(ComboBoxItem));
 	wcscpy_s(pItem->strText, 256, strText);
@@ -3777,10 +3570,10 @@ HRESULT ComboBox::AddItem(LPCWSTR strText, void* pData)
 
 	m_Items.push_back(pItem);
 
-	// Update the scroll bar with new range
+		// Update the scroll bar with new range
 	m_ScrollBar.SetTrackRange(0, (int)m_Items.size());
 
-	// If this is the only item in the list, it's selected
+		// If this is the only item in the list, it's selected
 	if (GetNumItems() == 1)
 	{
 		m_iSelected = 0;
@@ -3830,12 +3623,8 @@ int ComboBox::FindItem(_In_z_ LPCWSTR strText, _In_ UINT iStart) const
 		return -1;
 
 	for (size_t i = iStart; i < m_Items.size(); i++)
-	{
-		auto pItem = m_Items[i];
-
-		if (0 == wcscmp(pItem->strText, strText))
+		if (0 == wcscmp(m_Items.at(i)->strText, strText))
 			return static_cast<int>(i);
-	}
 
 	return -1;
 }
@@ -3930,10 +3719,6 @@ HRESULT ComboBox::SetSelectedByData(_In_ void* pData)
 
 	return E_FAIL;
 }
-
-//======================================================================================
-// CDXUTSlider class
-//======================================================================================
 
 Slider::Slider( _In_opt_ Dialog *pDialog ) noexcept :
     m_nValue(50),
@@ -4155,13 +3940,9 @@ void Slider::Render(_In_ float fElapsedTime)
 	CONTROL_STATE iState = STATE_NORMAL;
 
 	if (m_bVisible == false)
-	{
 		iState = STATE_HIDDEN;
-	}
 	else if (m_bEnabled == false)
-	{
 		iState = STATE_DISABLED;
-	}
 	else if (m_bPressed)
 	{
 		iState = STATE_PRESSED;
@@ -4177,21 +3958,19 @@ void Slider::Render(_In_ float fElapsedTime)
 		nOffsetY = -2;
 	}
 	else if (m_bHasFocus)
-	{
 		iState = STATE_FOCUS;
-	}
 
 	float fBlendRate = (iState == STATE_PRESSED) ? 0.0f : 0.8f;
 
 	auto pElement = m_Elements[0];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcBoundingBox, FAR_BUTTON_DEPTH);
 
 	pElement = m_Elements[1];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcButton, NEAR_BUTTON_DEPTH);
 }
@@ -4225,14 +4004,11 @@ void ScrollBar::UpdateRects()
 {
 	Control::UpdateRects();
 
-	// Make the buttons square
-
-	SetRect(&m_rcUpButton, m_rcBoundingBox.left, m_rcBoundingBox.top,
-		m_rcBoundingBox.right, m_rcBoundingBox.top + RectWidth(m_rcBoundingBox));
+		// Make the buttons square
+	SetRect(&m_rcUpButton, m_rcBoundingBox.left, m_rcBoundingBox.top, m_rcBoundingBox.right, m_rcBoundingBox.top + RectWidth(m_rcBoundingBox));
 	SetRect(&m_rcDownButton, m_rcBoundingBox.left, m_rcBoundingBox.bottom - RectWidth(m_rcBoundingBox),
 		m_rcBoundingBox.right, m_rcBoundingBox.bottom);
-	SetRect(&m_rcTrack, m_rcUpButton.left, m_rcUpButton.bottom,
-		m_rcDownButton.right, m_rcDownButton.top);
+	SetRect(&m_rcTrack, m_rcUpButton.left, m_rcUpButton.bottom,	m_rcDownButton.right, m_rcDownButton.top);
 	m_rcThumb.left = m_rcUpButton.left;
 	m_rcThumb.right = m_rcUpButton.right;
 
@@ -4245,18 +4021,15 @@ void ScrollBar::UpdateThumbRect()
 {
 	if (m_nEnd - m_nStart > m_nPageSize)
 	{
-		int nThumbHeight = max(RectHeight(m_rcTrack) * m_nPageSize / (m_nEnd - m_nStart),
-			SCROLLBAR_MINTHUMBSIZE);
+		int nThumbHeight = max(RectHeight(m_rcTrack) * m_nPageSize / (m_nEnd - m_nStart), SCROLLBAR_MINTHUMBSIZE);
 		int nMaxPosition = m_nEnd - m_nStart - m_nPageSize;
-		m_rcThumb.top = m_rcTrack.top + (m_nPosition - m_nStart) * (RectHeight(m_rcTrack) - nThumbHeight)
-			/ nMaxPosition;
+		m_rcThumb.top = m_rcTrack.top + (m_nPosition - m_nStart) * (RectHeight(m_rcTrack) - nThumbHeight) / nMaxPosition;
 		m_rcThumb.bottom = m_rcThumb.top + nThumbHeight;
 		m_bShowThumb = true;
-
 	}
 	else
 	{
-		// No content to scroll
+			// No content to scroll
 		m_rcThumb.bottom = m_rcThumb.top;
 		m_bShowThumb = false;
 	}
@@ -4267,13 +4040,13 @@ void ScrollBar::UpdateThumbRect()
 // value scrolls up.
 void ScrollBar::Scroll(_In_ int nDelta)
 {
-	// Perform scroll
+		// Perform scroll
 	m_nPosition += nDelta;
 
-	// Cap position
+		// Cap position
 	Cap();
 
-	// Update thumb position
+		// Update thumb position
 	UpdateThumbRect();
 }
 
@@ -4288,8 +4061,7 @@ void ScrollBar::ShowItem(_In_ int nIndex)
 	if (nIndex >= m_nEnd)
 		nIndex = m_nEnd - 1;
 
-	// Adjust position
-
+		// Adjust position
 	if (m_nPosition > nIndex)
 		m_nPosition = nIndex;
 	else if (m_nPosition + m_nPageSize <= nIndex)
@@ -4323,8 +4095,7 @@ bool ScrollBar::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lP
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONDBLCLK:
 	{
-		// Check for click on up button
-
+			// Check for click on up button
 		if (PtInRect(&m_rcUpButton, pt))
 		{
 			SetCapture(DXUTGetHWND());
@@ -4336,8 +4107,7 @@ bool ScrollBar::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lP
 			return true;
 		}
 
-		// Check for click on down button
-
+			// Check for click on down button
 		if (PtInRect(&m_rcDownButton, pt))
 		{
 			SetCapture(DXUTGetHWND());
@@ -4349,8 +4119,7 @@ bool ScrollBar::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lP
 			return true;
 		}
 
-		// Check for click on thumb
-
+			// Check for click on thumb
 		if (PtInRect(&m_rcThumb, pt))
 		{
 			SetCapture(DXUTGetHWND());
@@ -4359,8 +4128,7 @@ bool ScrollBar::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lP
 			return true;
 		}
 
-		// Check for click on track
-
+			// Check for click on track
 		if (m_rcThumb.left <= pt.x &&
 			m_rcThumb.right > pt.x)
 		{
@@ -4402,13 +4170,12 @@ bool ScrollBar::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lP
 			else if (m_rcThumb.bottom > m_rcTrack.bottom)
 				OffsetRect(&m_rcThumb, 0, m_rcTrack.bottom - m_rcThumb.bottom);
 
-			// Compute first item index based on thumb position
-
-			int nMaxFirstItem = m_nEnd - m_nStart - m_nPageSize + 1;  // Largest possible index for first item
-			int nMaxThumb = RectHeight(m_rcTrack) - RectHeight(m_rcThumb);  // Largest possible thumb position from the top
+				// Compute first item index based on thumb position
+			int nMaxFirstItem = m_nEnd - m_nStart - m_nPageSize + 1; // Largest possible index for first item
+			int nMaxThumb = RectHeight(m_rcTrack) - RectHeight(m_rcThumb); // Largest possible thumb position from the top
 
 			m_nPosition = m_nStart + (m_rcThumb.top - m_rcTrack.top + nMaxThumb / (nMaxFirstItem * 2)) *
-				// Shift by half a row to avoid last row covered by only one pixel
+					// Shift by half a row to avoid last row covered by only one pixel
 				nMaxFirstItem / nMaxThumb;
 
 			return true;
@@ -4428,8 +4195,7 @@ bool ScrollBar::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	UNREFERENCED_PARAMETER(wParam);
 
 	if (WM_CAPTURECHANGED == uMsg)
-		// The application just lost mouse capture. We may not have gotten
-		// the WM_MOUSEUP message, so reset m_bDrag here.
+			// The application just lost mouse capture. We may not have gotten the WM_MOUSEUP message, so reset m_bDrag here.
 		if ((HWND)lParam != DXUTGetHWND())
 			m_bDrag = false;
 
@@ -4442,9 +4208,7 @@ void ScrollBar::Render(_In_ float fElapsedTime)
 	if (m_bVisible == false)
 		return;
 
-	// Check if the arrow button has been held for a while.
-	// If so, update the thumb position to simulate repeated
-	// scroll.
+		// Check if the arrow button has been held for a while. If so, update the thumb position to simulate repeated scroll.
 	if (m_Arrow != CLEAR)
 	{
 		double dCurrTime = DXUTGetTime();
@@ -4506,31 +4270,31 @@ void ScrollBar::Render(_In_ float fElapsedTime)
 
 	float fBlendRate = (iState == STATE_PRESSED) ? 0.0f : 0.8f;
 
-	// Background track layer
+		// Background track layer
 	auto pElement = m_Elements[0];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcTrack, FAR_BUTTON_DEPTH);
 
-	// Up Arrow
+		// Up Arrow
 	pElement = m_Elements[1];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcUpButton, NEAR_BUTTON_DEPTH);
 
-	// Down Arrow
+		// Down Arrow
 	pElement = m_Elements[2];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcDownButton, NEAR_BUTTON_DEPTH);
 
-	// Thumb button
+		// Thumb button
 	pElement = m_Elements[3];
 
-	// Blend current color
+		// Blend current color
 	pElement->TextureColor.Blend(iState, fElapsedTime, fBlendRate);
 	m_pDialog->DrawSprite(pElement, &m_rcThumb, NEAR_BUTTON_DEPTH);
 }
@@ -4551,10 +4315,6 @@ void ScrollBar::Cap()  // Clips position at boundaries. Ensures it stays within 
 	else if (m_nPosition + m_nPageSize > m_nEnd)
 		m_nPosition = m_nEnd - m_nPageSize + 1;
 }
-
-//======================================================================================
-// CDXUTListBox class
-//======================================================================================
 
 ListBox::ListBox( _In_opt_ Dialog *pDialog ) noexcept :
     m_rcText{},
@@ -4590,7 +4350,7 @@ void ListBox::UpdateRects()
 	m_rcText = m_rcSelection;
 	InflateRect(&m_rcText, -m_nMargin, 0);
 
-	// Update the scrollbar's rects
+		// Update the scrollbar's rects
 	m_ScrollBar.SetLocation(m_rcBoundingBox.right - m_nSBWidth, m_rcBoundingBox.top);
 	m_ScrollBar.SetSize(m_nSBWidth, m_height);
 	auto pFontNode = m_pDialog->GetManager()->GetFontNode(m_Elements[0]->iFont);
@@ -4598,8 +4358,7 @@ void ListBox::UpdateRects()
 	{
 		m_ScrollBar.SetPageSize(RectHeight(m_rcText) / pFontNode->nHeight);
 
-		// The selected item may have been scrolled off the page.
-		// Ensure that it is in page again.
+			// The selected item may have been scrolled off the page. Ensure that it is in page again.
 		m_ScrollBar.ShowItem(m_nSelected);
 	}
 }
@@ -4696,7 +4455,7 @@ int ListBox::GetSelectedIndex(_In_ int nPreviousSelected) const
 
 	if (m_dwStyle & MULTISELECTION)
 	{
-		// Multiple selection enabled. Search for the next item with the selected flag.
+			// Multiple selection enabled. Search for the next item with the selected flag.
 		for (int i = nPreviousSelected + 1; i < (int)m_Items.size(); ++i)
 		{
 			auto pItem = m_Items[i];
@@ -4708,23 +4467,23 @@ int ListBox::GetSelectedIndex(_In_ int nPreviousSelected) const
 		return -1;
 	}
 	else
-		// Single selection
+			// Single selection
 		return m_nSelected;
 }
 
 //--------------------------------------------------------------------------------------
 void ListBox::SelectItem(_In_ int nNewIndex)
 {
-	// If no item exists, do nothing.
+		// If no item exists, do nothing.
 	if (m_Items.size() == 0)
 		return;
 
 	int nOldSelected = m_nSelected;
 
-	// Adjust m_nSelected
+		// Adjust m_nSelected
 	m_nSelected = nNewIndex;
 
-	// Perform capping
+		// Perform capping
 	if (m_nSelected < 0)
 		m_nSelected = 0;
 	if (m_nSelected >= (int)m_Items.size())
@@ -4735,10 +4494,10 @@ void ListBox::SelectItem(_In_ int nNewIndex)
 		if (m_dwStyle & MULTISELECTION)
 			m_Items[m_nSelected]->bSelected = true;
 
-		// Update selection start
+			// Update selection start
 		m_nSelStart = m_nSelected;
 
-		// Adjust scroll bar
+			// Adjust scroll bar
 		m_ScrollBar.ShowItem(m_nSelected);
 	}
 
@@ -4752,7 +4511,7 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	if (!m_bEnabled || !m_bVisible)
 		return false;
 
-	// Let the scroll bar have a chance to handle it first
+		// Let the scroll bar have a chance to handle it first
 	if (m_ScrollBar.HandleKeyboard(uMsg, wParam, lParam))
 		return true;
 
@@ -4768,13 +4527,13 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case VK_HOME:
 		case VK_END:
 		{
-			// If no item exists, do nothing.
+				// If no item exists, do nothing.
 			if (m_Items.size() == 0)
 				return true;
 
 			int nOldSelected = m_nSelected;
 
-			// Adjust m_nSelected
+				// Adjust m_nSelected
 			switch (wParam)
 			{
 			case VK_UP:
@@ -4791,7 +4550,7 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 				m_nSelected = int(m_Items.size()) - 1; break;
 			}
 
-			// Perform capping
+				// Perform capping
 			if (m_nSelected < 0)
 				m_nSelected = 0;
 			if (m_nSelected >= (int)m_Items.size())
@@ -4803,7 +4562,7 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 				{
 					// Multiple selection
 
-					// Clear all selection
+						// Clear all selection
 					for (int i = 0; i < (int)m_Items.size(); ++i)
 					{
 						auto pItem = m_Items[i];
@@ -4812,8 +4571,7 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 					if (GetKeyState(VK_SHIFT) < 0)
 					{
-						// Select all items from m_nSelStart to
-						// m_nSelected
+							// Select all items from m_nSelStart to m_nSelected
 						int nEnd = max(m_nSelStart, m_nSelected);
 
 						for (int n = min(m_nSelStart, m_nSelected); n <= nEnd; ++n)
@@ -4823,19 +4581,17 @@ bool ListBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 					{
 						m_Items[m_nSelected]->bSelected = true;
 
-						// Update selection start
+							// Update selection start
 						m_nSelStart = m_nSelected;
 					}
 				}
 				else
 					m_nSelStart = m_nSelected;
 
-				// Adjust scroll bar
-
+					// Adjust scroll bar
 				m_ScrollBar.ShowItem(m_nSelected);
 
-				// Send notification
-
+					// Send notification
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 			}
 			return true;
@@ -4860,12 +4616,12 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 	if (!m_bEnabled || !m_bVisible)
 		return false;
 
-	// First acquire focus
+		// First acquire focus
 	if (WM_LBUTTONDOWN == uMsg)
 		if (!m_bHasFocus)
 			m_pDialog->RequestFocus(this);
 
-	// Let the scroll bar handle it first.
+		// Let the scroll bar handle it first.
 	if (m_ScrollBar.HandleMouse(uMsg, pt, wParam, lParam))
 		return true;
 
@@ -4873,19 +4629,17 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 	{
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONDBLCLK:
-		// Check for clicks in the text area
+			// Check for clicks in the text area
 		if (!m_Items.empty() && PtInRect(&m_rcSelection, pt))
 		{
-			// Compute the index of the clicked item
-
+				// Compute the index of the clicked item
 			int nClicked;
 			if (m_nTextHeight)
 				nClicked = m_ScrollBar.GetTrackPos() + (pt.y - m_rcText.top) / m_nTextHeight;
 			else
 				nClicked = -1;
 
-			// Only proceed if the click falls on top of an item.
-
+				// Only proceed if the click falls on top of an item.
 			if (nClicked >= m_ScrollBar.GetTrackPos() &&
 				nClicked < (int)m_Items.size() &&
 				nClicked < m_ScrollBar.GetTrackPos() + m_ScrollBar.GetPageSize())
@@ -4893,9 +4647,7 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 				SetCapture(DXUTGetHWND());
 				m_bDrag = true;
 
-				// If this is a double click, fire off an event and exit
-				// since the first click would have taken care of the selection
-				// updating.
+					// If this is a double click, fire off an event and exit since the first click would have taken care of the selection updating.
 				if (uMsg == WM_LBUTTONDBLCLK)
 				{
 					m_pDialog->SendEvent(EVENT_LISTBOX_ITEM_DBLCLK, true, this);
@@ -4906,8 +4658,7 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 				if (!(wParam & MK_SHIFT))
 					m_nSelStart = m_nSelected;
 
-				// If this is a multi-selection listbox, update per-item
-				// selection data.
+				// If this is a multi-selection listbox, update per-item selection data.
 
 				if (m_dwStyle & MULTISELECTION)
 				{
@@ -4915,11 +4666,8 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 
 					auto pSelItem = m_Items[m_nSelected];
 					if ((wParam & (MK_SHIFT | MK_CONTROL)) == MK_CONTROL)
-					{
-						// Control click. Reverse the selection of this item.
-
+							// Control click. Reverse the selection of this item.
 						pSelItem->bSelected = !pSelItem->bSelected;
-					}
 					else if ((wParam & (MK_SHIFT | MK_CONTROL)) == MK_SHIFT)
 					{
 						// Shift click. Set the selection for all items
@@ -4959,8 +4707,7 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 						int nBegin = min(m_nSelStart, m_nSelected);
 						int nEnd = max(m_nSelStart, m_nSelected);
 
-						// The two ends do not need to be set here.
-
+							// The two ends do not need to be set here.
 						bool bLastSelected = m_Items[m_nSelStart]->bSelected;
 						for (int i = nBegin + 1; i < nEnd; ++i)
 						{
@@ -4971,16 +4718,13 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 						pSelItem->bSelected = true;
 
 						// Restore m_nSelected to the previous value
-						// This matches the Windows behavior
+							//This matches the Windows behavior
 
 						m_nSelected = m_nSelStart;
 					}
 					else
 					{
-						// Simple click.  Clear all items and select the clicked
-						// item.
-
-
+						// Simple click.  Clear all items and select the clicked item.
 						for (int i = 0; i < (int)m_Items.size(); ++i)
 						{
 							auto pItem = m_Items[i];
@@ -4989,7 +4733,7 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 
 						pSelItem->bSelected = true;
 					}
-				}  // End of multi-selection case
+				} // End of multi-selection case
 
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 			}
@@ -5005,58 +4749,52 @@ bool ListBox::HandleMouse(UINT uMsg, const POINT& pt, WPARAM wParam, LPARAM lPar
 
 		if (m_nSelected != -1)
 		{
-			// Set all items between m_nSelStart and m_nSelected to
-			// the same state as m_nSelStart
+				// Set all items between m_nSelStart and m_nSelected to the same state as m_nSelStart
 			int nEnd = max(m_nSelStart, m_nSelected);
 
 			for (int n = min(m_nSelStart, m_nSelected) + 1; n < nEnd; ++n)
 				m_Items[n]->bSelected = m_Items[m_nSelStart]->bSelected;
 			m_Items[m_nSelected]->bSelected = m_Items[m_nSelStart]->bSelected;
 
-			// If m_nSelStart and m_nSelected are not the same,
-			// the user has dragged the mouse to make a selection.
-			// Notify the application of this.
+				// If m_nSelStart and m_nSelected are not the same, the user has dragged the mouse to make a selection. Notify the application of this.
 			if (m_nSelStart != m_nSelected)
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 
 			m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION_END, true, this);
 		}
+
 		return false;
 	}
 
 	case WM_MOUSEMOVE:
 		if (m_bDrag)
 		{
-			// Compute the index of the item below cursor
-
+				// Compute the index of the item below cursor
 			int nItem;
 			if (m_nTextHeight)
 				nItem = m_ScrollBar.GetTrackPos() + (pt.y - m_rcText.top) / m_nTextHeight;
 			else
 				nItem = -1;
 
-			// Only proceed if the cursor is on top of an item.
-
-			if (nItem >= (int)m_ScrollBar.GetTrackPos() &&
-				nItem < (int)m_Items.size() &&
-				nItem < m_ScrollBar.GetTrackPos() + m_ScrollBar.GetPageSize())
+				// Only proceed if the cursor is on top of an item.
+			if (nItem >= (int)m_ScrollBar.GetTrackPos() && nItem < (int)m_Items.size() && nItem < m_ScrollBar.GetTrackPos()
+				+ m_ScrollBar.GetPageSize())
 			{
 				m_nSelected = nItem;
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 			}
 			else if (nItem < (int)m_ScrollBar.GetTrackPos())
 			{
-				// User drags the mouse above window top
+					// User drags the mouse above window top
 				m_ScrollBar.Scroll(-1);
 				m_nSelected = m_ScrollBar.GetTrackPos();
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 			}
 			else if (nItem >= m_ScrollBar.GetTrackPos() + m_ScrollBar.GetPageSize())
 			{
-				// User drags the mouse below window bottom
+					// User drags the mouse below window bottom
 				m_ScrollBar.Scroll(1);
-				m_nSelected = min((int)m_Items.size(), m_ScrollBar.GetTrackPos() +
-					m_ScrollBar.GetPageSize()) - 1;
+				m_nSelected = min((int)m_Items.size(), m_ScrollBar.GetTrackPos() + m_ScrollBar.GetPageSize()) - 1;
 				m_pDialog->SendEvent(EVENT_LISTBOX_SELECTION, true, this);
 			}
 		}
@@ -5083,8 +4821,7 @@ bool ListBox::MsgProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	UNREFERENCED_PARAMETER(wParam);
 
 	if (WM_CAPTURECHANGED == uMsg)
-		// The application just lost mouse capture. We may not have gotten
-		// the WM_MOUSEUP message, so reset m_bDrag here.
+			// The application just lost mouse capture. We may not have gotten the WM_MOUSEUP message, so reset m_bDrag here.
 		if ((HWND)lParam != DXUTGetHWND())
 			m_bDrag = false;
 
@@ -5289,10 +5026,10 @@ void EditBox::DeleteSelectionText()
 {
 	int nFirst = min(m_nCaret, m_nSelStart);
 	int nLast = max(m_nCaret, m_nSelStart);
-	// Update caret and selection
+		// Update caret and selection
 	PlaceCaret(nFirst);
 	m_nSelStart = m_nCaret;
-	// Remove the characters
+		// Remove the characters
 	for (int i = nFirst; i < nLast; ++i)
 		m_Buffer.RemoveChar(nFirst);
 }
@@ -5302,12 +5039,12 @@ void EditBox::UpdateRects()
 {
 	Control::UpdateRects();
 
-	// Update the text rectangle
+		// Update the text rectangle
 	m_rcText = m_rcBoundingBox;
-	// First inflate by m_nBorder to compute render rects
+		// First inflate by m_nBorder to compute render rects
 	InflateRect(&m_rcText, -m_nBorder, -m_nBorder);
 
-	// Update the render rectangles
+		// Update the render rectangles
 	m_rcRender[0] = m_rcText;
 	SetRect(&m_rcRender[1], m_rcBoundingBox.left, m_rcBoundingBox.top, m_rcText.left, m_rcText.top);
 	SetRect(&m_rcRender[2], m_rcText.left, m_rcBoundingBox.top, m_rcText.right, m_rcText.top);
@@ -5318,7 +5055,7 @@ void EditBox::UpdateRects()
 	SetRect(&m_rcRender[7], m_rcText.left, m_rcText.bottom, m_rcText.right, m_rcBoundingBox.bottom);
 	SetRect(&m_rcRender[8], m_rcText.right, m_rcText.bottom, m_rcBoundingBox.right, m_rcBoundingBox.bottom);
 
-	// Inflate further by m_nSpacing
+		// Inflate further by m_nSpacing
 	InflateRect(&m_rcText, -m_nSpacing, -m_nSpacing);
 }
 
@@ -5326,7 +5063,7 @@ void EditBox::UpdateRects()
 #pragma warning( disable : 4616 6386 )
 void EditBox::CopyToClipboard()
 {
-	// Copy the selection text to the clipboard
+		// Copy the selection text to the clipboard
 	if (m_nCaret != m_nSelStart && OpenClipboard(nullptr))
 	{
 		EmptyClipboard();
@@ -5342,13 +5079,13 @@ void EditBox::CopyToClipboard()
 				if (nLast - nFirst > 0)
 					memcpy(pwszText, m_Buffer.GetBuffer() + nFirst, (nLast - nFirst) * sizeof(WCHAR));
 
-				pwszText[nLast - nFirst] = L'\0';  // Terminate it
+				pwszText[nLast - nFirst] = L'\0'; // Terminate it
 				GlobalUnlock(hBlock);
 			}
 			SetClipboardData(CF_UNICODETEXT, hBlock);
 		}
 		CloseClipboard();
-		// We must not free the object until CloseClipboard is called.
+			// We must not free the object until CloseClipboard is called.
 		if (hBlock)
 			GlobalFree(hBlock);
 	}
@@ -5363,12 +5100,11 @@ void EditBox::PasteFromClipboard()
 		HANDLE handle = GetClipboardData(CF_UNICODETEXT);
 		if (handle)
 		{
-			// Convert the ANSI string to Unicode, then
-			// insert to our buffer.
+				// Convert the ANSI string to Unicode, then insert to our buffer.
 			auto pwszText = reinterpret_cast<WCHAR*>(GlobalLock(handle));
 			if (pwszText)
 			{
-				// Copy all characters up to null.
+					// Copy all characters up to null.
 				if (m_Buffer.InsertString(m_nCaret, pwszText))
 					PlaceCaret(m_nCaret + (int)wcslen(pwszText));
 				m_nSelStart = m_nCaret;
@@ -5398,16 +5134,14 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		switch (wParam)
 		{
 		case VK_TAB:
-			// We don't process Tab in case keyboard input is enabled and the user
-			// wishes to Tab to other controls.
+				// We don't process Tab in case keyboard input is enabled and the user wishes to Tab to other controls.
 			break;
 
 		case VK_HOME:
 			PlaceCaret(0);
 			if (GetKeyState(VK_SHIFT) >= 0)
-				// Shift is not down. Update selection
-				// start along with the caret.
-				m_nSelStart = m_nCaret;
+				// Shift is not down. Update selection start along with the caret.
+					m_nSelStart = m_nCaret;
 			ResetCaretBlink();
 			bHandled = true;
 			break;
@@ -5415,8 +5149,7 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case VK_END:
 			PlaceCaret(m_Buffer.GetTextSize());
 			if (GetKeyState(VK_SHIFT) >= 0)
-				// Shift is not down. Update selection
-				// start along with the caret.
+					// Shift is not down. Update selection start along with the caret.
 				m_nSelStart = m_nCaret;
 			ResetCaretBlink();
 			bHandled = true;
@@ -5424,25 +5157,25 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case VK_INSERT:
 			if (GetKeyState(VK_CONTROL) < 0)
-				// Control Insert. Copy to clipboard
+					// Control Insert. Copy to clipboard
 				CopyToClipboard();
 			else if (GetKeyState(VK_SHIFT) < 0)
-				// Shift Insert. Paste from clipboard
+					// Shift Insert. Paste from clipboard
 				PasteFromClipboard();
 			else
-				// Toggle caret insert mode
+					// Toggle caret insert mode
 				m_bInsertMode = !m_bInsertMode;
 			break;
 
 		case VK_DELETE:
-			// Check if there is a text selection.
+				// Check if there is a text selection.
 			if (m_nCaret != m_nSelStart)
 			{
 				DeleteSelectionText();
 				m_pDialog->SendEvent(EVENT_EDITBOX_CHANGE, true, this);
 			}
 			else
-				// Deleting one character
+					// Deleting one character
 				if (m_Buffer.RemoveChar(m_nCaret))
 					m_pDialog->SendEvent(EVENT_EDITBOX_CHANGE, true, this);
 
@@ -5453,16 +5186,14 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case VK_LEFT:
 			if (GetKeyState(VK_CONTROL) < 0)
 			{
-				// Control is down. Move the caret to a new item
-				// instead of a character.
+					// Control is down. Move the caret to a new item instead of a character.
 				m_Buffer.GetPriorItemPos(m_nCaret, &m_nCaret);
 				PlaceCaret(m_nCaret);
 			}
 			else if (m_nCaret > 0)
 				PlaceCaret(m_nCaret - 1);
 			if (GetKeyState(VK_SHIFT) >= 0)
-				// Shift is not down. Update selection
-				// start along with the caret.
+					// Shift is not down. Update selection start along with the caret.
 				m_nSelStart = m_nCaret;
 			ResetCaretBlink();
 			bHandled = true;
@@ -5471,16 +5202,14 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case VK_RIGHT:
 			if (GetKeyState(VK_CONTROL) < 0)
 			{
-				// Control is down. Move the caret to a new item
-				// instead of a character.
+					// Control is down. Move the caret to a new item instead of a character.
 				m_Buffer.GetNextItemPos(m_nCaret, &m_nCaret);
 				PlaceCaret(m_nCaret);
 			}
 			else if (m_nCaret < m_Buffer.GetTextSize())
 				PlaceCaret(m_nCaret + 1);
 			if (GetKeyState(VK_SHIFT) >= 0)
-				// Shift is not down. Update selection
-				// start along with the caret.
+					// Shift is not down. Update selection start along with the caret.
 				m_nSelStart = m_nCaret;
 			ResetCaretBlink();
 			bHandled = true;
@@ -5488,8 +5217,7 @@ bool EditBox::HandleKeyboard(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		case VK_UP:
 		case VK_DOWN:
-			// Trap up and down arrows so that the dialog
-			// does not switch focus to another control.
+				// Trap up and down arrows so that the dialog does not switch focus to another control.
 			bHandled = true;
 			break;
 
@@ -5571,7 +5299,6 @@ bool EditBox::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPar
 void EditBox::OnFocusIn()
 {
 	Control::OnFocusIn();
-
 	ResetCaretBlink();
 }
 
@@ -5723,13 +5450,13 @@ void EditBox::Render(_In_ float fElapsedTime)
 	if (m_bVisible == false)
 		return;
 
-	int nSelStartX = 0, nCaretX = 0;  // Left and right X cordinates of the selection region
+	int nSelStartX = 0, nCaretX = 0; // Left and right X cordinates of the selection region
 
 	auto pElement = GetElement(0);
 	if (pElement)
 	{
 		m_Buffer.SetFontNode(m_pDialog->GetFont(pElement->iFont));
-		PlaceCaret(m_nCaret);  // Call PlaceCaret now that we have the font info (node),
+		PlaceCaret(m_nCaret); // Call PlaceCaret now that we have the font info (node),
 		// so that scrolling can be handled.
 	}
 
@@ -5790,8 +5517,7 @@ void EditBox::Render(_In_ float fElapsedTime)
 	{
 		int nFirstToRender = max(m_nFirstVisible, min(m_nSelStart, m_nCaret));
 		m_Elements[0]->FontColor.SetCurrent(m_SelTextColor);
-		m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + nFirstToRender,
-			m_Elements[0], &rcSelection, false);
+		m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + nFirstToRender, m_Elements[0], &rcSelection, false);
 	}
 
 	//
@@ -5938,7 +5664,7 @@ HRESULT UniBuffer::Analyse()
 	SCRIPT_STATE ScriptState = {};   // For uniscribe
 
 #pragma warning(push)
-#pragma warning(disable : 4616 6309 6387 )
+#pragma warning(disable: 4616 6309 6387 )
 	if (FAILED(hr = ScriptApplyDigitSubstitution(nullptr, &ScriptControl, &ScriptState)))
 		return hr;
 #pragma warning(pop)
@@ -6024,9 +5750,9 @@ bool UniBuffer::InsertChar(_In_ int nIndex, _In_ WCHAR wChar)
 	assert(m_nBufferSize >= 2);
 
 	// Shift the characters after the index, start by copying the null terminator
-	WCHAR* dest = m_pwszBuffer + wcslen(m_pwszBuffer) + 1;
-	WCHAR* stop = m_pwszBuffer + nIndex;
-	WCHAR* src = dest - 1;
+	WCHAR *dest = m_pwszBuffer + wcslen(m_pwszBuffer) + 1;
+	WCHAR *stop = m_pwszBuffer + nIndex;
+	WCHAR *src = dest - 1;
 
 	while (dest > stop)
 		*dest-- = *src--;
@@ -6078,8 +5804,7 @@ bool UniBuffer::InsertString(int nIndex, LPCWSTR pStr, int nCount)
 		if (!SetBufferSize((int)wcslen(m_pwszBuffer) + nCount + 1))
 			return false;  // out of memory
 
-	MoveMemory(m_pwszBuffer + nIndex + nCount, m_pwszBuffer + nIndex, sizeof(WCHAR) *
-		(wcslen(m_pwszBuffer) - nIndex + 1));
+	MoveMemory(m_pwszBuffer + nIndex + nCount, m_pwszBuffer + nIndex, sizeof(WCHAR) * (wcslen(m_pwszBuffer) - nIndex + 1));
 	memcpy(m_pwszBuffer + nIndex, pStr, nCount * sizeof(WCHAR));
 	m_bAnalyseRequired = true;
 
@@ -6116,7 +5841,7 @@ _Use_decl_annotations_
 bool UniBuffer::CPtoX(int nCP, bool bTrail, int *pX)
 {
 	assert(pX);
-	*pX = 0;  // Default
+	*pX = 0; // Default
 
 	HRESULT hr = S_OK;
 	if (m_bAnalyseRequired)
@@ -6139,7 +5864,8 @@ _Use_decl_annotations_
 bool UniBuffer::XtoCP(int nX, int* pCP, int* pnTrail)
 {
 	assert(pCP && pnTrail);
-	*pCP = 0; *pnTrail = FALSE;  // Default
+	*pCP = 0; 
+	*pnTrail = false;  // Default
 
 	HRESULT hr = S_OK;
 	if (m_bAnalyseRequired)
@@ -6150,7 +5876,7 @@ bool UniBuffer::XtoCP(int nX, int* pCP, int* pnTrail)
 		hr = ScriptStringXtoCP(m_Analysis, nX, pCP, pnTrail);
 		if (FAILED(hr))
 		{
-			*pCP = 0; *pnTrail = FALSE;
+			*pCP = 0; *pnTrail = false;
 			return false;
 		}
 	}
@@ -6158,16 +5884,21 @@ bool UniBuffer::XtoCP(int nX, int* pCP, int* pnTrail)
 	// If the coordinate falls outside the text region, we
 	// can get character positions that don't exist.  We must
 	// filter them here and convert them to those that do exist.
-	if (*pCP == -1 && *pnTrail == TRUE)
+	if (*pCP == -1 && *pnTrail)
 	{
-		*pCP = 0; *pnTrail = FALSE;
+		*pCP = 0;
+		*pnTrail = false;
 	}
-	else if (*pCP > (int)wcslen(m_pwszBuffer) && *pnTrail == FALSE)
-		*pCP = (int)wcslen(m_pwszBuffer); *pnTrail = TRUE;
+	else if (*pCP > (int)wcslen(m_pwszBuffer) && !*pnTrail)
+	{
+		*pCP = (int)wcslen(m_pwszBuffer);
+		*pnTrail = true;
+	}
 
 	if (FAILED(hr))
 	{
-		*pCP = 0; *pnTrail = FALSE;
+		*pCP = 0;
+		*pnTrail = false;
 		return false;
 	}
 	return true;
@@ -6229,13 +5960,13 @@ void UniBuffer::GetNextItemPos(int nCP, int *pPrior)
 	int limit = *ScriptString_pcOutChars(m_Analysis);
 	while (limit > 0 && i < limit - 1)
 	{
-		if (pLogAttr[i].fWordStop)      // Either the fWordStop flag is set
+		if (pLogAttr[i].fWordStop) // Either the fWordStop flag is set
 		{
 			*pPrior = i;
 			return;
 		}
-		else if (pLogAttr[i].fWhiteSpace &&  // Or this whitespace but the next char isn't.
-			!pLogAttr[i + 1].fWhiteSpace)
+		// Or this whitespace but the next char isn't.
+		else if (pLogAttr[i].fWhiteSpace && !pLogAttr[i + 1].fWhiteSpace)
 		{
 			*pPrior = i + 1;  // The next char is a word stop
 			return;
@@ -6247,10 +5978,6 @@ void UniBuffer::GetNextItemPos(int nCP, int *pPrior)
 	// We have reached the end. It's always a word stop, so simply return it.
 	*pPrior = *ScriptString_pcOutChars(m_Analysis) - 1;
 }
-
-//======================================================================================
-// DXUTBlendColor
-//======================================================================================
 
 //--------------------------------------------------------------------------------------
 _Use_decl_annotations_
@@ -6271,7 +5998,7 @@ void BlendColor::Blend(UINT iState, float fElapsedTime, float fRate)
 	XMFLOAT4 destColor = D3DCOLOR_TO_D3DCOLORVALUE(States[iState]);
 	XMVECTOR clr1 = XMLoadFloat4(&destColor);
 	XMVECTOR clr = XMLoadFloat4(&Current);
-	clr = XMVectorLerp(clr, clr1, 1.0f - powf(fRate, 30 * fElapsedTime));
+	clr = XMVectorLerp(clr, clr1, 1.0f - powf(fRate, 200 * fElapsedTime));
 	XMStoreFloat4(&Current, clr);
 }
 

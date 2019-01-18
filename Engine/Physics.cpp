@@ -9,7 +9,7 @@ HRESULT Engine::Physics::Init()
 	try
 	{
 		gFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
-		if (gFoundation == nullptr)
+		if (!gFoundation)
 		{
 			DebugTrace("Physics: PxCreateFoundation failed.\n");
 			throw exception("PxCreateFoundation == nullptr!!!");
@@ -39,7 +39,7 @@ HRESULT Engine::Physics::Init()
 		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
-		if (gPhysics == nullptr)
+		if (!gPhysics)
 		{
 			DebugTrace("Physics: gPhysics failed.\n");
 			throw exception("gPhysics == nullptr!!!");
@@ -61,6 +61,14 @@ HRESULT Engine::Physics::Init()
 			throw exception("gScene == nullptr!!!");
 			return E_FAIL;
 			IsInitPhysX = false;
+		}
+
+		pvdClient = gScene->getScenePvdClient();
+		if (pvdClient)
+		{
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
 
 			//static friction, dynamic friction, restitution

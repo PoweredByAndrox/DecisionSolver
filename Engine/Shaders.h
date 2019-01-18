@@ -10,9 +10,9 @@ namespace Engine
 	class Shaders
 	{
 	public:
-		HRESULT CompileShaderFromFile(wstring *szFileName, string *szEntryPoint, string *szShaderModel, ID3DBlob **ppBlobOut);
+		HRESULT CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader, ID3DBlob **ppBlobOut);
 		vector<void *> CompileShaderFromFile(vector<ID3DBlob *> Things);
-		vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> szFileName, vector<string> szEntryPoint, vector<string> szShaderModel);
+		vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName, vector<string> VersionShader, DWORD ShaderFlags = 0);
 
 		void Release()
 		{

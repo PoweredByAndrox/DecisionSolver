@@ -123,6 +123,7 @@ namespace Engine
 		auto getPhysics() { if (gPhysics) return gPhysics; }
 		auto getMaterial() { if (gMaterial) return gMaterial; }
 		auto getActrCamera() { if (gActorCamera) return gActorCamera; }
+		auto getClientPVD() { if (pvdClient) return pvdClient; }
 
 		void ClearAllObj()
 		{
@@ -166,6 +167,7 @@ namespace Engine
 		PxCooking *gCooking = nullptr;
 		PxPvd *gPvd = nullptr;
 		PxPvdTransport *transport = nullptr;
+		PxPvdSceneClient *pvdClient = nullptr;
 
 		// ***************
 		HRESULT hr = S_OK;

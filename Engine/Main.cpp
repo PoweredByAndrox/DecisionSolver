@@ -290,11 +290,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 	MM->setGameMode(GAME_RUNNING);
 #endif
 
-	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext(),
-		file_system->GetResPathW(&wstring(L"Font.dds"))->c_str()));
+	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(
+		file_system->GetResPathW(&wstring(L"Font.dds"))->c_str(),
+		file_system->GetResPathW(&wstring(L"UI.hlsl"))->c_str()));
 
 	vector<wstring> FileShaders;    
-
 	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"VertexShader.hlsl")));
 	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"PixelShader.hlsl")));
 
@@ -328,7 +328,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 
 	//PhysX->_createTriMesh(model.back().get());
 
-	//Model.back()->Scale(Vector3(2.f, 2.f, 2.f));
+	model.back()->Scale(Vector3(2.f, 2.f, 2.f));
 	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
 #endif
 
