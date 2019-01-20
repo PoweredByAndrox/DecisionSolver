@@ -37,7 +37,7 @@ namespace Engine
 		HRESULT Init(Physics *PhysX)
 		{
 			// Setup the view matrix
-			SetViewParams(Vector3::Zero, Vector3(0.0f, 0.0f, 1.0f));
+			SetViewParams(Vector3(1.f, 1.f, 1.f), Vector3(0.0f, 1.0f, 0.0f));
 
 			// Setup the projection matrix
 			SetProjParams(XM_PI / 4, 1.0f, 1.0f, 1000.0f);
@@ -53,7 +53,7 @@ namespace Engine
 			}
 			catch (const exception&)
 			{
-				throw exception("Catch in Camera->Init!!!");
+				throw exception("Camera->Init == FAIL!!!");
 				return E_FAIL;
 			}
 
@@ -94,7 +94,6 @@ namespace Engine
 			// Functions to get state
 		Matrix GetViewMatrix() const { return DirectX::XMLoadFloat4x4(&m_mView); }
 		Matrix GetProjMatrix() const { return DirectX::XMLoadFloat4x4(&m_mProj); }
-	//	Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(&m_vEye); }
 		Vector3 GetLookAtPt() const { return DirectX::XMLoadFloat3(&m_vLookAt); }
 		float GetNearClip() const { return m_fNearPlane; }
 		float GetFarClip() const { return m_fFarPlane; }

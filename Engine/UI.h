@@ -3,12 +3,16 @@
 #define __UI_H__
 #include "pch.h"
 
+#include "File_system.h"
+
 namespace Engine
 {
-	class UI
+	class UI: public File_system
 	{
 	public:
-		HRESULT Init();
+		HRESULT Init(int Count = 1);
+
+		void Render(float Time, int ID = 0);
 
 		HRESULT AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key);
 		HRESULT AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H);
@@ -85,11 +89,10 @@ namespace Engine
 		HRESULT AddComboBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y,
 			vector<int> *W, vector<int> *H);
 
-
 		bool IsInitUI() { return InitUI; }
 
 		auto *getDialogResManager() { return &g_DialogResourceManager; }
-		auto *getHUD() { return &g_HUD; }
+		auto *getDialog() { return &g_Dialog; }
 
 		auto getObjButton() { if (!ObjButton.empty()) return ObjButton; }
 		auto getObjNameButton() { if (!ObjNameButton.empty()) return ObjNameButton; }
@@ -109,27 +112,12 @@ namespace Engine
 		int getAllComponentsCount();
 		vector<int> *addToBackComponentBy_ID(int ID);
 
-		int getComponentID_By_Name(UI *ui, vector<int> Obj, wstring *Text)
-		{
-			USES_CONVERSION;
-			LPCSTR t;
-			for (int i = 0; i < Obj.size(); i++)
-				if (t = strstr(W2A(Text->c_str()), W2A(ui->getObjNameButton().at(i).c_str())))
-					return Obj.at(i);
-				else if (t = strstr(W2A(Text->c_str()), W2A(ui->getObjNameStatic().at(i).c_str())))
-					return Obj.at(i);
-				else if (t = strstr(W2A(Text->c_str()), W2A(ui->getObjNameCheckBox().at(i).c_str())))
-					return Obj.at(i);
-				else if (t = strstr(W2A(Text->c_str()), W2A(ui->getObjNameComboBox().at(i).c_str())))
-					return Obj.at(i);
-				else if (t = strstr(W2A(Text->c_str()), W2A(ui->getObjNameSlider().at(i).c_str())))
-					return Obj.at(i);
-		}
-
 		UI() {}
 		~UI() {}
 
-	private:
+	protected:
+		HRESULT hr = S_OK;
+
 		// **********
 		bool InitUI = false;
 
@@ -150,10 +138,11 @@ namespace Engine
 		vector<wstring> ObjNameComboBox;
 
 		// **********
-		DialogResourceManager g_DialogResourceManager;
-		Dialog g_HUD;
+		vector<DialogResourceManager *> g_DialogResourceManager;
+		vector<Dialog *> g_Dialog;
 
 		int iY = 10;
+		unique_ptr<File_system> fs = make_unique<File_system>();
 	};
 };
 #endif // !__UI_H__

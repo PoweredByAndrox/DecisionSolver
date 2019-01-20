@@ -444,8 +444,8 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 	if (!m_bVisible || (m_bMinimized && !m_bCaption))
 		return S_OK;
 
-	auto pd3dDevice = m_pManager->GetD3D11Device();
-	auto pd3dDeviceContext = m_pManager->GetD3D11DeviceContext();
+	auto pd3dDevice = DXUTGetD3D11Device();
+	auto pd3dDeviceContext = DXUTGetD3D11DeviceContext();
 
 		// Set up a state block here and restore it when finished drawing all the controls
 	m_pManager->StoreD3D11State(pd3dDeviceContext);
@@ -455,10 +455,10 @@ HRESULT Dialog::OnRender(_In_ float fElapsedTime)
 	{
 			// Convert the draw rectangle from screen coordinates to clip space coordinates.
 		float Left, Right, Top, Bottom;
-		Left = m_x * 2.0f / m_pManager->m_nBackBufferWidth - 1.0f;
-		Right = (m_x + m_width) * 2.0f / m_pManager->m_nBackBufferWidth - 1.0f;
-		Top = 1.0f - m_y * 2.0f / m_pManager->m_nBackBufferHeight;
-		Bottom = 1.0f - (m_y + m_height) * 2.0f / m_pManager->m_nBackBufferHeight;
+		Left = m_x * 2.0f / DXUTGetDXGIBackBufferSurfaceDesc()->Width - 1.0f;
+		Right = (m_x + m_width) * 2.0f / DXUTGetDXGIBackBufferSurfaceDesc()->Width - 1.0f;
+		Top = 1.0f - m_y * 2.0f / DXUTGetDXGIBackBufferSurfaceDesc()->Height;
+		Bottom = 1.0f - (m_y + m_height) * 2.0f / DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 
 		SCREEN_VERTEX_10 vertices[4] =
 		{
@@ -777,7 +777,6 @@ bool Dialog::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		break;
 	}
-
 
 	// Mouse messages
 	case WM_MOUSEMOVE:
@@ -1368,8 +1367,8 @@ HRESULT Dialog::DrawSprite(Element *pElement, const RECT *prcDest, float fDepth)
 	if (!pTextureNode)
 		return E_FAIL;
 
-	float fBBWidth = (float)m_pManager->m_nBackBufferWidth;
-	float fBBHeight = (float)m_pManager->m_nBackBufferHeight;
+	float fBBWidth = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
+	float fBBHeight = DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 	float fTexWidth = (float)pTextureNode->dwWidth;
 	float fTexHeight = (float)pTextureNode->dwHeight;
 
@@ -1461,8 +1460,8 @@ HRESULT Dialog::DrawTextGUI(LPCWSTR strText, Element *pElement, const RECT *prcD
 	if (m_bCaption)
 		OffsetRect(&rcScreen, 0, m_nCaptionHeight);
 
-	float fBBWidth = (float)m_pManager->m_nBackBufferWidth;
-	float fBBHeight = (float)m_pManager->m_nBackBufferHeight;
+	float fBBWidth = DXUTGetDXGIBackBufferSurfaceDesc()->Width;
+	float fBBHeight = DXUTGetDXGIBackBufferSurfaceDesc()->Height;
 
 	auto pd3dDevice = m_pManager->GetD3D11Device();
 	auto pd3d11DeviceContext = m_pManager->GetD3D11DeviceContext();
@@ -1959,8 +1958,6 @@ DialogResourceManager::DialogResourceManager() noexcept:
     m_pVBScreenQuad11(nullptr),
     m_pSpriteBuffer11(nullptr),
     m_SpriteBufferBytes11(0),
-    m_nBackBufferWidth(0),
-    m_nBackBufferHeight(0),
     m_pd3d11Device(nullptr),
     m_pd3d11DeviceContext(nullptr)
 {
@@ -2079,10 +2076,8 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(LPCWSTR UIPath, LPCWSTR Shade
 
 	// Create the texture objects in the cache arrays.
 	for (size_t i = 0; i < m_TextureCache.size(); i++)
-	{
 		if (FAILED(hr = CreateTexture11(static_cast<UINT>(i))))
 			return hr;
-	}
 
 	// Create input layout
 	const D3D11_INPUT_ELEMENT_DESC layout[] =
@@ -2112,18 +2107,6 @@ HRESULT DialogResourceManager::OnD3D11CreateDevice(LPCWSTR UIPath, LPCWSTR Shade
 }
 
 //--------------------------------------------------------------------------------------
-_Use_decl_annotations_
-HRESULT DialogResourceManager::OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc)
-{
-	UNREFERENCED_PARAMETER(pd3dDevice);
-	HRESULT hr = S_OK;
-	m_nBackBufferWidth = pBackBufferSurfaceDesc->Width;
-	m_nBackBufferHeight = pBackBufferSurfaceDesc->Height;
-
-	return hr;
-}
-
-//--------------------------------------------------------------------------------------
 void DialogResourceManager::OnD3D11ReleasingSwapChain()
 {
 }
@@ -2133,7 +2116,6 @@ void DialogResourceManager::OnD3D11DestroyDevice()
 {
 	// Release the resources but don't clear the cache, as these will need to be
 	// recreated if the device is recreated
-
 	for (auto it = m_TextureCache.begin(); it != m_TextureCache.end(); ++it)
 	{
 		SAFE_RELEASE((*it)->pTexResView11);
@@ -2266,11 +2248,12 @@ void DialogResourceManager::EndSprites11(ID3D11Device *pd3dDevice, ID3D11DeviceC
 	destRegion.front = 0;
 	destRegion.back = 1;
 	D3D11_MAPPED_SUBRESOURCE MappedResource;
-	if (S_OK == pd3dImmediateContext->Map(m_pSpriteBuffer11, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource))
-	{
-		memcpy(MappedResource.pData, (const void*)&m_SpriteVertices[0], SpriteDataBytes);
-		pd3dImmediateContext->Unmap(m_pSpriteBuffer11, 0);
-	}
+	if(!m_SpriteVertices.empty())
+		if (S_OK == pd3dImmediateContext->Map(m_pSpriteBuffer11, 0, D3D11_MAP_WRITE_DISCARD, 0, &MappedResource))
+		{
+			memcpy(MappedResource.pData, (const void*)&m_SpriteVertices.at(0), SpriteDataBytes);
+			pd3dImmediateContext->Unmap(m_pSpriteBuffer11, 0);
+		}
 
 	// Draw
 	UINT Stride = sizeof(SpriteVertex);
@@ -5002,7 +4985,7 @@ void EditBox::ClearText()
 //--------------------------------------------------------------------------------------
 void EditBox::SetText(_In_z_ LPCWSTR wszText, _In_ bool bSelected)
 {
-	assert(!wszText);
+	assert(wszText);
 
 	m_Buffer.SetText(wszText);
 	m_nFirstVisible = 0;

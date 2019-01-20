@@ -66,8 +66,7 @@ namespace Engine
 	struct TextureNode;
 	struct FontNode;
 	
-	typedef void (CALLBACK *PCALLBACKGUIEVENT)(_In_ UINT nEvent, _In_ int nControlID, _In_ Control *pControl,
-		_In_opt_ void* pUserContext);
+	typedef void (CALLBACK *PCALLBACKGUIEVENT)(_In_ UINT nEvent, _In_ int nControlID, _In_ Control *pControl, _In_opt_ void* pUserContext);
 
 	//--------------------------------------------------------------------------------------
 	// Enums for pre-defined control types
@@ -225,7 +224,7 @@ namespace Engine
 		Element* GetDefaultElement(_In_ UINT nControlType, _In_ UINT iElement) const;
 
 		// Methods called by controls
-		void SendEvent(_In_ UINT nEvent, _In_ bool bTriggeredByUser, _In_ Engine::Control *pControl);
+		void SendEvent(_In_ UINT nEvent, _In_ bool bTriggeredByUser, _In_ Control *pControl);
 		void RequestFocus(_In_ Control *pControl);
 
 		// Render helpers
@@ -374,7 +373,6 @@ namespace Engine
 		Dialog *m_pPrevDialog;
 	};
 
-
 	//--------------------------------------------------------------------------------------
 	// Structs for shared resources
 	//--------------------------------------------------------------------------------------
@@ -404,7 +402,6 @@ namespace Engine
 		Vector2 vTex;
 	};
 
-
 	//-----------------------------------------------------------------------------
 	// Manages shared resources of dialogs
 	//-----------------------------------------------------------------------------
@@ -418,7 +415,6 @@ namespace Engine
 
 		// D3D11 specific
 		HRESULT OnD3D11CreateDevice(_In_ LPCWSTR UIPath, _In_ LPCWSTR ShaderFile);
-		HRESULT OnD3D11ResizedSwapChain(_In_ ID3D11Device *pd3dDevice, _In_ const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc);
 		void OnD3D11ReleasingSwapChain();
 		void OnD3D11DestroyDevice();
 		void StoreD3D11State(_In_ ID3D11DeviceContext *pd3dImmediateContext);
@@ -471,9 +467,6 @@ namespace Engine
 			*m_pSpriteBuffer11;
 		UINT m_SpriteBufferBytes11;
 		vector<SpriteVertex> m_SpriteVertices;
-
-		UINT m_nBackBufferWidth,
-			m_nBackBufferHeight;
 
 		vector<Dialog *> m_Dialogs;            // Dialogs registered
 

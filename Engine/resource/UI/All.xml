@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gui id="Console" width="250" height="250">
+<button id="Button" text="One Button" x="0" y="0" width="100" height="100"/>
+<listbox id="ListBox" text="Enter Something)" x="" y="" width="50" height="25">
+</gui>

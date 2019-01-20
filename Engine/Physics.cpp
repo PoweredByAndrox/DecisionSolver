@@ -2,8 +2,6 @@
 
 #include "Physics.h"
 
-#define USING_PVD_IN_FILE 0
-
 HRESULT Engine::Physics::Init()
 {
 	try

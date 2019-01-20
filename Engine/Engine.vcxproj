@@ -157,6 +157,7 @@
   <ItemGroup>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Console.cpp" />
     <ClCompile Include="Dialogs.cpp" />
     <ClCompile Include="File_system.cpp" />
     <ClCompile Include="GUI.cpp" />
@@ -184,6 +185,7 @@
   <ItemGroup>
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Console.h" />
     <ClInclude Include="Dialogs.h" />
     <ClInclude Include="File_system.h" />
     <ClInclude Include="GameObjects.h" />

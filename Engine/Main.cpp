@@ -15,6 +15,7 @@
 #include "Render_Buffer.h"
 #include "MainActor.h"
 #include "GameObjects.h"
+#include "Console.h"
 
 using namespace Engine;
 
@@ -32,7 +33,7 @@ using namespace Engine;
 	#pragma comment(lib, "Effects11.lib")
 #endif
 
-Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 2.0f, 1.f };
+Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 1.0f, 0.f };
 
 HRESULT hr = S_OK;
 
@@ -46,6 +47,7 @@ auto frustum = make_unique<Frustum>();
 auto buffers = make_unique<Render_Buffer>();
 auto mainActor = make_unique<MainActor>();
 auto PhysX = make_unique<Physics>();
+auto console = make_unique<Console>();
 
 #ifndef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
@@ -98,7 +100,10 @@ void InitApp()
 {
 	if (!ui->IsInitUI())
 		ui->Init();
-	ui->getHUD()->SetCallback(OnGUIEvent);
+	ui->getDialog()->at(0)->SetCallback(OnGUIEvent);
+
+	if (!console->IsInit())
+		console->Init();
 
 	vector<int> CountOfButtons =
 	{
@@ -157,11 +162,10 @@ void InitApp()
 		iY += 24,
 	};
 	vector<int> X = { 35, 35, 35, 35 }, W = { 125, 125, 125, 125 }, H = { 22, 22, 22, 22 };
-	ui->AddStatic_Mass(ui->getHUD(), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
-	ui->AddButton_Mass(ui->getHUD(), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
+	ui->AddStatic_Mass(ui->getDialog()->at(0), &CountOfStatics, &NameOfStatics, &X, &PositionYStatics, &W, &H);
+	ui->AddButton_Mass(ui->getDialog()->at(0), &CountOfButtons, &NameOfButtons, &X, &PositionYButtons, &KeysButtons);
 
-	ui->AddCheckBox(ui->getHUD(), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22, 1);
-	//ui->getHUD()->GetManager()->AddTexture(L"D:/DecisionSolver/Engine/resource/textures/UI/dxutcontrols.dds");
+	ui->AddCheckBox(ui->getDialog()->at(0), ui->getAllComponentsCount() + 1, &wstring(L"Enable/Disable XAxis Movement Mode Camera (Def: X mov is true)"), 0, 0, 125, 22, 1);
 	
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	if (!Sound->IsInitSoundSystem())
@@ -171,7 +175,7 @@ void InitApp()
 
 #ifndef Never_MainMenu
 	if (!MM->IsInitMainMenu())
-		MM->Init(ui.get(), Sound.get());
+		MM->Init(Sound.get());
 
 	MM->getDlgMM()->SetCallback(OnGUIEvent); 
 	MM->getDlgAUD()->SetCallback(OnGUIEvent);
@@ -207,7 +211,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings *pDeviceSettings, void* pU
 
 vector<unique_ptr<GeometricPrimitive>> m_shape;
 
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext)
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
 {
 	switch (nControlID)
 	{
@@ -248,7 +252,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* p
 		mainActor->ChangeHealth(0.f, 'G');
 		break;
 	case BUTTON_6:
-		mainActor->getObjCamera()->SetViewParams(Eye, At);
+		mainActor->getObjCamera()->setPosCam(Eye);
 		break;
 	case BUTTON_7:
 		PhysX->AddNewActor(Vector3(mainActor->getPosition().x, mainActor->getPosition().y + 10.f, mainActor->getPosition().z),
@@ -258,7 +262,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* p
 	case Check0:
 		if (!ui->getObjCheckBox().empty())
 		{
-			auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox().at(0));
+			auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getObjCheckBox().at(0));
 			if (!ObjCheck)
 				break;
 
@@ -276,7 +280,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* p
 		break;
 	}
 #ifndef Never_MainMenu
-	MM->setGUIEvent(nEvent, nControlID, pControl, pUserContext);
+	MM->OnGUIEvent(nEvent, nControlID, pControl, pUserContext);
 #endif
 }
 
@@ -289,10 +293,6 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 #ifndef Never_MainMenu
 	MM->setGameMode(GAME_RUNNING);
 #endif
-
-	V_RETURN(ui->getDialogResManager()->OnD3D11CreateDevice(
-		file_system->GetResPathW(&wstring(L"Font.dds"))->c_str(),
-		file_system->GetResPathW(&wstring(L"UI.hlsl"))->c_str()));
 
 	vector<wstring> FileShaders;    
 	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"VertexShader.hlsl")));
@@ -345,10 +345,6 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 	model.back()->Position(Vector3(-22.f, -14.5f, 0.f));
 #endif
 
-	float fAspectRatio = pBackBufferSurfaceDesc->Width / (FLOAT)pBackBufferSurfaceDesc->Height;
-	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
-	mainActor->getObjCamera()->SetViewParams(Eye, At);
-
 	Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
 
 #ifdef _NEVER
@@ -361,28 +357,25 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChain *pSwapChain,
 	const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc, void* pUserContext)
 {
-	V_RETURN(ui->getDialogResManager()->OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
-
 	float fAspectRatio = pBackBufferSurfaceDesc->Width / (float)pBackBufferSurfaceDesc->Height;
 	mainActor->getObjCamera()->SetProjParams(mainActor->getObjCamera()->getFOV(), fAspectRatio, 0.1f, 1000.0f);
 
 	int X = pBackBufferSurfaceDesc->Width - 170, Y = 10;
 	
 		// *******
-	ui->SetLocationButton(ui->getHUD(), 0, X, Y, true);
-	ui->SetLocationButton(ui->getHUD(), 1, X, Y += 25, true);
-	ui->SetLocationButton(ui->getHUD(), 5, X, Y += 25, true);
-	ui->SetLocationButton(ui->getHUD(), 6, X, Y += 25, true);
+	ui->SetLocationButton(ui->getDialog()->at(0), 0, X, Y, true);
+	ui->SetLocationButton(ui->getDialog()->at(0), 1, X, Y += 25, true);
+	ui->SetLocationButton(ui->getDialog()->at(0), 5, X, Y += 25, true);
+	ui->SetLocationButton(ui->getDialog()->at(0), 6, X, Y += 25, true);
 	
 	if (!ui->getObjCheckBox().empty())
-		ui->SetLocationCheck(ui->getHUD(), ui->getObjCheckBox().front(), X - 150, Y += 25, true);
+		ui->SetLocationCheck(ui->getDialog()->at(0), ui->getObjCheckBox().front(), X - 150, Y += 25, true);
 
 	return S_OK;
 }
 
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
-	mainActor->getObjCamera()->FrameMove(fElapsedTime);
 }
 
 vector<Vector3> Mass;
@@ -405,27 +398,28 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		break;
 	case GAME_MAIN_MENU:
 		MM->getDlgMM()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
-		MM->getDlgMM()->OnRender(fElapsedTime);
-		MM->getDlgMM()->SetVisible(true);
-		MM->getDlgAUD()->SetVisible(false);
-		MM->getDlgVID()->SetVisible(false);
+		if (!MM->getUI()->getDialog()->empty())
+			MM->getUI()->getDialog()->at(0)->OnRender(fElapsedTime);
+
 		DXUTSetCursorSettings(true, true);
 		mainActor->getObjCamera()->SetRotateButtons(true, 0, 0);
 		mainActor->getObjCamera()->SetResetCursorAfterMove(false);
+
+		console->Close();
 		break;
 	case GAME_AUDIO_MENU:
 		MM->getDlgAUD()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
-		MM->getDlgAUD()->OnRender(fElapsedTime);
-		MM->getDlgAUD()->SetVisible(true);
-		MM->getDlgMM()->SetVisible(false);
-		MM->getDlgVID()->SetVisible(false);
+		if (!MM->getUI()->getDialog()->empty())
+			MM->getUI()->getDialog()->at(1)->OnRender(fElapsedTime);
+
+		console->Close();
 		break;
 	case GAME_VIDEO_MENU:
 		MM->getDlgVID()->SetLocation(DXUTGetDXGIBackBufferSurfaceDesc()->Width /2, DXUTGetDXGIBackBufferSurfaceDesc()->Height /2);
-		MM->getDlgVID()->OnRender(fElapsedTime);
-		MM->getDlgVID()->SetVisible(true);
-		MM->getDlgAUD()->SetVisible(false);
-		MM->getDlgMM()->SetVisible(false);
+		if (!MM->getUI()->getDialog()->empty())
+			MM->getUI()->getDialog()->at(2)->OnRender(fElapsedTime);
+
+		console->Close();
 		break;
 	}
 #endif
@@ -487,7 +481,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 #endif // _NEVER
 
-	auto ObjCheck = ui->getHUD()->GetCheckBox(ui->getObjCheckBox().at(0));
+	auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getObjCheckBox().at(0));
 	if (ObjCheck)
 		if (ObjCheck->GetChecked())
 			mainActor->getObjCamera()->SetEnableYAxisMovement(true);
@@ -504,15 +498,15 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	
 	int PosText = 0;
 	auto *PosCam = &mainActor->getPosition();
-	ui->SetTextStatic(ui->getHUD(), 0, &string("Cam Pos: "), PosCam);
-	ui->SetLocationStatic(ui->getHUD(), 0, 0, PosText += 5, false);
+	ui->SetTextStatic(ui->getDialog()->at(0), 0, &string("Cam Pos: "), PosCam);
+	ui->SetLocationStatic(ui->getDialog()->at(0), 0, 0, PosText += 5, false);
 
-	ui->SetTextStatic(ui->getHUD(), 1, &string("FPS: "), DXUTGetFPS());
-	ui->SetLocationStatic(ui->getHUD(), 1, SCREEN_WIDTH / 2, -3, false);
+	ui->SetTextStatic(ui->getDialog()->at(0), 1, &string("FPS: "), DXUTGetFPS());
+	ui->SetLocationStatic(ui->getDialog()->at(0), 1, SCREEN_WIDTH / 2, -3, false);
 
 	auto ObjStatic = PhysX->GetPhysStaticObject();
-	ui->SetTextStatic(ui->getHUD(), 2, &string("Count Phys Object: "), PhysObj.size() + ObjStatic.size());
-	ui->SetLocationStatic(ui->getHUD(), 2, 0, PosText += 15, false);
+	ui->SetTextStatic(ui->getDialog()->at(0), 2, &string("Count Phys Object: "), PhysObj.size() + ObjStatic.size());
+	ui->SetLocationStatic(ui->getDialog()->at(0), 2, 0, PosText += 15, false);
 
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 	auto StatAudio = Sound->getStaticsSound();
@@ -530,31 +524,40 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	ui->SetTextStatic(ui->getHUD(), 3, &string("Playing: "), SoundInformatio);
 #endif // SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
 
-	ui->SetLocationStatic(ui->getHUD(), 3, 0, PosText += 15, false);
+	ui->SetLocationStatic(ui->getDialog()->at(0), 3, 0, PosText += 15, false);
 
 	//Pick->moveCursor(DXUTGetDXGIBackBufferSurfaceDesc()->Width / 2, DXUTGetDXGIBackBufferSurfaceDesc()->Height / 2);
 	Pick->tick();
 
-	ui->SetTextStatic(ui->getHUD(), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
+	ui->SetTextStatic(ui->getDialog()->at(0), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
 
 	if (GetAsyncKeyState(VK_LSHIFT))
+	{
 		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f * 9.0f);
+		if(*console->getState() == Console_STATE::Close)
+			console->Open();
+		else
+			console->Close();
+	}
 	else
 		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f);
 
-	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), fElapsedTime);
 
 	for (int i = 0; i < model.size(); i++)
 		model.at(i)->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
-	V(ui->getHUD()->OnRender(fElapsedTime));
+	console->Render(fElapsedTime);
+
+	if (*console->getState() == Console_STATE::Close)
+		V(ui->getDialog()->at(0)->OnRender(fElapsedTime));
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 {
-	ui->getDialogResManager()->OnD3D11ReleasingSwapChain();
+	ui->getDialogResManager()->at(0)->OnD3D11ReleasingSwapChain();
 }
 
 void Destroy_Application()
@@ -587,28 +590,43 @@ void Destroy_Application()
 
 	if (buffers.operator bool())
 		buffers->Release();
+
+	if (console.operator bool())
+		console.release();
+
+	if (ui.operator bool())
+		ui.release();
 }
 
 void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 {
-	if (ui.operator bool())
-	{
-		ui->getDialogResManager()->OnD3D11DestroyDevice();
-		ui.release();
-	}
+	ui->getDialogResManager()->at(0)->OnD3D11DestroyDevice();
 	DXUTGetGlobalResourceCache().OnDestroyDevice();
 }
 
 LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	bool *pbNoFurtherProcessing, void* pUserContext)
 {
-	*pbNoFurtherProcessing = ui->getDialogResManager()->MsgProc(hWnd, uMsg, wParam, lParam);
-	if (*pbNoFurtherProcessing)
-		return 0;
-
-	*pbNoFurtherProcessing = ui->getHUD()->MsgProc(hWnd, uMsg, wParam, lParam);
-	if (*pbNoFurtherProcessing)
-		return 0;
+	{
+		if (!ui->getDialogResManager()->empty())
+		{
+			*pbNoFurtherProcessing = ui->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (*pbNoFurtherProcessing)
+				return 0;
+		}
+		if (!ui->getDialog()->empty())
+		{
+			*pbNoFurtherProcessing = ui->getDialog()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (*pbNoFurtherProcessing)
+				return 0;
+		}
+		if (!ui->getDialogResManager()->empty())
+		{
+			*pbNoFurtherProcessing = console->getUI()->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (*pbNoFurtherProcessing)
+				return 0;
+		}
+	}
 
 #ifndef Never_MainMenu
 	switch (*MM->getGameMode())
@@ -621,14 +639,36 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 		break;
 	}
 	case GAME_MAIN_MENU:
-		MM->getDlgMM()->MsgProc(hWnd, uMsg, wParam, lParam);
-		break;
+	{
+		{
+			if (!MM->getUI()->getDialogResManager()->empty())
+				MM->getUI()->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (!MM->getUI()->getDialog()->empty())
+				MM->getUI()->getDialog()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			break;
+		}
+	}
 	case GAME_AUDIO_MENU:
-		MM->getDlgAUD()->MsgProc(hWnd, uMsg, wParam, lParam);
-		break;
+	{
+		{
+			if (!MM->getUI()->getDialogResManager()->empty())
+				MM->getUI()->getDialogResManager()->at(1)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (!MM->getUI()->getDialog()->empty())
+				MM->getUI()->getDialog()->at(1)->MsgProc(hWnd, uMsg, wParam, lParam);
+			break;
+		}
+	}
 	case GAME_VIDEO_MENU:
-		MM->getDlgVID()->MsgProc(hWnd, uMsg, wParam, lParam);
-		break;
+	{
+		{
+			if (!MM->getUI()->getDialogResManager()->empty())
+				MM->getUI()->getDialogResManager()->at(2)->MsgProc(hWnd, uMsg, wParam, lParam);
+			if (!MM->getUI()->getDialog()->empty())
+				MM->getUI()->getDialog()->at(2)->MsgProc(hWnd, uMsg, wParam, lParam);
+			break;
+		}
+	}
+	break;
 	}
 #endif
 	return 0;

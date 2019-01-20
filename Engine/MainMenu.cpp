@@ -3,27 +3,26 @@
 
 using namespace Engine;
 
-HRESULT MainMenu::Init(UI *ui, Audio *sound)
+HRESULT MainMenu::Init(Audio *sound)
 {
-	if (!ui->IsInitUI())
-	{
-		DebugTrace("MainMenu: Init failed.\n");
-		throw exception("UI hasn't been initialized!!!");
-		InitMainMenu = false;
-		return E_FAIL;
-	}
-	/*if (!sound->IsInitSounSystem())
+	/*
+	if (!sound->IsInitSounSystem())
 	{
 		DebugTrace("MainMenu: Init failed.\n");
 		throw exception("Audio hasn't been initialized!!!");
 		InitMainMenu = false;
 		return E_FAIL;
-	}*/
-	this->ui = unique_ptr<UI>(ui);
-	//Sound = unique_ptr<Audio>(sound);
-	MainMenuDlg.Init(ui->getDialogResManager());
-	AudioMenuDlg.Init(ui->getDialogResManager());
-	VideoMenuDlg.Init(ui->getDialogResManager());
+	}
+	Sound = unique_ptr<Audio>(sound);
+	*/
+	
+	if (!ui->IsInitUI())
+		ui->Init(3);
+
+	MainMenuDlg = *ui->getDialog()->at(0);
+	AudioMenuDlg = *ui->getDialog()->at(1);
+	VideoMenuDlg = *ui->getDialog()->at(2);
+
 	int iY = ((300 - 30 * 6) / 2), i = ui->getAllComponentsCount();
 	vector<int> ID =
 	{
@@ -171,6 +170,12 @@ HRESULT MainMenu::Init(UI *ui, Audio *sound)
 	VideoMenuDlg.SetLocation(1024 /2, 768 /2);
 	VideoMenuDlg.SetSize(250, 300);
 
+	ui->getDialog()->clear();
+	
+	ui->getDialog()->push_back(&MainMenuDlg);
+	ui->getDialog()->push_back(&AudioMenuDlg);
+	ui->getDialog()->push_back(&VideoMenuDlg);
+
 	InitMainMenu = true;
 	return S_OK;
 }
@@ -185,9 +190,8 @@ bool FindSubStr(wstring &context, wstring const &from)
 		return false;
 }
 
-void MainMenu::setGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
+void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
 {
-	//MainMenuDlg VideoMenuDlg AudioMenuDlg
 	Button *Cache_Button = nullptr;
 	Slider *Cache_Slider = nullptr;
 
@@ -395,9 +399,9 @@ HRESULT MainMenu::UpdateD3D11Resolutions()
 	const DWORD dwHeight = g_DeviceSettings.d3d11.sd.BufferDesc.Height;
 
 	// DXUTSETTINGSDLG_D3D11_RESOLUTION
-	auto pResolutionComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-		ui->getObjComboBox(), &wstring(L"For Resolution")));
-	pResolutionComboBox->RemoveAllItems();
+	//auto pResolutionComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+	//	ui->getObjComboBox(), &wstring(L"For Resolution")));
+	//pResolutionComboBox->RemoveAllItems();
 
 	auto pD3DEnum = DXUTGetD3D11Enumeration();
 	auto OutputInfo = pD3DEnum->GetOutputInfo(g_DeviceSettings.d3d11.AdapterOrdinal,
@@ -447,11 +451,11 @@ HRESULT MainMenu::UpdateD3D11Resolutions()
 	}
 	else
 	{
-		pResolutionComboBox->RemoveAllItems();
+		//pResolutionComboBox->RemoveAllItems();
 		AddD3D11Resolution(dwWidth, dwHeight);
 	}
 
-	pResolutionComboBox->SetSelectedByData(ULongToPtr(MAKELONG(dwWidth, dwHeight)));
+	//pResolutionComboBox->SetSelectedByData(ULongToPtr(MAKELONG(dwWidth, dwHeight)));
 	OnD3D11ResolutionChanged();
 
 	return S_OK;
@@ -464,11 +468,11 @@ HRESULT MainMenu::OnD3D11ResolutionChanged()
 
 	DWORD dwWidth, dwHeight;
 
-	auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-		ui->getObjComboBox(), &wstring(L"For Resolution")));
-	DWORD dwResolution = PtrToUlong(pComboBox->GetSelectedData());
-	dwWidth = LOWORD(dwResolution);
-	dwHeight = HIWORD(dwResolution);
+	//auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+	//	ui->getObjComboBox(), &wstring(L"For Resolution")));
+//	DWORD dwResolution = PtrToUlong(pComboBox->GetSelectedData());
+//	dwWidth = LOWORD(dwResolution);
+	//dwHeight = HIWORD(dwResolution);
 
 	g_DeviceSettings.d3d11.sd.BufferDesc.Width = dwWidth;
 	g_DeviceSettings.d3d11.sd.BufferDesc.Height = dwHeight;
@@ -483,16 +487,16 @@ HRESULT MainMenu::OnD3D11ResolutionChanged()
 
 void MainMenu::AddD3D11Resolution(DWORD dwWidth, DWORD dwHeight)
 {
-	auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-		ui->getObjComboBox(), &wstring(L"For Resolution")));
+//	auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+//		ui->getObjComboBox(), &wstring(L"For Resolution")));
 
 	DWORD dwResolutionData;
 	WCHAR strResolution[50];
 	dwResolutionData = MAKELONG(dwWidth, dwHeight);
 	swprintf_s(strResolution, 50, L"%u by %u", dwWidth, dwHeight);
 
-	if (!pComboBox->ContainsItem(strResolution))
-		pComboBox->AddItem(strResolution, ULongToPtr(dwResolutionData));
+	//if (!pComboBox->ContainsItem(strResolution))
+	//	pComboBox->AddItem(strResolution, ULongToPtr(dwResolutionData));
 }
 
 //--------------------------------------------------------------------------------------
@@ -505,14 +509,14 @@ HRESULT MainMenu::UpdateD3D11RefreshRates()
 	DXGI_FORMAT backBuffer = g_DeviceSettings.d3d11.sd.BufferDesc.Format;
 	const DXGI_RATIONAL RefreshRate = g_DeviceSettings.d3d11.sd.BufferDesc.RefreshRate;
 
-	auto pRefreshRateComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-		ui->getObjComboBox(), &wstring(L"For Aspect")));//IDC_REFRESH_RATE);
-	for (UINT i = 0; i < pRefreshRateComboBox->GetNumItems(); ++i)
-	{
-		auto pRefreshRate = reinterpret_cast<DXGI_RATIONAL*>(pRefreshRateComboBox->GetItemData(i));
-		delete pRefreshRate;
-	}
-	pRefreshRateComboBox->RemoveAllItems();
+	//auto pRefreshRateComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+	//	ui->getObjComboBox(), &wstring(L"For Aspect")));//IDC_REFRESH_RATE);
+	//for (UINT i = 0; i < pRefreshRateComboBox->GetNumItems(); ++i)
+	//{
+	//	auto pRefreshRate = reinterpret_cast<DXGI_RATIONAL*>(pRefreshRateComboBox->GetItemData(i));
+	//	delete pRefreshRate;
+	//}
+	//pRefreshRateComboBox->RemoveAllItems();
 
 	bool bWindowed = DXUTIsWindowed();
 	if (bWindowed)
@@ -537,27 +541,27 @@ HRESULT MainMenu::UpdateD3D11RefreshRates()
 				AddD3D11RefreshRate(it->RefreshRate);
 		}
 
-		auto pRefreshRateComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-			ui->getObjComboBox(), &wstring(L"For Aspect")));//DXUTSETTINGSDLG_D3D11_REFRESH_RATE);
+	//	auto pRefreshRateComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+	//		ui->getObjComboBox(), &wstring(L"For Aspect")));//DXUTSETTINGSDLG_D3D11_REFRESH_RATE);
 
-		for (UINT i = 0; i < pRefreshRateComboBox->GetNumItems(); ++i)
-		{
-			auto pRate = reinterpret_cast<DXGI_RATIONAL*>(pRefreshRateComboBox->GetItemData(i));
-
-			if (pRate && pRate->Numerator == RefreshRate.Numerator && pRate->Denominator == RefreshRate.Denominator)
-			{
-				pRefreshRateComboBox->SetSelectedByIndex(i);
-				return 0;
-			}
-		}
+	//	for (UINT i = 0; i < pRefreshRateComboBox->GetNumItems(); ++i)
+	//	{
+	//		auto pRate = reinterpret_cast<DXGI_RATIONAL*>(pRefreshRateComboBox->GetItemData(i));
+//
+	//		if (pRate && pRate->Numerator == RefreshRate.Numerator && pRate->Denominator == RefreshRate.Denominator)
+	//		{
+	//			pRefreshRateComboBox->SetSelectedByIndex(i);
+	//			return 0;
+	//		}
+	//	}
 	}
 	return S_OK;
 }
 
 void MainMenu::AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate)
 {
-	auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
-		ui->getObjComboBox(), &wstring(L"For Aspect")));//DXUTSETTINGSDLG_D3D11_REFRESH_RATE);
+	//auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
+	//	ui->getObjComboBox(), &wstring(L"For Aspect")));//DXUTSETTINGSDLG_D3D11_REFRESH_RATE);
 
 	WCHAR strRefreshRate[50];
 
@@ -566,13 +570,13 @@ void MainMenu::AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate)
 	else
 		swprintf_s(strRefreshRate, 50, L"%u Hz", RefreshRate.Numerator / RefreshRate.Denominator);
 
-	if (!pComboBox->ContainsItem(strRefreshRate))
-	{
-		auto pNewRate = new (nothrow) DXGI_RATIONAL;
-		if (pNewRate)
-		{
-			*pNewRate = RefreshRate;
-			pComboBox->AddItem(strRefreshRate, pNewRate);
-		}
-	}
+	//if (!pComboBox->ContainsItem(strRefreshRate))
+	//{
+	//	auto pNewRate = new (nothrow) DXGI_RATIONAL;
+	//	if (pNewRate)
+	//	{
+	//		*pNewRate = RefreshRate;
+	//		pComboBox->AddItem(strRefreshRate, pNewRate);
+	//	}
+	//}
 }

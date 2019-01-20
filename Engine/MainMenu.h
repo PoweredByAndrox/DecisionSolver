@@ -20,23 +20,23 @@ namespace Engine
 	class MainMenu: public UI, public Audio
 	{
 	public:
-		HRESULT Init(UI *ui, Audio *sound);
-
-		void setGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext);
+		HRESULT Init(Audio *sound);
 
 		MainMenu() {}
 		~MainMenu() {}
 
-		auto *getDlgMM()  { return &MainMenuDlg; }   // For Render
-		auto *getDlgVID() { return &VideoMenuDlg; } // For Render
-		auto *getDlgAUD() { return &AudioMenuDlg; } // For Render
+		auto *getDlgMM() { return ui->getDialog()->at(0); }   // For Render
+		auto *getDlgVID() { return ui->getDialog()->at(1); } // For Render
+		auto *getDlgAUD() { return ui->getDialog()->at(2); } // For Render
+		
+		void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext);
 
 		auto const *getGameMode() { return &gameMode; }
 		void setGameMode(GAME_MODE _enum) { gameMode = _enum; }
 
 		bool IsInitMainMenu() { return InitMainMenu; }
-
-	private:
+		auto getUI() { if (ui.operator bool()) return ui.get(); }
+	protected:
 		bool InitMainMenu = false;
 
 #define IDC_STATIC              11
@@ -58,18 +58,17 @@ namespace Engine
 		HRESULT UpdateD3D11Resolutions();
 		HRESULT OnD3D11ResolutionChanged();
 		void AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate);
-		DXUTDeviceSettings  g_DeviceSettings;
+		DXUTDeviceSettings g_DeviceSettings;
 
 		void AddD3D11Resolution(DWORD dwWidth, DWORD dwHeight);
 
 		GAME_MODE gameMode = GAME_MODE::GAME_RUNNING;
 
-		unique_ptr<UI> ui;
+		unique_ptr<UI> ui = make_unique<UI>();
 		unique_ptr<Audio> Sound;
 
-		Dialog MainMenuDlg;   // dialog for main menu
-		Dialog VideoMenuDlg;  // dialog for video menu
-		Dialog AudioMenuDlg;  // dialog for audio menu
+	private:
+		Dialog MainMenuDlg, VideoMenuDlg, AudioMenuDlg;
 	};
 };
 #endif // !__MAIN_MENU_H__

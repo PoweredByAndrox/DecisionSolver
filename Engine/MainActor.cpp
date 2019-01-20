@@ -2,7 +2,7 @@
 
 #include "MainActor.h"
 
-void Engine::MainActor::Update()
+void Engine::MainActor::Update(float Time)
 {
 	if (Health == 0.0f & !IsGod)
 		IsDead = true;
@@ -11,13 +11,15 @@ void Engine::MainActor::Update()
 
 	Position = gCamera->GetEyePt();
 
+	gCamera->FrameMove(Time);
+
 	gCamera->SetProjParams(gCamera->getFOV(), (DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height),
 		0.1f, 1000.0f);
 }
 
-void Engine::MainActor::Render(Matrix View, Matrix Proj)
+void Engine::MainActor::Render(Matrix View, Matrix Proj, float Time)
 {
-	Update();
+	Update(Time);
 }
 
 HRESULT Engine::MainActor::Init(Physics *PhysX)

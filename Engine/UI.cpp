@@ -4,30 +4,63 @@
 
 using namespace Engine;
 
-HRESULT UI::Init()
+HRESULT UI::Init(int Count)
 {
 	try
 	{
-		g_HUD.Init(&g_DialogResourceManager);
+		for (int i = 0; i < Count; i++)
+		{
+			Dialog *dial = new Dialog;
+			DialogResourceManager *DRes = new DialogResourceManager;
+			dial->Init(DRes);
+			V(DRes->OnD3D11CreateDevice(fs->GetResPathW(&wstring(L"Font.dds"))->c_str(), fs->GetResPathW(&wstring(L"UI.hlsl"))->c_str()));
+			g_DialogResourceManager.push_back(DRes);
+			g_Dialog.push_back(dial);
+		}
 		InitUI = true;
 		return S_OK;
 	}
-	catch (const exception ex)
+	catch (const exception &)
 	{
 		DebugTrace("UI: Init failed.\n");
-		throw exception("Init == nullptr!!!");
+		throw exception("Init failed!!!");
 		InitUI = false;
 		return E_FAIL;
 	}
+	return S_OK;
 }
 
 HRESULT UI::AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key)
 {
+	try
+	{
+		ObjButton.push_back(ID);
+		ObjNameButton.push_back(Text);
+		Dial->AddButton(ObjButton.back(), ObjNameButton.back().c_str(), X, Y, W, H, Key);
+	}
+	catch (const exception&)
+	{
+		DebugTrace("UI: AddButton failed.\n");
+		throw exception("AddButton failed!!!");
+		return E_FAIL;
+	}
 	return S_OK;
 }
 
 HRESULT UI::AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H)
 {
+	try
+	{
+		ObjButton.push_back(ID);
+		ObjNameButton.push_back(Text);
+		Dial->AddButton(ObjButton.back(), ObjNameButton.back().c_str(), X, Y, W, H);
+	}
+	catch (const exception&)
+	{
+		DebugTrace("UI: AddButton failed.\n");
+		throw exception("AddButton failed!!!");
+		return E_FAIL;
+	}
 	return S_OK;
 }
 
@@ -738,4 +771,13 @@ void UI::SetTextStatic(Dialog *Dial, int ID, string *Text, size_t Format)
 	snprintf(buff, sizeof(buff),
 		string(*Text + string("%d")).c_str(), Format);
 	Dial->GetStatic(ObjStatic.at(ID))->SetText(A2W(buff));
+}
+
+void Engine::UI::Render(float Time, int ID)
+{
+	if (!ID)
+		for (int i = 0; i < g_Dialog.size(); i++)
+			g_Dialog.at(i)->OnRender(Time);
+	else
+		g_Dialog.at(ID)->OnRender(Time);
 }

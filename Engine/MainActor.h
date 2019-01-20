@@ -40,9 +40,9 @@ namespace Engine
 			}
 		}
 
-		virtual void Update();
-		virtual void Destroy();
-		virtual void Render(Matrix View, Matrix Proj);
+		void Update(float Time);
+		void Destroy();
+		void Render(Matrix View, Matrix Proj, float Time);
 
 		void Hit(float Value)
 		{
@@ -92,7 +92,7 @@ namespace Engine
 		unique_ptr<Physics> PhysX;
 
 			//**********
-		//It is cheat
+		// It's a cheat
 		bool IsGod = false;
 
 			//**********
