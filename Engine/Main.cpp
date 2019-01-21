@@ -608,21 +608,15 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	bool *pbNoFurtherProcessing, void* pUserContext)
 {
 	{
-		if (!ui->getDialogResManager()->empty())
-		{
-			*pbNoFurtherProcessing = ui->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
-			if (*pbNoFurtherProcessing)
-				return 0;
-		}
 		if (!ui->getDialog()->empty())
 		{
-			*pbNoFurtherProcessing = ui->getDialog()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			*pbNoFurtherProcessing = ui->getDialog()->front()->MsgProc(hWnd, uMsg, wParam, lParam);
 			if (*pbNoFurtherProcessing)
 				return 0;
 		}
-		if (!ui->getDialogResManager()->empty())
+		if (!console->getUI()->getDialog()->empty())
 		{
-			*pbNoFurtherProcessing = console->getUI()->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+			*pbNoFurtherProcessing = console->getUI()->getDialog()->front()->MsgProc(hWnd, uMsg, wParam, lParam);
 			if (*pbNoFurtherProcessing)
 				return 0;
 		}
@@ -642,9 +636,9 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	{
 		{
 			if (!MM->getUI()->getDialogResManager()->empty())
-				MM->getUI()->getDialogResManager()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+				MM->getUI()->getDialogResManager()->front()->MsgProc(hWnd, uMsg, wParam, lParam);
 			if (!MM->getUI()->getDialog()->empty())
-				MM->getUI()->getDialog()->at(0)->MsgProc(hWnd, uMsg, wParam, lParam);
+				MM->getUI()->getDialog()->front()->MsgProc(hWnd, uMsg, wParam, lParam);
 			break;
 		}
 	}

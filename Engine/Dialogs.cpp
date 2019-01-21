@@ -20,6 +20,7 @@ HRESULT Engine::Dialogs::LoadFile(string *FileName)
 	doc->LoadFile(FS->GetResPathA(FileName)->c_str());
 	if (doc->ErrorID() > 0)
 	{
+		StackTrace(doc->ErrorStr());
 		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile: \n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}

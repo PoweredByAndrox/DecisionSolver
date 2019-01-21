@@ -22,8 +22,8 @@ HRESULT UI::Init(int Count)
 	}
 	catch (const exception &)
 	{
-		DebugTrace("UI: Init failed.\n");
-		throw exception("Init failed!!!");
+		DebugTrace("UI: Init is failed.\n");
+		throw exception("Init is failed!!!");
 		InitUI = false;
 		return E_FAIL;
 	}
@@ -780,4 +780,130 @@ void Engine::UI::Render(float Time, int ID)
 			g_Dialog.at(i)->OnRender(Time);
 	else
 		g_Dialog.at(ID)->OnRender(Time);
+}
+
+HRESULT Engine::UI::LoadXmlUI(LPCSTR File)
+{
+	if (!doc.operator bool())
+		doc = make_unique<tinyxml2::XMLDocument>();
+
+	doc->LoadFile(File);
+	if (doc->ErrorID() > 0)
+	{
+		StackTrace(doc->ErrorStr());
+		throw exception("Dialogs->LoadFile()::doc->LoadFile() == 0!!!");
+		return E_FAIL;
+	}
+	if (doc->Parse(getDataFromFile(&string(File), true).c_str()) > 0)
+	{
+		throw exception(string(string("Dialogs->LoadFile()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+		return E_FAIL;
+	}
+	
+	ProcessXML();
+
+	return S_OK;
+}
+
+void Engine::UI::ProcessXML()
+{
+	Element = { doc->RootElement() };
+	if (!Element.front())
+	{
+		DebugTrace("UI->LoadXmlUI()::doc->RootElement() == nullptr!!!");
+		throw exception("UI->LoadXmlUI()::doc->RootElement() == nullptr!!!");
+		return;
+	}
+
+	// ********
+		// GUI
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			ID.push_back(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+
+		if (strcmp(FirstAttr->Name(), "width") == 0)
+		{
+			W.push_back(FirstAttr->IntValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+
+		if (strcmp(FirstAttr->Name(), "height") == 0)
+		{
+			H.push_back(FirstAttr->IntValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Element.push_back(Element.back()->FirstChild()->ToElement());
+
+	// ********
+		// Other
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
+		for (int i = 1; i < INT16_MAX; i++)
+		{
+			if (strcmp(FirstAttr->Name(), "id") == 0)
+			{
+				ID.push_back(FirstAttr->Value());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (strcmp(FirstAttr->Name(), "text") == 0)
+			{
+				Text.push_back(FirstAttr->Value());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (strcmp(FirstAttr->Name(), "x") == 0)
+			{
+				X.push_back(FirstAttr->IntValue());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (strcmp(FirstAttr->Name(), "y") == 0)
+			{
+				Y.push_back(FirstAttr->IntValue());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (strcmp(FirstAttr->Name(), "width") == 0)
+			{
+				W.push_back(FirstAttr->IntValue());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (strcmp(FirstAttr->Name(), "height") == 0)
+			{
+				H.push_back(FirstAttr->IntValue());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+		}
+		if (Element.front()->LastChild()->Value() == Element.back()->Value())
+			break;
+
+		Element.push_back(Element.back()->NextSibling()->ToElement());
+	}
 }

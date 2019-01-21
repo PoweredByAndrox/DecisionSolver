@@ -4,6 +4,9 @@
 #include "pch.h"
 
 #include "File_system.h"
+#include "tinyxml2.h"
+
+using namespace tinyxml2;
 
 namespace Engine
 {
@@ -112,6 +115,16 @@ namespace Engine
 		int getAllComponentsCount();
 		vector<int> *addToBackComponentBy_ID(int ID);
 
+		HRESULT LoadXmlUI(LPCSTR File);
+		void ProcessXML();
+
+		auto getID() { if (!ID.empty()) return ID; }
+		auto getText() { if (!Text.empty()) return Text; }
+		auto getW() { if (!W.empty()) return W; }
+		auto getH() { if (!H.empty()) return H; }
+		auto getX() { if (!X.empty()) return X; }
+		auto getY() { if (!Y.empty()) return Y; }
+
 		UI() {}
 		~UI() {}
 
@@ -141,8 +154,29 @@ namespace Engine
 		vector<DialogResourceManager *> g_DialogResourceManager;
 		vector<Dialog *> g_Dialog;
 
+		// **********
 		int iY = 10;
+		
+		// **********
 		unique_ptr<File_system> fs = make_unique<File_system>();
+
+		// **********
+		unique_ptr<tinyxml2::XMLDocument> doc;
+
+		// **********
+		vector<int> W, H, X, Y;
+		vector<LPCSTR> ID, Text;
+
+		// **********
+		vector<XMLElement *> Element;
+
+		void StackTrace(const char *Error)
+		{
+			DebugTrace("***********ERROR IN XML FILE***********\n");
+			DebugTrace("===Check info below:\n");
+			DebugTrace(string(string("... ") + string(Error) + string(" ...")).c_str());
+			DebugTrace("***********ERROR IN XML FILE***********\n");
+		}
 	};
 };
 #endif // !__UI_H__

@@ -111,6 +111,22 @@ string *File_system::GetResPathA(string *File)
 				}
 				else
 					*File = ResPath + string("text/") + string(*File);
+
+				if (!boost::filesystem::exists(ResPath + string("UI/") + string(*File)))
+				{
+					auto cache = getFilesInFolder(&string(ResPath + string("UI/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
+						if (filename == string(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + string("UI/") + string(*File);
 			}
 			else
 			{
@@ -225,6 +241,22 @@ wstring *File_system::GetResPathW(wstring *File)
 				}
 				else
 					*File = ResPath + wstring(L"text/") + wstring(*File);
+
+				if (!boost::filesystem::exists(ResPath + wstring(L"UI/") + wstring(*File)))
+				{
+					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"UI/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
+						if (filename == wstring(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + wstring(L"UI/") + wstring(*File);
 			}
 			else
 			{
