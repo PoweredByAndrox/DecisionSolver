@@ -551,7 +551,7 @@ void Dialog::SendEvent(UINT nEvent, bool bTriggeredByUser, Control* pControl)
 	if (!bTriggeredByUser && !m_bNonUserEvents)
 		return;
 
-	m_pCallbackEvent(nEvent, pControl->GetID(), pControl, m_pCallbackEventUserContext);
+	m_pCallbackEvent(nEvent, pControl->GetID(), pControl, this);
 }
 
 //--------------------------------------------------------------------------------------

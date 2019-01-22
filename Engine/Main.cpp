@@ -260,9 +260,9 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* p
 		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
-		if (!ui->getObjCheckBox().empty())
+		if (!ui->getCheckBoxs().empty())
 		{
-			auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getObjCheckBox().at(0));
+			auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getCheckBoxs().at(0));
 			if (!ObjCheck)
 				break;
 
@@ -368,8 +368,8 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device *pd3dDevice, IDXGISwapChai
 	ui->SetLocationButton(ui->getDialog()->at(0), 5, X, Y += 25, true);
 	ui->SetLocationButton(ui->getDialog()->at(0), 6, X, Y += 25, true);
 	
-	if (!ui->getObjCheckBox().empty())
-		ui->SetLocationCheck(ui->getDialog()->at(0), ui->getObjCheckBox().front(), X - 150, Y += 25, true);
+	if (!ui->getCheckBoxs().empty())
+		ui->SetLocationCheck(ui->getDialog()->at(0), ui->getCheckBoxs().front(), X - 150, Y += 25, true);
 
 	return S_OK;
 }
@@ -481,7 +481,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	frustum->ConstructFrustum(1000.f, g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
 #endif // _NEVER
 
-	auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getObjCheckBox().at(0));
+	auto ObjCheck = ui->getDialog()->at(0)->GetCheckBox(ui->getCheckBoxs().at(0));
 	if (ObjCheck)
 		if (ObjCheck->GetChecked())
 			mainActor->getObjCamera()->SetEnableYAxisMovement(true);

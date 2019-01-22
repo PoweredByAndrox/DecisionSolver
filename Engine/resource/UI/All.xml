@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui id="GUI_Console" width="250" height="250">
-	<button id="Button" text="One Button" x="0" y="10" width="20" height="30"/>
-	<listbox id="ListBox" text="Enter Something)" x="15" y="25" width="50" height="25"/>
+	<Button id="button" text="One Button" x="0" y="210" width="80" height="25"/>
+	<ListBox id="listbox" x="0" y="0" width="250" height="170"/>
+	<EditBox id="editbox" text="Enter Something)" x="100" y="200" width="135" height="45"/>
 </gui>

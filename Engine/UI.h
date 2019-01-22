@@ -16,7 +16,7 @@ namespace Engine
 		HRESULT Init(int Count = 1);
 
 		void Render(float Time, int ID = 0);
-
+		
 		HRESULT AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H, int Key);
 		HRESULT AddButton(Dialog *Dial, int ID, wstring Text, int X, int Y, int W, int H);
 		HRESULT AddButton(Dialog *Dial, int ID, wstring Text);
@@ -92,28 +92,18 @@ namespace Engine
 		HRESULT AddComboBox_Mass(Dialog *Dial, vector<int> *ID, vector<wstring> *Text, vector<int> *X, vector<int> *Y,
 			vector<int> *W, vector<int> *H);
 
+		auto getButtons() { if (!Buttons.empty()) return Buttons; return vector<int>{0}; }
+		auto getStatics() { if (!Statics.empty()) return Statics; return vector<int>{0}; }
+		auto getComboBoxs() { if (!ComboBoxs.empty()) return ComboBoxs; return vector<int>{0}; }
+		auto getSliders() { if (!Sliders.empty()) return Sliders; return vector<int>{0}; }
+		auto getCheckBoxs() { if (!CheckBoxs.empty()) return CheckBoxs; return vector<int>{0}; }
+
+		int getAllComponentsCount();
+		
 		bool IsInitUI() { return InitUI; }
 
 		auto *getDialogResManager() { return &g_DialogResourceManager; }
 		auto *getDialog() { return &g_Dialog; }
-
-		auto getObjButton() { if (!ObjButton.empty()) return ObjButton; return vector<int>{0}; }
-		auto getObjNameButton() { if (!ObjNameButton.empty()) return ObjNameButton; return vector<wstring>{wstring(L"")}; }
-
-		auto getObjStatic() { if (!ObjStatic.empty()) return ObjStatic; return vector<int>{0}; }
-		auto getObjNameStatic() { if (!ObjNameStatic.empty()) return ObjNameStatic; return vector<wstring>{wstring(L"")}; }
-
-		auto getObjComboBox() { if (!ObjComboBox.empty()) return ObjComboBox; return vector<int>{0}; }
-		auto getObjNameComboBox() { if (!ObjNameComboBox.empty()) return ObjNameComboBox; return vector<wstring>{wstring(L"")}; }
-
-		auto getObjSlider() { if (!ObjSlider.empty()) return ObjSlider; return vector<int>{0}; }
-		auto getObjNameSlider() { if (!ObjNameSlider.empty()) return ObjNameSlider; return vector<wstring>{wstring(L"")}; }
-
-		auto getObjCheckBox() { if (!ObjCheckBox.empty()) return ObjCheckBox; return vector<int>{0}; }
-		auto getObjNameCheckBox() { if (!ObjNameCheckBox.empty()) return ObjNameCheckBox; return vector<wstring>{wstring(L"")}; }
-
-		int getAllComponentsCount();
-		vector<int> addToBackComponentBy_ID(int ID);
 
 		HRESULT LoadXmlUI(LPCSTR File);
 		void ProcessXML();
@@ -124,6 +114,9 @@ namespace Engine
 		vector<int> getH() { if (!H.empty()) return H; return vector<int>{0}; }
 		vector<int> getX() { if (!X.empty()) return X; return vector<int>{0}; }
 		vector<int> getY() { if (!Y.empty()) return Y; return vector<int>{0}; }
+		vector<XMLElement *> getElement() { if (!Element.empty()) return Element; return vector<XMLElement *>{nullptr}; }
+
+		void CheckType(LPCSTR OneType);
 
 		UI() {}
 		~UI() {}
@@ -135,21 +128,15 @@ namespace Engine
 		bool InitUI = false;
 
 		// **********
-		vector<int> ObjButton;
-		vector<wstring> ObjNameButton;
-
-		vector<int> ObjStatic;
-		vector<wstring> ObjNameStatic;
-
-		vector<int> ObjSlider;
-		vector<wstring> ObjNameSlider;
-
-		vector<int> ObjCheckBox;
-		vector<wstring> ObjNameCheckBox;
-
-		vector<int> ObjComboBox;
-		vector<wstring> ObjNameComboBox;
-
+		vector<int> Buttons;
+		vector<int> Statics;
+		vector<int> Sliders;
+		vector<int> CheckBoxs;
+		vector<int> ComboBoxs;
+		vector<int> EditBoxs;
+		vector<int> ListBoxs;
+		vector<int> ScrollBars;
+		vector<int> RadioButtons;
 		// **********
 		vector<DialogResourceManager *> g_DialogResourceManager;
 		vector<Dialog *> g_Dialog;

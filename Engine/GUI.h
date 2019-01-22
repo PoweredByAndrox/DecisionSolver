@@ -73,7 +73,7 @@ namespace Engine
 	//--------------------------------------------------------------------------------------
 	enum CONTROL_TYPE
 	{
-		CONTROL_BUTTON,
+		CONTROL_BUTTON = 0,
 		CONTROL_STATIC,
 		CONTROL_CHECKBOX,
 		CONTROL_RADIOBUTTON,
