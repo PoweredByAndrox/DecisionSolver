@@ -33,11 +33,11 @@ DepthStencilState EnableDepth
 };
 struct VS_OUTPUT
 {
-	float4 Pos: POSITION;
+	float4 Pos: SV_POSITION;
 	float4 Dif: COLOR;
 	float2 Tex: TEXCOORD;
 };
-VS_OUTPUT VS(float3 vPos: POSITION, float4 Dif: COLOR, float2 vTexCoord0: TEXCOORD)
+VS_OUTPUT VS(float3 vPos: SV_POSITION, float4 Dif: COLOR, float2 vTexCoord0: TEXCOORD)
 {
 	VS_OUTPUT Output;
 		

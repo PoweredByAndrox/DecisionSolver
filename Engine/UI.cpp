@@ -460,11 +460,9 @@ int UI::getAllComponentsCount()
 	return cache.size();
 }
 
-vector<int> *UI::addToBackComponentBy_ID(int ID)
+vector<int> UI::addToBackComponentBy_ID(int ID)
 {
-	vector<int> cache;
-	cache.push_back(getAllComponentsCount() + ID);
-	return &cache;
+	return vector<int>{getAllComponentsCount() + ID};
 }
 
 HRESULT UI::AddSlider(Dialog *Dial, int ID, wstring *Text, int X, int Y, int W, int H, int Min, int Max)

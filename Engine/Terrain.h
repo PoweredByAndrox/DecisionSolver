@@ -131,7 +131,7 @@ namespace Engine
 				false;
 		}
 
-		auto getRenderObj() { if (render.operator bool()) return render.get(); }
+		Render_Buffer *getRenderObj() { if (render.operator bool()) return render.get(); return nullptr; }
 
 		auto getVertices() { if (vertices) return vertices; }
 		auto getIndices() { if (indices.size() > 0) return indices; }

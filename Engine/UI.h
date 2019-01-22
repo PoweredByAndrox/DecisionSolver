@@ -97,33 +97,33 @@ namespace Engine
 		auto *getDialogResManager() { return &g_DialogResourceManager; }
 		auto *getDialog() { return &g_Dialog; }
 
-		auto getObjButton() { if (!ObjButton.empty()) return ObjButton; }
-		auto getObjNameButton() { if (!ObjNameButton.empty()) return ObjNameButton; }
+		auto getObjButton() { if (!ObjButton.empty()) return ObjButton; return vector<int>{0}; }
+		auto getObjNameButton() { if (!ObjNameButton.empty()) return ObjNameButton; return vector<wstring>{wstring(L"")}; }
 
-		auto getObjStatic() { if (!ObjStatic.empty()) return ObjStatic; }
-		auto getObjNameStatic() { if (!ObjNameStatic.empty()) return ObjNameStatic; }
+		auto getObjStatic() { if (!ObjStatic.empty()) return ObjStatic; return vector<int>{0}; }
+		auto getObjNameStatic() { if (!ObjNameStatic.empty()) return ObjNameStatic; return vector<wstring>{wstring(L"")}; }
 
-		auto getObjComboBox() { if (!ObjComboBox.empty()) return ObjComboBox; }
-		auto getObjNameComboBox() { if (!ObjNameComboBox.empty()) return ObjNameComboBox; }
+		auto getObjComboBox() { if (!ObjComboBox.empty()) return ObjComboBox; return vector<int>{0}; }
+		auto getObjNameComboBox() { if (!ObjNameComboBox.empty()) return ObjNameComboBox; return vector<wstring>{wstring(L"")}; }
 
-		auto getObjSlider() { if (!ObjSlider.empty()) return ObjSlider; }
-		auto getObjNameSlider() { if (!ObjNameSlider.empty()) return ObjNameSlider; }
+		auto getObjSlider() { if (!ObjSlider.empty()) return ObjSlider; return vector<int>{0}; }
+		auto getObjNameSlider() { if (!ObjNameSlider.empty()) return ObjNameSlider; return vector<wstring>{wstring(L"")}; }
 
-		auto getObjCheckBox() { if (!ObjCheckBox.empty()) return ObjCheckBox; }
-		auto getObjNameCheckBox() { if (!ObjNameCheckBox.empty()) return ObjNameCheckBox; }
+		auto getObjCheckBox() { if (!ObjCheckBox.empty()) return ObjCheckBox; return vector<int>{0}; }
+		auto getObjNameCheckBox() { if (!ObjNameCheckBox.empty()) return ObjNameCheckBox; return vector<wstring>{wstring(L"")}; }
 
 		int getAllComponentsCount();
-		vector<int> *addToBackComponentBy_ID(int ID);
+		vector<int> addToBackComponentBy_ID(int ID);
 
 		HRESULT LoadXmlUI(LPCSTR File);
 		void ProcessXML();
 
-		auto getID() { if (!ID.empty()) return ID; }
-		auto getText() { if (!Text.empty()) return Text; }
-		auto getW() { if (!W.empty()) return W; }
-		auto getH() { if (!H.empty()) return H; }
-		auto getX() { if (!X.empty()) return X; }
-		auto getY() { if (!Y.empty()) return Y; }
+		vector<LPCSTR> getID() { if (!ID.empty()) return ID; return vector<LPCSTR>{""}; }
+		vector<LPCSTR> getText() { if (!Text.empty()) return Text; return vector<LPCSTR>{""}; }
+		vector<int> getW() { if (!W.empty()) return W;  return vector<int>{0}; }
+		vector<int> getH() { if (!H.empty()) return H; return vector<int>{0}; }
+		vector<int> getX() { if (!X.empty()) return X; return vector<int>{0}; }
+		vector<int> getY() { if (!Y.empty()) return Y; return vector<int>{0}; }
 
 		UI() {}
 		~UI() {}

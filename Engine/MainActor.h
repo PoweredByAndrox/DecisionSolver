@@ -70,7 +70,7 @@ namespace Engine
 		HRESULT Init(Physics *PhysX);
 
 		Vector3 getPosition() { return Position; }
-		auto getObjCamera() { if (gCamera.operator bool()) return gCamera.get(); }
+		Camera *getObjCamera() { if (gCamera.operator bool()) return gCamera.get(); return nullptr; }
 		float getHealthActor() { return Health; }
 
 		bool IsInit() { return InitClass; }

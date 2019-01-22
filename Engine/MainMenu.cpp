@@ -179,7 +179,7 @@ HRESULT MainMenu::Init(Audio *sound)
 	InitMainMenu = true;
 	return S_OK;
 }
-bool FindSubStr(wstring &context, wstring const &from)
+bool FindSubStr(wstring context, wstring from)
 {
 	auto Pos = context.find(from);
 	if (Pos != std::string::npos)
@@ -466,7 +466,7 @@ HRESULT MainMenu::OnD3D11ResolutionChanged()
 	if (g_DeviceSettings.d3d11.sd.Windowed)
 		return S_OK;
 
-	DWORD dwWidth, dwHeight;
+	DWORD dwWidth = 0, dwHeight = 0;
 
 	//auto pComboBox = VideoMenuDlg.GetComboBox(ui->getComponentID_By_Name(ui.get(),
 	//	ui->getObjComboBox(), &wstring(L"For Resolution")));

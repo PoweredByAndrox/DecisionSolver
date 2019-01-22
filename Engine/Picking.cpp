@@ -113,7 +113,8 @@ void Picking::computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y) cons
 
 bool Picking::pick(int x, int y)
 {
-	auto *scene = PhysX->getScene();
+	PxScene *scene = nullptr;
+	scene = PhysX->getScene();
 
 	PxVec3 rayOrig, rayDir;
 	computeCameraRay(rayOrig, rayDir, x, y);
@@ -186,8 +187,11 @@ void Picking::grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin)
 			&& mSelectedActor->getType() != PxActorType::eARTICULATION_LINK))
 		return;
 
-	auto *scene = PhysX->getScene();
-	auto *physics = PhysX->getPhysics();
+	PxScene *scene = nullptr;
+	scene = PhysX->getScene();
+
+	PxPhysics *physics = nullptr;
+	physics = PhysX->getPhysics();
 
 	//create a shape less actor for the mouse
 	{

@@ -29,7 +29,7 @@ namespace Engine
 		Console_STATE *getState() { return &CState; }
 		void ChangeState(Console_STATE Cstate) { CState = Cstate; }
 
-		auto getUI() { if (ui.operator bool()) return ui.get(); }
+		UI *getUI() { if (ui.operator bool()) return ui.get(); return nullptr; }
 	protected:
 		HRESULT hr = S_OK;
 

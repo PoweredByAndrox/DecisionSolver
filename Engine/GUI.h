@@ -302,7 +302,7 @@ namespace Engine
 
 		//************
 			// Getting ALL Controls In Current Dialog
-		auto getAllControls() { if (!m_Controls.empty()) return m_Controls; }
+		auto getAllControls() { if (!m_Controls.empty()) return m_Controls; return vector<Control *>{nullptr}; }
 
 
 		//************

@@ -4,12 +4,9 @@
 #include "pch.h"
 
 #include "File_system.h"
-#include "tinyxml2.h"
-using namespace tinyxml2;
 
 namespace Engine
 {
-
 	class Dialogs: public File_system
 	{
 	public:

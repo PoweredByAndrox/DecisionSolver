@@ -317,7 +317,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice,
 	//PhysX->_createTriMesh(model.back().get());
 
 	model.back()->Position(Vector3(10.f, 0.f, 15.f));
-	model.back()->Scale(Vector3(3.f, 3.f, 3.f));
+	model.back()->Scale(Vector3(0.5f, 0.5f, 0.5f));
 #endif
 
 #ifndef NEVER_228
@@ -488,7 +488,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		else
 			mainActor->getObjCamera()->SetEnableYAxisMovement(false);
 
-#ifndef DEBUG
+#ifndef NDEBUG
 	ID3D11Debug *debug = nullptr;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
@@ -627,7 +627,8 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	{
 	case GAME_RUNNING:
 	{
-		auto ObjCamera = mainActor->getObjCamera();
+		Camera *ObjCamera = nullptr;
+		ObjCamera = mainActor->getObjCamera();
 		if (ObjCamera)
 			mainActor->getObjCamera()->HandleMessages(hWnd, uMsg, wParam, lParam);
 		break;

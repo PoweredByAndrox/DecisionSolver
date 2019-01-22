@@ -180,6 +180,8 @@ string Engine::Models::determineTextureType(const aiScene *Scene, aiMaterial *ma
 	}
 	if (textypeteststr.find('.') != string::npos)
 		return "textures are on disk";
+
+	return "";
 }
 
 int Engine::Models::getTextureIndex(aiString *str)

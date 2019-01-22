@@ -129,9 +129,7 @@ string *File_system::GetResPathA(string *File)
 					*File = ResPath + string("UI/") + string(*File);
 			}
 			else
-			{
 				*File = "Unsupported File!";
-			}
 
 			return File;
 		}
@@ -142,6 +140,8 @@ string *File_system::GetResPathA(string *File)
 		throw exception("ResPath == empty!!!");
 		return &string("");
 	}
+
+	return &string("Unsupported File!");
 }
 
 wstring *File_system::GetResPathW(wstring *File)
@@ -403,6 +403,8 @@ vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
 			return ResPath[sizeof(*File)];
 		}
 	}
+
+	return vector<wstring>{wstring(L"Unsupported File!")};
 }
 
 vector<wstring> File_system::GetResPathW(wstring File)
@@ -483,6 +485,8 @@ vector<wstring> File_system::GetResPathW(wstring File)
 			return file;
 		}
 	}
+
+	return vector<wstring>{wstring(L"Unsupported File!")};
 }
 
 wstring &File_system::replaceAll(wstring &context, wstring const &from, wstring const &to)
@@ -705,6 +709,8 @@ string File_system::getDataFromFile(string *File, bool LineByline)
 
 	if (!Returned_val.empty())
 		return Returned_val;
+
+	return "";
 }
 
 vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
@@ -728,4 +734,6 @@ vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
 
 	if (!Returned_val.empty())
 		return Returned_val;
+
+	return vector<string> {""};
 }

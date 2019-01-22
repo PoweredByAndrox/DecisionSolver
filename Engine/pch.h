@@ -41,6 +41,9 @@ using namespace DirectX;
 using namespace DirectX::SimpleMath;
 using namespace std;
 
+#include "tinyxml2.h"
+using namespace tinyxml2;
+
 #if defined(Never)
 	// Maybe this doesn't cause errors?
 #define SPDLOG_TRACE_ON

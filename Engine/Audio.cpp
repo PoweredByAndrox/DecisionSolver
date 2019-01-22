@@ -12,9 +12,9 @@ void Engine::Audio::Init()
 #endif
 
 	audEngine = make_unique<AudioEngine>(eflags);
-	if (audEngine == nullptr)
+	if (!audEngine.operator bool())
 	{
-		DebugTrace("Sound_system: Error audEngine = make_unique. Line: 14\n");
+		DebugTrace("Sound_system: Error audEngine = make_unique.\n");
 		throw exception("audEngine == nullptr!!!");
 		InitSoundSystem = false;
 	}
@@ -29,9 +29,9 @@ void Engine::Audio::AddNewSound()
 		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i).c_str());
 
 		sound.push_back(soundEffect[i]->CreateInstance());
-		if (!sound[i])
+		if (!sound.at(i))
 		{
-			DebugTrace("Sound_system: Error sound.push_back. Line: 31\n");
+			DebugTrace("Sound_system: Error sound.push_back.\n");
 			throw exception("sound[i] == null!!!");
 		}
 	}
@@ -43,8 +43,8 @@ void Engine::Audio::Update()
 	{
 		if (audEngine->IsCriticalError())
 		{
-			DebugTrace("Sound_system: Error IsCriticalError. Line: 43\n");
-			throw exception("audEngine: has critical errors audio!");
+			DebugTrace("Sound_system: Error IsCriticalError.\n");
+			throw exception("audEngine: has critical errors with audio!");
 		}
 	}
 }

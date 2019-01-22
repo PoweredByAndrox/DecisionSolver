@@ -229,6 +229,8 @@ HRESULT Engine::Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccess
 
 	GetD3DDevice();
 	V_RETURN(Device->CreateBuffer(&bd, NULL, &m_pConstBuffer));
+
+	return S_OK;
 }
 
 HRESULT Engine::Render_Buffer::CreateTexture(const wchar_t *TextrFName)

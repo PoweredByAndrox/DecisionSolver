@@ -35,7 +35,7 @@ namespace Engine
 		void setGameMode(GAME_MODE _enum) { gameMode = _enum; }
 
 		bool IsInitMainMenu() { return InitMainMenu; }
-		auto getUI() { if (ui.operator bool()) return ui.get(); }
+		UI *getUI() { if (ui.operator bool()) return ui.get(); return nullptr; }
 	protected:
 		bool InitMainMenu = false;
 

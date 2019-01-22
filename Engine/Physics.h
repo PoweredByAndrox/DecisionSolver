@@ -58,7 +58,7 @@
 #pragma comment(lib, "PhysX3Common_x86.lib")
 #pragma comment(lib, "PhysX3Extensions.lib")
 #pragma comment(lib, "PxFoundation_x86.lib")
-//#pragma comment(lib, "PxPvdSDK_x86.lib")
+#pragma comment(lib, "PxPvdSDK_x86.lib")
 #pragma comment(lib, "SceneQuery.lib")
 #pragma comment(lib, "SimulationController.lib")
 #pragma comment(lib, "PhysX3CharacterKinematic_x86.lib")
@@ -118,12 +118,12 @@ namespace Engine
 		bool IsPhysicsInit() { return IsInitPhysX; }
 		void _createTriMesh(Models *Model);
 
-		auto getTriMesh() { if (triangleMesh) return triangleMesh; }
-		auto getScene() { if (gScene) return gScene; }
-		auto getPhysics() { if (gPhysics) return gPhysics; }
-		auto getMaterial() { if (gMaterial) return gMaterial; }
-		auto getActrCamera() { if (gActorCamera) return gActorCamera; }
-		auto getClientPVD() { if (pvdClient) return pvdClient; }
+		PxTriangleMesh *getTriMesh() { if (triangleMesh) return triangleMesh; return nullptr; }
+		PxScene *getScene() { if (gScene) return gScene; return nullptr; }
+		PxPhysics *getPhysics() { if (gPhysics) return gPhysics; return nullptr; }
+		PxMaterial *getMaterial() { if (gMaterial) return gMaterial; return nullptr; }
+		PxRigidDynamic *getActrCamera() { if (gActorCamera) return gActorCamera; return nullptr; }
+		PxPvdSceneClient *getClientPVD() { if (pvdClient) return pvdClient; return nullptr; }
 
 		void ClearAllObj()
 		{
