@@ -17,7 +17,7 @@ HRESULT MainMenu::Init(Audio *sound)
 	*/
 	
 	if (!ui->IsInitUI())
-		ui->Init(3);
+		ui->Init(3, ui->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
 
 	MainMenuDlg = *ui->getDialog()->at(0);
 	AudioMenuDlg = *ui->getDialog()->at(1);
@@ -190,7 +190,7 @@ bool FindSubStr(wstring context, wstring from)
 		return false;
 }
 
-void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
+void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
 	Button *Cache_Button = nullptr;
 	Slider *Cache_Slider = nullptr;

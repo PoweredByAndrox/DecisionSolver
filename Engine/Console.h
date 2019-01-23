@@ -18,6 +18,8 @@ namespace Engine
 	public:
 		HRESULT Init();
 
+		HRESULT Settings(bool Reset);
+
 		void Render(float Time);
 		void Open();
 		void Close();
@@ -45,9 +47,7 @@ namespace Engine
 		}
 
 		unique_ptr<UI> ui = make_unique<UI>();
-		static void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void * pUserContext);
-
-		//Dialog console;
+		static void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext);
 	private:
 		bool InitClass = false;
 		Console_STATE CState = Console_STATE::Close;

@@ -66,7 +66,7 @@ namespace Engine
 	struct TextureNode;
 	struct FontNode;
 	
-	typedef void (CALLBACK *PCALLBACKGUIEVENT)(_In_ UINT nEvent, _In_ int nControlID, _In_ Control *pControl, _In_opt_ void* pUserContext);
+	typedef void (CALLBACK *PCALLBACKGUIEVENT)(_In_ UINT nEvent, _In_ int nControlID, _In_ Control *pControl, _In_opt_ vector<void *> pUserContext);
 
 	//--------------------------------------------------------------------------------------
 	// Enums for pre-defined control types
@@ -144,11 +144,9 @@ namespace Engine
 		~Dialog();
 
 		// Need to call this now
-		void Init(_In_ DialogResourceManager *pManager, _In_ bool bRegisterDialog = true);
-		void Init(_In_ DialogResourceManager *pManager, _In_ bool bRegisterDialog,
-			_In_z_ LPCWSTR pszControlTextureFilename);
-		void Init(_In_ DialogResourceManager *pManager, _In_ bool bRegisterDialog,
-			_In_z_ LPCWSTR szControlTextureResourceName, _In_ HMODULE hControlTextureResourceModule);
+		void Init(_In_ DialogResourceManager *pManager, _In_ bool bRegisterDialog, _In_z_ LPCWSTR pszControlTextureFilename);
+		void Init(_In_ DialogResourceManager *pManager, _In_ bool bRegisterDialog, _In_z_ LPCWSTR szControlTextureResourceName, 
+			_In_ HMODULE hControlTextureResourceModule);
 
 		// Windows message handler
 		bool MsgProc(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
@@ -272,7 +270,7 @@ namespace Engine
 		void RemoveAllControls();
 
 		// Sets the callback used to notify the app of control events
-		void SetCallback(_In_ PCALLBACKGUIEVENT pCallback, _In_opt_ void* pUserContext = nullptr);
+		void SetCallback(_In_ PCALLBACKGUIEVENT pCallback, _In_opt_ vector<void *> pUserContext = vector<void *>{ nullptr });
 		void EnableNonUserEvents(_In_ bool bEnable) { m_bNonUserEvents = bEnable; }
 		void EnableKeyboardInput(_In_ bool bEnable) { m_bKeyboardInput = bEnable; }
 		void EnableMouseInput(_In_ bool bEnable) { m_bMouseInput = bEnable; }
@@ -359,7 +357,7 @@ namespace Engine
 
 		DialogResourceManager *m_pManager;
 		PCALLBACKGUIEVENT m_pCallbackEvent;
-		void* m_pCallbackEventUserContext;
+		void *m_pCallbackEventUserContext;
 
 		vector<int> m_Textures;   // Index into m_TextureCache;
 		vector<int> m_Fonts;      // Index into m_FontCache;
@@ -405,7 +403,7 @@ namespace Engine
 	//-----------------------------------------------------------------------------
 	// Manages shared resources of dialogs
 	//-----------------------------------------------------------------------------
-	class DialogResourceManager: public Shaders
+	class DialogResourceManager: public Shaders, public File_system
 	{
 	public:
 		DialogResourceManager() noexcept;
@@ -1119,14 +1117,13 @@ namespace Engine
 	};
 
 	//-----------------------------------------------------------------------------
-	HRESULT InitFont11(_In_ ID3D11Device *pd3d11Device, _In_ ID3D11InputLayout *pInputLayout, LPCWSTR UIPath);
+	HRESULT InitFont11(_In_ ID3D11InputLayout *pInputLayout, LPCWSTR UIPath);
 	void EndFont11();
-	void EndText11(_In_ ID3D11Device *pd3dDevice, _In_ ID3D11DeviceContext *pd3d11DeviceContext);
+	void EndText11();
 
 	void BeginText11();
 
-	void DrawText11(_In_ ID3D11Device *pd3dDevice, _In_ ID3D11DeviceContext *pd3d11DeviceContext,
-		_In_z_ LPCWSTR strText, _In_ const RECT &rcScreen, _In_ Vector4 vFontColor,
+	void DrawText11(_In_z_ LPCWSTR strText, _In_ const RECT &rcScreen, _In_ Vector4 vFontColor,
 		_In_ float fBBWidth, _In_ float fBBHeight, _In_ bool bCenter);
 	HRESULT WINAPI CreateGUITextureFromInternalArray(_Outptr_ ID3D11Texture2D **ppTexture);
 }

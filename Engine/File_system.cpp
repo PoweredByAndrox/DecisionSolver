@@ -737,3 +737,16 @@ vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
 
 	return vector<string> {""};
 }
+
+string File_system::readfile(string s, const char *filename)
+{ 
+	std::ifstream fp(filename);
+	if (!fp.is_open())
+		return false;
+
+	std::getline(fp, s, '\0');
+	fp.close();
+	if (s.length() > 0)
+		return s;
+	return string("");
+}

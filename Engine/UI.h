@@ -13,7 +13,7 @@ namespace Engine
 	class UI: public File_system
 	{
 	public:
-		HRESULT Init(int Count = 1);
+		HRESULT Init(int Count = 1, LPCWSTR texture = L"");
 
 		void Render(float Time, int ID = 0);
 		
@@ -107,6 +107,8 @@ namespace Engine
 
 		HRESULT LoadXmlUI(LPCSTR File);
 		void ProcessXML();
+
+		void ReloadXML(LPCSTR File);
 
 		vector<LPCSTR> getID() { if (!ID.empty()) return ID; return vector<LPCSTR>{""}; }
 		vector<LPCSTR> getText() { if (!Text.empty()) return Text; return vector<LPCSTR>{""}; }

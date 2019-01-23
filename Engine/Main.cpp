@@ -94,12 +94,12 @@ XMVECTORF32 _Color[9] =
 //**************
 	// Test
 bool StopIT = false, InitProgram = false;
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext);
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext);
 
 void InitApp()
 {
 	if (!ui->IsInitUI())
-		ui->Init();
+		ui->Init(1, file_system->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
 	ui->getDialog()->at(0)->SetCallback(OnGUIEvent);
 
 	if (!console->IsInit())
@@ -211,7 +211,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings *pDeviceSettings, void* pU
 
 vector<unique_ptr<GeometricPrimitive>> m_shape;
 
-void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* pUserContext)
+void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
 	switch (nControlID)
 	{
@@ -280,12 +280,11 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, void* p
 		break;
 	}
 #ifndef Never_MainMenu
-	MM->OnGUIEvent(nEvent, nControlID, pControl, pUserContext);
+	MM->OnGUIEvent(nEvent, nControlID, pControl, vector<void *>{pUserContext});
 #endif
 }
 
-HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, 
-	const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc, void* pUserContext)
+HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, const DXGI_SURFACE_DESC *pBackBufferSurfaceDesc, void* pUserContext)
 {
 	if (!InitProgram)
 		InitApp();

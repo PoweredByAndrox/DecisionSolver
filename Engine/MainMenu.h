@@ -29,7 +29,7 @@ namespace Engine
 		auto *getDlgVID() { return ui->getDialog()->at(1); } // For Render
 		auto *getDlgAUD() { return ui->getDialog()->at(2); } // For Render
 		
-		void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, void* pUserContext);
+		void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, vector<void *> pUserContext);
 
 		auto const *getGameMode() { return &gameMode; }
 		void setGameMode(GAME_MODE _enum) { gameMode = _enum; }

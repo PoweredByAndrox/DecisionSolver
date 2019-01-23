@@ -42,6 +42,8 @@ public:
 	//wstring *getDataFromFile(wstring *File);
 	string getDataFromFile(string *File, bool LineByline);
 	vector<string> getDataFromFileVector(string *File, bool LineByline);
+	string readfile(string s, const char *filename);
+
 private:
 	path p;
 };

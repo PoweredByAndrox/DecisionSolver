@@ -4,7 +4,7 @@
 
 using namespace Engine;
 
-HRESULT UI::Init(int Count)
+HRESULT UI::Init(int Count, LPCWSTR texture)
 {
 	try
 	{
@@ -12,7 +12,9 @@ HRESULT UI::Init(int Count)
 		{
 			Dialog *dial = new Dialog;
 			DialogResourceManager *DRes = new DialogResourceManager;
-			dial->Init(DRes);
+
+			dial->Init(DRes, true, texture);
+
 			V(DRes->OnD3D11CreateDevice(fs->GetResPathW(&wstring(L"Font.dds"))->c_str(), fs->GetResPathW(&wstring(L"UI.hlsl"))->c_str()));
 			g_DialogResourceManager.push_back(DRes);
 			g_Dialog.push_back(dial);
@@ -746,8 +748,7 @@ void Engine::UI::Render(float Time, int ID)
 
 HRESULT Engine::UI::LoadXmlUI(LPCSTR File)
 {
-	if (!doc.operator bool())
-		doc = make_unique<tinyxml2::XMLDocument>();
+	doc = make_unique<tinyxml2::XMLDocument>();
 
 	doc->LoadFile(File);
 	if (doc->ErrorID() > 0)
@@ -932,4 +933,17 @@ void Engine::UI::ProcessXML()
 
 		Element.push_back(Element.back()->NextSibling()->ToElement());
 	}
+}
+
+void Engine::UI::ReloadXML(LPCSTR File)
+{
+	W.clear(); 
+	H.clear();
+	X.clear();
+	Y.clear();
+	ID.clear();
+	Text.clear();
+	Element.clear();
+
+	LoadXmlUI(File);
 }
