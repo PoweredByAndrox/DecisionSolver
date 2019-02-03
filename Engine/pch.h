@@ -75,3 +75,24 @@ using namespace spdlog;
 #define MacroStr(x)   #x
 #define MacroStr2(x)  MacroStr(x)
 #define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))
+
+bool FindSubStr(wstring &context, wstring const &from);
+
+#include <foundation/PxVec3.h>
+physx::PxVec3 ToPxVec3(Vector3 var);
+Vector3 ToVec3(physx::PxVec3 var);
+
+wstring &replaceAll(wstring &context, wstring const &from, wstring const &to);
+wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also);
+
+string &replaceAll(string &context, string const &from, string const &to);
+string &replaceAll(string &context, string const &from, string const &to, string const &also);
+
+void deleteWord(string &context, string const &what);
+string deleteWord(string context, char const what, char const OnWhat);
+
+#include <boost/algorithm/string.hpp>
+using namespace boost::algorithm;
+
+#include <boost/format.hpp>
+wstring formatstr(const char *Buff, float X, float Y, float Z);

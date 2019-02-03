@@ -13,9 +13,11 @@
 #include "Picking.h"
 #include "Terrain.h"
 #include "Render_Buffer.h"
-#include "MainActor.h"
+#include "Actor.h"
 #include "GameObjects.h"
 #include "Console.h"
+
+#include "Levels.h"
 
 using namespace Engine;
 
@@ -38,16 +40,18 @@ Vector3 Eye = { 0.f, 2.5f, 0.f }, At = { 0.0f, 1.0f, 0.f };
 HRESULT hr = S_OK;
 
 auto file_system = make_unique<File_system>();
-vector<unique_ptr<Models>> model;
+unique_ptr<Models> model = make_unique<Models>();
 auto Sound = make_unique<Audio>();
 unique_ptr<UI> ui = make_unique<UI>();
 auto Pick = make_unique<Picking>();
 auto terrain = make_unique<Terrain>();
 auto frustum = make_unique<Frustum>();
 auto buffers = make_unique<Render_Buffer>();
-auto mainActor = make_unique<MainActor>();
+auto mainActor = make_unique<Actor>();
 auto PhysX = make_unique<Physics>();
 auto console = make_unique<Console>();
+
+auto Level = make_unique<Levels>();
 
 #ifndef Never_MainMenu
 	auto MM = make_unique<MainMenu>();
@@ -101,9 +105,6 @@ void InitApp()
 	if (!ui->IsInitUI())
 		ui->Init(1, file_system->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
 	ui->getDialog()->at(0)->SetCallback(OnGUIEvent);
-
-	if (!console->IsInit())
-		console->Init();
 
 	vector<int> CountOfButtons =
 	{
@@ -307,42 +308,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, const DXGI_SURFAC
 	if (!buffers->isInit())
 		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
-#ifndef NEVER_228
-	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("nanosuit.obj"))));
-	if (model.empty())
-		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") + 
-			*buffers->GetResPathW(&wstring(L"nanosuit.obj"))).c_str(), L"", MB_OK);
+	if (!Level->IsInit())
+		Level->Init();
 
-	//PhysX->_createTriMesh(model.back().get());
-
-	model.back()->Position(Vector3(10.f, 0.f, 15.f));
-	model.back()->Scale(Vector3(0.5f, 0.5f, 0.5f));
-#endif
-
-#ifndef NEVER_228
-	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("planet.obj"))));//, aiProcess_Triangulate, false));
-	if (model.empty())
-		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
-			*buffers->GetResPathW(&wstring(L"planet.obj"))).c_str(), L"", MB_OK);
-
-	//PhysX->_createTriMesh(model.back().get());
-
-	model.back()->Scale(Vector3(2.f, 2.f, 2.f));
-	//Model.back()->Position(Vector3(50.f, 50.f, 100.f));
-#endif
-
-#ifndef NEVER_228
-	model.push_back(make_unique<Models>(buffers->GetResPathA(&string("vue_ready_shasta.obj"))));
-	if (model.empty())
-		MessageBoxW(DXUTGetHWND(), wstring(wstring(L"Model was not loaded along this path: ") +
-			*buffers->GetResPathW(&wstring(L"vue_ready_shasta.obj"))).c_str(), L"", MB_OK);
-
-	model.back()->Scale(Vector3(0.05, 0.05, 0.05));
-
-	//PhysX->_createTriMesh(Model.back().get());
-
-	model.back()->Position(Vector3(-22.f, -14.5f, 0.f));
-#endif
+	if (!console->IsInit())
+		console->Init(PhysX.get(), Level.get());
 
 	Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
 
@@ -377,7 +347,6 @@ void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
 }
 
-vector<Vector3> Mass;
 POINT getPos()
 {
 	POINT ptCursor;
@@ -386,8 +355,8 @@ POINT getPos()
 	return ptCursor;
 }
 
-void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3dImmediateContext,
-	double fTime, float fElapsedTime, void* pUserContext)
+void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *pd3dImmediateContext, double fTime, 
+	float fElapsedTime, void* pUserContext)
 {
 	//g_Camera->SetNumberOfFramesToSmoothMouseData(fElapsedTime);
 #ifndef Never_MainMenu
@@ -487,14 +456,14 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		else
 			mainActor->getObjCamera()->SetEnableYAxisMovement(false);
 
-#ifndef NDEBUG
+#ifdef NDEBUG
 	ID3D11Debug *debug = nullptr;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
-	PhysX->Simulation(StopIT, fElapsedTime);
-	
+	PhysX->Simulation(StopIT, fElapsedTime, mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+
 	int PosText = 0;
 	auto *PosCam = &mainActor->getPosition();
 	ui->SetTextStatic(ui->getDialog()->at(0), 0, &string("Cam Pos: "), PosCam);
@@ -504,7 +473,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	ui->SetLocationStatic(ui->getDialog()->at(0), 1, SCREEN_WIDTH / 2, -3, false);
 
 	auto ObjStatic = PhysX->GetPhysStaticObject();
-	ui->SetTextStatic(ui->getDialog()->at(0), 2, &string("Count Phys Object: "), PhysObj.size() + ObjStatic.size());
+	ui->SetTextStatic(ui->getDialog()->at(0), 2, &string("Count Phys Object: "), PhysX->GetPhysDynamicObject().size() + ObjStatic.size());
 	ui->SetLocationStatic(ui->getDialog()->at(0), 2, 0, PosText += 15, false);
 
 #ifdef SOME_ERROR_WITH_AUDIO_AFTER_UPDATE_FCK_DRIVERS
@@ -531,20 +500,15 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	ui->SetTextStatic(ui->getDialog()->at(0), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
 
 	if (GetAsyncKeyState(VK_LSHIFT))
-	{
-		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f * 9.0f);
-		if(*console->getState() == Console_STATE::Close)
-			console->Open();
-		else
-			console->Close();
-	}
+		mainActor->getObjCamera()->SetScalers(0.010f, 6.f * 15.f);
 	else
 		mainActor->getObjCamera()->SetScalers(0.010f, 6.0f);
 
 	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), fElapsedTime);
-
-	for (int i = 0; i < model.size(); i++)
-		model.at(i)->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+	
+	auto Model = Level->getObjects();
+	for (int i = 0; i < Model.size(); i++)
+		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
@@ -670,7 +634,7 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserContext)
 {
-	if(bKeyDown)
+	if (bKeyDown)
 		switch (nChar)
 		{
 		case VK_F8:
@@ -691,12 +655,15 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			break;
 		case VK_F10:
 			m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
-		}
+			break;
+		case VK_OEM_3:
+			if (*console->getState() == Console_STATE::Close)
+				console->Open();
+			else
+				console->Close();
+			break;
+
 #ifndef Never_MainMenu
-	if (bKeyDown)
-	{
-		switch (nChar)
-		{
 		case VK_ESCAPE:
 			switch (*MM->getGameMode())
 			{
@@ -712,11 +679,9 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			case GAME_VIDEO_MENU:
 				MM->setGameMode(GAME_MAIN_MENU);
 				break;
-		break;
 			}
-		}
-	}
 #endif Never_MainMenu
+		}
 }
 
 void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleButtonDown,
@@ -747,32 +712,40 @@ bool CALLBACK OnDeviceRemoved(void* pUserContext)
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
-	DXUTSetCallbackFrameMove(OnFrameMove);
-	DXUTSetCallbackKeyboard(OnKeyboard);
-	DXUTSetCallbackMouse(OnMouse);
-	DXUTSetCallbackMsgProc(MsgProc);
-	DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
-	DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
+	try
+	{
+		DXUTSetCallbackFrameMove(OnFrameMove);
+		DXUTSetCallbackKeyboard(OnKeyboard);
+		DXUTSetCallbackMouse(OnMouse);
+		DXUTSetCallbackMsgProc(MsgProc);
+		DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
+		DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
 
-	DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
-	DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
-	DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
-	DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
-	DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
-	DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
+		DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
+		DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
+		DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
+		DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
+		DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
+		DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
 
-	V_RETURN(CoInitializeEx(NULL, COINIT_MULTITHREADED));
+		V(CoInitializeEx(NULL, COINIT_MULTITHREADED));
 
-	DXUTInit(true, true, NULL);
-	DXUTSetHotkeyHandling(false, false, false);
+		DXUTInit(true, true, NULL);
+		DXUTSetHotkeyHandling(false, false, false);
 
-	DXUTSetCursorSettings(true, true);
-	DXUTCreateWindow(L"EngineProgram");
-	DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, SCREEN_WIDTH, SCREEN_HEIGHT);
-	V_RETURN(DXUTMainLoop());
+		DXUTSetCursorSettings(true, true);
+		DXUTCreateWindow(L"EngineProgram");
+		DXUTCreateDevice(D3D_FEATURE_LEVEL_9_2, true, SCREEN_WIDTH, SCREEN_HEIGHT);
+		V(DXUTMainLoop());
 
-		//It is necessary to properly destroy application resources
-	Destroy_Application();
+			//It's necessary to properly destroy application resources
+		Destroy_Application();
+	}
+	catch (const exception &Catch)
+	{
+		MessageBoxA(DXUTGetHWND(), string(string("The engine was crashed with this error message: ") + string(Catch.what())).c_str(), "Error!!!", MB_OK);
+		MessageBoxA(DXUTGetHWND(), string(string("You can find a solution using this error code: ") + to_string(DXUTGetExitCode())).c_str(), "Error!!!", MB_OK);
+	}
 
 	return DXUTGetExitCode();
 }

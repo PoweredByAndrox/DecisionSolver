@@ -18,6 +18,8 @@ string *File_system::GetResPathA(string *File)
 	{
 		auto ResPath = p.generic_path().generic_string() + string("/resource/");
 		auto ext = boost::filesystem::extension(File->c_str());
+		to_lower(ext);
+
 		if (!ResPath.empty())
 		{
 			if (ext == ".obj")
@@ -127,6 +129,22 @@ string *File_system::GetResPathA(string *File)
 				}
 				else
 					*File = ResPath + string("UI/") + string(*File);
+
+				if (!boost::filesystem::exists(ResPath + string("maps/") + string(*File)))
+				{
+					auto cache = getFilesInFolder(&string(ResPath + string("maps/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
+						if (filename == string(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + string("maps/") + string(*File);
 			}
 			else
 				*File = "Unsupported File!";
@@ -136,7 +154,7 @@ string *File_system::GetResPathA(string *File)
 	}
 	else
 	{
-		DebugTrace("File System: GetResPathA failed. Line: 20\n");
+		DebugTrace("File System: GetResPathA failed.\n");
 		throw exception("ResPath == empty!!!");
 		return &string("");
 	}
@@ -150,6 +168,7 @@ wstring *File_system::GetResPathW(wstring *File)
 	{
 		auto ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/");
 		auto ext = boost::filesystem::extension(File->c_str());
+		to_lower(ext);
 		if (!ResPath.empty())
 		{
 			if (ext == ".obj")
@@ -257,6 +276,22 @@ wstring *File_system::GetResPathW(wstring *File)
 				}
 				else
 					*File = ResPath + wstring(L"UI/") + wstring(*File);
+
+				if (!boost::filesystem::exists(ResPath + wstring(L"maps/") + wstring(*File)))
+				{
+					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"maps/")), true, false);
+					for (int i = 0; i < cache.size(); i++)
+					{
+						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
+						if (filename == wstring(*File))
+						{
+							*File = cache.at(i);
+							break;
+						}
+					}
+				}
+				else
+					*File = ResPath + wstring(L"maps/") + wstring(*File);
 			}
 			else
 			{
@@ -286,6 +321,8 @@ wstring File_system::GetResPathW(string *File)
 	{
 		auto ResPath = p.generic_path().generic_string() + string("/resource/");
 		auto ext = boost::filesystem::extension(File->c_str());
+		to_lower(ext);
+
 		if (!ResPath.empty())
 		{
 			if (ext == ".obj")
@@ -414,6 +451,7 @@ vector<wstring> File_system::GetResPathW(wstring File)
 	{
 		auto ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/");
 		auto ext = boost::filesystem::extension(File.c_str());
+		to_lower(ext);
 
 		if (!ResPath.empty())
 		{
@@ -489,48 +527,15 @@ vector<wstring> File_system::GetResPathW(wstring File)
 	return vector<wstring>{wstring(L"Unsupported File!")};
 }
 
-wstring &File_system::replaceAll(wstring &context, wstring const &from, wstring const &to)
-{
-	size_t lookHere = 0;
-	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	return context;
-}
-wstring &File_system::replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also)
-{
-	size_t lookHere = 0;
-	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	lookHere = 0;
-	foundHere = 0;
-	while ((foundHere = context.find(also, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, also.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	return context;
-}
-
-vector<wstring> File_system::getFilesInFolder(wstring *File, bool Recursive, bool onlyFile)
+vector<wstring> File_system::getFilesInFolder(wstring *Folder, bool Recursive, bool onlyFile)
 {
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(File->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
-		ResPath = wstring(File->c_str());	// If found
+	if (wcsstr(Folder->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
+		ResPath = wstring(Folder->c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(File->c_str());	// No!
+		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder->c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -559,15 +564,15 @@ vector<wstring> File_system::getFilesInFolder(wstring *File, bool Recursive, boo
 
 	return files;
 }
-vector<wstring> File_system::getFilesInFolder(wstring *File)
+vector<wstring> File_system::getFilesInFolder(wstring *Folder)
 {
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(File->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
-		ResPath = wstring(File->c_str());	// If found
+	if (wcsstr(Folder->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
+		ResPath = wstring(Folder->c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(File->c_str());	// No!
+		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder->c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -578,48 +583,15 @@ vector<wstring> File_system::getFilesInFolder(wstring *File)
 	return files;
 }
 
-string &File_system::replaceAll(string &context, string const &from, string const &to)
-{
-	size_t lookHere = 0;
-	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	return context;
-}
-string &File_system::replaceAll(string &context, string const &from, string const &to, string const &also)
-{
-	size_t lookHere = 0;
-	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	lookHere = 0;
-	foundHere = 0;
-	while ((foundHere = context.find(also, lookHere)) != string::npos)
-	{
-		context.replace(foundHere, also.size(), to);
-		lookHere = foundHere + to.size();
-	}
-
-	return context;
-}
-
-vector<string> File_system::getFilesInFolder(string *File, bool Recursive, bool onlyFile)
+vector<string> File_system::getFilesInFolder(string *Folder, bool Recursive, bool onlyFile)
 {
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(File->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
-		ResPath = string(File->c_str());	// If found
+	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
+		ResPath = string(Folder->c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("/resource/") + string(File->c_str());	// No!
+		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -648,15 +620,15 @@ vector<string> File_system::getFilesInFolder(string *File, bool Recursive, bool 
 
 	return files;
 }
-vector<string> File_system::getFilesInFolder(string *File)
+vector<string> File_system::getFilesInFolder(string *Folder)
 {
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(File->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
-		ResPath = string(File->c_str());	// If found
+	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
+		ResPath = string(Folder->c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("/resource/") + string(File->c_str());	// No!
+		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -666,31 +638,25 @@ vector<string> File_system::getFilesInFolder(string *File)
 
 	return files;
 }
-/*
-vector<wstring> File_system::getDataFromFile(wstring *File)
+vector<string> File_system::getFilesInFolder(string *Folder, LPCSTR ext)
 {
-	USES_CONVERSION;
+	vector<string> files;
+	string ResPath;
 
-	auto FileName = GetResPathW(File)->c_str();
-	auto streamObj = std::ifstream(FileName);
-	streamObj.open(FileName);
-	if (!streamObj.is_open())
-	{
-		throw exception("File_system::getDataFromFile() == nullptr");
-		return nullptr;
-	}
+	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
+		ResPath = string(Folder->c_str());	// If found
 	else
-	{
-		string Returned_val;
-		streamObj >> Returned_val;
+		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
 
-		if (!Returned_val.empty())
-			return &wstring(A2W(Returned_val.data()));
-		else
-			return nullptr;
+	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
+	{
+		auto str = it->path();
+		if (strstr(str.extension().string().c_str(), ext) != NULL)
+			files.push_back(replaceAll(*const_cast<string*>(&str.string()), string("\\"), string("/"), string("//")));
 	}
+
+	return files;
 }
-*/
 
 string File_system::getDataFromFile(string *File, bool LineByline)
 {
@@ -738,15 +704,24 @@ vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
 	return vector<string> {""};
 }
 
-string File_system::readfile(string s, const char *filename)
-{ 
-	std::ifstream fp(filename);
-	if (!fp.is_open())
+bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr)
+{
+	FILE *stream;
+	int retVal = 1;
+	stream = fopen(filename, "rb");
+	if (!stream)
 		return false;
 
-	std::getline(fp, s, '\0');
-	fp.close();
-	if (s.length() > 0)
-		return s;
-	return string("");
+	fseek(stream, 0, SEEK_END);
+
+	*FileSize = ftell(stream);
+	fseek(stream, 0, SEEK_SET);
+	if ((*FilePtr = (UCHAR *)malloc((*FileSize) + 1)) == nullptr)
+		return false;
+	else
+		if (fread(*FilePtr, 1, *FileSize, stream) != (*FileSize))
+			return false;
+
+	fclose(stream);
+	return true;
 }

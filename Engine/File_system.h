@@ -26,25 +26,19 @@ public:
 	vector<wstring> GetResPathW(wstring File);
 
 		//********
-	vector<wstring> getFilesInFolder(wstring *File);
-	vector<wstring> getFilesInFolder(wstring *File, bool Recursive = false, bool onlyFile = false);
+	vector<wstring> getFilesInFolder(wstring *Folder);
+	vector<wstring> getFilesInFolder(wstring *Folder, bool Recursive = false, bool onlyFile = false);
 
-	vector<string> getFilesInFolder(string *File, bool Recursive, bool onlyFile);
-	vector<string> getFilesInFolder(string *File);
-
-	string &replaceAll(string &context, string const &from, string const &to);
-	string &replaceAll(string &context, string const &from, string const &to, string const &also);
-
-	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to);
-	wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also);
+	vector<string> getFilesInFolder(string *Folder, bool Recursive, bool onlyFile);
+	vector<string> getFilesInFolder(string *Folder);
+	vector<string> getFilesInFolder(string *Folder, LPCSTR ext);
 
 		// Work With Files
-	//wstring *getDataFromFile(wstring *File);
 	string getDataFromFile(string *File, bool LineByline);
 	vector<string> getDataFromFileVector(string *File, bool LineByline);
-	string readfile(string s, const char *filename);
+	bool ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr);
 
-private:
+protected:
 	path p;
 };
 #endif // !__FILE_SYSTEM_H__

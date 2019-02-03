@@ -2,7 +2,7 @@
 
 #include "Console.h"
 
-HRESULT Engine::Console::Init()
+HRESULT Engine::Console::Init(Physics *Phys, Levels *level)
 {
 	try
 	{
@@ -12,14 +12,18 @@ HRESULT Engine::Console::Init()
 			ui->LoadXmlUI(ui->GetResPathA(&string("All.xml"))->c_str());
 		}
 
+		this->Phys.reset(Phys);
+
+		this->level = level;
+
 		ThrowIfFailed(Settings(false));
 
 		InitClass = true;
 		return S_OK;
 	}
-	catch (const std::exception &)
+	catch (const exception &Catch)
 	{
-		DebugTrace("Console: Init is failed.\n");
+		DebugTrace(strcat("Console: Init is failed. ", Catch.what()));
 		throw exception("Console is failed!!!");
 		InitClass = false;
 		return E_FAIL;
@@ -78,6 +82,9 @@ HRESULT Engine::Console::Settings(bool Reset)
 
 void Engine::Console::Render(float Time)
 {
+	if (CState == Console_STATE::Close)
+		return;
+
 	ui->Render(Time);
 	ui->getDialog()->at(0)->SetSize(DXUTGetDXGIBackBufferSurfaceDesc()->Width, DXUTGetDXGIBackBufferSurfaceDesc()->Height -256);
 	ui->getDialog()->at(0)->SetLocation(0, DXUTGetDXGIBackBufferSurfaceDesc()->Height -256);
@@ -108,30 +115,142 @@ void Engine::Console::Close()
 
 void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
+	USES_CONVERSION;
+
 	Button *Cache_Button = nullptr;
 	EditBox *Cache_Edit = nullptr;
+	ListBox *Chat = nullptr;
+
+	Dialog *All = (Dialog *)pUserContext.at(1);
+	if (All)
+	{
+		for (int i = 0; i < All->getAllControls().size(); i++)
+		{
+			if (All->getAllControls().at(i)->GetType() == CONTROL_EDITBOX)
+				Cache_Edit = (EditBox *)All->getAllControls().at(i);
+			else if (All->getAllControls().at(i)->GetType() == CONTROL_LISTBOX)
+				Chat = (ListBox *)All->getAllControls().at(i);
+		}
+	}
 
 	if (pControl->GetType() == CONTROL_TYPE::CONTROL_BUTTON)
 	{
 		Cache_Button = (Button *)pControl;
 		if (Cache_Button != nullptr & Cache_Button->m_bMouseOver)
 		{
-			Dialog *All = (Dialog *)pUserContext.at(1);
 			if (All)
 			{
-				for (int i = 0; i < All->getAllControls().size(); i++)
-				{
-					if (All->getAllControls().at(i)->GetType() == CONTROL_EDITBOX)
-						Cache_Edit = (EditBox *)All->getAllControls().at(i);
-				}
 				if (wcsstr(Cache_Edit->GetText(), L"Close Dialog"))
-					All->SetMinimized(true);
-				if (wcsstr(Cache_Edit->GetText(), L"Reload XML"))
 				{
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					All->SetMinimized(true);
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Reload XML"))
+				{
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
 					Cache_UI->getUI()->ReloadXML(Cache_UI->getUI()->GetResPathA(&string("All.xml"))->c_str());
 					Cache_UI->Settings(true);
 				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Get_size_phys_obj"))
+				{
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					Chat->AddItem(wstring(wstring(L"Size of Dynamic PhysX Objects is: ") + wstring(to_wstring(Cache_UI->Phys->GetPhysDynamicObject().size()))).c_str(), All);
+					Chat->AddItem(wstring(wstring(L"Size of Static PhysX Objects is: ") + wstring(to_wstring(Cache_UI->Phys->GetPhysStaticObject().size()))).c_str(), All);
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Get_size_model"))
+				{
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					Chat->AddItem(wstring(wstring(L"Size of Models is: ") + wstring(to_wstring(Cache_UI->level->getObjects().size()))).c_str(), All);
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Set_phys_obj_pos"))
+				{
+					string Text = string(W2A(Cache_Edit->GetText()));
+					deleteWord(Text, string("Set_phys_obj_pos "));
+					Vector3 XYZ = Vector3::Zero;
+					int ID = 0, Type = 0;
+					to_lower(Text);
+					sscanf_s(Text.c_str(), "%d, %d, %f, %f, %f", &Type, &ID, &XYZ.x, &XYZ.y, &XYZ.z);
+
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					if (Type == 0)
+					{
+						auto Obj = Cache_UI->Phys->GetPhysDynamicObject();
+						if (Obj.size()-1 >= ID)
+							Obj.at(ID)->setGlobalPose(PxTransform(ToPxVec3(XYZ)));
+						else
+						{
+							Chat->AddItem(L"Wrong ID!!! Return.", All);
+							return;
+						}
+					}
+					if (Type == 1)
+					{
+						auto Obj = Cache_UI->Phys->GetPhysStaticObject();
+						if (Obj.size()-1 >= ID)
+							Obj.at(ID)->setGlobalPose(PxTransform(ToPxVec3(XYZ)));
+						else
+						{
+							Chat->AddItem(L"Wrong ID!!! Return.", All);
+							return;
+						}
+					}
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Set_model_pos"))
+				{
+					string Text = string(W2A(Cache_Edit->GetText()));
+					deleteWord(Text, string("Set_model_pos "));
+					Vector3 XYZ = Vector3::Zero;
+					int ID = 0;
+					to_lower(Text);
+					sscanf_s(Text.c_str(), "%d, %f, %f, %f", &ID, &XYZ.x, &XYZ.y, &XYZ.z);
+
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+					
+					auto Obj = Cache_UI->level->getObjects();
+					if (Obj.size()-1 >= ID)
+						Obj.at(ID).model->setPosition(XYZ);
+					else
+					{
+						Chat->AddItem(L"Wrong ID!!! Return.", All);
+						return;
+					}
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Clear"))
+					Chat->RemoveAllItems();
+				//else if (wcsstr(Cache_Edit->GetText(), L"Set_speed_camera"))
+				//{
+				//	string Text = string(W2A(Cache_Edit->GetText()));
+				//	deleteWord(Text, string("Set_speed_camera "));
+				//	float Speed = 6.0f;
+				//	to_lower(Text);
+				//	sscanf_s(Text.c_str(), "%f", &Speed);
+
+				//	SpeedCamera = Speed;
+
+				//	Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+				//}
+				else if (wcsstr(Cache_Edit->GetText(), L"Get_pos_models"))
+				{
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					for (int i = 0; i < Cache_UI->level->getObjects().size(); i++)
+					{
+						auto Cache = Cache_UI->level->getObjects().at(i).model;
+						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x, Cache->getPosition().y, Cache->getPosition().z);
+						Chat->AddItem(wstring(wstring(L"Position of Model[")+wstring(to_wstring(i))+wstring(L"] is: ") + buff).c_str(), All);
+					}
+				}
+				else
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText()) + wstring(L" -> Nothing Happens")).c_str(), All);
 			}
 		}
 	}

@@ -88,7 +88,7 @@ namespace Engine
 	public:
 		HRESULT Init();
 
-		void Simulation(bool StopIT, float Timestep);
+		void Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj);
 
 		void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3) { RigDyn->getScene()->setGravity(Vec3); }
 		void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }
@@ -107,7 +107,6 @@ namespace Engine
 
 		vector<PxRigidDynamic *> GetPhysDynamicObject() { return DynamicObjects; }
 		vector<PxRigidStatic *> GetPhysStaticObject() { return StaticObjects; }
-		//	void GenTriangleMesh(PxVec3 pos, vector<VERTEX> indices, vector<UINT> vertices);
 
 		void AddNewActor(Vector3 Pos, Vector3 Geom, float Mass);
 
@@ -116,7 +115,7 @@ namespace Engine
 		void Destroy();
 
 		bool IsPhysicsInit() { return IsInitPhysX; }
-		void _createTriMesh(Models *Model);
+		void _createTriMesh(Models *Model, bool stat_dyn);
 
 		PxTriangleMesh *getTriMesh() { if (triangleMesh) return triangleMesh; return nullptr; }
 		PxScene *getScene() { if (gScene) return gScene; return nullptr; }
@@ -127,14 +126,11 @@ namespace Engine
 
 		void ClearAllObj()
 		{
-			if (!DynamicObjects.empty())
-				while (DynamicObjects.size() != 0)
-				{
-					DynamicObjects[0]->release();
-					DynamicObjects.erase(DynamicObjects.begin());
-					if (DynamicObjects.size() == 0)
-						DynamicObjects.clear();
-				}
+			while (!DynamicObjects.empty())
+			{
+				DynamicObjects.at(0)->release();
+				DynamicObjects.erase(DynamicObjects.begin());
+			}
 		}
 
 		void Release()
@@ -152,7 +148,7 @@ namespace Engine
 
 		Physics() {}
 		~Physics() {}
-	private:
+	protected:
 		// ***************
 		PxDefaultErrorCallback gDefaultErrorCallback;
 		PxDefaultAllocator gDefaultAllocatorCallback;

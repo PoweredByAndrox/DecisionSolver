@@ -69,7 +69,6 @@ ID3D11Buffer *Engine::Render_Buffer::CreateVB(int ByteWidth, void *vertices)
 	ThrowIfFailed(Device->CreateBuffer(&vertexBufferDesc, &vertexData, &VB));
 	return VB;
 }
-
 ID3D11Buffer *Engine::Render_Buffer::CreateIB(int ByteWidthInds, UINT *indices)
 {
 	D3D11_BUFFER_DESC indexBufferDesc;

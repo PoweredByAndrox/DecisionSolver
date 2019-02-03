@@ -9,30 +9,42 @@
 
 namespace Engine
 {
-	class GameObjects: public Physics
+	class GameObjects: public Models
 	{
 	public:
-		virtual void Render(Matrix View, Matrix Proj, float Time) = 0;
-		virtual void Update(float Time) = 0;
-		virtual void Destroy() = 0;
+		//virtual void Render(Matrix View, Matrix Proj, float Time) = 0;
+		//virtual void Update(float Time) = 0;
+		//virtual void Destroy() = 0;
+
+		auto getObjects() { return Objects; }
 
 		GameObjects() {}
 		~GameObjects() {}
-
-		bool IsInitClass() { return isInit; }
-
-	private:
-			//********
+	protected:
+		//********
 		HRESULT hr = S_OK;
 
-			//********
-		bool isInit = false;
+		//********
+		// Audio *Sound = new Audio;
+		
+		struct Object
+		{
+			Object(Models *model) { this->model = model; }
+			void Destroy() { ID = 0; ID_TEXT = ""; HasScale = false; ScaleCoords = Vector3::Zero; SAFE_DELETE(model); }
+			int ID = 0;
+			
+			LPCSTR ID_TEXT = "";
 
-			//********
-		//Audio *Sound = new Audio;
+			bool HasScale = false;
+			Vector3 ScaleCoords = Vector3::Zero;
 
-			//********
-		vector<UINT> CountOfObjects;
+			Models *model = nullptr;
+
+			void SetID_TEXT(LPCSTR ID_TEXT) { this->ID_TEXT = ID_TEXT; }
+			void SetScaleCoords(Vector3 ScaleCoords) { this->ScaleCoords = ScaleCoords; }
+			void SetModel(Models *model) { this->model = model; }
+		};
+		vector<Object> Objects;
 	};
 }
 #endif // !__GAME_OBJECTS_H__

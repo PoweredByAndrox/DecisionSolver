@@ -43,11 +43,11 @@ namespace Engine
 
 			/// Getters!
 		bool isInit() { return init; }
-		auto getVB() { if (m_vertexBuffer) return m_vertexBuffer; }
-		auto getIB() { if (m_indexBuffer)  return m_indexBuffer; }
-		auto getFS() { if (FS) return FS; }
+		ID3D11Buffer *getVB() { if (m_vertexBuffer) return m_vertexBuffer; return nullptr; }
+		ID3D11Buffer *getIB() { if (m_indexBuffer)  return m_indexBuffer; return nullptr; }
+		File_system *getFS() { if (FS) return FS; return nullptr; }
 
-	private:
+	protected:
 		// **********
 			// Init Class
 		bool init = false;

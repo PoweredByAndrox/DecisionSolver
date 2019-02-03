@@ -2,7 +2,7 @@
 
 #include "Models.h"
 
-bool Engine::Models::Load(string *Filename)
+bool Engine::Models::LoadFromFile(string *Filename)
 {
 	importer = new Assimp::Importer;
 
@@ -17,13 +17,9 @@ bool Engine::Models::Load(string *Filename)
 	GetD3DDevice();
 	
 	processNode(pScene->mRootNode, pScene);
-
-	AllModel.push_back(*this);
-
 	return true;
 }
-
-bool Engine::Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
+bool Engine::Models::LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH)
 {
 	importer = new Assimp::Importer;
 
@@ -42,11 +38,69 @@ bool Engine::Models::Load(string *Filename, UINT Flags, bool ConvertToLH)
 	GetD3DDevice();
 
 	processNode(pScene->mRootNode, pScene);
+	return true;
+}
 
-	AllModel.push_back(*this);
+bool Engine::Models::LoadFromAllModels()
+{
+	importer = new Assimp::Importer;
+
+	auto Files = getFilesInFolder(&string("models"), ".obj");
+	for (int i = 0; i < Files.size(); i++)
+	{
+		pScene = importer->ReadFile(Files.at(i).c_str(), aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+		{
+			DebugTrace(string(string("Models: Error. Scene return nullptr with text:\n") + string(importer->GetErrorString())).c_str());
+			throw exception("Models::pScene == nullptr!!!");
+			return false;
+		}
+		GetD3DDevice();
+
+		processNode(pScene->mRootNode, pScene);
+	}
 
 	return true;
 }
+bool Engine::Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
+{
+	importer = new Assimp::Importer;
+	int i1 = 0;
+
+	auto Files = getFilesInFolder(&string("models"), ".obj");
+	for (int i = 0; i < Files.size(); i++)
+	{
+		if (!ConvertToLH.empty())
+		{
+			for (i1 = 0; i1 < ConvertToLH.size(); i1++)
+				if (ConvertToLH.at(i1))
+				{
+					pScene = importer->ReadFile(Files.at(i).c_str(), Flags.at(i1) | aiProcess_ConvertToLeftHanded);
+					break;
+				}
+				else
+				{
+					pScene = importer->ReadFile(Files.at(i).c_str(), Flags.at(i1));
+					break;
+				}
+		}
+		else
+			pScene = importer->ReadFile(Files.at(i).c_str(), 0);
+
+		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+		{
+			DebugTrace(string(string("Models: Error. Scene return nullptr with text:\n") + string(importer->GetErrorString())).c_str());
+			throw exception("Models::pScene == nullptr!!!");
+			return false;
+		}
+		GetD3DDevice();
+
+		processNode(pScene->mRootNode, pScene);
+	}
+
+	return true;
+}
+
 
 void Engine::Models::Render(Matrix View, Matrix Proj)
 {
@@ -97,19 +151,16 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 		textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 		///It doesn't work!
-	/*
-	vector<Texture> specularMaps = loadMaterialTextures(material,
-		aiTextureType_SPECULAR, "texture_specular", Scene);
-	textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+/*
+		vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", Scene);
+		textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-	vector<Texture> normalMaps = loadMaterialTextures(material,
-		aiTextureType_HEIGHT, "texture_normal", Scene);
-	textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+		vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", Scene);
+		textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-	vector<Texture> heightMaps = loadMaterialTextures(material,
-		aiTextureType_AMBIENT, "texture_height", Scene);
-	textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-	*/
+		vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", Scene);
+		textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+*/
 	}
 
 	return Mesh(verticesCache, indicesCache, textures, this);
@@ -203,41 +254,27 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	return texture;
 }
 
-void Engine::Models::Rotation(Vector3 rotaxis, float Angel)
+void Engine::Models::setRotation(Vector3 rotaxis, float Angel)
 {
-	rotate *= Matrix::CreateFromAxisAngle(rotaxis, Angel);
+	rotate = Matrix::CreateFromAxisAngle(rotaxis, Angel);
 }
 
-void Engine::Models::Scale(Vector3 Scale)
+void Engine::Models::setScale(Vector3 Scale)
 {
-	scale *= XMMatrixScalingFromVector(Scale);
+	scale = Matrix::CreateScale(Scale);
 }
 
-void Engine::Models::Position(Vector3 Pos)
+void Engine::Models::setPosition(Vector3 Pos)
 {
-	position *= Matrix::CreateTranslation(Pos);
+	position = Matrix::CreateTranslation(Pos);
 }
-
-/*
-void Engine::Models::Position(float X)
-{
-	cb.World = Matrix::CreateTranslation(X);
-}
-
-void Engine::Models::Position(float Y)
-{
-	cb.World = Matrix::CreateTranslation(Y);
-}
-
-void Engine::Models::Position(float Z)
-{
-	cb.World = Matrix::CreateTranslation(Z);
-}
-*/
 
 void Engine::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 {
-	render->RenderModels(World, View, Proj, indices.size(), textures[0].texture, sizeof(VERTEX));
+	if (!textures.empty())
+		render->RenderModels(World, View, Proj, indices.size(), textures[0].texture, sizeof(VERTEX));
+	else
+		render->RenderModels(World, View, Proj, indices.size(), nullptr, sizeof(VERTEX));
 }
 
 void Engine::Mesh::Close()

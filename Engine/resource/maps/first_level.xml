@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- The level has 2 objects (two spaceships) -->
+<scene>
+	<objects>
+		<One id="Building1" x="50" y="50" z="50">
+			<scale>0.02,0.02,0.02</scale>
+		</One>
+		<Two id="Spaceship1" x="100" y="0" z="100">
+			<scale>0.02,0.02,0.02</scale>
+		</Two>
+	</objects>
+</scene>

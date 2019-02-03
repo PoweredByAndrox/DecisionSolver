@@ -48,7 +48,7 @@ namespace Engine
 
 		void Close();
 
-	private:
+	protected:
 		HRESULT hr = S_OK;
 
 		ID3D11Device *Device = nullptr;
@@ -63,20 +63,17 @@ namespace Engine
 	class Models: public Mesh, public Render_Buffer
 	{
 	public:
-		bool Load(string *Filename);
-		bool Load(string *Filename, UINT Flags, bool ConvertToLH);
+		bool LoadFromFile(string *Filename);
+		bool LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH);
+
+		bool LoadFromAllModels();
+		bool LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH);
 
 		void Render(Matrix View, Matrix Proj);
 
 		Models(void) {}
-		Models(string *Filename) { if (!Load(Filename)) throw exception("Models::load == false!!!"); else AllModel.push_back(*this); }
-		Models(string *Filename, UINT Flags, bool ConvertToLH)
-		{
-			if (!Load(Filename, Flags, ConvertToLH))
-				throw exception("Models::load == false!!!");
-			else
-				AllModel.push_back(*this);
-		}
+		Models(string *Filename) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
+		Models(string *Filename, UINT Flags, bool ConvertToLH) { if (!LoadFromFile(Filename, Flags, ConvertToLH)) throw exception("Models::load == false!!!"); }
 
 		void Release()
 		{
@@ -89,31 +86,29 @@ namespace Engine
 			}
 			SAFE_DELETE(model);
 
-			int Cache = 0;
-			if (!AllModel.empty())
-				while (AllModel.size() != 0)
-				{
-					AllModel.at(Cache++).Close();
-					AllModel.at(Cache).Release();
-					AllModel.erase(AllModel.begin());
-				}
+			//int Cache = 0;
+			//if (!AllModel.empty())
+			//	while (AllModel.size() != 0)
+			//	{
+			//		AllModel.at(Cache++).Close();
+			//		AllModel.at(Cache).Release();
+			//		AllModel.erase(AllModel.begin());
+			//	}
 		}
 
-		void Rotation(Vector3 rotaxis, float Angel);
-		void Scale(Vector3 Scale);
-		void Position(Vector3 Pos);
+		void setRotation(Vector3 rotaxis, float Angel);
+		void setScale(Vector3 Scale);
+		void setPosition(Vector3 Pos);
 
 		auto getIndices() { if (!indices.empty()) return indices; }
 		auto getVertices() { if (!vertices.empty()) return vertices; }
 
 		auto getMeshes() { if (!meshes.empty()) return meshes; }
 
-		int getCountModels() { if (!AllModel.empty()) return AllModel.size(); }
-
 		Vector3 getPosition() { return position.Invert().Translation(); }
 
 		~Models() {}
-	private:
+	protected:
 		HRESULT hr = S_OK;
 
 		Assimp::Importer *importer = nullptr;
@@ -127,8 +122,6 @@ namespace Engine
 		vector<Mesh> meshes;
 		vector<VERTEX> vertices;
 		vector<UINT> indices;
-
-		vector<Models> AllModel;
 
 		void processNode(aiNode *node, const aiScene *Scene);
 		Mesh processMesh(aiMesh *mesh, const aiScene *Scene);

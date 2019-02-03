@@ -34,7 +34,8 @@ HRESULT Engine::Physics::Init()
 			IsInitPhysX = false;
 		}
 
-		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
+		ToDo("Needed Fix PVD!!!")
+		//gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
 		if (!gPhysics)
@@ -120,79 +121,79 @@ HRESULT Engine::Physics::Init()
 	}
 }
 
-void Engine::Physics::Simulation(bool StopIT, float Timestep)
+void Engine::Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
 {
 	if (!StopIT) 
 	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
 
-		if (gPvd->isConnected())
-			transport->flush();
+		//if (gPvd->isConnected())
+		//	transport->flush();
 	}
 }
 
-void Engine::Physics::_createTriMesh(Models *Model)
+void Engine::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 {
 	auto Meshes = Model->getMeshes();
 
+	vector<PxVec3> verts;
+	vector<PxU32> tris;
+
 	for (int i = 0; i < Meshes.size(); i++)
 	{
-		auto ObjVertx = Meshes.at(i).vertices;
-		auto ObjIndx = Meshes.at(i).indices;
+		auto Obj = Meshes.at(i).vertices;
+		for (int i1 = 0; i1 < Obj.size(); i1++)
+			verts.push_back(ToPxVec3(Obj.at(i1).Position));
 
-		PxVec3 *verts = new PxVec3[ObjVertx.size()];
-		for (int i = 0; i < ObjVertx.size(); i++)
-		{
-			verts[i].x = ObjVertx[i].Position.x;
-			verts[i].y = ObjVertx[i].Position.y;
-			verts[i].z = ObjVertx[i].Position.z;
-		}
+		auto Obj1 = Meshes.at(i).indices;
+		for (int i1 = 0; i1 < Obj1.size(); i1++)
+			tris.push_back(Obj1.at(i1));
+	}
 
-		vector<PxU32> tris; tris.resize(ObjIndx.size() /3);
-		for (int i = tris.size() - 1; i >= 0; i--)
-			tris[i] = ObjIndx.at(i);
+	PxTriangleMeshDesc TriMeshDesc;
+	TriMeshDesc.points.count = tris.size();
+	TriMeshDesc.points.stride = sizeof(PxVec3);
+	TriMeshDesc.points.data = verts.data();
 
-		PxTriangleMeshDesc TriMeshDesc;
-		TriMeshDesc.points.count = ObjVertx.size();
-		TriMeshDesc.points.stride = sizeof(PxVec3);
-		TriMeshDesc.points.data = verts;
+	TriMeshDesc.triangles.count = tris.size() / 3;
+	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
+	TriMeshDesc.triangles.data = tris.data();
+	if (!TriMeshDesc.isValid())
+	{
+		DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
+		throw exception("TriMeshDesc.isValid == false!!!");
+		return;
+	}
 
-		TriMeshDesc.triangles.count = tris.size() /3;
-		TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
-		TriMeshDesc.triangles.data = tris.data();
-		if (!TriMeshDesc.isValid())
-		{
-			DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
-			throw exception("TriMeshDesc.isValid == false!!!");
-			return;
-		}
+	PxDefaultMemoryOutputStream writeBuffer;
+	PxTriangleMeshCookingResult::Enum result;
+	bool status = gCooking->cookTriangleMesh(TriMeshDesc, writeBuffer, &result);
+	if (!status)
+	{
+		throw exception("PhysX->_createTriMesh: cookTriangleMesh == false!!!");
+		return;
+	}
 
-		PxDefaultMemoryOutputStream writeBuffer;
-		PxTriangleMeshCookingResult::Enum result;
-		bool status = gCooking->cookTriangleMesh(TriMeshDesc, writeBuffer, &result);
-		if (!status)
-		{
-			throw exception("PhysX->_createTriMesh: cookTriangleMesh == false!!!");
-			return;
-		}
-
-		PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
-		triangleMesh = gPhysics->createTriangleMesh(readBuffer);
-		if (!triangleMesh)
-		{
-			DebugTrace("PhysX->_createTriMesh: triangleMesh failed.\n");
-			throw exception("triangleMesh == nullptr!!!");
-			return;
-		}
-
-		PxTriangleMeshGeometry geom(triangleMesh);
-		PxRigidStatic *groundMesh = gPhysics->createRigidStatic(PxTransform(PxVec3(0.0f, 0.0f, 0.0f)));
-		groundMesh->attachShape(*PxRigidActorExt::createExclusiveShape(*groundMesh, PxTriangleMeshGeometry(triangleMesh), *gMaterial));
-
-		gScene->addActor(*groundMesh);
-
-		StaticObjects.push_back(groundMesh);
+	PxDefaultMemoryInputData readBuffer(writeBuffer.getData(), writeBuffer.getSize());
+	triangleMesh = gPhysics->createTriangleMesh(readBuffer);
+	if (!triangleMesh)
+	{
+		DebugTrace("PhysX->_createTriMesh: triangleMesh failed.\n");
+		throw exception("triangleMesh == nullptr!!!");
+		return;
+	}
+	if (stat_dyn)
+	{
+		PxRigidStatic *TriMesh = gPhysics->createRigidStatic(PxTransform(PxVec3(0.0f, 0.0f, 0.0f)));
+		gScene->addActor(*TriMesh); //PxRigidActorExt::createExclusiveShape(*TriMesh, PxTriangleMeshGeometry(triangleMesh), *gMaterial)->getActor());
+		StaticObjects.push_back(TriMesh);
+	}
+	if (!stat_dyn)
+	{
+		PxRigidDynamic *TriMesh = gPhysics->createRigidDynamic(PxTransform(PxVec3(0.0f, 0.0f, 0.0f)));
+		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*StaticObjects.at(1), PxSphereGeometry(10.f), *gMaterial)->getActor());
+		DynamicObjects.push_back(TriMesh);
 	}
 }
 

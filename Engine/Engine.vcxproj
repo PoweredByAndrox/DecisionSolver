@@ -161,8 +161,9 @@
     <ClCompile Include="Dialogs.cpp" />
     <ClCompile Include="File_system.cpp" />
     <ClCompile Include="GUI.cpp" />
+    <ClCompile Include="Levels.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="MainActor.cpp" />
+    <ClCompile Include="Actor.cpp" />
     <ClCompile Include="MainMenu.cpp" />
     <ClCompile Include="Models.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
@@ -190,7 +191,8 @@
     <ClInclude Include="File_system.h" />
     <ClInclude Include="GameObjects.h" />
     <ClInclude Include="GUI.h" />
-    <ClInclude Include="MainActor.h" />
+    <ClInclude Include="Levels.h" />
+    <ClInclude Include="Actor.h" />
     <ClInclude Include="MainMenu.h" />
     <ClInclude Include="Models.h" />
     <ClInclude Include="pch.h" />

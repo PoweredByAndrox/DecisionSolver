@@ -801,16 +801,15 @@ bool Dialog::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		// If a control is in focus, it belongs to this dialog, and it's enabled, then give
 		// it the first chance at handling the message.
-		if (s_pControlFocus && s_pControlFocus->m_pDialog == this && s_pControlFocus->GetEnabled())
-			if (s_pControlFocus->HandleMouse(uMsg, mousePoint, wParam, lParam))
-				return true;
+		//if (s_pControlFocus && s_pControlFocus->m_pDialog == this && s_pControlFocus->GetEnabled())
+		//	if (s_pControlFocus->HandleMouse(uMsg, mousePoint, wParam, lParam))
+		//		return true;
 
 		// Not yet handled, see if the mouse is over any controls
 		auto pControl = GetControlAtPoint(mousePoint);
 		if (pControl && pControl->GetEnabled())
 		{
-			bHandled = pControl->HandleMouse(uMsg, mousePoint, wParam, lParam);
-			if (bHandled)
+			if (pControl->HandleMouse(uMsg, mousePoint, wParam, lParam))
 				return true;
 		}
 		else
@@ -4881,7 +4880,7 @@ bool EditBox::s_bHideCaret;   // If true, we don't render the caret.
 #define EDITBOX_SCROLLEXTENT 4
 
 //--------------------------------------------------------------------------------------
-EditBox::EditBox( _In_opt_ Dialog *pDialog ) noexcept :
+EditBox::EditBox(_In_opt_ Dialog *pDialog) noexcept:
     m_nBorder(5),
     m_nSpacing(4),
     m_rcText{},
@@ -4994,9 +4993,11 @@ void EditBox::DeleteSelectionText()
 {
 	int nFirst = min(m_nCaret, m_nSelStart);
 	int nLast = max(m_nCaret, m_nSelStart);
+
 		// Update caret and selection
 	PlaceCaret(nFirst);
 	m_nSelStart = m_nCaret;
+
 		// Remove the characters
 	for (int i = nFirst; i < nLast; ++i)
 		m_Buffer.RemoveChar(nFirst);
@@ -5245,12 +5246,12 @@ bool EditBox::HandleMouse(UINT uMsg, const POINT &pt, WPARAM wParam, LPARAM lPar
 	case WM_MOUSEMOVE:
 		if (m_bMouseDrag)
 		{
-			// Determine the character corresponding to the coordinates.
+				// Determine the character corresponding to the coordinates.
 			int nCP, nTrail, nX1st;
 			m_Buffer.CPtoX(m_nFirstVisible, FALSE, &nX1st);  // X offset of the 1st visible char
 			if (m_Buffer.XtoCP(pt.x - m_rcText.left + nX1st, &nCP, &nTrail))
 			{
-				// Cap at the nul character.
+					// Cap at the nul character.
 				if (nTrail && nCP < m_Buffer.GetTextSize())
 					PlaceCaret(nCP + 1);
 				else
@@ -5477,15 +5478,15 @@ void EditBox::Render(_In_ float fElapsedTime)
 	// Render the text
 	//
 	// Element 0 for text
-	m_Elements[0]->FontColor.SetCurrent(m_TextColor);
-	m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + m_nFirstVisible, m_Elements[0], &m_rcText);
+	m_Elements.at(0)->FontColor.SetCurrent(m_TextColor);
+	m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + m_nFirstVisible, m_Elements.at(0), &m_rcText);
 
 	// Render the selected text
 	if (m_nCaret != m_nSelStart)
 	{
 		int nFirstToRender = max(m_nFirstVisible, min(m_nSelStart, m_nCaret));
-		m_Elements[0]->FontColor.SetCurrent(m_SelTextColor);
-		m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + nFirstToRender, m_Elements[0], &rcSelection, false);
+		m_Elements.at(0)->FontColor.SetCurrent(m_SelTextColor);
+		m_pDialog->DrawTextGUI(m_Buffer.GetBuffer() + nFirstToRender, m_Elements.at(0), &rcSelection, false);
 	}
 
 	//
@@ -5561,10 +5562,7 @@ void EditBox::ParseFloatArray( float* pNumbers, int nCount )
 _Use_decl_annotations_
 void EditBox::SetTextFloatArray(const float* pNumbers, int nCount)
 {
-	WCHAR wszBuffer[512] =
-	{
-		0
-	};
+	WCHAR wszBuffer[512] = {0};
 	WCHAR wszTmp[64];
 
 	if (!pNumbers)

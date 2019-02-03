@@ -4,6 +4,8 @@
 #include "pch.h"
 
 #include "UI.h"
+#include "Physics.h"
+#include "Levels.h"
 
 namespace Engine
 {
@@ -13,10 +15,10 @@ namespace Engine
 		Close
 	};
 
-	class Console: public UI
+	class Console: public UI, public Physics
 	{
 	public:
-		HRESULT Init();
+		HRESULT Init(Physics *Phys, Levels *level);
 
 		HRESULT Settings(bool Reset);
 
@@ -35,18 +37,10 @@ namespace Engine
 	protected:
 		HRESULT hr = S_OK;
 
-		static bool FindSubStr(wstring &context, wstring const &from)
-		{
-			auto Pos = context.find(from);
-			if (Pos != std::string::npos)
-				//found
-				return true;
-			else
-				//not found
-				return false;
-		}
-
 		unique_ptr<UI> ui = make_unique<UI>();
+		unique_ptr<Physics> Phys;
+		Levels *level = nullptr;
+
 		static void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext);
 	private:
 		bool InitClass = false;
