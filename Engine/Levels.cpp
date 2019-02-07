@@ -14,10 +14,10 @@ HRESULT Levels::LoadXML(LPCSTR File)
 		return E_FAIL;
 	}
 	if (doc->Parse(FS->getDataFromFile(&string(File), true).c_str()) > 0)
-	{
-		throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
-		return E_FAIL;
-	}
+		{
+			throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+			return E_FAIL;
+		}
 
 	ProcessXML();
 	return S_OK;
@@ -27,7 +27,13 @@ void Levels::ProcessXML()
 {
 	Vector3 XYZ;
 
+	ToDo("Need To Solve This Bug!!!");
+	//if (!doc->RootElement()->FirstChild()->ToComment())
 	Attrib = { doc->RootElement()->FirstChild()->ToElement() };
+	//else
+	//	Attrib = { doc->RootElement()->FirstChild()->ToComment()->NextSibling()->ToElement() };
+	//XMLComment* comment
+	
 	if (!Attrib.back())
 	{
 		DebugTrace("Levels->ProcessXML()::doc->RootElement() == nullptr!!!");
@@ -39,7 +45,10 @@ void Levels::ProcessXML()
 	to_lower(cache);
 	if (strcmp(cache.c_str(), "objects") == 0)
 	{
+		//if (!Attrib.back()->FirstChild()->ToComment())
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
+		//else
+		//Attrib.push_back(Attrib.back()->FirstChild()->ToComment()->NextSibling()->ToElement());
 
 		for (int i = 1; i < INT16_MAX; i++)
 		{
@@ -92,10 +101,13 @@ void Levels::ProcessXML()
 						break;
 				}
 			}
-			if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
+			if (/*!Attrib.front()->LastChild()->ToComment() && */Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
 				break;
 
-			Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
+			//if (!Attrib.back()->NextSibling()->ToComment())
+				Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
+			//else
+			//	Attrib.push_back(Attrib.back()->NextSibling()->ToComment()->NextSibling()->ToElement());
 		}
 	}
 }
@@ -105,21 +117,18 @@ HRESULT Engine::Levels::Init()
 	try
 	{
 		auto Files = FS->getFilesInFolder(&string("models"), ".obj");
-		//model->LoadFromAllModels(vector<UINT>{ aiProcessPreset_TargetRealtime_Fast, aiProcessPreset_TargetRealtime_Fast }, vector<bool>{ false, false });
 		for (int i = 0; i < Files.size(); i++)
-		{
-			model.push_back(new Models(&Files.at(i)));
-			g_Obj.push_back(GameObjects::Object(model.back()));
-		}
+			g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i))));
 
-		LoadXML(FS->GetResPathA(&string("first_level.xml"))->c_str());
+		LoadXML(FS->GetFile(string("first_level.xml"))->PathA.c_str());
 
 		InitClass = true;
 		return S_OK;
 	}
 	catch (const exception &Catch)
 	{
-
+		DebugTrace(string(string("Levels: Init is failed. ") + string(Catch.what())).c_str());
+		throw exception("Levels:init() is failed!!!");
 		InitClass = false;
 		return E_FAIL;
 	}

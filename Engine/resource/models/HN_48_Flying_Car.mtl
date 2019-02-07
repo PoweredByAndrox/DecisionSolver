@@ -42,7 +42,7 @@ Ka 1 1 1
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd gm1.jpg
+map_Kd gm1.dds
 
 newmtl default_display_center_front
 d 1
@@ -52,7 +52,7 @@ Ka 1 1 1
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd fx1.jpg
+map_Kd fx1.dds
 
 newmtl default_display_center_rear
 d 1
@@ -62,7 +62,7 @@ Ka 1 1 1
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd gt3_02_01_01_01.jpg
+map_Kd gt3_02_01_01_01.dds
 
 newmtl default_top_display
 d 1
@@ -72,7 +72,7 @@ Ka 1 1 1
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd gt3_02_01_01_01.jpg
+map_Kd gt3_02_01_01_01.dds
 
 newmtl default_body2b2
 d 1
@@ -82,7 +82,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd bxz1b.jpg
+map_Kd bxz1b.dds
 
 newmtl default_cushions
 d 1
@@ -92,7 +92,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd yx1_02_01_01.jpg
+map_Kd yx1_02_01_01.dds
 
 newmtl default_name
 d 1

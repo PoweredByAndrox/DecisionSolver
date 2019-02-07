@@ -17,7 +17,7 @@ HRESULT MainMenu::Init(Audio *sound)
 	*/
 	
 	if (!ui->IsInitUI())
-		ui->Init(3, ui->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
+		ui->Init(3, ui->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 
 	MainMenuDlg = *ui->getDialog()->at(0);
 	AudioMenuDlg = *ui->getDialog()->at(1);
@@ -178,16 +178,6 @@ HRESULT MainMenu::Init(Audio *sound)
 
 	InitMainMenu = true;
 	return S_OK;
-}
-bool FindSubStr(wstring context, wstring from)
-{
-	auto Pos = context.find(from);
-	if (Pos != std::string::npos)
-		//found
-		return true;
-	else
-		//not found
-		return false;
 }
 
 void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)

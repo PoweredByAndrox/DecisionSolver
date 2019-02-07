@@ -139,6 +139,7 @@ namespace Engine
 		vector<int> ListBoxs;
 		vector<int> ScrollBars;
 		vector<int> RadioButtons;
+
 		// **********
 		vector<DialogResourceManager *> g_DialogResourceManager;
 		vector<Dialog *> g_Dialog;

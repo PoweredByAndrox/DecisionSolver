@@ -59,7 +59,7 @@ namespace Engine
 		{
 			gCamera = make_unique<Camera>();
 
-			ThrowIfFailed(gCamera->Init(PhysX.get()));
+			V(gCamera->Init(PhysX.get()));
 
 			gCamera->SetScalers(0.010f, 6.0f);
 			gCamera->SetRotateButtons(true, false, false);
@@ -75,6 +75,8 @@ namespace Engine
 
 		bool IsInit() { return InitClass; }
 	private:
+		HRESULT hr = S_OK;
+
 			//**********
 		Vector3 Position = { 0.f, 2.5f, 0.f };
 

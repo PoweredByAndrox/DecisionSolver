@@ -322,8 +322,8 @@ void Dialog::Init(DialogResourceManager *pManager, bool bRegisterDialog, LPCWSTR
 	m_pManager = pManager;
 	if (bRegisterDialog)
 		pManager->RegisterDialog(this);
-
-	SetTexture(0, pszControlTextureFilename);
+	if (pszControlTextureFilename)
+		SetTexture(0, pszControlTextureFilename);
 	InitDefaultElements();
 }
 

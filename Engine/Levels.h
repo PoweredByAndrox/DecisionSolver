@@ -44,9 +44,6 @@ namespace Engine
 		unique_ptr<tinyxml2::XMLDocument> doc;
 
 		// **********
-		vector<Models *> model;
-
-		// **********
 		vector<GameObjects::Object> g_Obj;
 
 		// **********

@@ -15,7 +15,7 @@ HRESULT UI::Init(int Count, LPCWSTR texture)
 
 			dial->Init(DRes, true, texture);
 
-			V(DRes->OnD3D11CreateDevice(fs->GetResPathW(&wstring(L"Font.dds"))->c_str(), fs->GetResPathW(&wstring(L"UI.hlsl"))->c_str()));
+			V(DRes->OnD3D11CreateDevice(fs->GetFile(string("Font.dds"))->PathW.c_str(), fs->GetFile(string("UI.hlsl"))->PathW.c_str()));
 			g_DialogResourceManager.push_back(DRes);
 			g_Dialog.push_back(dial);
 		}
@@ -757,7 +757,7 @@ HRESULT Engine::UI::LoadXmlUI(LPCSTR File)
 		throw exception("UI->LoatXmlUI()::doc->LoadFile() == 0!!!");
 		return E_FAIL;
 	}
-	if (doc->Parse(getDataFromFile(&string(File), true).c_str()) > 0)
+	if (doc->Parse(fs->getDataFromFile(&string(File), true).c_str()) > 0)
 	{
 		throw exception(string(string("UI->LoatXmlUI()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;

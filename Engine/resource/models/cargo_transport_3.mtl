@@ -24,7 +24,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd mpo1.jpg
+map_Kd mpo1.dds
 
 newmtl default_door
 d 1
@@ -34,7 +34,7 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd cp2_03.jpg
+map_Kd cp2_03.dds
 
 newmtl default_body3b
 d 1
@@ -44,5 +44,5 @@ Ka 0 0 0
 Kd 1 1 1
 Ks 1 1 1
 Km 0
-map_Kd axq1.jpg
+map_Kd axq1.dds
 

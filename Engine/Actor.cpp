@@ -24,10 +24,10 @@ void Engine::Actor::Render(Matrix View, Matrix Proj, float Time)
 
 HRESULT Engine::Actor::Init(Physics *PhysX)
 {
-	if (!DLG->IsInit())
-		ThrowIfFailed(DLG->Init());
-	DLG->LoadFile(&string("For everything.xml"));
-	DLG->getMAReplices();
+	//if (!DLG->IsInit())
+	//	V(DLG->Init());
+	//DLG->LoadFile(&string("For everything.xml"));
+	//DLG->getMAReplices();
 
 	this->PhysX.reset(PhysX);
 

@@ -8,22 +8,22 @@ HRESULT Engine::Console::Init(Physics *Phys, Levels *level)
 	{
 		if (!ui->IsInitUI())
 		{
-			ui->Init(1, ui->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
-			ui->LoadXmlUI(ui->GetResPathA(&string("All.xml"))->c_str());
+			ui->Init(1, ui->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+			ui->LoadXmlUI(ui->GetFile(string("All.xml"))->PathA.c_str());
 		}
 
 		this->Phys.reset(Phys);
 
 		this->level = level;
 
-		ThrowIfFailed(Settings(false));
+		V(Settings(false));
 
 		InitClass = true;
 		return S_OK;
 	}
 	catch (const exception &Catch)
 	{
-		DebugTrace(strcat("Console: Init is failed. ", Catch.what()));
+		DebugTrace(string(string("Console: Init is failed. ") + string(Catch.what())).c_str());
 		throw exception("Console is failed!!!");
 		InitClass = false;
 		return E_FAIL;
@@ -149,7 +149,7 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 				{
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
-					Cache_UI->getUI()->ReloadXML(Cache_UI->getUI()->GetResPathA(&string("All.xml"))->c_str());
+					Cache_UI->getUI()->ReloadXML(Cache_UI->getUI()->GetFile(string("All.xml"))->PathA.c_str());
 					Cache_UI->Settings(true);
 				}
 				else if (wcsstr(Cache_Edit->GetText(), L"Get_size_phys_obj"))

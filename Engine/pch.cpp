@@ -1,7 +1,24 @@
 #include "pch.h"
 
-bool FindSubStr(wstring &context, wstring const &from)
+bool FindSubStr(wstring context, wstring const from)
 {
+	if (context.empty())
+		return false;
+
+	auto Pos = context.find(from);
+	if (Pos != std::string::npos)
+		//found
+		return true;
+	else
+		//not found
+		return false;
+}
+
+bool FindSubStr(string context, string const from)
+{
+	if (context.empty())
+		return false;
+
 	auto Pos = context.find(from);
 	if (Pos != std::string::npos)
 		//found

@@ -166,8 +166,12 @@ Engine::Mesh Engine::Models::processMesh(aiMesh *mesh, const aiScene *Scene)
 	return Mesh(verticesCache, indicesCache, textures, this);
 }
 
+#include <WICTextureLoader.h>
+#include <DDSTextureLoader.h>
 vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
 {
+	USES_CONVERSION;
+
 	vector<Texture> textures;
 	for (int i = 0; i < mat->GetTextureCount(type); i++)
 	{
@@ -194,10 +198,13 @@ vector<Engine::Mesh::Texture> Engine::Models::loadMaterialTextures(aiMaterial *m
 			else
 			{
 				GetD3DDevice();
-				ThrowIfFailed(CreateWICTextureFromFile(Device, GetResPathW(&string(str.C_Str())).c_str(), nullptr, &texture.texture));
+				if (FindSubStr(GetFile(string(str.C_Str()))->ExtA, string(".dds")))
+					V(CreateDDSTextureFromFile(Device, GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture))
+				else
+					V(CreateWICTextureFromFile(Device, GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture));
 			}
 			texture.type = typeName;
-			texture.path = GetResPathA(&string(str.C_Str()))->c_str();
+			texture.path = GetFile(string(str.C_Str()))->PathA.c_str();
 
 			textures.push_back(texture);
 
@@ -249,7 +256,7 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	int* size = reinterpret_cast<int*>(&Scene->mTextures[Textureindex]->mWidth);
 
 	GetD3DDevice();
-	ThrowIfFailed(CreateWICTextureFromMemory(Device, reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
+	V(CreateWICTextureFromMemory(Device, reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
 
 	return texture;
 }
@@ -290,15 +297,14 @@ void Engine::Mesh::Close()
 	for (int i = 0; i < textures.size(); i++)
 		 textures.at(i).texture->Release();
 
-	if (render)
-		SAFE_DELETE(render);
+	SAFE_DELETE(render);
 }
 
 void Engine::Mesh::setupMesh()
 {
 	vector<wstring> FileShaders;
-	FileShaders.push_back(*render->GetResPathW(&wstring(L"VertexShader.hlsl")));
-	FileShaders.push_back(*render->GetResPathW(&wstring(L"PixelShader.hlsl")));
+	FileShaders.push_back(render->GetFile(string("VertexShader.hlsl"))->PathW);
+	FileShaders.push_back(render->GetFile(string("PixelShader.hlsl"))->PathW);
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("main"));

@@ -103,7 +103,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<
 void InitApp()
 {
 	if (!ui->IsInitUI())
-		ui->Init(1, file_system->GetResPathW(&wstring(L"dxutcontrols COPY.dds"))->c_str());
+		ui->Init(1, file_system->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 	ui->getDialog()->at(0)->SetCallback(OnGUIEvent);
 
 	vector<int> CountOfButtons =
@@ -295,8 +295,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, const DXGI_SURFAC
 #endif
 
 	vector<wstring> FileShaders;    
-	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"VertexShader.hlsl")));
-	FileShaders.push_back(*file_system->GetResPathW(&wstring(L"PixelShader.hlsl")));
+	FileShaders.push_back(file_system->GetFile(string("VertexShader.hlsl"))->PathW);
+	FileShaders.push_back(file_system->GetFile(string("PixelShader.hlsl"))->PathW);
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("main"));

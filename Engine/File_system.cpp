@@ -2,6 +2,8 @@
 
 #include "File_system.h"
 
+using namespace Engine;
+
 File_system::File_system()
 {
 	p = _wgetcwd(NULL, 512);
@@ -10,521 +12,199 @@ File_system::File_system()
 		DebugTrace("File_system: Error getting path.\n");
 		throw exception("p == empty!!!");
 	}
+	ScanFilesInRes();
 }
 
-string *File_system::GetResPathA(string *File)
+void File_system::ScanFilesInRes()
 {
+	USES_CONVERSION;
+	int i = 0;
+	auto file = getFilesInFolder(&string(""), true, true);
+	for (i = 0; i < file.size(); i++)
+	{
+		string someFile = file.at(i),
+		 Fname = path(someFile).filename().string(),
+		 ext = extension(someFile);
+		TYPE type;
+
+		if (ext == ".obj")
+			type = TYPE::MODELS;
+		else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
+			type = TYPE::SHADERS;
+		else if (ext == ".dds" || ext == ".png" || ext == ".bmp" || ext == ".mtl")
+			type = TYPE::TEXTURES;
+		else if (ext == ".wav")
+			type = TYPE::SOUNDS;
+		else if (ext == ".xml")
+		{
+			if (FindSubStr(path(file.at(i)).string(), string("UI")))
+				type = TYPE::UIS;
+			if (FindSubStr(path(file.at(i)).string(), string("maps")))
+				type = TYPE::LEVELS;
+			else
+				type = TYPE::DIALOGS;
+		}
+		else
+			type = TYPE::NONE;
+
+		if (type != TYPE::NONE)
+		{
+			Files.push_back(new File(someFile, ext, Fname, (size_t)file_size(path(someFile)), type));
+			Files.back()->ExtW = path(A2W(someFile.c_str())).extension().wstring();
+			Files.back()->FileW = path(someFile).filename().wstring();
+			Files.back()->PathW = wstring(A2W(someFile.c_str()));
+		}
+	}
+}
+
+File_system::File *File_system::GetFile(string file)
+{
+	USES_CONVERSION;
+
+		// We make sure that file doesn't exist in our massive
+	for (int i = 0; i < Files.size(); i++)
+	{
+		if (!Files.at(i)->FileA.compare(file.c_str()))
+			return Files.at(i);
+		if (!Files.at(i)->FileW.compare(A2W(file.c_str())))
+			return Files.at(i);
+	}
+
 	if (!p.empty())
 	{
-		auto ResPath = p.generic_path().generic_string() + string("/resource/");
-		auto ext = boost::filesystem::extension(File->c_str());
-		to_lower(ext);
+		string ResPath = p.generic_path().generic_string() + string("/resource/");
+		string extA = extension(file.c_str());
+		wstring extW = path(A2W(file.c_str())).extension().wstring();
+
+		to_lower(extA);
 
 		if (!ResPath.empty())
 		{
-			if (ext == ".obj")
+			if (extA == ".obj")
 			{
-				if (!boost::filesystem::exists(ResPath + string("models/") + string(*File)))
+				auto cache = getFilesInFolder(&string(ResPath + string("models/")), true, true);
+				for (int i = 0; i < cache.size(); i++)
 				{
-					auto cache = getFilesInFolder(&string(ResPath + string("models/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
+					auto filePath = path(cache.at(i)).filename().string();
+					if (filePath == string(file))
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
+						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::MODELS));
+						Files.back()->PathW = path(cache.at(i)).wstring();
+						Files.back()->FileW = path(cache.at(i)).filename().wstring();
+						Files.back()->ExtW = extW;
+						return Files.back();
 					}
 				}
-				else
-					*File = ResPath + string("models/") + string(*File);
 			}
-			else if (ext == ".dds" || ext == ".png" || ext == ".jpg" || ext == ".bmp")
+			else if (extA == ".dds" || extA == ".png" || extA == ".bmp")
 			{
-
-				if (!boost::filesystem::exists(ResPath + string("textures/") + string(*File)))
+				auto cache = getFilesInFolder(&string(ResPath + string("textures/")), true, true);
+				for (int i = 0; i < cache.size(); i++)
 				{
-					auto cache = getFilesInFolder(&string(ResPath + string("textures/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
+					auto filePath = path(cache.at(i)).filename().string();
+					if (filePath == string(file))
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
+						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
+						Files.back()->PathW = path(cache.at(i)).wstring();
+						Files.back()->FileW = path(cache.at(i)).filename().wstring();
+						Files.back()->ExtW = extW;
+						return Files.back();
 					}
 				}
-				else
-					*File = ResPath + string("textures/") + string(*File);
 			}
-			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
+			else if (extA == ".hlsl" || extA == ".fx" || extA == ".vs" || extA == ".ps")
 			{
-				if (!boost::filesystem::exists(ResPath + string("shaders/") + string(*File)))
+				auto cache = getFilesInFolder(&string(ResPath + string("shaders/")), true, true);
+				for (int i = 0; i < cache.size(); i++)
 				{
-					auto cache = getFilesInFolder(&string(ResPath + string("shaders/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
+					auto filePath = path(cache.at(i)).filename().string();
+					if (filePath == string(file))
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
+						auto filePath = path(cache.at(i)).filename().string();
+						if (filePath == string(file))
 						{
-							*File = cache.at(i);
-							break;
+							Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::SHADERS));
+							Files.back()->PathW = path(cache.at(i)).wstring();
+							Files.back()->FileW = path(cache.at(i)).filename().wstring();
+							Files.back()->ExtW = extW;
+							return Files.back();
 						}
 					}
 				}
-				else
-					*File = ResPath + string("shaders/") + string(*File);
 			}
-
-			else if (ext == ".wav")
+			else if (extA == ".wav")
 			{
-				if (!boost::filesystem::exists(ResPath + string("sounds/") + string(*File)))
+				auto cache = getFilesInFolder(&string(ResPath + string("sounds/")), true, true);
+				for (int i = 0; i < cache.size(); i++)
 				{
-					auto cache = getFilesInFolder(&string(ResPath + string("sounds/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
+					auto filePath = path(cache.at(i)).filename().string();
+					if (filePath == string(file))
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
+						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
+						Files.back()->PathW = path(cache.at(i)).wstring();
+						Files.back()->FileW = path(cache.at(i)).filename().wstring();
+						Files.back()->ExtW = extW;
+						return Files.back();
 					}
 				}
-				else
-					*File = ResPath + string("sounds/") + string(*File);
 			}
-			else if (ext == ".xml")
+			else if (extA == ".xml")
 			{
-				if (!boost::filesystem::exists(ResPath + string("text/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("text/")), true, false);
+					auto cache = getFilesInFolder(&string(ResPath + string("text/")), true, true);
 					for (int i = 0; i < cache.size(); i++)
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
+						auto filePath = path(cache.at(i)).filename().string();
+						if (filePath == string(file))
 						{
-							*File = cache.at(i);
-							break;
+							auto filePath = path(cache.at(i)).filename().string();
+							if (filePath == string(file))
+							{
+								Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::DIALOGS));
+								Files.back()->PathW = path(cache.at(i)).wstring();
+								Files.back()->FileW = path(cache.at(i)).filename().wstring();
+								Files.back()->ExtW = extW;
+								return Files.back();
+							}
 						}
 					}
-				}
-				else
-					*File = ResPath + string("text/") + string(*File);
-
-				if (!boost::filesystem::exists(ResPath + string("UI/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("UI/")), true, false);
+					cache = getFilesInFolder(&string(ResPath + string("UI/")), true, false);
 					for (int i = 0; i < cache.size(); i++)
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
+						auto filePath = path(cache.at(i)).filename().string();
+						if (filePath == string(file))
 						{
-							*File = cache.at(i);
-							break;
+							auto filePath = path(cache.at(i)).filename().string();
+							if (filePath == string(file))
+							{
+								Files.push_back(new File(cache.at(i), filePath, extA, (size_t)file_size(cache.at(i)), TYPE::UIS));
+								Files.back()->PathW = path(cache.at(i)).wstring();
+								Files.back()->FileW = path(cache.at(i)).filename().wstring();
+								Files.back()->ExtW = extW;
+								return Files.back();
+							}
 						}
 					}
-				}
-				else
-					*File = ResPath + string("UI/") + string(*File);
-
-				if (!boost::filesystem::exists(ResPath + string("maps/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("maps/")), true, false);
+					cache = getFilesInFolder(&string(ResPath + string("maps/")), true, false);
 					for (int i = 0; i < cache.size(); i++)
 					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
+						auto filePath = path(cache.at(i)).filename().string();
+						if (filePath == string(file))
 						{
-							*File = cache.at(i);
-							break;
+							Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::LEVELS));
+							Files.back()->PathW = path(cache.at(i)).wstring();
+							Files.back()->FileW = path(cache.at(i)).filename().wstring();
+							Files.back()->ExtW = extW;
+							return Files.back();
 						}
 					}
-				}
-				else
-					*File = ResPath + string("maps/") + string(*File);
 			}
-			else
-				*File = "Unsupported File!";
-
-			return File;
 		}
 	}
 	else
 	{
 		DebugTrace("File System: GetResPathA failed.\n");
 		throw exception("ResPath == empty!!!");
-		return &string("");
 	}
-
-	return &string("Unsupported File!");
-}
-
-wstring *File_system::GetResPathW(wstring *File)
-{
-	if (!p.empty())
-	{
-		auto ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/");
-		auto ext = boost::filesystem::extension(File->c_str());
-		to_lower(ext);
-		if (!ResPath.empty())
-		{
-			if (ext == ".obj")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"models/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"models/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"models/") + wstring(*File);
-			}
-			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"shaders/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"shaders/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"shaders/") + wstring(*File);
-			}
-			else if (ext == ".png" || ext == ".dds" || ext == ".jpg" || ext == ".bmp")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"textures/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"textures/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"textures/") + wstring(*File);
-			}
-			else if (ext == ".wav")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"sounds/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"sounds/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"sounds/") + wstring(*File);
-			}
-			else if (ext == ".xml")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"text/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"text/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"text/") + wstring(*File);
-
-				if (!boost::filesystem::exists(ResPath + wstring(L"UI/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"UI/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"UI/") + wstring(*File);
-
-				if (!boost::filesystem::exists(ResPath + wstring(L"maps/") + wstring(*File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"maps/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == wstring(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + wstring(L"maps/") + wstring(*File);
-			}
-			else
-			{
-				*File = wstring(L"Unsupported File!");
-			}
-			return File;
-		}
-		else
-		{
-			DebugTrace("File System: GetResPathA failed\n");
-			throw exception("p == empty!!!");
-			return &wstring(L"");
-		}
-	}
-	else
-	{
-		DebugTrace("File System: GetResPathA failed\n");
-		throw exception("ResPath == empty!!!");
-		return &wstring(L"");
-	}
-}
-
-wstring File_system::GetResPathW(string *File)
-{
-	USES_CONVERSION;
-	if (!p.empty())
-	{
-		auto ResPath = p.generic_path().generic_string() + string("/resource/");
-		auto ext = boost::filesystem::extension(File->c_str());
-		to_lower(ext);
-
-		if (!ResPath.empty())
-		{
-			if (ext == ".obj")
-			{
-				if (!boost::filesystem::exists(ResPath + string("models/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("models/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + string("models/") + *File;
-			}
-			else if (ext == ".dds" || ext == ".png" || ext == ".jpg" || ext == ".bmp")
-			{
-				if (!boost::filesystem::exists(ResPath + string("textures/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("textures/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + string("textures/") + *File;
-			}
-			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
-			{
-				if (!boost::filesystem::exists(ResPath + string("shaders/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("shaders/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + string("shaders/") + *File;
-				return A2W(File->c_str());
-			}
-			else if (ext == ".wav")
-			{
-				if (!boost::filesystem::exists(ResPath + string("sounds/") + string(*File)))
-				{
-					auto cache = getFilesInFolder(&string(ResPath + string("sounds/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().string();
-						if (filename == string(*File))
-						{
-							*File = cache.at(i);
-							break;
-						}
-					}
-				}
-				else
-					*File = ResPath + string("sounds/") + *File;
-			}
-			else
-				File = &string("Unsupported File!");
-
-			return A2W(File->c_str());
-		}
-		else
-		{
-			DebugTrace("File System: GetResPathA failed\n");
-			throw exception("ResPath == empty!!!");
-			return L"";
-		}
-	}
-	else
-	{
-		DebugTrace("File System: GetResPathA failed\n");
-		throw exception("p == empty!!!");
-		return L"";
-	}
-
-}
-
-vector<wstring> File_system::GetResPathW(vector<wstring> *File[])
-{
-	vector<wstring> ResPath[sizeof(File)];
-	if (!p.empty())
-	{
-		for (int i = 0; i < sizeof(File); i++)
-		{
-			auto ext = boost::filesystem::extension(File[i]->data()->c_str());
-			ResPath[i].insert(ResPath[i].end(), p.generic_path().generic_wstring() + wstring(L"/resource/"));
-			if (!ResPath[i].data()->empty())
-			if (ext == ".obj")
-				ResPath[i].at(i).append(wstring(L"models/") + wstring(*File[i]->data()));
-			else if (ext == ".dds" || ext == ".png" || ext == ".jpg" || ext == ".bmp")
-				ResPath[i].at(i).append(wstring(L"textures/") + wstring(File[i]->data()->c_str()));
-			else if (ext == ".wav")
-				ResPath[i].at(i).append(wstring(L"sounds/") + wstring(File[i]->data()->c_str()));
-			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
-				ResPath[i].at(i).append(wstring(L"shaders/") + wstring(File[i]->data()->c_str()));
-			return ResPath[sizeof(*File)];
-		}
-	}
-
-	return vector<wstring>{wstring(L"Unsupported File!")};
-}
-
-vector<wstring> File_system::GetResPathW(wstring File)
-{
-	vector<wstring> file;
-	if (!p.empty())
-	{
-		auto ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/");
-		auto ext = boost::filesystem::extension(File.c_str());
-		to_lower(ext);
-
-		if (!ResPath.empty())
-		{
-			if (ext == ".obj")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"models/") + wstring(File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"models/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(File))
-						{
-							file.push_back(cache.at(i));
-							break;
-						}
-					}
-				}
-			}
-			else if (ext == ".dds" || ext == ".png" || ext == ".jpg" || ext == ".bmp")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"textures/") + wstring(File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"textures/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(File))
-						{
-							file.push_back(cache.at(i));
-							break;
-						}
-					}
-				}
-			}
-			else if (ext == ".wav")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"sounds/") + wstring(File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"sounds/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(File))
-						{
-							file.push_back(cache.at(i));
-							break;
-						}
-					}
-				}
-			}
-			else if (ext == ".hlsl" || ext == ".fx" || ext == ".vs" || ext == ".ps")
-			{
-				if (!boost::filesystem::exists(ResPath + wstring(L"shaders/") + wstring(File)))
-				{
-					auto cache = getFilesInFolder(&wstring(ResPath + wstring(L"shaders/")), true, false);
-					for (int i = 0; i < cache.size(); i++)
-					{
-						auto filename = boost::filesystem::path(cache.at(i)).filename().wstring();
-						if (filename == wstring(File))
-						{
-							file.push_back(cache.at(i));
-							break;
-						}
-					}
-				}
-			}
-
-			return file;
-		}
-	}
-
-	return vector<wstring>{wstring(L"Unsupported File!")};
 }
 
 vector<wstring> File_system::getFilesInFolder(wstring *Folder, bool Recursive, bool onlyFile)
@@ -597,25 +277,29 @@ vector<string> File_system::getFilesInFolder(string *Folder, bool Recursive, boo
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
 			auto str = it->path().string();
-			files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
+			if (is_directory(str))
+				files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
 		}
 	else if (Recursive && onlyFile)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
 			auto str = it->path().string();
-			files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
+			if(!is_directory(str))
+				files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
 		}
 	else if (onlyFile && !Recursive)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
 			auto str = it->path().string();
-			files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
+			if (!is_directory(str))
+				files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
 		}
 	else if (!onlyFile && Recursive)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
 			auto str = it->path().string();
-			files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
+			if (is_directory(str))
+				files.push_back(replaceAll(str, string("\\"), string("/"), string("//")));
 		}
 
 	return files;
@@ -660,18 +344,29 @@ vector<string> File_system::getFilesInFolder(string *Folder, LPCSTR ext)
 
 string File_system::getDataFromFile(string *File, bool LineByline)
 {
-	auto FileName = GetResPathA(File)->c_str();
+	if (File->empty())
+		return "";
+
 	string Returned_val, Cache;
-	auto streamObj = std::ifstream(FileName);
-	if (LineByline)
-		while (!streamObj.eof())
-		{
-			getline(streamObj, Cache);
-			Returned_val.append(Cache);
-		}
+	auto streamObj = std::ifstream(File->c_str());
+	if (streamObj.is_open())
+	{
+		if (LineByline)
+			while (!streamObj.eof())
+			{
+				getline(streamObj, Cache);
+				Returned_val.append(Cache);
+			}
+		else
+			while (!streamObj.eof())
+				streamObj >> Returned_val;
+	}
 	else
-		while (!streamObj.eof())
-			streamObj >> Returned_val;
+	{
+		DebugTrace("File System: getDataFromFile failed.\n");
+		throw exception("streamObj == NOT OPEN!!!");
+		return "";
+	}
 
 	if (!Returned_val.empty())
 		return Returned_val;
@@ -681,10 +376,9 @@ string File_system::getDataFromFile(string *File, bool LineByline)
 
 vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
 {
-	auto FileName = GetResPathA(File)->c_str();
 	vector<string> Returned_val;
 	string Cache;
-	auto streamObj = std::ifstream(FileName);
+	auto streamObj = std::ifstream(File->c_str());
 	if (LineByline)
 		while (!streamObj.eof())
 		{

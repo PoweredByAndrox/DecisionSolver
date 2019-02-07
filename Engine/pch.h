@@ -76,7 +76,8 @@ using namespace spdlog;
 #define MacroStr2(x)  MacroStr(x)
 #define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))
 
-bool FindSubStr(wstring &context, wstring const &from);
+bool FindSubStr(wstring context, wstring const from);
+bool FindSubStr(string context, string const from);
 
 #include <foundation/PxVec3.h>
 physx::PxVec3 ToPxVec3(Vector3 var);
