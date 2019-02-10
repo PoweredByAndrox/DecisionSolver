@@ -262,7 +262,6 @@ vector<wstring> File_system::getFilesInFolder(wstring *Folder)
 
 	return files;
 }
-
 vector<string> File_system::getFilesInFolder(string *Folder, bool Recursive, bool onlyFile)
 {
 	vector<string> files;
@@ -342,6 +341,49 @@ vector<string> File_system::getFilesInFolder(string *Folder, LPCSTR ext)
 	return files;
 }
 
+string File_system::getDataFromFile(string *File, bool LineByline, string start, string end)
+{
+	if (File->empty())
+		return "";
+
+	string Returned_val, Cache;
+	auto streamObj = std::ifstream(File->c_str());
+	if (streamObj.is_open())
+	{
+		if (extension(File->c_str()) == ".xml")
+		{
+			while (!streamObj.eof())
+			{
+				getline(streamObj, Cache);
+				Returned_val.append(deleteWord(Cache, start, end.c_str()));
+			}
+
+			if (!Returned_val.empty())
+				return Returned_val;
+		}
+
+		if (LineByline)
+			while (!streamObj.eof())
+			{
+				getline(streamObj, Cache);
+				Returned_val.append(deleteWord(Cache, start, end.c_str()));
+			}
+		else
+			while (!streamObj.eof())
+				streamObj >> Returned_val;
+	}
+	else
+	{
+		DebugTrace("File System: getDataFromFile failed.\n");
+		throw exception("streamObj == NOT OPEN!!!");
+		return "";
+	}
+
+	if (!Returned_val.empty())
+		return Returned_val;
+
+	return "";
+}
 string File_system::getDataFromFile(string *File, bool LineByline)
 {
 	if (File->empty())
@@ -397,7 +439,6 @@ vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
 
 	return vector<string> {""};
 }
-
 bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr)
 {
 	FILE *stream;

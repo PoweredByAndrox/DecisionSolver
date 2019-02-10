@@ -50,6 +50,8 @@ namespace Engine
 
 		// Work With Files
 		string getDataFromFile(string *File, bool LineByline);
+		string getDataFromFile(string *File, bool LineByline, string start, string end);
+
 		vector<string> getDataFromFileVector(string *File, bool LineByline);
 		bool ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr);
 

@@ -28,9 +28,16 @@ namespace Engine
 				g_Obj.at(0).Destroy();
 				g_Obj.erase(g_Obj.begin());
 			}
+			while (!NPC.empty())
+			{
+				NPC.at(0).model->Close();
+				NPC.at(0).Destroy();
+				NPC.erase(NPC.begin());
+			}
 		}
 
 		auto getObjects() { return g_Obj; }
+		auto getNPC() { return NPC; }
 
 		bool IsInit() { return InitClass; }
 	protected:
@@ -45,6 +52,7 @@ namespace Engine
 
 		// **********
 		vector<GameObjects::Object> g_Obj;
+		vector<GameObjects::Object> NPC;
 
 		// **********
 		vector<XMLElement *> Attrib;

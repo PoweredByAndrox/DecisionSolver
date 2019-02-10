@@ -96,7 +96,7 @@ namespace Engine
 			//	}
 		}
 
-		void setRotation(Vector3 rotaxis, float Angel);
+		void setRotation(Vector3 rotaxis);
 		void setScale(Vector3 Scale);
 		void setPosition(Vector3 Pos);
 
@@ -105,7 +105,7 @@ namespace Engine
 
 		auto getMeshes() { if (!meshes.empty()) return meshes; }
 
-		Vector3 getPosition() { return position.Invert().Translation(); }
+		Vector3 getPosition() { return position.Translation(); }
 
 		~Models() {}
 	protected:

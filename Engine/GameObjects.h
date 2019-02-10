@@ -32,17 +32,23 @@ namespace Engine
 			Object(Models *model) { this->model = model; }
 			void Destroy() { ID = 0; ID_TEXT = ""; HasScale = false; ScaleCoords = Vector3::Zero; SAFE_DELETE(model); }
 			int ID = 0;
-			
+			enum TYPE { OBJECTS = 1, NPC, ACTOR, PROPS, ETC, NONE };
+			GameObjects::Object::TYPE type = (GameObjects::Object::TYPE)NONE;
+
 			LPCSTR ID_TEXT = "";
 
 			bool HasScale = false;
 			Vector3 ScaleCoords = Vector3::Zero;
+
+			bool HasRotation = false;
+			Vector3 RotationCoords = Vector3::Zero;
 
 			Models *model = nullptr;
 
 			void SetID_TEXT(LPCSTR ID_TEXT) { this->ID_TEXT = ID_TEXT; }
 			void SetScaleCoords(Vector3 ScaleCoords) { this->ScaleCoords = ScaleCoords; }
 			void SetModel(Models *model) { this->model = model; }
+			void SetType(TYPE type) { this->type = type; }
 		};
 		vector<Object> Objects;
 	};

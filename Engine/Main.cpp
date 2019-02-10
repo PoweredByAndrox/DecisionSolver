@@ -510,6 +510,10 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	for (int i = 0; i < Model.size(); i++)
 		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
+	auto NPC = Level->getNPC();
+	for (int i = 0; i < NPC.size(); i++)
+		NPC.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	console->Render(fElapsedTime);

@@ -170,7 +170,11 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 				else if (wcsstr(Cache_Edit->GetText(), L"Set_phys_obj_pos"))
 				{
 					string Text = string(W2A(Cache_Edit->GetText()));
-					deleteWord(Text, string("Set_phys_obj_pos "));
+					if (wstring(Cache_Edit->GetText()) == L"Set_phys_obj_pos")
+						deleteWord(Text, string("Set_phys_obj_pos "));
+					else
+						deleteWord(Text, string("Set_phys_obj_position "));
+
 					Vector3 XYZ = Vector3::Zero;
 					int ID = 0, Type = 0;
 					to_lower(Text);
@@ -205,7 +209,10 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 				else if (wcsstr(Cache_Edit->GetText(), L"Set_model_pos"))
 				{
 					string Text = string(W2A(Cache_Edit->GetText()));
-					deleteWord(Text, string("Set_model_pos "));
+					if (wstring(Cache_Edit->GetText()) == L"Set_model_pos")
+						deleteWord(Text, string("Set_model_pos "));
+					else
+						deleteWord(Text, string("Set_model_position "));
 					Vector3 XYZ = Vector3::Zero;
 					int ID = 0;
 					to_lower(Text);
@@ -213,10 +220,52 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
-					
+
 					auto Obj = Cache_UI->level->getObjects();
-					if (Obj.size()-1 >= ID)
+					if (Obj.size() - 1 >= ID)
 						Obj.at(ID).model->setPosition(XYZ);
+					else
+					{
+						Chat->AddItem(L"Wrong ID!!! Return.", All);
+						return;
+					}
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Set_model_scale"))
+				{
+					string Text = string(W2A(Cache_Edit->GetText()));
+					deleteWord(Text, string("Set_model_scale "));
+					Vector3 XYZ = Vector3::Zero;
+					int ID = 0;
+					to_lower(Text);
+					sscanf_s(Text.c_str(), "%d, %f, %f, %f", &ID, &XYZ.x, &XYZ.y, &XYZ.z);
+
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					auto Obj = Cache_UI->level->getObjects();
+					if (Obj.size() - 1 >= ID)
+						Obj.at(ID).model->setScale(XYZ);
+					else
+					{
+						Chat->AddItem(L"Wrong ID!!! Return.", All);
+						return;
+					}
+				}
+				else if (wcsstr(Cache_Edit->GetText(), L"Set_model_rotate"))
+				{
+					string Text = string(W2A(Cache_Edit->GetText()));
+					deleteWord(Text, string("Set_model_rotate "));
+					Vector3 XYZ = Vector3::Zero;
+					int ID = 0;
+					to_lower(Text);
+					sscanf_s(Text.c_str(), "%d, %f, %f, %f", &ID, &XYZ.x, &XYZ.y, &XYZ.z);
+
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
+					Console *Cache_UI = (Console *)pUserContext.at(0);
+
+					auto Obj = Cache_UI->level->getObjects();
+					if (Obj.size() - 1 >= ID)
+						Obj.at(ID).model->setRotation(XYZ);
 					else
 					{
 						Chat->AddItem(L"Wrong ID!!! Return.", All);
@@ -225,18 +274,6 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 				}
 				else if (wcsstr(Cache_Edit->GetText(), L"Clear"))
 					Chat->RemoveAllItems();
-				//else if (wcsstr(Cache_Edit->GetText(), L"Set_speed_camera"))
-				//{
-				//	string Text = string(W2A(Cache_Edit->GetText()));
-				//	deleteWord(Text, string("Set_speed_camera "));
-				//	float Speed = 6.0f;
-				//	to_lower(Text);
-				//	sscanf_s(Text.c_str(), "%f", &Speed);
-
-				//	SpeedCamera = Speed;
-
-				//	Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
-				//}
 				else if (wcsstr(Cache_Edit->GetText(), L"Get_pos_models"))
 				{
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
@@ -246,7 +283,13 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 					{
 						auto Cache = Cache_UI->level->getObjects().at(i).model;
 						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x, Cache->getPosition().y, Cache->getPosition().z);
-						Chat->AddItem(wstring(wstring(L"Position of Model[")+wstring(to_wstring(i))+wstring(L"] is: ") + buff).c_str(), All);
+						Chat->AddItem(wstring(wstring(L"[")+wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ")+wstring(A2W(Cache_UI->level->getObjects().at(i).ID_TEXT))+wstring(L"] is: ") + buff).c_str(), All);
+					}
+					for (int i = 0; i < Cache_UI->level->getNPC().size(); i++)
+					{
+						auto Cache = Cache_UI->level->getNPC().at(i).model;
+						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x, Cache->getPosition().y, Cache->getPosition().z);
+						Chat->AddItem(wstring(wstring(L"[") + wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ") + wstring(A2W(Cache_UI->level->getNPC().at(i).ID_TEXT)) + wstring(L"] is: ") + buff).c_str(), All);
 					}
 				}
 				else

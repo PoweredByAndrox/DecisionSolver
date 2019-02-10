@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- The level has 2 objects (two spaceships) -->
+<!-- The level has 3 objects (two spaceships) -->
 <scene>
 	<objects>
-		<One id="Spaceship1" x="50" y="50" z="50">
+		<One id="Spaceship1" x="120" y="8" z="105"/>
+		<Two id="Spaceship2" x="126" y="18" z="115"/>
+		<Three id="Spaceship3" x="130" y="25" z="130"/>
+		<Four id="Spaceship4" x="0" y="0" z="0">
 			<scale>0.02,0.02,0.02</scale>
-		</One>
-		<Two id="Spaceship2" x="100" y="0" z="100">
-			<scale>0.02,0.02,0.02</scale>
-		</Two>
-		<Three id="Spaceship3" x="120" y="8" z="105"/>
-		<Four id="Spaceship4" x="126" y="18" z="115"/>
+		</Four>
 	</objects>
+	<npc>
+		<One id="Person" x="50" y="50" z="50">
+			<scale>0.2,0.2,0.2</scale>
+		</One>
+		<Two id="NanoSuit" x="100" y="0" z="100"/>
+	</npc>
 </scene>

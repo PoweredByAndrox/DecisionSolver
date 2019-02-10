@@ -91,6 +91,7 @@ string &replaceAll(string &context, string const &from, string const &to, string
 
 void deleteWord(string &context, string const &what);
 string deleteWord(string context, char const what, char const OnWhat);
+string deleteWord(string context, string const start, string const end);
 
 #include <boost/algorithm/string.hpp>
 using namespace boost::algorithm;

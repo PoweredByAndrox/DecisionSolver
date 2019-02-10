@@ -261,9 +261,9 @@ ID3D11ShaderResourceView *Engine::Models::getTextureFromModel(const aiScene *Sce
 	return texture;
 }
 
-void Engine::Models::setRotation(Vector3 rotaxis, float Angel)
+void Engine::Models::setRotation(Vector3 rotaxis)
 {
-	rotate = Matrix::CreateFromAxisAngle(rotaxis, Angel);
+	rotate = Matrix::CreateFromQuaternion(Quaternion(rotaxis.x, rotaxis.y, rotaxis.z, 1.f));
 }
 
 void Engine::Models::setScale(Vector3 Scale)
