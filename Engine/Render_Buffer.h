@@ -13,28 +13,34 @@ namespace Engine
 	class Render_Buffer: public Shaders, public File_system
 	{
 	private:
+#pragma pack(push, 1)
 		struct ConstantBuffer
 		{
 			Matrix mWorld, mView, mProj;
 		} cb;
+#pragma pack()
 
 	public:
 		HRESULT InitSimpleBuffer(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader, int ConstBuff_Width = 0);
 
 		HRESULT InitTerrain(UINT SizeofVertex, void *vertices,
 			vector<UINT> indices, vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
-		HRESULT InitModels(UINT SizeofVertex, void *vertices,
-			vector<UINT> indices, vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
+		HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct,
+			vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
+
+		HRESULT CreateWF(); // WireFrame
 
 		HRESULT CreateTexture(const wchar_t *TextrFName);
 
-		ID3D11Buffer *CreateVB(int ByteWidth, void *vertices);
-		ID3D11Buffer *CreateIB(int ByteWidthInds, UINT *indices);
+		ID3D11Buffer *CreateVB(UINT ByteWidth, void *vertices);
+		ID3D11Buffer *CreateIB(WORD ByteWidth, void *indices);
 		HRESULT CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
+		HRESULT CreateLayout(ID3DBlob *Buffer_blob);
+		HRESULT CreateZBuff();
 
-		void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0);
+		void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, bool WF = false);
 		void RenderTerrain(Matrix World, Matrix View, Matrix Proj, int Indices, vector<ID3D11Buffer *> RenderBuff, UINT stride);
-		void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, UINT stride);
+		void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, UINT SizeStruct, ID3D11ShaderResourceView *RenderTextr, bool WF);
 
 		Render_Buffer()  {}
 		~Render_Buffer() {}
@@ -67,6 +73,10 @@ namespace Engine
 		ID3D11SamplerState *m_sampleState = nullptr;
 		ID3D11ShaderResourceView *m_texture = nullptr;
 		D3D11_BUFFER_DESC bd;
+		ID3D11RasterizerState* g_pRasWireFrame = nullptr, *g_pRasStateSolid = nullptr;
+		ID3D11Texture2D *g_pDepthStencil = nullptr;
+		ID3D11DepthStencilView *g_pDepthStencilView = nullptr;
+		static ID3D11RenderTargetView *g_pRenderTargetView;
 
 		Shaders *Shader = new Shaders;
 		File_system *FS = new File_system;

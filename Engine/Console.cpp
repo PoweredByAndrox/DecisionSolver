@@ -6,11 +6,11 @@ HRESULT Engine::Console::Init(Physics *Phys, Levels *level)
 {
 	try
 	{
-		if (!ui->IsInitUI())
-		{
+		//if (!ui->IsInitUI())
+		//{
 			ui->Init(1, ui->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 			ui->LoadXmlUI(ui->GetFile(string("All.xml"))->PathA.c_str());
-		}
+		//}
 
 		this->Phys.reset(Phys);
 

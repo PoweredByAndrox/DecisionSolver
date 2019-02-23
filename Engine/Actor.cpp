@@ -29,7 +29,7 @@ HRESULT Engine::Actor::Init(Physics *PhysX)
 	//DLG->LoadFile(&string("For everything.xml"));
 	//DLG->getMAReplices();
 
-	this->PhysX.reset(PhysX);
+	//this->PhysX.reset(PhysX);
 
 	InitClass = true;
 	return S_OK;

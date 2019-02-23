@@ -97,7 +97,7 @@ XMVECTORF32 _Color[9] =
 
 //**************
 	// Test
-bool StopIT = false, InitProgram = false;
+bool StopIT = false, InitProgram = false, WireFrame = false;
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext);
 
 void InitApp()
@@ -408,7 +408,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
 	ID3D11DepthStencilView *pDSV = DXUTGetD3D11DepthStencilView();
-	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
+	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 1.0);
 
 	auto PhysObj = PhysX->GetPhysDynamicObject();
 
@@ -508,11 +508,11 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	
 	auto Model = Level->getObjects();
 	for (int i = 0; i < Model.size(); i++)
-		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
 
 	auto NPC = Level->getNPC();
 	for (int i = 0; i < NPC.size(); i++)
-		NPC.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+		NPC.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
 
 	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
@@ -581,7 +581,7 @@ LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 			if (*pbNoFurtherProcessing)
 				return 0;
 		}
-		if (!console->getUI()->getDialog()->empty())
+		if (console->IsInit() && !console->getUI()->getDialog()->empty())
 		{
 			*pbNoFurtherProcessing = console->getUI()->getDialog()->front()->MsgProc(hWnd, uMsg, wParam, lParam);
 			if (*pbNoFurtherProcessing)
@@ -659,6 +659,12 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			break;
 		case VK_F10:
 			m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
+			break;
+		case VK_F11:
+			if (!WireFrame)
+				WireFrame = true;
+			else
+				WireFrame = false;
 			break;
 		case VK_OEM_3:
 			if (*console->getState() == Console_STATE::Close)

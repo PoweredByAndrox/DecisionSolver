@@ -115,7 +115,7 @@ namespace Engine
 		void Destroy();
 
 		bool IsPhysicsInit() { return IsInitPhysX; }
-		void _createTriMesh(Models *Model, bool stat_dyn);
+		//void _createTriMesh(Models *Model, bool stat_dyn);
 
 		PxTriangleMesh *getTriMesh() { if (triangleMesh) return triangleMesh; return nullptr; }
 		PxScene *getScene() { if (gScene) return gScene; return nullptr; }

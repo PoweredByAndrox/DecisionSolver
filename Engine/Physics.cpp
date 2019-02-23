@@ -132,10 +132,10 @@ void Engine::Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matri
 		//	transport->flush();
 	}
 }
-
+/*
 void Engine::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 {
-	auto Meshes = Model->getMeshes();
+	auto Meshes = Model;
 
 	vector<PxVec3> verts;
 	vector<PxU32> tris;
@@ -196,7 +196,7 @@ void Engine::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 		DynamicObjects.push_back(TriMesh);
 	}
 }
-
+*/
 void Engine::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
 {
 	gActorCamera = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
@@ -217,9 +217,8 @@ void Engine::Physics::Destroy()
 {
 	if (gPvd)
 	{
-		PxPvdTransport *transport = gPvd->getTransport();
-		if (transport->isConnected())
-			transport->flush();
+		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())
+			gPvd->getTransport()->flush();
 		gPvd->disconnect();
 		gPvd->release();
 		transport->release();

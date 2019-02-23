@@ -9,7 +9,7 @@
 
 namespace Engine
 {
-	class Actor: public GameObjects, public Camera, public Dialogs
+	class Actor: public Camera, public Dialogs
 	{
 	public:
 

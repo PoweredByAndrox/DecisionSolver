@@ -24,13 +24,13 @@ namespace Engine
 		{
 			while (!g_Obj.empty())
 			{
-				g_Obj.at(0).model->Close();
+				g_Obj.at(0).model->Release();
 				g_Obj.at(0).Destroy();
 				g_Obj.erase(g_Obj.begin());
 			}
 			while (!NPC.empty())
 			{
-				NPC.at(0).model->Close();
+				NPC.at(0).model->Release();
 				NPC.at(0).Destroy();
 				NPC.erase(NPC.begin());
 			}

@@ -545,7 +545,7 @@ void Engine::QuadTerrain::CreateTreeNode(NT *node, Vector2 Pos, float width)
 
 		// Now create the vertex buffers.
 	node->vertexBuffer = terrain->getRenderObj()->CreateVB(int(sizeof(Vertex) * vertexCount), vertices);
-	node->indexBuffer = terrain->getRenderObj()->CreateIB(int(sizeof(UINT) * vertexCount), indices.data());
+	node->indexBuffer = terrain->getRenderObj()->CreateIB(int(sizeof(UINT) * vertexCount), (DWORD *)indices.data());
 
 		// Release the vertex and index arrays now that the data is stored in the buffers in the node.
 	SAFE_DELETE(vertices);

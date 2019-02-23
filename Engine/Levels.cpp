@@ -198,16 +198,16 @@ HRESULT Engine::Levels::Init()
 		auto Files = FS->getFilesInFolder(&string("models"), ".obj");
 		for (int i = 0; i < Files.size(); i++)
 		{
-			if (FindSubStr(Files.at(i), string("Nanosuit.obj")) || FindSubStr(Files.at(i), string("Muddy.obj"))) // This is hardcode!!!
+			/*if (FindSubStr(Files.at(i), string("Nanosuit.obj")) || FindSubStr(Files.at(i), string("Muddy.obj"))) // This is hardcoded!!!
 			{
 				NPC.push_back(GameObjects::Object(new Models(&Files.at(i))));
 				NPC.back().type = Object::TYPE::NPC;
 			}
 			else
-			{
+			{*/
 				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i))));
 				g_Obj.back().type = Object::TYPE::OBJECTS;
-			}
+			//}
 		
 		}
 		LoadXML(FS->GetFile(string("first_level.xml"))->PathA.c_str());

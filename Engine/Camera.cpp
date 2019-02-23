@@ -215,8 +215,8 @@ void Engine::Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool 
 			m_vKeyboardDirection.x -= 1.0f;
 			Pos.p.x = m_vKeyboardDirection.x;
 		}
-		if (PhysX->getActrCamera())
-			PhysX->getActrCamera()->setGlobalPose(Pos);
+		//if (PhysX->getActrCamera())
+		//	PhysX->getActrCamera()->setGlobalPose(Pos);
 
 	}
 
@@ -405,8 +405,8 @@ void Engine::Camera::Reset()
 
 	SetViewParams(vDefaultEye, vDefaultLookAt);
 
-	if (PhysX->getActrCamera())
-		PhysX->getActrCamera()->setGlobalPose(PxTransform(vDefaultEye.x, vDefaultEye.y, vDefaultEye.z));
+	//if (PhysX->getActrCamera())
+	//	PhysX->getActrCamera()->setGlobalPose(PxTransform(vDefaultEye.x, vDefaultEye.y, vDefaultEye.z));
 }
 
 void Engine::Camera::FrameMove(_In_ float fElapsedTime)
@@ -468,8 +468,8 @@ void Engine::Camera::FrameMove(_In_ float fElapsedTime)
 
 	XMStoreFloat3(&m_vEye, vEye);
 
-	if (PhysX->getActrCamera())
-		PhysX->getActrCamera()->setGlobalPose(PxTransform(vEye.x, vEye.y, vEye.z));
+	//if (PhysX->getActrCamera())
+	//	PhysX->getActrCamera()->setGlobalPose(PxTransform(vEye.x, vEye.y, vEye.z));
 
 		// Update the lookAt position based on the eye position
 	Vector3 vLookAt = vEye + vWorldAhead;

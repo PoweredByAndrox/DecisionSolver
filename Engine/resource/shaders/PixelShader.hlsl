@@ -14,3 +14,15 @@ float4 ColorPixelShader(float4 pos: SV_POSITION, float2 texcoord: TEXCOORD): SV_
 	float4 Texture = shaderTexture.Sample(SampleType, texcoord);
     return Texture;
 }
+
+//------------------------------------------------------------------------------------
+struct VS_OUTPUT
+{
+	float4 Pos : SV_POSITION;
+	float4 Color : COLOR0;
+};
+
+float4 PS(VS_OUTPUT input) : SV_Target
+{
+	return input.Color;
+}
