@@ -13,3 +13,6 @@
 [submodule "submodules/tinyXML2"]
 	path = submodules/tinyXML2
 	url = https://github.com/leethomason/tinyxml2.git
+[submodule "submodules/imgui"]
+	path = submodules/imgui
+	url = https://github.com/ocornut/imgui.git
