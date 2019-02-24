@@ -191,11 +191,13 @@ void Levels::ProcessXML()
 	}
 }
 
-HRESULT Engine::Levels::Init()
+HRESULT Engine::Levels::Init(File_system *FS)
 {
 	try
 	{
-		auto Files = FS->getFilesInFolder(&string("models"), ".obj");
+		this->FS = FS;
+
+		auto Files = FS->getFilesInFolder(".obj");
 		for (int i = 0; i < Files.size(); i++)
 		{
 			/*if (FindSubStr(Files.at(i), string("Nanosuit.obj")) || FindSubStr(Files.at(i), string("Muddy.obj"))) // This is hardcoded!!!
@@ -205,7 +207,7 @@ HRESULT Engine::Levels::Init()
 			}
 			else
 			{*/
-				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i))));
+				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i), FS)));
 				g_Obj.back().type = Object::TYPE::OBJECTS;
 			//}
 		

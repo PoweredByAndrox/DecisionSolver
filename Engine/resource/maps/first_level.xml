@@ -3,6 +3,6 @@
 <!-- The level has 1 objects (two spaceships) -->
 <scene>
 	<objects>
-		<One id="Spaceship1" x="120" y="18" z="105"/>
+		<One id="Spaceship1" x="0" y="0" z="0"/>
 	</objects>
 </scene>

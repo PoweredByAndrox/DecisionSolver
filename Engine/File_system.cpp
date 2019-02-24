@@ -321,10 +321,10 @@ vector<string> File_system::getFilesInFolder(string *Folder)
 
 	return files;
 }
-vector<string> File_system::getFilesInFolder(string *Folder, LPCSTR ext)
+vector<string> File_system::getFilesInFolder(LPCSTR ext)
 {
 	vector<string> files;
-	string ResPath;
+	/*string ResPath;
 
 	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
 		ResPath = string(Folder->c_str());	// If found
@@ -336,6 +336,13 @@ vector<string> File_system::getFilesInFolder(string *Folder, LPCSTR ext)
 		auto str = it->path();
 		if (strstr(str.extension().string().c_str(), ext) != NULL)
 			files.push_back(replaceAll(*const_cast<string*>(&str.string()), string("\\"), string("/"), string("//")));
+	}
+	*/
+
+	for (int i = 0; i < Files.size(); i++)
+	{
+		if (Files.at(i)->ExtA == ext)
+			files.push_back(Files.at(i)->PathA);
 	}
 
 	return files;

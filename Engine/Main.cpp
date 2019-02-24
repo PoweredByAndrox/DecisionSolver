@@ -103,7 +103,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<
 void InitApp()
 {
 	if (!ui->IsInitUI())
-		ui->Init(1, file_system->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+		ui->Init(file_system.get(), 1, file_system->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 	ui->getDialog()->at(0)->SetCallback(OnGUIEvent);
 
 	vector<int> CountOfButtons =
@@ -176,7 +176,7 @@ void InitApp()
 
 #ifndef Never_MainMenu
 	if (!MM->IsInitMainMenu())
-		MM->Init(Sound.get());
+		MM->Init(file_system.get(), Sound.get());
 
 	MM->getDlgMM()->SetCallback(OnGUIEvent); 
 	MM->getDlgAUD()->SetCallback(OnGUIEvent);
@@ -210,7 +210,7 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings *pDeviceSettings, void* pU
 	return true;
 }
 
-vector<unique_ptr<GeometricPrimitive>> m_shape;
+//vector<unique_ptr<GeometricPrimitive>> m_shape;
 
 void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
@@ -258,7 +258,7 @@ void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<
 	case BUTTON_7:
 		PhysX->AddNewActor(Vector3(mainActor->getPosition().x, mainActor->getPosition().y + 10.f, mainActor->getPosition().z),
 			Vector3(0.5f, 0.5f, 0.5f), rand() % 90 + 1);
-		m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
+		//m_shape.push_back(GeometricPrimitive::CreateCube(DXUTGetD3D11DeviceContext(), 1.0f, false));
 		break;
 	case Check0:
 		if (!ui->getCheckBoxs().empty())
@@ -294,7 +294,7 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, const DXGI_SURFAC
 	MM->setGameMode(GAME_RUNNING);
 #endif
 
-	vector<wstring> FileShaders;    
+	vector<wstring> FileShaders;  
 	FileShaders.push_back(file_system->GetFile(string("VertexShader.hlsl"))->PathW);
 	FileShaders.push_back(file_system->GetFile(string("PixelShader.hlsl"))->PathW);
 
@@ -305,16 +305,16 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device *pd3dDevice, const DXGI_SURFAC
 	Version.push_back(string("vs_4_0"));
 	Version.push_back(string("ps_4_0"));
 
-	if (!buffers->isInit())
-		 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
+	//if (!buffers->isInit())
+	//	 buffers->InitSimpleBuffer(&FileShaders, &Functions, &Version);
 
 	if (!Level->IsInit())
-		Level->Init();
+		Level->Init(file_system.get());
 
 	if (!console->IsInit())
-		console->Init(PhysX.get(), Level.get());
+		console->Init(file_system.get(), PhysX.get(), Level.get());
 
-	Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
+	//Pick->SetObjClasses(PhysX.get(), mainActor->getObjCamera());
 
 #ifdef _NEVER
 	terrain->Initialize(frustum.get(), file_system->GetResPathA(&string("BitMap_Terrain.bmp"))->c_str(),
@@ -408,28 +408,32 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	pd3dImmediateContext->ClearRenderTargetView(pRTV, _ColorBuffer);
 
 	ID3D11DepthStencilView *pDSV = DXUTGetD3D11DepthStencilView();
-	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 1.0);
+	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0, 0);
 
-	auto PhysObj = PhysX->GetPhysDynamicObject();
+	auto Model = Level->getObjects();
+	for (int i = 0; i < Model.size(); i++)
+		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
 
-	for (int i = 0; i < m_shape.size(); i++)
-	{
-		if (!PhysObj.empty())
-		{
-			vector<PxQuat> aq;
-			vector<PxVec3> pos;
-			for (int i1 = 0; i1 < PhysObj.size(); i1++)
-			{
-				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
-				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
+	//auto PhysObj = PhysX->GetPhysDynamicObject();
 
-				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
-					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix()//, 
-					//_Color[rand() % 9 + 1]
-				);
-			}
-		}
-	}
+	//for (int i = 0; i < m_shape.size(); i++)
+	//{
+	//	if (!PhysObj.empty())
+	//	{
+	//		vector<PxQuat> aq;
+	//		vector<PxVec3> pos;
+	//		for (int i1 = 0; i1 < PhysObj.size(); i1++)
+	//		{
+	//			aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
+	//			pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
+
+	//			m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
+	//				* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix()//, 
+	//				//_Color[rand() % 9 + 1]
+	//			);
+	//		}
+	//	}
+	//}
 
 #ifdef _NEVER
 	terrain->Render(g_Camera->GetWorldMatrix(), g_Camera->GetViewMatrix(), g_Camera->GetProjMatrix());
@@ -456,11 +460,13 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 		else
 			mainActor->getObjCamera()->SetEnableYAxisMovement(false);
 
+/*
 #ifdef NDEBUG
 	ID3D11Debug *debug = nullptr;
 	pd3dDevice->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
+*/
 
 	PhysX->Simulation(StopIT, fElapsedTime, mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
@@ -495,7 +501,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 	ui->SetLocationStatic(ui->getDialog()->at(0), 3, 0, PosText += 15, false);
 
 	//Pick->moveCursor(DXUTGetDXGIBackBufferSurfaceDesc()->Width / 2, DXUTGetDXGIBackBufferSurfaceDesc()->Height / 2);
-	Pick->tick();
+	//Pick->tick();
 
 	ui->SetTextStatic(ui->getDialog()->at(0), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
 
@@ -506,20 +512,16 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device *pd3dDevice, ID3D11DeviceContext *
 
 	mainActor->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), fElapsedTime);
 	
-	auto Model = Level->getObjects();
-	for (int i = 0; i < Model.size(); i++)
-		Model.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
-
-	auto NPC = Level->getNPC();
-	for (int i = 0; i < NPC.size(); i++)
-		NPC.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
-
-	buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
+	//buffers->RenderSimpleBuffer(mainActor->getObjCamera()->GetWorldMatrix(), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
 
 	console->Render(fElapsedTime);
 
 	if (*console->getState() == Console_STATE::Close)
 		V(ui->getDialog()->at(0)->OnRender(fElapsedTime));
+
+	auto NPC = Level->getNPC();
+	for (int i = 0; i < NPC.size(); i++)
+		NPC.at(i).model->Render(mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix(), WireFrame);
 }
 
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
@@ -537,8 +539,8 @@ void Destroy_Application()
 
 	mainActor->Destroy();
 
-	for (int i = 0; i < m_shape.size(); i++)
-		 m_shape.at(i).release();
+	//for (int i = 0; i < m_shape.size(); i++)
+	//	 m_shape.at(i).release();
 
 	if (Sound.operator bool())
 		Sound.release();
@@ -555,8 +557,8 @@ void Destroy_Application()
 	if (mainActor.operator bool())
 		mainActor.release();
 
-	if (buffers.operator bool())
-		buffers->Release();
+	//if (buffers.operator bool())
+	//	buffers->Release();
 
 	if (console.operator bool())
 		console.release();
@@ -654,12 +656,12 @@ void CALLBACK OnKeyboard(UINT nChar, bool bKeyDown, bool bAltDown, void* pUserCo
 			}
 			break;
 		case VK_F9:
-			m_shape.clear();
+		//	m_shape.clear();
 			PhysX->ClearAllObj();
 			break;
-		case VK_F10:
-			m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
-			break;
+		//case VK_F10:
+			//m_shape.push_back(GeometricPrimitive::CreateSphere(DXUTGetD3D11DeviceContext()));
+		//	break;
 		case VK_F11:
 			if (!WireFrame)
 				WireFrame = true;
@@ -702,15 +704,15 @@ void CALLBACK OnMouse(bool bLeftButtonDown, bool bRightButtonDown, bool bMiddleB
 
 	if (bRightButtonDown)
 	{
-		Pick->moveCursor(getPos().x, getPos().y);
-		Pick->lazyPick(); // Pick Object
+	//	Pick->moveCursor(getPos().x, getPos().y);
+	//	Pick->lazyPick(); // Pick Object
 		return;
 	}
 
 	if (Pick->isPicked())
 	{
-		Pick->moveCursor(getPos().x, getPos().y);
-		Pick->letGo(); // Drop Object. Deleting next frame
+	//	Pick->moveCursor(getPos().x, getPos().y);
+	//	Pick->letGo(); // Drop Object. Deleting next frame
 		return;
 	}
 }

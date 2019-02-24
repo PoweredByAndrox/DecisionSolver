@@ -3,8 +3,10 @@
 #include "Audio.h"
 #include "../Audio/WAVFileReader.h"
 
-void Engine::Audio::Init()
+void Engine::Audio::Init(File_system *FS)
 {
+	this->FS = FS;
+
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 
 #ifdef _DEBUG
@@ -23,7 +25,7 @@ void Engine::Audio::Init()
 
 void Engine::Audio::AddNewSound()
 {
-	ListSoundsFile = getFilesInFolder(&wstring(L"Sounds"), false, false);
+	ListSoundsFile = FS->getFilesInFolder(&wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
 	{
 		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i).c_str());

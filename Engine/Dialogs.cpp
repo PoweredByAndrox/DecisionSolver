@@ -1,8 +1,10 @@
 #include "pch.h"
 #include "Dialogs.h"
 
-HRESULT Engine::Dialogs::Init()
+HRESULT Engine::Dialogs::Init(File_system *FS)
 {
+	this->FS = FS;
+
 	doc = make_unique<tinyxml2::XMLDocument>();
 	if (!doc.operator bool())
 	{
@@ -21,12 +23,12 @@ HRESULT Engine::Dialogs::LoadFile(string *FileName)
 	if (doc->ErrorID() > 0)
 	{
 		StackTrace(doc->ErrorStr());
-		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile: \n") + string(doc->ErrorStr())).c_str());
+		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
-	if (doc->Parse(getDataFromFile(FileName, false).c_str()) > 0)
+	if (doc->Parse(FS->getDataFromFile(FileName, false).c_str()) > 0)
 	{
-		throw exception(string(string("Dialogs->LoadFile()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+		throw exception(string(string("Dialogs->LoadFile()::doc->Parse:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
 

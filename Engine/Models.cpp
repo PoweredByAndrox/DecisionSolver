@@ -68,7 +68,7 @@ bool Models::LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH)
 
 bool Models::LoadFromAllModels()
 {
-	auto Files = getFilesInFolder(&string("models"), ".obj");
+	auto Files = FS->getFilesInFolder(".obj");
 	for (int i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
@@ -96,7 +96,7 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 {
 	int i1 = 0;
 
-	auto Files = getFilesInFolder(&string("models"), ".obj");
+	auto Files = FS->getFilesInFolder(".obj");
 	for (int i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
@@ -143,9 +143,9 @@ void Models::Render(Matrix View, Matrix Proj, bool WF)
 {
 	//	for (int i = 0; i < meshes.size(); i++)
 	//			meshes.at(i).Draw(scale * rotate * position, View, Proj);
-	if (!textures.empty())
-		render->RenderModels(scale * rotate * position, View, Proj, 36 /*indices.size()*/, sizeof(Things), textures[0].texture, WF);
-	else
+	//if (!textures.empty())
+	//	render->RenderModels(scale * rotate * position, View, Proj, 36 /*indices.size()*/, sizeof(Things), textures[0].texture, WF);
+	//else
 		render->RenderModels(scale * rotate * position, View, Proj, 36 /*indices.size()*/, sizeof(Things), nullptr, WF);
 
 	//m_model->Draw(DeviceCon, *m_states, scale * rotate * position, View, Proj);
@@ -176,13 +176,13 @@ vector<Models::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureT
 			else
 			{
 				GetD3DDevice();
-				if (FindSubStr(GetFile(string(str.C_Str()))->ExtA, string(".dds")))
-					V(CreateDDSTextureFromFile(Device, GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture))
+				if (FindSubStr(FS->GetFile(string(str.C_Str()))->ExtA, string(".dds")))
+					V(CreateDDSTextureFromFile(Device, FS->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture))
 				else
-					V(CreateWICTextureFromFile(Device, GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture));
+					V(CreateWICTextureFromFile(Device, FS->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture));
 			}
 			texture.type = typeName;
-			texture.path = GetFile(string(str.C_Str()))->PathA.c_str();
+			texture.path = FS->GetFile(string(str.C_Str()))->PathA.c_str();
 
 			textures.push_back(texture);
 
@@ -271,7 +271,7 @@ int Models::getTextureIndex(aiString *str)
 ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int Textureindex)
 {
 	ID3D11ShaderResourceView *texture;
-	int* size = reinterpret_cast<int*>(&Scene->mTextures[Textureindex]->mWidth);
+	int *size = reinterpret_cast<int *>(&Scene->mTextures[Textureindex]->mWidth);
 
 	GetD3DDevice();
 	V(CreateWICTextureFromMemory(Device, reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
@@ -297,8 +297,8 @@ void Models::setPosition(Vector3 Pos)
 void Models::setupMesh()
 {
 	vector<wstring> FileShaders;
-	FileShaders.push_back(render->GetFile(string("VertexShader.hlsl"))->PathW);
-	FileShaders.push_back(render->GetFile(string("PixelShader.hlsl"))->PathW);
+	FileShaders.push_back(FS->GetFile(string("VertexShader.hlsl"))->PathW);
+	FileShaders.push_back(FS->GetFile(string("PixelShader.hlsl"))->PathW);
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("VS"));

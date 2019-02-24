@@ -4,13 +4,11 @@
 #include "pch.h"
 
 #include "Shaders.h"
-#include "File_system.h"
-
 #include <WICTextureLoader.h>
 
 namespace Engine
 {
-	class Render_Buffer: public Shaders, public File_system
+	class Render_Buffer: public Shaders
 	{
 	private:
 #pragma pack(push, 1)
@@ -51,8 +49,6 @@ namespace Engine
 		bool isInit() { return init; }
 		ID3D11Buffer *getVB() { if (m_vertexBuffer) return m_vertexBuffer; return nullptr; }
 		ID3D11Buffer *getIB() { if (m_indexBuffer)  return m_indexBuffer; return nullptr; }
-		File_system *getFS() { if (FS) return FS; return nullptr; }
-
 	protected:
 		// **********
 			// Init Class
@@ -79,7 +75,6 @@ namespace Engine
 		static ID3D11RenderTargetView *g_pRenderTargetView;
 
 		Shaders *Shader = new Shaders;
-		File_system *FS = new File_system;
 
 		vector<ID3DBlob *> Buffer_blob;
 		vector<void *> Buffers;

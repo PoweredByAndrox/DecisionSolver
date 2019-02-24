@@ -97,8 +97,8 @@ bool Engine::Terrain::InitializeBuffers()
 	}
 
 	vector<wstring> FileShaders;
-	FileShaders.push_back(Engine::Terrain::GetFile(string("VertexShader.hlsl"))->PathW);
-	FileShaders.push_back(Engine::Terrain::GetFile(string("PixelShader.hlsl"))->PathW);
+	//FileShaders.push_back(FS->GetFile(string("VertexShader.hlsl"))->PathW);
+	//FileShaders.push_back(Engine::Terrain::GetFile(string("PixelShader.hlsl"))->PathW);
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("ColorVertexShader"));

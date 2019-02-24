@@ -46,7 +46,7 @@ namespace Engine
 
 		vector<string> getFilesInFolder(string *Folder, bool Recursive, bool onlyFile);
 		vector<string> getFilesInFolder(string *Folder);
-		vector<string> getFilesInFolder(string *Folder, LPCSTR ext);
+		vector<string> getFilesInFolder(LPCSTR ext);
 
 		// Work With Files
 		string getDataFromFile(string *File, bool LineByline);

@@ -10,10 +10,10 @@ using namespace tinyxml2;
 
 namespace Engine
 {
-	class UI: public File_system
+	class UI
 	{
 	public:
-		HRESULT Init(int Count = 1, LPCWSTR texture = L"");
+		HRESULT Init(File_system *fs, int Count = 1, LPCWSTR texture = L"");
 
 		void Render(float Time, int ID = 0);
 		
@@ -148,7 +148,7 @@ namespace Engine
 		int iY = 10;
 		
 		// **********
-		unique_ptr<File_system> fs = make_unique<File_system>();
+		File_system *fs = nullptr;
 
 		// **********
 		unique_ptr<tinyxml2::XMLDocument> doc;

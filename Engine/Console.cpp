@@ -2,14 +2,16 @@
 
 #include "Console.h"
 
-HRESULT Engine::Console::Init(Physics *Phys, Levels *level)
+HRESULT Engine::Console::Init(File_system *FS, Physics *Phys, Levels *level)
 {
 	try
 	{
+		this->FS = FS;
+
 		//if (!ui->IsInitUI())
 		//{
-			ui->Init(1, ui->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
-			ui->LoadXmlUI(ui->GetFile(string("All.xml"))->PathA.c_str());
+			ui->Init(FS, 1, FS->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+			ui->LoadXmlUI(FS->GetFile(string("All.xml"))->PathA.c_str());
 		//}
 
 		this->Phys.reset(Phys);
@@ -149,7 +151,7 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 				{
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
-					Cache_UI->getUI()->ReloadXML(Cache_UI->getUI()->GetFile(string("All.xml"))->PathA.c_str());
+					Cache_UI->getUI()->ReloadXML(Cache_UI->FS->GetFile(string("All.xml"))->PathA.c_str());
 					Cache_UI->Settings(true);
 				}
 				else if (wcsstr(Cache_Edit->GetText(), L"Get_size_phys_obj"))

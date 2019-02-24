@@ -20,7 +20,7 @@ namespace Engine
 	class MainMenu: public UI, public Audio
 	{
 	public:
-		HRESULT Init(Audio *sound);
+		HRESULT Init(File_system *FS, Audio *sound);
 
 		MainMenu() {}
 		~MainMenu() {}
@@ -66,6 +66,8 @@ namespace Engine
 
 		unique_ptr<UI> ui = make_unique<UI>();
 		unique_ptr<Audio> Sound;
+
+		File_system *FS = nullptr;
 
 	private:
 		Dialog MainMenuDlg, VideoMenuDlg, AudioMenuDlg;

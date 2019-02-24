@@ -281,7 +281,7 @@ HRESULT Engine::Render_Buffer::InitModels(UINT VertexSize, void *Vertix, UINT In
 	}
 
 	CreateWF();
-	CreateZBuff();
+	//CreateZBuff();
 
 	GetD3DDeviceCon();
 	DeviceCon->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);

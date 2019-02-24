@@ -7,13 +7,13 @@
 
 namespace Engine
 {
-	class Dialogs: public File_system
+	class Dialogs
 	{
 	public:
 		Dialogs() {}
 		~Dialogs() {}
 
-		HRESULT Init();
+		HRESULT Init(File_system *FS);
 		HRESULT LoadFile(string *FileName);
 	
 		//*******
@@ -27,7 +27,7 @@ namespace Engine
 		bool InitClass = false;
 
 			//********
-		unique_ptr<File_system> FS = make_unique<File_system>();
+		File_system *FS = nullptr;
 
 			//********
 		unique_ptr<tinyxml2::XMLDocument> doc;

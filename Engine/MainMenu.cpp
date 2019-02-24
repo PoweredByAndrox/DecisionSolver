@@ -3,7 +3,7 @@
 
 using namespace Engine;
 
-HRESULT MainMenu::Init(Audio *sound)
+HRESULT MainMenu::Init(File_system *FS, Audio *sound)
 {
 	/*
 	if (!sound->IsInitSounSystem())
@@ -16,8 +16,10 @@ HRESULT MainMenu::Init(Audio *sound)
 	Sound = unique_ptr<Audio>(sound);
 	*/
 	
+	this->fs = FS;
+
 	if (!ui->IsInitUI())
-		ui->Init(3, ui->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+		ui->Init(FS, 3, FS->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 
 	MainMenuDlg = *ui->getDialog()->at(0);
 	AudioMenuDlg = *ui->getDialog()->at(1);

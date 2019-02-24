@@ -4,10 +4,12 @@
 
 using namespace Engine;
 
-HRESULT UI::Init(int Count, LPCWSTR texture)
+HRESULT UI::Init(File_system *fs, int Count, LPCWSTR texture)
 {
 	try
 	{
+		this->fs = fs;
+
 		for (int i = 0; i < Count; i++)
 		{
 			Dialog *dial = new Dialog;

@@ -10,10 +10,10 @@
 
 namespace Engine
 {
-	class Audio: public File_system
+	class Audio
 	{
 	public:
-		void Init();
+		void Init(File_system *FS);
 		void AddNewSound();
 		void Update();
 
@@ -44,6 +44,8 @@ namespace Engine
 		unique_ptr<SoundEffect> soundEffect[FILENAME_MAX];
 		vector<unique_ptr<SoundEffectInstance>> sound;
 		vector<wstring> ListSoundsFile;
+
+		File_system *FS = nullptr;
 
 		HRESULT hr = S_OK;
 	};

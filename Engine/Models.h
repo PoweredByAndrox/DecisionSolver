@@ -23,7 +23,7 @@ using namespace Assimp;
 namespace Engine
 {
 	class Render_Buffer;
-	class Models: public Render_Buffer
+	class Models
 	{
 	public:
 		bool LoadFromFile(string *Filename);
@@ -35,8 +35,8 @@ namespace Engine
 		void Render(Matrix View, Matrix Proj, bool WF);
 
 		Models(void) {}
-		Models(string *Filename) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
-		Models(string *Filename, UINT Flags, bool ConvertToLH) { if (!LoadFromFile(Filename, Flags, ConvertToLH)) throw exception("Models::load == false!!!"); }
+		Models(string *Filename, File_system *FS): FS(FS) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
+		Models(string *Filename, UINT Flags, bool ConvertToLH, File_system *FS): FS(FS) { if (!LoadFromFile(Filename, Flags, ConvertToLH)) throw exception("Models::load == false!!!"); }
 
 		void Release()
 		{
@@ -84,7 +84,7 @@ namespace Engine
 		const aiScene *pScene = nullptr;
 
 		vector<Texture> Textures_loaded;
-		string Textype;
+		string Textype = "";
 
 		aiMesh *mesh = nullptr;
 		
@@ -94,12 +94,7 @@ namespace Engine
 		vector<UINT> indices;
 		vector<Texture> textures;
 
-		unique_ptr<DirectX::CommonStates> m_states;
-		unique_ptr<DirectX::IEffectFactory> m_fxFactory;
-		unique_ptr<DirectX::Model> m_model;
-
 		void processNode(aiNode *node, const aiScene *Scene);
-		//Mesh processMesh(aiMesh *mesh, const aiScene *Scene);
 
 		vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene);
 		string determineTextureType(const aiScene *Scene, aiMaterial *mat);
@@ -117,6 +112,7 @@ namespace Engine
 		Matrix rotate = XMMatrixIdentity();
 
 		Render_Buffer *render = new Render_Buffer;
+		File_system *FS = nullptr;
 	};
 };
 #endif // !__MODELS_H__
