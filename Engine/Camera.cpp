@@ -1,14 +1,15 @@
 #include "pch.h"
 
-#include "DXUT.h"
-#include "DXUTcamera.h"
-#include "DXUTres.h"
 #include "Camera.h"
+
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
 
 using namespace DirectX;
 
 _Use_decl_annotations_
-void Engine::Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
+void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
 	XMStoreFloat3(&m_vEye, vEyePt);
 	XMStoreFloat3(&m_vDefaultEye, vEyePt);
@@ -31,7 +32,7 @@ void Engine::Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 }
 
 _Use_decl_annotations_
-void Engine::Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
+void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
 {
 		// Set attributes for the projection matrix
 	m_fFOV = fFOV;
@@ -43,124 +44,17 @@ void Engine::Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, 
 }
 
 _Use_decl_annotations_
-LRESULT Engine::Camera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT Camera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(hWnd);
 	UNREFERENCED_PARAMETER(lParam);
 
 	switch (uMsg)
 	{
-	case WM_KEYDOWN:
-	{
-		D3DUtil_CameraKeys mappedKey = MapKey((UINT)wParam);
-		if (mappedKey != CAM_UNKNOWN)
-			_Analysis_assume_(mappedKey < CAM_MAX_KEYS);
-		if (FALSE == IsKeyDown(m_aKeys[mappedKey]))
-		{
-			m_aKeys[mappedKey] = KEY_WAS_DOWN_MASK | KEY_IS_DOWN_MASK;
-			++m_cKeysDown;
-		}
-		break;
-	}
-
-	case WM_KEYUP:
-	{
-		D3DUtil_CameraKeys mappedKey = MapKey((UINT)wParam);
-		if (mappedKey != CAM_UNKNOWN && (DWORD)mappedKey < 8)
-		{
-			m_aKeys[mappedKey] &= ~KEY_IS_DOWN_MASK;
-			--m_cKeysDown;
-		}
-		break;
-	}
-
-	case WM_RBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_LBUTTONDOWN:
-	case WM_RBUTTONDBLCLK:
-	case WM_MBUTTONDBLCLK:
-	case WM_LBUTTONDBLCLK:
-	{
-			// Compute the drag rectangle in screen coord.
-		POINT ptCursor =
-		{
-			(short)LOWORD(lParam), (short)HIWORD(lParam)
-		};
-
-			// Update member var state
-		if ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK) && PtInRect(&m_rcDrag, ptCursor))
-		{
-			m_bMouseLButtonDown = true;
-			m_nCurrentButtonMask |= MOUSE_LEFT_BUTTON;
-		}
-		if ((uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK) && PtInRect(&m_rcDrag, ptCursor))
-		{
-			m_bMouseMButtonDown = true;
-			m_nCurrentButtonMask |= MOUSE_MIDDLE_BUTTON;
-		}
-		if ((uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONDBLCLK) && PtInRect(&m_rcDrag, ptCursor))
-		{
-			m_bMouseRButtonDown = true;
-			m_nCurrentButtonMask |= MOUSE_RIGHT_BUTTON;
-		}
-
-		SetCapture(hWnd);
-		GetCursorPos(&m_ptLastMousePosition);
-		return TRUE;
-	}
-
-	case WM_RBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_LBUTTONUP:
-	{
-			// Update member var state
-		if (uMsg == WM_LBUTTONUP)
-		{
-			m_bMouseLButtonDown = false;
-			m_nCurrentButtonMask &= ~MOUSE_LEFT_BUTTON;
-		}
-		if (uMsg == WM_MBUTTONUP)
-		{
-			m_bMouseMButtonDown = false;
-			m_nCurrentButtonMask &= ~MOUSE_MIDDLE_BUTTON;
-		}
-		if (uMsg == WM_RBUTTONUP)
-		{
-			m_bMouseRButtonDown = false;
-			m_nCurrentButtonMask &= ~MOUSE_RIGHT_BUTTON;
-		}
-
-			// Release the capture if no mouse buttons down
-		if (!m_bMouseLButtonDown && !m_bMouseRButtonDown && !m_bMouseMButtonDown)
-			ReleaseCapture();
-		break;
-	}
-
-	case WM_CAPTURECHANGED:
-	{
-		if ((HWND)lParam != hWnd)
-		{
-			if ((m_nCurrentButtonMask & MOUSE_LEFT_BUTTON) || (m_nCurrentButtonMask & MOUSE_MIDDLE_BUTTON) ||
-				(m_nCurrentButtonMask & MOUSE_RIGHT_BUTTON))
-			{
-				m_bMouseLButtonDown = false;
-				m_bMouseMButtonDown = false;
-				m_bMouseRButtonDown = false;
-				m_nCurrentButtonMask &= ~MOUSE_LEFT_BUTTON;
-				m_nCurrentButtonMask &= ~MOUSE_MIDDLE_BUTTON;
-				m_nCurrentButtonMask &= ~MOUSE_RIGHT_BUTTON;
-				ReleaseCapture();
-			}
-		}
-		break;
-	}
-
 	case WM_MOUSEWHEEL:
 			// Update member var state
-		m_nMouseWheelDelta = 0;
-		m_nMouseWheelDelta += (int)GET_WHEEL_DELTA_WPARAM(wParam);
-
-		ChangeFOV(m_nMouseWheelDelta);
+	//	m_nMouseWheelDelta = 0;
+	//	m_nMouseWheelDelta += (int)GET_WHEEL_DELTA_WPARAM(wParam);
 
 		break;
 	}
@@ -168,61 +62,39 @@ LRESULT Engine::Camera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
 }
 
 _Use_decl_annotations_
-void Engine::Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
+void Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
 {
 	if (bGetKeyboardInput)
 	{
-		PxTransform Pos(0.f, 0.f, 0.f);
 		m_vKeyboardDirection = Vector3(0.f, 0.f, 0.f);
 
 			// Update acceleration vector based on keyboard state
-		if (IsKeyDown(m_aKeys[CAM_MOVE_FORWARD]))
-		{
+		//if (IsKeyDown(m_aKeys[CAM_MOVE_FORWARD]))
+		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::W))
 			m_vKeyboardDirection.z += 1.0f;
-			Pos.p.z = m_vKeyboardDirection.z;
-		}
 
-		if (IsKeyDown(m_aKeys[CAM_MOVE_BACKWARD]))
-		{
+		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::S))
 			m_vKeyboardDirection.z -= 1.0f;
-			Pos.p.z = m_vKeyboardDirection.z;
-		}
 
 		if (m_bEnableYAxisMovement)
 		{
-			if (IsKeyDown(m_aKeys[CAM_MOVE_UP]))
-			{
+			if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::E))
 				m_vKeyboardDirection.y += 1.0f;
-				Pos.p.y = m_vKeyboardDirection.y;
 
-			}
-
-			if (IsKeyDown(m_aKeys[CAM_MOVE_DOWN]))
-			{
+			if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::Q))
 				m_vKeyboardDirection.y -= 1.0f;
-				Pos.p.y = m_vKeyboardDirection.y;
-			}
 		}
 
-		if (IsKeyDown(m_aKeys[CAM_STRAFE_RIGHT]))
-		{
+		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::D))
 			m_vKeyboardDirection.x += 1.0f;
-			Pos.p.x = m_vKeyboardDirection.x;
-		}
 
-		if (IsKeyDown(m_aKeys[CAM_STRAFE_LEFT]))
-		{
+		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::A))
 			m_vKeyboardDirection.x -= 1.0f;
-			Pos.p.x = m_vKeyboardDirection.x;
-		}
-		//if (PhysX->getActrCamera())
-		//	PhysX->getActrCamera()->setGlobalPose(Pos);
-
 	}
 
 	if (bGetMouseInput)
 		UpdateMouseDelta();
-
+	/*
 	if (bGetGamepadInput)
 	{
 		m_vGamePadLeftThumb = Vector3::Zero;
@@ -262,13 +134,15 @@ void Engine::Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool 
 			m_vGamePadRightThumb.z = m_GamePad[iMostRecentlyActive].fThumbRY;
 		}
 	}
+	*/
 }
 
-void Engine::Camera::UpdateMouseDelta()
+void Camera::UpdateMouseDelta()
 {
 		// Get current position of mouse
 	POINT ptCurMousePos;
-	GetCursorPos(&ptCurMousePos);
+	ptCurMousePos.x = Application->getMouse()->GetState().x;
+	ptCurMousePos.y = Application->getMouse()->GetState().y;
 
 		// Calc how far it's moved since last frame
 	POINT ptCurMouseDelta;
@@ -278,16 +152,12 @@ void Engine::Camera::UpdateMouseDelta()
 		// Record current position for next time
 	m_ptLastMousePosition = ptCurMousePos;
 
-	if (m_bResetCursorAfterMove && DXUTIsActive())
+	if (m_bResetCursorAfterMove)
 	{
-		POINT ptCenter;
+		POINT ptCenter = Application->getWorkAreaSize();
 
-			// Get the center of the current monitor
-		MONITORINFO mi;
-		mi.cbSize = sizeof(MONITORINFO);
-		DXUTGetMonitorInfo(DXUTMonitorFromWindow(DXUTGetHWND(), MONITOR_DEFAULTTONEAREST), &mi);
-		ptCenter.x = (mi.rcMonitor.left + mi.rcMonitor.right) / 2;
-		ptCenter.y = (mi.rcMonitor.top + mi.rcMonitor.bottom) / 2;
+		ptCenter.x = ptCenter.x / 2;
+		ptCenter.y = ptCenter.x / 2;
 		SetCursorPos(ptCenter.x, ptCenter.y);
 		m_ptLastMousePosition = ptCenter;
 	}
@@ -300,7 +170,7 @@ void Engine::Camera::UpdateMouseDelta()
 	m_vRotVelocity.y = m_vMouseDelta.y * m_fRotationScaler;
 }
 
-void Engine::Camera::UpdateVelocity(_In_ float fElapsedTime)
+void Camera::UpdateVelocity(_In_ float fElapsedTime)
 {
 	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
@@ -348,80 +218,25 @@ void Engine::Camera::UpdateVelocity(_In_ float fElapsedTime)
 		XMStoreFloat3(&m_vVelocity, vAccel);
 }
 
-Engine::D3DUtil_CameraKeys Engine::Camera::MapKey(_In_ UINT nKey)
-{
-	switch (nKey)
-	{
-	case VK_CONTROL:
-		return CAM_CONTROLDOWN;
-	case VK_LEFT:
-		return CAM_STRAFE_LEFT;
-	case VK_RIGHT:
-		return CAM_STRAFE_RIGHT;
-	case VK_UP:
-		return CAM_MOVE_FORWARD;
-	case VK_DOWN:
-		return CAM_MOVE_BACKWARD;
-	case VK_PRIOR:
-		return CAM_MOVE_UP;        // pgup
-	case VK_NEXT:
-		return CAM_MOVE_DOWN;      // pgdn
-
-	case 'A':
-		return CAM_STRAFE_LEFT;
-	case 'D':
-		return CAM_STRAFE_RIGHT;
-	case 'W':
-		return CAM_MOVE_FORWARD;
-	case 'S':
-		return CAM_MOVE_BACKWARD;
-	case 'Q':
-		return CAM_MOVE_DOWN;
-	case 'E':
-		return CAM_MOVE_UP;
-
-case VK_NUMPAD4:
-		return CAM_STRAFE_LEFT;
-	case VK_NUMPAD6:
-		return CAM_STRAFE_RIGHT;
-	case VK_NUMPAD8:
-		return CAM_MOVE_FORWARD;
-	case VK_NUMPAD2:
-		return CAM_MOVE_BACKWARD;
-	case VK_NUMPAD9:
-		return CAM_MOVE_UP;
-	case VK_NUMPAD3:
-		return CAM_MOVE_DOWN;
-
-	case VK_HOME:
-		return CAM_RESET;
-	}
-	return CAM_UNKNOWN;
-}
-
-void Engine::Camera::Reset()
+void Camera::Reset()
 {
 	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
 
 	SetViewParams(vDefaultEye, vDefaultLookAt);
-
-	//if (PhysX->getActrCamera())
-	//	PhysX->getActrCamera()->setGlobalPose(PxTransform(vDefaultEye.x, vDefaultEye.y, vDefaultEye.z));
 }
 
-void Engine::Camera::FrameMove(_In_ float fElapsedTime)
+void Camera::FrameMove(_In_ float fElapsedTime)
 {
-	if (DXUTGetGlobalTimer()->IsStopped())
-		if (DXUTGetFPS() == 0.0f)
-			fElapsedTime = 0;
-		else
-			fElapsedTime = 1.0f / DXUTGetFPS();
+	if (GetAsyncKeyState(VK_LSHIFT))
+		SetScalers(0.010f, 6.f * 15.f);
+	else
+		SetScalers(0.010f, 6.0f);
 
-	if (IsKeyDown(m_aKeys[CAM_RESET]))
+	if (Application->getTrackerKeyboard().IsKeyPressed(DirectX::Keyboard::Keys::Home))
 		Reset();
 
 		// Get keyboard/mouse/gamepad input
-	GetInput(m_bEnablePositionMovement, (m_nActiveButtonMask & m_nCurrentButtonMask) || m_bRotateWithoutButtonDown, true);
+	GetInput(m_bEnablePositionMovement, (m_nActiveButtonMask) || m_bRotateWithoutButtonDown, true);
 
 		// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
@@ -430,8 +245,7 @@ void Engine::Camera::FrameMove(_In_ float fElapsedTime)
 	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
 
 		// If rotating the camera 
-	if ((m_nActiveButtonMask & m_nCurrentButtonMask) || m_bRotateWithoutButtonDown || m_vGamePadRightThumb.x != 0 ||
-		m_vGamePadRightThumb.z != 0)
+	if ((m_nActiveButtonMask) || m_bRotateWithoutButtonDown || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
 			// Update the pitch & yaw angle based on mouse movement
 		float fYawDelta = m_vRotVelocity.x, fPitchDelta = m_vRotVelocity.y;
@@ -468,9 +282,6 @@ void Engine::Camera::FrameMove(_In_ float fElapsedTime)
 
 	XMStoreFloat3(&m_vEye, vEye);
 
-	//if (PhysX->getActrCamera())
-	//	PhysX->getActrCamera()->setGlobalPose(PxTransform(vEye.x, vEye.y, vEye.z));
-
 		// Update the lookAt position based on the eye position
 	Vector3 vLookAt = vEye + vWorldAhead;
 	XMStoreFloat3(&m_vLookAt, vLookAt);
@@ -484,13 +295,13 @@ void Engine::Camera::FrameMove(_In_ float fElapsedTime)
 }
 
 _Use_decl_annotations_
-void Engine::Camera::SetRotateButtons(bool bLeft, bool bMiddle, bool bRight, bool bRotateWithoutButtonDown)
+void Camera::SetRotateButtons(bool bLeft, bool bMiddle, bool bRight, bool bRotateWithoutButtonDown)
 {
-	m_nActiveButtonMask = (bLeft ? MOUSE_LEFT_BUTTON : 0) | (bMiddle ? MOUSE_MIDDLE_BUTTON : 0) | (bRight ? MOUSE_RIGHT_BUTTON : 0);
+	//m_nActiveButtonMask = (bLeft ? MOUSE_LEFT_BUTTON : 0) | (bMiddle ? MOUSE_MIDDLE_BUTTON : 0) | (bRight ? MOUSE_RIGHT_BUTTON : 0);
 	m_bRotateWithoutButtonDown = bRotateWithoutButtonDown;
 }
 
-void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
+void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
 {
 	float zMinimum = 0.f, r = 0.f;
 	Matrix matrix;
@@ -545,7 +356,7 @@ void Engine::Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatri
 	m_planes[5] = XMPlaneNormalize(m_planes[5]);
 }
 
-bool Engine::Frustum::CheckPoint(float x, float y, float z)
+bool Frustum::CheckPoint(float x, float y, float z)
 {
 	for (int i = 0; i < 6; i++)
 		if (XMVectorGetX(XMPlaneDotCoord(m_planes[i], XMVectorSet(x, y, z, 1.0f))) < 0.0f)
@@ -554,7 +365,7 @@ bool Engine::Frustum::CheckPoint(float x, float y, float z)
 	return true;
 }
 
-bool Engine::Frustum::CheckCube(float xCenter, float yCenter, float zCenter, float size)
+bool Frustum::CheckCube(float xCenter, float yCenter, float zCenter, float size)
 {
 	for (int i = 0; i < 6; i++)
 	{
@@ -596,7 +407,7 @@ bool Engine::Frustum::CheckCube(float xCenter, float yCenter, float zCenter, flo
 	return true;
 }
 
-bool Engine::Frustum::CheckSphere(float xCenter, float yCenter, float zCenter, float radius)
+bool Frustum::CheckSphere(float xCenter, float yCenter, float zCenter, float radius)
 {
 	for (int i = 0; i < 6; i++)
 	{
@@ -608,7 +419,7 @@ bool Engine::Frustum::CheckSphere(float xCenter, float yCenter, float zCenter, f
 	return true;
 }
 
-bool Engine::Frustum::CheckRectangle(float xCenter, float yCenter, float zCenter, float xSize, float ySize, float zSize)
+bool Frustum::CheckRectangle(float xCenter, float yCenter, float zCenter, float xSize, float ySize, float zSize)
 {
 	for (int i = 0; i < 6; i++)
 	{

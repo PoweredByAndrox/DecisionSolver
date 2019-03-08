@@ -2,23 +2,21 @@
 
 #include "Console.h"
 
-HRESULT Engine::Console::Init(File_system *FS, Physics *Phys, Levels *level)
+HRESULT EngineNS::Console::Init(Physics *Phys, Levels *level)
 {
 	try
 	{
-		this->FS = FS;
-
 		//if (!ui->IsInitUI())
 		//{
-			ui->Init(FS, 1, FS->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
-			ui->LoadXmlUI(FS->GetFile(string("All.xml"))->PathA.c_str());
+			ui->Init(1, Application->getFS()->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+			ui->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
 		//}
 
 		this->Phys.reset(Phys);
 
 		this->level = level;
 
-		V(Settings(false));
+		//V(Settings(false));
 
 		InitClass = true;
 		return S_OK;
@@ -32,6 +30,7 @@ HRESULT Engine::Console::Init(File_system *FS, Physics *Phys, Levels *level)
 	}
 }
 
+/*
 HRESULT Engine::Console::Settings(bool Reset)
 {
 	USES_CONVERSION;
@@ -114,7 +113,6 @@ void Engine::Console::Close()
 		CState = Console_STATE::Close;
 	}
 }
-
 void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
 	USES_CONVERSION;
@@ -300,3 +298,4 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 		}
 	}
 }
+*/

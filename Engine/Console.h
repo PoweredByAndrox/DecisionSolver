@@ -7,7 +7,7 @@
 #include "Physics.h"
 #include "Levels.h"
 
-namespace Engine
+namespace EngineNS
 {
 	enum Console_STATE
 	{
@@ -18,13 +18,13 @@ namespace Engine
 	class Console: public UI, public Physics
 	{
 	public:
-		HRESULT Init(File_system *FS, Physics *Phys, Levels *level);
+		HRESULT Init(Physics *Phys, Levels *level);
 
-		HRESULT Settings(bool Reset);
+		//HRESULT Settings(bool Reset);
 
-		void Render(float Time);
-		void Open();
-		void Close();
+		//void Render(float Time);
+		//void Open();
+		//void Close();
 
 		Console() {}
 		~Console() {}
@@ -40,10 +40,6 @@ namespace Engine
 		unique_ptr<UI> ui = make_unique<UI>();
 		unique_ptr<Physics> Phys;
 		Levels *level = nullptr;
-
-		File_system *FS = nullptr;
-
-		static void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext);
 	private:
 		bool InitClass = false;
 		Console_STATE CState = Console_STATE::Close;

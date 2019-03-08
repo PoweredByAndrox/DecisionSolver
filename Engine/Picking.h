@@ -41,7 +41,7 @@
 #define USE_SPHERICAL_JOINT_FOR_MOUSE 0
 //#define VISUALIZE_PICKING_RAYS
 
-namespace Engine
+namespace EngineNS
 {
 	struct PickingCommands
 	{

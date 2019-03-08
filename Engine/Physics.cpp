@@ -2,7 +2,7 @@
 
 #include "Physics.h"
 
-HRESULT Engine::Physics::Init()
+HRESULT EngineNS::Physics::Init()
 {
 	try
 	{
@@ -34,8 +34,7 @@ HRESULT Engine::Physics::Init()
 			IsInitPhysX = false;
 		}
 
-		ToDo("Needed Fix PVD!!!")
-		//gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
+		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
 		if (!gPhysics)
@@ -46,9 +45,11 @@ HRESULT Engine::Physics::Init()
 			IsInitPhysX = false;
 		}
 
+		PxInitExtensions(*gPhysics, gPvd);
+
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.0f, -9.8f, 0.0f);
-		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(1);
+		sceneDesc.cpuDispatcher = PxDefaultCpuDispatcherCreate(2);
 		sceneDesc.filterShader = PxDefaultSimulationFilterShader;
 		sceneDesc.flags |= PxSceneFlag::eENABLE_PCM;
 		sceneDesc.flags |= PxSceneFlag::eENABLE_STABILIZATION;
@@ -108,9 +109,6 @@ HRESULT Engine::Physics::Init()
 		}
 
 		IsInitPhysX = true;
-
-		GetD3DDevice();
-		GetD3DDeviceCon();
 		return S_OK;
 	}
 	catch (const exception&)
@@ -121,19 +119,16 @@ HRESULT Engine::Physics::Init()
 	}
 }
 
-void Engine::Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
+void EngineNS::Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
 {
 	if (!StopIT) 
 	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
-
-		//if (gPvd->isConnected())
-		//	transport->flush();
 	}
 }
 /*
-void Engine::Physics::_createTriMesh(Models *Model, bool stat_dyn)
+void EngineNS::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 {
 	auto Meshes = Model;
 
@@ -197,7 +192,7 @@ void Engine::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 	}
 }
 */
-void Engine::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
+void EngineNS::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
 {
 	gActorCamera = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 	gActorCamera->setMass(5.0f);
@@ -213,7 +208,7 @@ void Engine::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position
 	// DynamicObjects.push_back(gActorCamera);
 }
 
-void Engine::Physics::Destroy()
+void EngineNS::Physics::Destroy()
 {
 	if (gPvd)
 	{
@@ -223,13 +218,13 @@ void Engine::Physics::Destroy()
 		gPvd->release();
 		transport->release();
 	}
-	_SAFE_RELEASE(gCooking);
-	_SAFE_RELEASE(gScene);
-	_SAFE_RELEASE(gPhysics);
-	_SAFE_RELEASE(gFoundation);
+	SAFE_release(gCooking);
+	SAFE_release(gScene);
+	SAFE_release(gPhysics);
+	SAFE_release(gFoundation);
 }
 
-void Engine::Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass)
+void EngineNS::Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass)
 {
 	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 

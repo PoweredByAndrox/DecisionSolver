@@ -2,10 +2,9 @@
 
 #include "Models.h"
 
-using namespace Engine;
-
 bool Models::LoadFromFile(string *Filename)
 {
+	/*
 	importer = new Assimp::Importer;
 
 	pScene = importer->ReadFile(Filename->c_str(),
@@ -21,10 +20,7 @@ bool Models::LoadFromFile(string *Filename)
 		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
-
-	GetD3DDevice();
-	GetD3DDeviceCon();
-
+	*/
 	//m_states = make_unique<CommonStates>(Device);
 
 	//m_fxFactory = make_unique<EffectFactory>(Device);
@@ -33,7 +29,8 @@ bool Models::LoadFromFile(string *Filename)
 
 	//processNode(pScene->mRootNode, pScene);
 
-	SAFE_DELETE(importer);
+	//SAFE_DELETE(importer);
+	//m_shape.push_back(GeometricPrimitive::CreateCube(Application->getDeviceContext(), 1.0f, false));
 
 	setupMesh();
 	return true;
@@ -58,7 +55,6 @@ bool Models::LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH)
 		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
-	GetD3DDevice();
 
 	processNode(pScene->mRootNode, pScene);
 
@@ -68,7 +64,7 @@ bool Models::LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH)
 
 bool Models::LoadFromAllModels()
 {
-	auto Files = FS->getFilesInFolder(".obj");
+	auto Files = Application->getFS()->getFilesInFolder(".obj");
 	for (int i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
@@ -83,7 +79,6 @@ bool Models::LoadFromAllModels()
 			throw exception("Models::pScene == nullptr!!!");
 			return false;
 		}
-		GetD3DDevice();
 
 		processNode(pScene->mRootNode, pScene);
 
@@ -96,7 +91,7 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 {
 	int i1 = 0;
 
-	auto Files = FS->getFilesInFolder(".obj");
+	auto Files = Application->getFS()->getFilesInFolder(".obj");
 	for (int i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
@@ -129,7 +124,6 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 			throw exception("Models::pScene == nullptr!!!");
 			return false;
 		}
-		GetD3DDevice();
 
 		processNode(pScene->mRootNode, pScene);
 
@@ -141,13 +135,12 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 
 void Models::Render(Matrix View, Matrix Proj, bool WF)
 {
-	//	for (int i = 0; i < meshes.size(); i++)
-	//			meshes.at(i).Draw(scale * rotate * position, View, Proj);
-	//if (!textures.empty())
-	//	render->RenderModels(scale * rotate * position, View, Proj, 36 /*indices.size()*/, sizeof(Things), textures[0].texture, WF);
-	//else
-		render->RenderModels(scale * rotate * position, View, Proj, 36 /*indices.size()*/, sizeof(Things), nullptr, WF);
-
+	if (!textures.empty())
+		Application->getRender_Buffer()->RenderModels(scale * rotate * position, View, Proj, 36, sizeof(Things), textures[0].texture, WF);
+	else
+		Application->getRender_Buffer()->RenderSimpleBuffer(scale * rotate * position, View, Proj, 36, /*sizeof(Things), nullptr,*/ WF);
+	//for (int i = 0; i < m_shape.size(); i++)
+	//	m_shape.at(i)->Draw(scale * rotate * position, View, Proj, Colors::White, nullptr, WF);
 	//m_model->Draw(DeviceCon, *m_states, scale * rotate * position, View, Proj);
 }
 
@@ -175,14 +168,27 @@ vector<Models::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureT
 				texture.texture = getTextureFromModel(Scene, getTextureIndex(&str));
 			else
 			{
-				GetD3DDevice();
-				if (FindSubStr(FS->GetFile(string(str.C_Str()))->ExtA, string(".dds")))
-					V(CreateDDSTextureFromFile(Device, FS->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture))
+				if (FindSubStr(Application->getFS()->GetFile(string(str.C_Str()))->ExtA, string(".dds")))
+				{
+					if (FAILED(CreateDDSTextureFromFile(Application->getDevice(),
+						Application->getFS()->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture)))
+					{
+						DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+						throw exception("Create failed!!!");
+					}
+				}
 				else
-					V(CreateWICTextureFromFile(Device, FS->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture));
+				{
+					if (FAILED(CreateWICTextureFromFile(Application->getDevice(),
+						Application->getFS()->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture)))
+					{
+						DebugTrace("Models::CreateWICTextureFromFile() create failed");
+						throw exception("Create failed!!!");
+					}
+				}
 			}
 			texture.type = typeName;
-			texture.path = FS->GetFile(string(str.C_Str()))->PathA.c_str();
+			texture.path = Application->getFS()->GetFile(string(str.C_Str()))->PathA.c_str();
 
 			textures.push_back(texture);
 
@@ -273,8 +279,13 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	ID3D11ShaderResourceView *texture;
 	int *size = reinterpret_cast<int *>(&Scene->mTextures[Textureindex]->mWidth);
 
-	GetD3DDevice();
-	V(CreateWICTextureFromMemory(Device, reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture));
+	if (FAILED(CreateWICTextureFromMemory(Application->getDevice(),
+		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
+	{
+		DebugTrace("Models::CreateWICTextureFromMemory() create failed");
+		throw exception("Create failed!!!");
+		return nullptr;
+	}
 
 	return texture;
 }
@@ -297,8 +308,8 @@ void Models::setPosition(Vector3 Pos)
 void Models::setupMesh()
 {
 	vector<wstring> FileShaders;
-	FileShaders.push_back(FS->GetFile(string("VertexShader.hlsl"))->PathW);
-	FileShaders.push_back(FS->GetFile(string("PixelShader.hlsl"))->PathW);
+	FileShaders.push_back(Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW);
+	FileShaders.push_back(Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW);
 
 	vector<string> Functions, Version;
 	Functions.push_back(string("VS"));
@@ -319,24 +330,24 @@ void Models::setupMesh()
 
 	WORD indices[] =
 	{
-			3,1,0,
-			2,1,3,
+		3,1,0,
+		2,1,3,
 
-			0,5,4,
-			1,5,0,
+		0,5,4,
+		1,5,0,
 
-			3,4,7,
-			0,4,3,
+		3,4,7,
+		0,4,3,
 
-			1,6,5,
-			2,6,1,
+		1,6,5,
+		2,6,1,
 
-			2,7,6,
-			3,7,2,
+		2,7,6,
+		3,7,2,
 
-			6,4,5,
-			7,4,6,
+		6,4,5,
+		7,4,6,
 	};
 
-	render->InitModels(Some.size(), &Some.at(0), 36, &indices[0], sizeof(Things), &FileShaders, &Functions, &Version);
+	Application->getRender_Buffer()->InitSimpleBuffer(&FileShaders, &Functions, &Version, Some.size(), &Some.at(0), 36, &indices[0], sizeof(Things));
 }

@@ -10,6 +10,10 @@
 #include <d3dx11.h>
 #include <dxgi1_2.h>
 
+#include <d3d11_1.h>
+#include <d3d9.h>
+#include <d3dx9.h>
+
 	// DXTK
 #include <SimpleMath.h>
 #include <DirectXMath.h>
@@ -17,18 +21,11 @@
 	// Included for use USES_CONVERSION (or A2W, W2A)
 #include <AtlConv.h>
 
-#pragma warning( push )
 #pragma warning( disable: 4995 )
 #include <fstream>
 #include <sstream>
-#pragma warning( pop )
 
 #include <windows.h>
-
-#include "DXUT.h"
-#include "SDKmisc.h"
-#include "DXUTmisc.h"
-#include "GUI.h"
 
 // *********
 		/// DXTK
@@ -51,6 +48,20 @@ using namespace tinyxml2;
 using namespace spdlog;
 #endif
 
+#include "imgui.h"
+
+#include "d3dx11effect.h"
+
+#if defined(DEBUG) || defined(_DEBUG)
+#include <d3d11sdklayers.h>
+#endif
+
+#if defined(DEBUG) || defined(_DEBUG)
+#pragma comment(lib, "Effects11d.lib")
+#else
+#pragma comment(lib, "Effects11.lib")
+#endif
+
 #pragma comment (lib, "d3d9.lib")
 #pragma comment (lib, "d3dx9.lib")
 #pragma comment (lib, "d3dx9d.lib")
@@ -64,16 +75,14 @@ using namespace spdlog;
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment (lib, "D3DCSX.lib")
 
-#pragma comment (lib, "DXUT.lib")
-#pragma comment (lib, "DXUTOpt.lib")
-
 #pragma comment (lib, "assimp-vc140-mt.lib")
 
 #pragma comment (lib, "DirectXTK.lib")
+#pragma comment (lib, "DirectXTKAudioDX.lib")
 
 	// For Debug!!!
-#define MacroStr(x)   #x
-#define MacroStr2(x)  MacroStr(x)
+#define MacroStr(x) #x
+#define MacroStr2(x) MacroStr(x)
 #define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))
 
 bool FindSubStr(wstring context, wstring const from);

@@ -7,7 +7,7 @@
 #include "UI.h"
 #include "Audio.h"
 
-namespace Engine
+namespace EngineNS
 {
 	enum GAME_MODE
 	{
@@ -20,16 +20,16 @@ namespace Engine
 	class MainMenu: public UI, public Audio
 	{
 	public:
-		HRESULT Init(File_system *FS, Audio *sound);
+		//HRESULT Init(File_system *FS, Audio *sound);
 
 		MainMenu() {}
 		~MainMenu() {}
 
-		auto *getDlgMM() { return ui->getDialog()->at(0); }   // For Render
-		auto *getDlgVID() { return ui->getDialog()->at(1); } // For Render
-		auto *getDlgAUD() { return ui->getDialog()->at(2); } // For Render
+		//auto *getDlgMM() { return ui->getDialog()->at(0); }   // For Render
+		//auto *getDlgVID() { return ui->getDialog()->at(1); }  // For Render
+		//auto *getDlgAUD() { return ui->getDialog()->at(2); }  // For Render
 		
-		void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, vector<void *> pUserContext);
+		//void CALLBACK OnGUIEvent(UINT nEvent, int nControlID, Control* pControl, vector<void *> pUserContext);
 
 		auto const *getGameMode() { return &gameMode; }
 		void setGameMode(GAME_MODE _enum) { gameMode = _enum; }
@@ -54,23 +54,20 @@ namespace Engine
 #define IDC_ASPECT              23
 
 
-		HRESULT UpdateD3D11RefreshRates();
-		HRESULT UpdateD3D11Resolutions();
-		HRESULT OnD3D11ResolutionChanged();
-		void AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate);
-		DXUTDeviceSettings g_DeviceSettings;
+		//HRESULT UpdateD3D11RefreshRates();
+		//HRESULT UpdateD3D11Resolutions();
+		//HRESULT OnD3D11ResolutionChanged();
+		//void AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate);
+		//DXUTDeviceSettings g_DeviceSettings;
 
-		void AddD3D11Resolution(DWORD dwWidth, DWORD dwHeight);
+		//void AddD3D11Resolution(DWORD dwWidth, DWORD dwHeight);
 
 		GAME_MODE gameMode = GAME_MODE::GAME_RUNNING;
 
-		unique_ptr<UI> ui = make_unique<UI>();
+		unique_ptr<UI> ui;
 		unique_ptr<Audio> Sound;
-
-		File_system *FS = nullptr;
-
 	private:
-		Dialog MainMenuDlg, VideoMenuDlg, AudioMenuDlg;
+		//Dialog MainMenuDlg, VideoMenuDlg, AudioMenuDlg;
 	};
 };
 #endif // !__MAIN_MENU_H__

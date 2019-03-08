@@ -33,7 +33,7 @@
 
 #include "Picking.h"
 
-using namespace Engine;	// PT: please DO NOT indent the whole file
+using namespace EngineNSNS;	// PT: please DO NOT indent the whole file
 using namespace physx;
 
 Picking::Picking() :

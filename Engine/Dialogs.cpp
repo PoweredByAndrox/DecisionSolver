@@ -1,10 +1,8 @@
 #include "pch.h"
 #include "Dialogs.h"
 
-HRESULT Engine::Dialogs::Init(File_system *FS)
+HRESULT EngineNS::Dialogs::Init()
 {
-	this->FS = FS;
-
 	doc = make_unique<tinyxml2::XMLDocument>();
 	if (!doc.operator bool())
 	{
@@ -17,16 +15,16 @@ HRESULT Engine::Dialogs::Init(File_system *FS)
 	return S_OK;
 }
 
-HRESULT Engine::Dialogs::LoadFile(string *FileName)
+HRESULT EngineNS::Dialogs::LoadFile(string *FileName)
 {
-	doc->LoadFile(FS->GetFile(*FileName)->PathA.c_str());
+	doc->LoadFile(EngineNS::Application->getFS()->GetFile(*FileName)->PathA.c_str());
 	if (doc->ErrorID() > 0)
 	{
 		StackTrace(doc->ErrorStr());
 		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
-	if (doc->Parse(FS->getDataFromFile(FileName, false).c_str()) > 0)
+	if (doc->Parse(EngineNS::Application->getFS()->getDataFromFile(FileName, false).c_str()) > 0)
 	{
 		throw exception(string(string("Dialogs->LoadFile()::doc->Parse:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
@@ -35,7 +33,7 @@ HRESULT Engine::Dialogs::LoadFile(string *FileName)
 	return S_OK;
 }
 
-void Engine::Dialogs::getMAReplices()
+void EngineNS::Dialogs::getMAReplices()
 {
 	auto Main_Element = doc->RootElement();
 	if (!Main_Element)

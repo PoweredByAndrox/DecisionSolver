@@ -78,11 +78,8 @@
 #endif
 using namespace physx;
 
-namespace Engine
+namespace EngineNS
 {
-#define _SAFE_RELEASE(p) { if (p) { (p)->release(); (p) = nullptr; } }
-
-
 	class Physics: public Models
 	{
 	public:
@@ -96,7 +93,7 @@ namespace Engine
 		void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
 		void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
 		{
-#ifndef DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 			PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
 			distanceJoint->setProjectionLinearTolerance(0.5f);
 #endif
@@ -133,17 +130,6 @@ namespace Engine
 			}
 		}
 
-		void Release()
-		{
-			SAFE_RELEASE(Device);
-			if (DeviceCon)
-			{
-				DeviceCon->ClearState();
-				DeviceCon->Flush();
-				SAFE_RELEASE(DeviceCon);
-			}
-		}
-
 		void SetPhysicsForCamera(Vector3 Pos, Vector3 Geom);
 
 		Physics() {}
@@ -175,12 +161,6 @@ namespace Engine
 		// ***************
 		PxRigidDynamic *meshActor = nullptr;
 		PxTriangleMesh *triangleMesh = nullptr;
-
-		// ***************
-		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
-		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
-		ID3D11Device *Device = nullptr;
-		ID3D11DeviceContext *DeviceCon = nullptr;
 
 		// ***************
 			// Initialized bool variable

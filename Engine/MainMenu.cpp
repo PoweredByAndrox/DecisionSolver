@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "MainMenu.h"
 
-using namespace Engine;
+using namespace EngineNS;
+/*
 
 HRESULT MainMenu::Init(File_system *FS, Audio *sound)
 {
-	/*
 	if (!sound->IsInitSounSystem())
 	{
 		DebugTrace("MainMenu: Init failed.\n");
@@ -14,7 +14,6 @@ HRESULT MainMenu::Init(File_system *FS, Audio *sound)
 		return E_FAIL;
 	}
 	Sound = unique_ptr<Audio>(sound);
-	*/
 	
 	this->fs = FS;
 
@@ -259,7 +258,6 @@ void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pContro
 	else if (pControl->GetType() == CONTROL_TYPE::CONTROL_SLIDER)
 		Cache_Slider = (Slider *)pControl;
 }
-/*		
 		//case IDC_SOUNDFX_SCALE:
 			//g_audioState.fSoundFXVolume = (float)(AudioMenuDlg.GetSlider(IDC_SOUNDFX_SCALE)->GetValue() /
 			//	100.0f);
@@ -283,6 +281,7 @@ void CALLBACK MainMenu::OnGUIEvent(UINT nEvent, int nControlID, Control *pContro
 		}
 	}
 }
+
 /*
 void MainMenu::UpdateAspectRatioList(DXUTDeviceSettings* pDS)
 {
@@ -381,7 +380,6 @@ void MainMenu::UpdateAspectRatioList(DXUTDeviceSettings* pDS)
 	// Now update resolution list
 	UpdateResolutionList(pDS);
 }
-*/
 //--------------------------------------------------------------------------------------
 // Updates the resolution list for D3D11
 //--------------------------------------------------------------------------------------
@@ -572,3 +570,4 @@ void MainMenu::AddD3D11RefreshRate(_In_ DXGI_RATIONAL RefreshRate)
 	//	}
 	//}
 }
+*/

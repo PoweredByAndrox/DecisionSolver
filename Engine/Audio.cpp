@@ -3,10 +3,8 @@
 #include "Audio.h"
 #include "../Audio/WAVFileReader.h"
 
-void Engine::Audio::Init(File_system *FS)
+void EngineNS::Audio::Init()
 {
-	this->FS = FS;
-
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 
 #ifdef _DEBUG
@@ -23,9 +21,9 @@ void Engine::Audio::Init(File_system *FS)
 	InitSoundSystem = true;
 }
 
-void Engine::Audio::AddNewSound()
+void EngineNS::Audio::AddNewSound()
 {
-	ListSoundsFile = FS->getFilesInFolder(&wstring(L"Sounds"), false, false);
+	ListSoundsFile = Application->getFS()->getFilesInFolder(&wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
 	{
 		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i).c_str());
@@ -39,7 +37,7 @@ void Engine::Audio::AddNewSound()
 	}
 }
 
-void Engine::Audio::Update()
+void EngineNS::Audio::Update()
 {
 	if (!audEngine->Update())
 	{
@@ -51,37 +49,37 @@ void Engine::Audio::Update()
 	}
 }
 
-void Engine::Audio::doPlay()
+void EngineNS::Audio::doPlay()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Play(true);
 }
 
-void Engine::Audio::changeSoundVol(float Vol)
+void EngineNS::Audio::changeSoundVol(float Vol)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetVolume(Vol);
 }
 
-void Engine::Audio::changeSoundPan(float Pan)
+void EngineNS::Audio::changeSoundPan(float Pan)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetPan(Pan);
 }
 
-void Engine::Audio::doPause()
+void EngineNS::Audio::doPause()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Pause();
 }
 
-void Engine::Audio::doResume()
+void EngineNS::Audio::doResume()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Resume();
 }
 
-void Engine::Audio::doStop()
+void EngineNS::Audio::doStop()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Stop();

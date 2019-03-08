@@ -5,15 +5,14 @@
 
 #include "File_system.h"
 #include <Audio.h>
+#include "Engine.h"
 
-#pragma comment(lib, "DirectXTKAudioDX.lib")
-
-namespace Engine
+namespace EngineNS
 {
 	class Audio
 	{
 	public:
-		void Init(File_system *FS);
+		void Init();
 		void AddNewSound();
 		void Update();
 
@@ -44,9 +43,6 @@ namespace Engine
 		unique_ptr<SoundEffect> soundEffect[FILENAME_MAX];
 		vector<unique_ptr<SoundEffectInstance>> sound;
 		vector<wstring> ListSoundsFile;
-
-		File_system *FS = nullptr;
-
 		HRESULT hr = S_OK;
 	};
 };

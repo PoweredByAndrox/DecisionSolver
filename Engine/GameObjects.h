@@ -6,8 +6,9 @@
 #include "Physics.h"
 #include "Model.h"
 #include "Audio.h"
+#include "Engine.h"
 
-namespace Engine
+namespace EngineNS
 {
 	class GameObjects: public Models
 	{
@@ -30,7 +31,16 @@ namespace Engine
 		struct Object
 		{
 			Object(Models *model) { this->model = model; }
-			void Destroy() { ID = 0; ID_TEXT = ""; HasScale = false; ScaleCoords = Vector3::Zero; SAFE_DELETE(model); }
+			void Destroy()
+			{
+				ID = 0;
+				ID_TEXT = "";
+				HasScale = false; 
+				ScaleCoords = Vector3::Zero;
+
+				if (model)
+					model = nullptr;
+			}
 			int ID = 0;
 			enum TYPE { OBJECTS = 1, NPC, ACTOR, PROPS, ETC, NONE };
 			GameObjects::Object::TYPE type = (GameObjects::Object::TYPE)NONE;

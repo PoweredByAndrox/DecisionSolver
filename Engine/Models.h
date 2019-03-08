@@ -18,101 +18,97 @@
 #include <Effects.h>
 #include <Model.h>
 
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+
 using namespace Assimp;
 
-namespace Engine
+class Models
 {
-	class Render_Buffer;
-	class Models
+public:
+	bool LoadFromFile(string *Filename);
+	bool LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH);
+
+	bool LoadFromAllModels();
+	bool LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH);
+
+	void Render(Matrix View, Matrix Proj, bool WF);
+
+	Models(void) {}
+	Models(string *Filename) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
+
+	void Release()
 	{
-	public:
-		bool LoadFromFile(string *Filename);
-		bool LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH);
-
-		bool LoadFromAllModels();
-		bool LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH);
-
-		void Render(Matrix View, Matrix Proj, bool WF);
-
-		Models(void) {}
-		Models(string *Filename, File_system *FS): FS(FS) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
-		Models(string *Filename, UINT Flags, bool ConvertToLH, File_system *FS): FS(FS) { if (!LoadFromFile(Filename, Flags, ConvertToLH)) throw exception("Models::load == false!!!"); }
-
-		void Release()
+		while (!textures.empty())
 		{
-			SAFE_RELEASE(Device);
-			if (DeviceCon)
-			{
-				DeviceCon->ClearState();
-				DeviceCon->Flush();
-				SAFE_RELEASE(DeviceCon);
-			}
-			for (int i = 0; i < textures.size(); i++)
-				textures.at(i).texture->Release();
+			SAFE_DELETE(textures.at(0).texture);
+			textures.erase(textures.begin());
+		}
+		while (!Textures_loaded.empty())
+		{
+			SAFE_DELETE(Textures_loaded.at(0).texture);
+			Textures_loaded.erase(Textures_loaded.begin());
 		}
 
-		void setRotation(Vector3 rotaxis);
-		void setScale(Vector3 Scale);
-		void setPosition(Vector3 Pos);
-		void setupMesh();
+		SAFE_DELETE(importer);
+		SAFE_DELETE(pScene);
+		SAFE_DELETE(mesh);
+	}
 
-		auto getIndices() { if (!indices.empty()) return indices; }
-		auto getVertices() { if (!vertices.empty()) return vertices; }
+	void setRotation(Vector3 rotaxis);
+	void setScale(Vector3 Scale);
+	void setPosition(Vector3 Pos);
+	void setupMesh();
 
-		Vector3 getPosition() { return position.Translation(); }
+	auto getIndices() { if (!indices.empty()) return indices; }
+	auto getVertices() { if (!vertices.empty()) return vertices; }
 
-		~Models() {}
-	protected:
+	Vector3 getPosition() { return position.Translation(); }
+
+	~Models() {}
+protected:
 #pragma pack(push, 1)
-		struct Things
-		{
-			Vector3 Position;
-			Vector4 Texcoord;
-			Things(Vector3 Position, Vector4 Texcoord): Position(Position), Texcoord(Texcoord) {}
-		};
+	struct Things
+	{
+		Vector3 Position;
+		Vector4 Texcoord;
+		Things(Vector3 Position, Vector4 Texcoord) : Position(Position), Texcoord(Texcoord) {}
+	};
 #pragma pack()
 
-		struct Texture
-		{
-			string type, path;
-			ID3D11ShaderResourceView *texture = nullptr;
-		};
-
-		HRESULT hr = S_OK;
-
-		Assimp::Importer *importer = nullptr;
-		const aiScene *pScene = nullptr;
-
-		vector<Texture> Textures_loaded;
-		string Textype = "";
-
-		aiMesh *mesh = nullptr;
-		
-		int CountMaterial = 0;
-
-		vector<Things> vertices;
-		vector<UINT> indices;
-		vector<Texture> textures;
-
-		void processNode(aiNode *node, const aiScene *Scene);
-
-		vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene);
-		string determineTextureType(const aiScene *Scene, aiMaterial *mat);
-		int getTextureIndex(aiString *str);
-
-		ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
-
-		ID3D11Device *Device = nullptr;
-		ID3D11DeviceContext *DeviceCon = nullptr;
-		void GetD3DDevice() { if (!Device) Device = DXUTGetD3D11Device(); }
-		void GetD3DDeviceCon() { if (!DeviceCon) DeviceCon = DXUTGetD3D11DeviceContext(); }
-
-		Matrix position = XMMatrixIdentity();
-		Matrix scale = XMMatrixIdentity();
-		Matrix rotate = XMMatrixIdentity();
-
-		Render_Buffer *render = new Render_Buffer;
-		File_system *FS = nullptr;
+	struct Texture
+	{
+		string type, path;
+		ID3D11ShaderResourceView *texture = nullptr;
 	};
+
+	HRESULT hr = S_OK;
+
+	Assimp::Importer *importer = nullptr;
+	const aiScene *pScene = nullptr;
+
+	vector<Texture> Textures_loaded;
+	string Textype = "";
+
+	aiMesh *mesh = nullptr;
+
+	int CountMaterial = 0;
+
+	vector<Things> vertices;
+	vector<UINT> indices;
+	vector<Texture> textures;
+
+	void processNode(aiNode *node, const aiScene *Scene);
+
+	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene);
+	string determineTextureType(const aiScene *Scene, aiMaterial *mat);
+	int getTextureIndex(aiString *str);
+
+	ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
+
+	Matrix position = XMMatrixIdentity();
+	Matrix scale = XMMatrixIdentity();
+	Matrix rotate = XMMatrixIdentity();
 };
 #endif // !__MODELS_H__

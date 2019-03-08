@@ -2,8 +2,6 @@
 
 #include "File_system.h"
 
-using namespace Engine;
-
 File_system::File_system()
 {
 	p = _wgetcwd(NULL, 512);
@@ -450,7 +448,7 @@ bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **File
 {
 	FILE *stream;
 	int retVal = 1;
-	stream = fopen(filename, "rb");
+	fopen_s(&stream, filename, "rb");
 	if (!stream)
 		return false;
 

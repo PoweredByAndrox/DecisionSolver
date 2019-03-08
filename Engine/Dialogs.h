@@ -4,8 +4,9 @@
 #include "pch.h"
 
 #include "File_system.h"
+#include "Engine.h"
 
-namespace Engine
+namespace EngineNS
 {
 	class Dialogs
 	{
@@ -13,7 +14,7 @@ namespace Engine
 		Dialogs() {}
 		~Dialogs() {}
 
-		HRESULT Init(File_system *FS);
+		HRESULT Init();
 		HRESULT LoadFile(string *FileName);
 	
 		//*******
@@ -25,9 +26,6 @@ namespace Engine
 	protected:
 			//********
 		bool InitClass = false;
-
-			//********
-		File_system *FS = nullptr;
 
 			//********
 		unique_ptr<tinyxml2::XMLDocument> doc;

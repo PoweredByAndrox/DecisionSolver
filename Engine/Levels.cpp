@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Levels.h"
-using namespace Engine;
+using namespace EngineNS;
 
 HRESULT Levels::LoadXML(LPCSTR File)
 {
@@ -13,7 +13,7 @@ HRESULT Levels::LoadXML(LPCSTR File)
 		throw exception("Levels->LoadXML()::doc->LoadFile() == 0!!!");
 		return E_FAIL;
 	}
-	if (doc->Parse(FS->getDataFromFile(&string(File), true, string("<!--"), string("-->")).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(&string(File), true, string("<!--"), string("-->")).c_str()) > 0)
 		{
 			throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
 			return E_FAIL;
@@ -28,7 +28,6 @@ void Levels::ProcessXML()
 	Vector3 XYZ;
 
 	Attrib = { doc->RootElement()->FirstChild()->ToElement() };
-
 	if (!Attrib.back())
 	{
 		DebugTrace("Levels->ProcessXML()::doc->RootElement() == nullptr!!!");
@@ -191,13 +190,11 @@ void Levels::ProcessXML()
 	}
 }
 
-HRESULT Engine::Levels::Init(File_system *FS)
+HRESULT EngineNS::Levels::Init()
 {
 	try
 	{
-		this->FS = FS;
-
-		auto Files = FS->getFilesInFolder(".obj");
+		auto Files = Application->getFS()->getFilesInFolder(".obj");
 		for (int i = 0; i < Files.size(); i++)
 		{
 			/*if (FindSubStr(Files.at(i), string("Nanosuit.obj")) || FindSubStr(Files.at(i), string("Muddy.obj"))) // This is hardcoded!!!
@@ -207,12 +204,12 @@ HRESULT Engine::Levels::Init(File_system *FS)
 			}
 			else
 			{*/
-				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i), FS)));
+				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i))));
 				g_Obj.back().type = Object::TYPE::OBJECTS;
 			//}
 		
 		}
-		LoadXML(FS->GetFile(string("first_level.xml"))->PathA.c_str());
+		LoadXML(Application->getFS()->GetFile(string("first_level.xml"))->PathA.c_str());
 
 		InitClass = true;
 		return S_OK;

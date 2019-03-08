@@ -132,7 +132,7 @@ string deleteWord(string context, string const start, string const end)
 	string::size_type pos = str.find(start.c_str());
 	while (pos != string::npos)
 	{
-		size_t needtodelete = (str.find(end.c_str()) + strlen(start.c_str()));
+		size_t needtodelete = str.find(end.c_str()) + strlen(start.c_str());
 		str.erase(pos, needtodelete - 1);
 		pos = str.find(end.c_str());
 	}

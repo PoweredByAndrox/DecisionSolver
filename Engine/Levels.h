@@ -7,12 +7,12 @@
 #include "Models.h"
 #include "GameObjects.h"
 
-namespace Engine
+namespace EngineNS
 {
 	class Levels: public GameObjects
 	{
 	public:
-		HRESULT Init(File_system *FS);
+		HRESULT Init();
 
 		HRESULT LoadXML(LPCSTR File);
 		void ProcessXML();
@@ -43,9 +43,6 @@ namespace Engine
 	protected:
 		// **********
 		bool InitClass = false;
-
-		// **********
-		File_system *FS = nullptr;
 
 		// **********
 		unique_ptr<tinyxml2::XMLDocument> doc;

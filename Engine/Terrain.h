@@ -8,7 +8,7 @@
 #include "Camera.h"
 #include "Render_Buffer.h"
 
-namespace Engine
+namespace EngineNS
 {
 	class Terrain;
 	class Render_Buffer;

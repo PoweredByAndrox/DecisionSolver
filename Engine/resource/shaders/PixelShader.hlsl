@@ -1,28 +1,10 @@
-Texture2D diffTexture;
-Texture2D shaderTexture;
-
-SamplerState SampleType;
-
-float4 main(float4 pos: SV_POSITION, float2 texcoord: TEXCOORD): SV_TARGET
-{
-	float4 Textures = diffTexture.Sample(SampleType, texcoord);
-	return Textures;
-}
-
-float4 ColorPixelShader(float4 pos: SV_POSITION, float2 texcoord: TEXCOORD): SV_TARGET
-{
-	float4 Texture = shaderTexture.Sample(SampleType, texcoord);
-    return Texture;
-}
-
-//------------------------------------------------------------------------------------
-struct VS_OUTPUT
+struct PS_INPUT
 {
 	float4 Pos : SV_POSITION;
-	float4 Color : COLOR0;
+	float4 Color : COLOR;
 };
 
-float4 PS(VS_OUTPUT input) : SV_Target
+float4 PS(PS_INPUT input) : SV_Target
 {
 	return input.Color;
 }

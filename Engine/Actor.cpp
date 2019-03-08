@@ -2,38 +2,40 @@
 
 #include "Actor.h"
 
-void Engine::Actor::Update(float Time)
+void Actor::Update(float Time)
 {
 	if (Health == 0.0f & !IsGod)
 		IsDead = true;
 	else if (IsGod)
 		Health = 999999.9999f;
 
-	Position = gCamera->GetEyePt();
+	Position = Application->getCamera()->GetEyePt();
 
-	gCamera->FrameMove(Time);
+	Application->getCamera()->FrameMove(Time);
 
-	gCamera->SetProjParams(gCamera->getFOV(), (DXUTGetDXGIBackBufferSurfaceDesc()->Width / (FLOAT)DXUTGetDXGIBackBufferSurfaceDesc()->Height),
-		0.1f, 1000.0f);
+	Application->getCamera()->SetProjParams(Application->getCamera()->getFOV(),
+		((float)Application->getWorkAreaSize().x / (float)Application->getWorkAreaSize().y), 0.01f, 1000.0f);
 }
 
-void Engine::Actor::Render(Matrix View, Matrix Proj, float Time)
+void Actor::Render(float Time)
 {
 	Update(Time);
 }
 
-HRESULT Engine::Actor::Init(Physics *PhysX)
+HRESULT Actor::Init()
 {
 	//if (!DLG->IsInit())
 	//	V(DLG->Init());
 	//DLG->LoadFile(&string("For everything.xml"));
 	//DLG->getMAReplices();
 
-	//this->PhysX.reset(PhysX);
+	Application->getCamera()->SetScalers(0.010f, 6.0f);
+	Application->getCamera()->SetRotateButtons(true, false, false);
+	Application->getCamera()->SetEnableYAxisMovement(true);
 
 	InitClass = true;
 	return S_OK;
 }
 
-void Engine::Actor::Destroy()
+void Actor::Destroy()
 {}
