@@ -1,6 +1,3 @@
-[submodule "submodules/SpdLog"]
-	path = submodules/SpdLog
-	url = https://github.com/gabime/spdlog
 [submodule "submodules/DXUT"]
 	path = submodules/DXUT
 	url = https://github.com/Microsoft/DXUT

@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\SpdLog\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\inc;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\inc;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>

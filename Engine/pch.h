@@ -41,13 +41,6 @@ using namespace std;
 #include "tinyxml2.h"
 using namespace tinyxml2;
 
-#if defined(Never)
-	// Maybe this doesn't cause errors?
-#define SPDLOG_TRACE_ON
-#include "spdlog/spdlog.h"
-using namespace spdlog;
-#endif
-
 #include "imgui.h"
 
 #include "d3dx11effect.h"
