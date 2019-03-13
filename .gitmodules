@@ -1,6 +1,3 @@
-[submodule "submodules/DXUT"]
-	path = submodules/DXUT
-	url = https://github.com/Microsoft/DXUT
 [submodule "submodules/FX11"]
 	path = submodules/FX11
 	url = https://github.com/Microsoft/FX11
