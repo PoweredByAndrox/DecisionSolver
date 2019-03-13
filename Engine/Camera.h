@@ -11,14 +11,12 @@ public:
 	HRESULT Init(float W, float H)
 	{
 		// Setup the view matrix
-		SetViewParams(Vector3(0.0000001f, 0.0000001f, 0.0000001f), Vector3(0.0f, 1.0f, 0.0f));
+		SetViewParams(Vector3(0.0000001f, 0.0000001f, 0.0000001f), Vector3(0.0f, 0.0f, 1.0f));
 
 		// Setup the projection matrix
-		SetProjParams(XM_PI / 4, W / H, 1.0f, 1000.0f);
+		SetProjParams(XM_PIDIV2, W / H, 1.0f, 1000.0f);
 		return S_OK;
 	}
-
-	static LRESULT HandleMessages(_In_ HWND hWnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam);
 
 	// Functions to change camera matrices
 	virtual void Reset();
@@ -55,8 +53,6 @@ public:
 	float GetNearClip() const { return m_fNearPlane; }
 	float GetFarClip() const { return m_fFarPlane; }
 protected:
-	void ChangeFOV(float m_nMouseWheelDelta) { m_fFOV += m_nMouseWheelDelta; }
-
 	Vector3 ConstrainToBoundary(_In_ Vector3 v)
 	{
 		Vector3 vMin = XMLoadFloat3(&m_vMinBoundary);
@@ -107,8 +103,7 @@ protected:
 		m_bEnablePositionMovement = true,         // If true, then the user can translate the camera/model 
 		m_bEnableYAxisMovement = true,            // If true, then camera can move in the y-axis
 		m_bClipToBoundary = false,                 // If true, then the camera will be clipped to the boundary
-		m_bResetCursorAfterMove = false,           // If true, the class will reset the cursor position so that the cursor always has space to move 
-		ChangeFieldOfView = false;
+		m_bResetCursorAfterMove = false;           // If true, the class will reset the cursor position so that the cursor always has space to move 
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
@@ -124,10 +119,6 @@ public:
 	Vector3 GetWorldUp() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._21)); }
 	Vector3 GetWorldAhead() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._31)); }
 	Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
-
-	float getFOV() { return m_fFOV; }
-
-	void SetChangeFOV(bool FOV) { ChangeFieldOfView = FOV; }
 
 	void setPosCam(_In_ Vector3 Pos)
 	{

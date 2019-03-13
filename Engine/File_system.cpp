@@ -351,73 +351,27 @@ string File_system::getDataFromFile(string *File, bool LineByline, string start,
 	if (File->empty())
 		return "";
 
-	string Returned_val, Cache;
-	auto streamObj = std::ifstream(File->c_str());
+	string Returned_val;
+	std::ifstream streamObj = std::ifstream(File->c_str());
+	streamObj >> std::noskipws;
 	if (streamObj.is_open())
 	{
-		if (extension(File->c_str()) == ".xml")
-		{
-			while (!streamObj.eof())
-			{
-				getline(streamObj, Cache);
-				Returned_val.append(deleteWord(Cache, start, end.c_str()));
-			}
+		std::copy(std::istream_iterator<char>(streamObj), std::istream_iterator<char>(), std::back_inserter(Returned_val));
 
-			if (!Returned_val.empty())
+		if (!Returned_val.empty())
+			if (!start.empty() & !end.empty())
+				return deleteWord(Returned_val, start, end.c_str());
+			else
 				return Returned_val;
-		}
-
-		if (LineByline)
-			while (!streamObj.eof())
-			{
-				getline(streamObj, Cache);
-				Returned_val.append(deleteWord(Cache, start, end.c_str()));
-			}
 		else
-			while (!streamObj.eof())
-				streamObj >> Returned_val;
+			return "";
 	}
 	else
 	{
-		DebugTrace("File System: getDataFromFile failed.\n");
+		DebugTrace("File System::getDataFromFile() failed.\n");
 		throw exception("streamObj == NOT OPEN!!!");
 		return "";
 	}
-
-	if (!Returned_val.empty())
-		return Returned_val;
-
-	return "";
-}
-string File_system::getDataFromFile(string *File, bool LineByline)
-{
-	if (File->empty())
-		return "";
-
-	string Returned_val, Cache;
-	auto streamObj = std::ifstream(File->c_str());
-	if (streamObj.is_open())
-	{
-		if (LineByline)
-			while (!streamObj.eof())
-			{
-				getline(streamObj, Cache);
-				Returned_val.append(Cache);
-			}
-		else
-			while (!streamObj.eof())
-				streamObj >> Returned_val;
-	}
-	else
-	{
-		DebugTrace("File System: getDataFromFile failed.\n");
-		throw exception("streamObj == NOT OPEN!!!");
-		return "";
-	}
-
-	if (!Returned_val.empty())
-		return Returned_val;
-
 	return "";
 }
 

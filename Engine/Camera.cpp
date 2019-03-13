@@ -18,10 +18,10 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
 
 		// Calc the view matrix
-	XMMATRIX mView = XMMatrixLookAtLH(vEyePt, vLookatPt, g_XMIdentityR1);
+	Matrix mView = Matrix::CreateLookAt(vEyePt, vLookatPt, Vector3(0, 1, 0));
 	XMStoreFloat4x4(&m_mView, mView);
 
-	XMMATRIX mInvView = XMMatrixInverse(nullptr, mView);
+	XMMATRIX mInvView = XMMatrixInverse(&XMVectorSet(0, 0, 0, 0), mView);
 
 	Vector3 zBasis;
 	XMStoreFloat3(&zBasis, mInvView.r[2]);
@@ -41,24 +41,6 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 	m_fFarPlane = fFarPlane;
 
 	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
-}
-
-_Use_decl_annotations_
-LRESULT Camera::HandleMessages(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(hWnd);
-	UNREFERENCED_PARAMETER(lParam);
-
-	switch (uMsg)
-	{
-	case WM_MOUSEWHEEL:
-			// Update member var state
-	//	m_nMouseWheelDelta = 0;
-	//	m_nMouseWheelDelta += (int)GET_WHEEL_DELTA_WPARAM(wParam);
-
-		break;
-	}
-	return FALSE;
 }
 
 _Use_decl_annotations_
@@ -154,7 +136,7 @@ void Camera::UpdateMouseDelta()
 
 	if (m_bResetCursorAfterMove)
 	{
-		POINT ptCenter = Application->getWorkAreaSize();
+		POINT ptCenter = Application->getWorkAreaSize(Application->GetHWND());
 
 		ptCenter.x = ptCenter.x / 2;
 		ptCenter.y = ptCenter.x / 2;
@@ -174,7 +156,8 @@ void Camera::UpdateVelocity(_In_ float fElapsedTime)
 {
 	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
-	vMouseDelta = XMLoadFloat2(&m_vMouseDelta), vRotVelocity = vMouseDelta * m_fRotationScaler + vGamePadRightThumb * 0.02f;
+	vMouseDelta = XMLoadFloat2(&m_vMouseDelta),
+		vRotVelocity = vMouseDelta * m_fRotationScaler + vGamePadRightThumb * 0.02f;
 
 	XMStoreFloat2(&m_vRotVelocity, vRotVelocity);
 
@@ -290,7 +273,7 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	Matrix mView = XMMatrixLookAtLH(vEye, vLookAt, vWorldUp);
 	XMStoreFloat4x4(&m_mView, mView);
 
-	Matrix mCameraWorld = XMMatrixInverse(nullptr, mView);
+	Matrix mCameraWorld = XMMatrixInverse(&XMVectorSet(0, 0, 0, 0), mView);
 	XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
 }
 

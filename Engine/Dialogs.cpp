@@ -1,7 +1,11 @@
 #include "pch.h"
 #include "Dialogs.h"
 
-HRESULT EngineNS::Dialogs::Init()
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+
+HRESULT Dialogs::Init()
 {
 	doc = make_unique<tinyxml2::XMLDocument>();
 	if (!doc.operator bool())
@@ -15,16 +19,16 @@ HRESULT EngineNS::Dialogs::Init()
 	return S_OK;
 }
 
-HRESULT EngineNS::Dialogs::LoadFile(string *FileName)
+HRESULT Dialogs::LoadFile(string *FileName)
 {
-	doc->LoadFile(EngineNS::Application->getFS()->GetFile(*FileName)->PathA.c_str());
+	doc->LoadFile(Application->getFS()->GetFile(*FileName)->PathA.c_str());
 	if (doc->ErrorID() > 0)
 	{
 		StackTrace(doc->ErrorStr());
 		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
-	if (doc->Parse(EngineNS::Application->getFS()->getDataFromFile(FileName, false).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(FileName, false).c_str()) > 0)
 	{
 		throw exception(string(string("Dialogs->LoadFile()::doc->Parse:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
@@ -33,13 +37,13 @@ HRESULT EngineNS::Dialogs::LoadFile(string *FileName)
 	return S_OK;
 }
 
-void EngineNS::Dialogs::getMAReplices()
+void Dialogs::getReplices()
 {
 	auto Main_Element = doc->RootElement();
 	if (!Main_Element)
 	{
-		DebugTrace("Dialogs->getMAReplices()::doc->RootElement() == nullptr!!!");
-		throw exception("Dialogs->getMAReplices()::doc->RootElement() == nullptr!!!");
+		DebugTrace("Dialogs->getReplices()::doc->RootElement() == nullptr!!!");
+		throw exception("Dialogs->getReplices()::doc->RootElement() == nullptr!!!");
 		return;
 	}
 	for (int i = 1; i < INT16_MAX; i++)

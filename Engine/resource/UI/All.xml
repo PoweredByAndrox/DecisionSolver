@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="GUI_Console" width="250" height="250">
-	<Button id="button" text="One Button" x="0" y="210" width="80" height="25"/>
-	<ListBox id="listbox" x="0" y="0" width="250" height="170"/>
-	<EditBox id="editbox" text="Enter Something)" x="100" y="200" width="135" height="45"/>
+<gui id="Console" width="250" height="250" open="true" resize="true" 
+show_title="true" moveble="true" collapse="false">
+	<InputText text="CommandLine" visible="true" history="true"/>
+	<Button text="Apply" visible="true"/>
+	<InputTextMultiline text="ConsoleText" visible="true" readonly="true"/>
 </gui>

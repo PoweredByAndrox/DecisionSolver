@@ -6,96 +6,77 @@ HRESULT Render_Buffer::InitSimpleBuffer(vector<wstring> *ShaderFile, vector<stri
 	void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct)
 {
 	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(*ShaderFile, *Func, *VersionShader));
-
 	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
-	m_pixelShader = (ID3D11PixelShader *) Buffers[1]; // PS
+	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
 
-	ZeroMemory(&bd, sizeof(bd));
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(ConstantBuffer);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = 0;
+	m_layout = CreateLayout(Buffer_blob[0]);
 
-	if (FAILED(Application->getDevice()->CreateBuffer(&bd, NULL, &m_pConstBuffer)))
-	{
-		DebugTrace("Render_Buffer::InitSimpleBuffer()->CreateBuffer() is failed");
-		throw exception("Init is failed!!!");
-		return E_FAIL;
-	}
+	Application->getDeviceContext()->IASetInputLayout(m_layout);
 
-	const D3D11_INPUT_ELEMENT_DESC L_Element[] =
-	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-	};
-
-	UINT numElements = sizeof(L_Element) / sizeof(L_Element[0]);
-
-	if (FAILED(Application->getDevice()->CreateInputLayout(L_Element, numElements, Buffer_blob[0]->GetBufferPointer(), Buffer_blob[0]->GetBufferSize(),
-		&m_layout)))
-	{
-		DebugTrace("Render_Buffer::InitSimpleBuffer()->CreateInputLayout() is failed");
-		throw exception("Init is failed!!!");
-		return E_FAIL;
-	}
-
-	D3D11_SAMPLER_DESC samplerDesc;
-	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
-	{
-		DebugTrace("Render_Buffer::InitSimpleBuffer()->CreateInputLayout() is failed");
-		throw exception("Init is failed!!!");
-		return E_FAIL;
-	}
-
-	CreateWF();
-
-	m_vertexBuffer = CreateVB(SizeStruct * VertexSize, &Vertix);
-	m_indexBuffer = CreateIB(sizeof(DWORD) * IndicesSize, &Indix);
+	m_vertexBuffer = CreateVB(SizeStruct * VertexSize, Vertix);
 
 	UINT offset = 0;
-	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &SizeStruct, &offset);
+
+	m_indexBuffer = CreateIB(sizeof(WORD) * IndicesSize, Indix);
+
+	auto WF = CreateWF();
+	g_pRasWireFrame = WF.at(0);
+	g_pRasStateSolid = WF.at(1);
+
+	//D3D11_SAMPLER_DESC samplerDesc;
+	//ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	//samplerDesc.MipLODBias = 0.0f;
+	//samplerDesc.MaxAnisotropy = 1;
+	//samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	//samplerDesc.BorderColor[0] = 0;
+	//samplerDesc.BorderColor[1] = 0;
+	//samplerDesc.BorderColor[2] = 0;
+	//samplerDesc.BorderColor[3] = 0;
+	//samplerDesc.MinLOD = 0;
+	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	//if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
+	//{
+	//	DebugTrace("Render_Buffer::InitModels()->CreateSamplerState() is failed");
+	//	throw exception("Init is failed!!!");
+	//	return E_FAIL;
+	//}
+
+	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+
 	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_pConstBuffer = CreateConstBuff(D3D11_USAGE_DEFAULT, 0);
 
 	init = true;
 	return hr;
 }
 
-HRESULT Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob)
+ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob)
 {
 	const D3D11_INPUT_ELEMENT_DESC L_Element[] =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		//{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	UINT numElements = sizeof(L_Element) / sizeof(L_Element[0]);
 
-	if (FAILED(Application->getDevice()->CreateInputLayout(L_Element, numElements, Buffer_blob->GetBufferPointer(), Buffer_blob->GetBufferSize(), &m_layout)))
+	ID3D11InputLayout *Layout = nullptr;
+	if (FAILED(Application->getDevice()->CreateInputLayout(L_Element, numElements,
+		Buffer_blob->GetBufferPointer(), Buffer_blob->GetBufferSize(), &Layout)))
 	{
 		DebugTrace("Render_Buffer::CreateLayout()->CreateInputLayout() is failed");
 		throw exception("Create failed!!!");
-		return E_FAIL;
+		return nullptr;
 	}
 
-	return S_OK;
+	return Layout;
 }
 
 ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, void *vertices)
@@ -163,36 +144,29 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, void *indices)
 	return IB;
 }
 
-void Render_Buffer::RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies, bool WF)
+void Render_Buffer::RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies, ID3D11ShaderResourceView *RenderTextr, bool WF)
 {
-	cb.mWorld = XMMatrixTranspose(World);
-	cb.mView = XMMatrixTranspose(View);
-	cb.mProj = XMMatrixTranspose(Proj);
+	ConstantBuffer cb;
+	XMMATRIX WVP = World * View * Proj;
+	cb.mMVP = XMMatrixTranspose(WVP);
+	Application->getDeviceContext()->UpdateSubresource(m_pConstBuffer, 0, NULL, &cb, 0, 0);
 
-	if (m_layout)
-		Application->getDeviceContext()->IASetInputLayout(m_layout);
+	Application->getDeviceContext()->VSSetShader(m_vertexShader, NULL, 0);
+	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
+	Application->getDeviceContext()->PSSetShader(m_pixelShader, NULL, 0);
 
+	if (m_sampleState)
+		Application->getDeviceContext()->PSSetSamplers(0, 1, &m_sampleState);
+	
 	if (WF && g_pRasWireFrame)
 		Application->getDeviceContext()->RSSetState(g_pRasWireFrame);
 	else if (!WF && g_pRasStateSolid)
 		Application->getDeviceContext()->RSSetState(g_pRasStateSolid);
 
-	if (m_pConstBuffer)
-	{
-		Application->getDeviceContext()->UpdateSubresource(m_pConstBuffer, 0, nullptr, &cb, 0, 0);
-		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
-	}
+	if (RenderTextr)
+		Application->getDeviceContext()->PSSetShaderResources(0, 1, &RenderTextr);
 
-	if (m_vertexShader)
-		Application->getDeviceContext()->VSSetShader(m_vertexShader, 0, 0);
-
-	if (m_pixelShader)
-		Application->getDeviceContext()->PSSetShader(m_pixelShader, 0, 0);
-
-	if (m_sampleState)
-		Application->getDeviceContext()->PSSetSamplers(0, 1, &m_sampleState);
-
-	Application->getDeviceContext()->Draw(Indicies, 0);
+	Application->getDeviceContext()->DrawIndexed(Indicies, 0, 0);
 }
 
 #if defined(UseTerrain)
@@ -249,83 +223,67 @@ HRESULT Render_Buffer::InitTerrain(shared_ptr<Engine> engine, UINT SizeofVertex,
 }
 #endif // UseTerrain
 
-HRESULT Render_Buffer::InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct,
-	vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader)
+HRESULT Render_Buffer::InitModels(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader,
+	UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct)
 {
 	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(*ShaderFile, *Func, *VersionShader));
 
 	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
 	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
 
+	m_layout = CreateLayout(Buffer_blob[0]);
+
+	auto WF = CreateWF();
+	g_pRasWireFrame = WF.at(0);
+	g_pRasStateSolid = WF.at(1);
+
 	m_vertexBuffer = CreateVB(SizeStruct * VertexSize, &Vertix);
+	m_indexBuffer = CreateIB(sizeof(UINT) * IndicesSize, &Indix);
 
-	m_indexBuffer = CreateIB(sizeof(WORD) * IndicesSize, &Indix);
-
-	CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-	CreateLayout(Buffer_blob[0]);
-
-	D3D11_SAMPLER_DESC samplerDesc;
-	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
-	{
-		DebugTrace("Render_Buffer::InitModels()->CreateSamplerState() is failed");
-		throw exception("Init is failed!!!");
-		return E_FAIL;
-	}
-
-	CreateWF();
-	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	UINT offset = 0;
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &SizeStruct, &offset);
+
+	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	m_pConstBuffer = CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
 	init = true;
 	return hr;
 }
 
-HRESULT Render_Buffer::CreateWF()
+vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 {
 	D3D11_RASTERIZER_DESC descRast;
 	ZeroMemory(&descRast, sizeof(descRast));
 	descRast.CullMode = D3D11_CULL_NONE;
 	descRast.FillMode = D3D11_FILL_WIREFRAME;
-	if (FAILED(Application->getDevice()->CreateRasterizerState(&descRast, &g_pRasWireFrame)))
+
+	vector<ID3D11RasterizerState *> WF_buff;
+	ID3D11RasterizerState *RsWF = nullptr, *RsNoWF = nullptr;
+	if (FAILED(Application->getDevice()->CreateRasterizerState(&descRast, &RsWF)))
 	{
 		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
 		throw exception("Create failed!!!");
-		return E_FAIL;
 	}
+	WF_buff.push_back(RsWF);
 
 	D3D11_RASTERIZER_DESC RasterDesc;
 	ZeroMemory(&RasterDesc, sizeof(RasterDesc));
 	RasterDesc.FillMode = D3D11_FILL_SOLID;
 	RasterDesc.CullMode = D3D11_CULL_NONE;
 	RasterDesc.DepthClipEnable = true;
-	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &g_pRasStateSolid)))
+	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &RsNoWF)))
 	{
 		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
 		throw exception("Create failed!!!");
-		return E_FAIL;
 	}
-	return S_OK;
+	WF_buff.push_back(RsNoWF);
+
+	return WF_buff;
 }
 
-HRESULT Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags)
+ID3D11Buffer *Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags)
 {
 	if (m_pConstBuffer)
 		SAFE_RELEASE(m_pConstBuffer);
@@ -336,14 +294,15 @@ HRESULT Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags)
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 	bd.CPUAccessFlags = CPUAccessFlags;
 
-	if (FAILED(Application->getDevice()->CreateBuffer(&bd, NULL, &m_pConstBuffer)))
+	ID3D11Buffer *ConstBuff = nullptr;
+	if (FAILED(Application->getDevice()->CreateBuffer(&bd, NULL, &ConstBuff)))
 	{
 		DebugTrace("Render_Buffer::CreateConstBuff()->CreateBuffer() is failed");
 		throw exception("Create failed!!!");
-		return E_FAIL;
+		return nullptr;
 	}
 
-	return S_OK;
+	return ConstBuff;
 }
 
 #if defined(UseTerrain)
@@ -389,9 +348,8 @@ void Render_Buffer::RenderTerrain(Matrix World, Matrix View, Matrix Proj, int In
 }
 #endif // UseTerrain
 
-void Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, UINT SizeStruct, ID3D11ShaderResourceView *RenderTextr, bool WF)
+void Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, bool WF)
 {
-	UINT offset = 0;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
 	if (m_layout)
@@ -407,18 +365,14 @@ void Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT Si
 
 	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
 
-	dataPtr->mWorld = XMMatrixTranspose(World);
-	dataPtr->mView = XMMatrixTranspose(View);
-	dataPtr->mProj = XMMatrixTranspose(Proj);
+	XMMATRIX WVP = World * View * Proj;
+	dataPtr->mMVP = XMMatrixTranspose(WVP);
 
 	if (m_pConstBuffer)
 	{
 		Application->getDeviceContext()->Unmap(m_pConstBuffer, 0);
 		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
 	}
-
-	if (m_sampleState)
-		Application->getDeviceContext()->PSSetSamplers(0, 1, &m_sampleState);
 
 	if (m_vertexShader)
 		Application->getDeviceContext()->VSSetShader(m_vertexShader, 0, 0);

@@ -3,12 +3,10 @@
 #include "Engine.h"
 /*
 #include "Physics.h"
-#include "Audio.h"
 #include "MainMenu.h"
 #include "Picking.h"
 #include "Terrain.h"
 #include "GameObjects.h"
-#include "Console.h"
 #include "Levels.h"
 */
 
@@ -17,19 +15,27 @@
 #include "Models.h"
 #include "Camera.h"
 #include "Actor.h"
+#include "Audio.h"
+#include "Console.h"
 
 shared_ptr<Engine> Application;
 #include "UI.h"
 
-bool Resize = false;
 shared_ptr<Actor> mActor;
-
 #include "Shaders.h"
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	try
 	{
 		Application = make_unique<Engine>();
+
+		// Shader Class!!!
+		Application->setShader(make_unique<Shaders>());
+
+		// FS (File System)!!!
+		Application->setFS(make_unique<File_system>());
+
 		if (FAILED(Application->Init(L"Engine Programm", hInstance)))
 		{
 			DebugTrace("wWinMain::engine->Init() is failed.");
@@ -46,24 +52,34 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		// ***********
 		// INITIALIZATION ALL THE CLASSES
-			// GUI!!!
+
+		//	// GUI!!!
 		Application->setUI(make_unique<UI>());
 		Application->getUI()->Init();
 
-			// Render Buffers!!!
+		//	// Render Buffers!!!
 		Application->setRender_Buffer(make_unique<Render_Buffer>());
 
-			// Models Class
+		//	// Models Class
 		Application->setModel(make_unique<Models>());
-		Application->getModel()->LoadFromFile(&string("test.obj"));
 
-			// Camera Class
+		//	// Camera Class
 		Application->setCamera(make_unique<Camera>());
-		Application->getCamera()->Init(Application->getWorkAreaSize().x, Application->getWorkAreaSize().y);
+		Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x, Application->getWorkAreaSize(Application->GetHWND()).y);
 
-			// Main Actor Class!!!
-		Application->setActor(mActor = make_unique<Actor>());
+		//	// Main Actor Class!!!
+		Application->setActor(make_unique<Actor>());
 		Application->getActor()->Init();
+
+		//	// Audio (Sound) Class!!!
+		Application->setSound(make_unique<Audio>());
+		Application->getSound()->Init();
+		Application->getSound()->AddNewSound();
+		Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
+		
+		//	// Console Class!!!
+		Application->setConsole(make_unique<Console>());
+		Application->getConsole()->Init();
 		// ***********
 
 		MSG msg = {0};
@@ -76,17 +92,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			}
 			else
 				Application->Run();
-
-			if (Resize)
-			{
-//				Application->ResizibleWnd();
-				Resize = false;
-			}
 		}
 
 		Application->getUI()->Destroy();
 		Application->getRender_Buffer()->Release();
-		Application->Destroy();
+		Application->Destroy(hInstance);
 	}
 	catch (const exception &Catch)
 	{

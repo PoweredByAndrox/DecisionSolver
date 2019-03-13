@@ -4,7 +4,6 @@
 
 bool Models::LoadFromFile(string *Filename)
 {
-	/*
 	importer = new Assimp::Importer;
 
 	pScene = importer->ReadFile(Filename->c_str(),
@@ -20,19 +19,8 @@ bool Models::LoadFromFile(string *Filename)
 		throw exception("Models::pScene == nullptr!!!");
 		return false;
 	}
-	*/
-	//m_states = make_unique<CommonStates>(Device);
 
-	//m_fxFactory = make_unique<EffectFactory>(Device);
-
-	//m_model = Model::CreateFromCMO(Device, L"D:/DecisionSolver/Engine/resource/models/rope.cmo", *m_fxFactory);
-
-	//processNode(pScene->mRootNode, pScene);
-
-	//SAFE_DELETE(importer);
-	//m_shape.push_back(GeometricPrimitive::CreateCube(Application->getDeviceContext(), 1.0f, false));
-
-	setupMesh();
+	processNode(pScene->mRootNode, pScene);
 	return true;
 }
 bool Models::LoadFromFile(string *Filename, UINT Flags, bool ConvertToLH)
@@ -135,13 +123,8 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 
 void Models::Render(Matrix View, Matrix Proj, bool WF)
 {
-	if (!textures.empty())
-		Application->getRender_Buffer()->RenderModels(scale * rotate * position, View, Proj, 36, sizeof(Things), textures[0].texture, WF);
-	else
-		Application->getRender_Buffer()->RenderSimpleBuffer(scale * rotate * position, View, Proj, 36, /*sizeof(Things), nullptr,*/ WF);
-	//for (int i = 0; i < m_shape.size(); i++)
-	//	m_shape.at(i)->Draw(scale * rotate * position, View, Proj, Colors::White, nullptr, WF);
-	//m_model->Draw(DeviceCon, *m_states, scale * rotate * position, View, Proj);
+	for (int i = 0; i < Meshes.size(); i++)
+		Meshes.at(i).Draw(View, Proj, WF);
 }
 
 vector<Models::Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
@@ -202,6 +185,10 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 {
 	for (int i = 0; i < node->mNumMeshes; i++)
 	{
+		vector<Things> vertices;
+		vector<UINT> indices;
+		vector<Texture> textures;
+
 		mesh = Scene->mMeshes[node->mMeshes[i]];
 		if (mesh->mMaterialIndex >= 0)
 		{
@@ -213,17 +200,20 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 				Textype = determineTextureType(Scene, mat);
 		}
 
-		//for (int i = 0; i < mesh->mNumVertices; i++)
-		//{
-		//	if (mesh->mTextureCoords[0])
-		//		vertices.push_back(Things(Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z), Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y)));
-		//}
+		for (int i = 0; i < mesh->mNumVertices; i++)
+		{
+			Things t;
+			t.Position = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
-		for (int i = 0; i < mesh->mNumFaces; i++)
-			for (int j = 0; j < mesh->mFaces[i].mNumIndices; j++)
-			{
+			if (mesh->mTextureCoords[0])
+				t.Texcoord = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+
+			vertices.push_back(t);
+		}
+		
+		for (UINT i = 0; i < mesh->mNumFaces; i++)
+			for (UINT j = 0; j < mesh->mFaces[i].mNumIndices; j++)
 				indices.push_back(mesh->mFaces[i].mIndices[j]);
-			}
 
 		if (mesh->mMaterialIndex >= 0)
 		{
@@ -244,6 +234,8 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	*/
 		}
+
+		Meshes.push_back(Mesh(vertices, indices, textures));
 	}
 
 	for (int i = 0; i < node->mNumChildren; i++)
@@ -292,62 +284,18 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 
 void Models::setRotation(Vector3 rotaxis)
 {
-	rotate = Matrix::CreateFromQuaternion(Quaternion(rotaxis.x, rotaxis.y, rotaxis.z, 1.f));
+	for (int i = 0; i < Meshes.size(); i++)
+		Meshes.at(i).rotate = Matrix::CreateFromQuaternion(Quaternion(rotaxis.x, rotaxis.y, rotaxis.z, 1.f));
 }
 
 void Models::setScale(Vector3 Scale)
 {
-	scale = Matrix::CreateScale(Scale);
+	for (int i = 0; i < Meshes.size(); i++)
+		Meshes.at(i).scale = Matrix::CreateScale(Scale);
 }
 
 void Models::setPosition(Vector3 Pos)
 {
-	position = Matrix::CreateTranslation(Pos);
-}
-
-void Models::setupMesh()
-{
-	vector<wstring> FileShaders;
-	FileShaders.push_back(Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW);
-	FileShaders.push_back(Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW);
-
-	vector<string> Functions, Version;
-	Functions.push_back(string("VS"));
-	Functions.push_back(string("PS"));
-
-	Version.push_back(string("vs_4_0"));
-	Version.push_back(string("ps_4_0"));
-
-	vector<Things> Some;
-	Some.push_back(Things(Vector3(-1.0f, 1.0f, -1.0f), Vector4(0.0f, 0.0f, 1.0f, 1.0f)));
-	Some.push_back(Things(Vector3(1.0f, 1.0f, -1.0f), Vector4(0.0f, 1.0f, 0.0f, 1.0f)));
-	Some.push_back(Things(Vector3(1.0f, 1.0f, 1.0f), Vector4(0.0f, 1.0f, 1.0f, 1.0f)));
-	Some.push_back(Things(Vector3(-1.0f, 1.0f, 1.0f), Vector4(1.0f, 0.0f, 0.0f, 1.0f)));
-	Some.push_back(Things(Vector3(-1.0f, -1.0f, -1.0f), Vector4(1.0f, 0.0f, 1.0f, 1.0f)));
-	Some.push_back(Things(Vector3(1.0f, -1.0f, -1.0f), Vector4(1.0f, 1.0f, 0.0f, 1.0f)));
-	Some.push_back(Things(Vector3(1.0f, -1.0f, 1.0f), Vector4(1.0f, 1.0f, 1.0f, 1.0f)));
-	Some.push_back(Things(Vector3(-1.0f, -1.0f, 1.0f), Vector4(0.0f, 0.0f, 0.0f, 1.0f)));
-
-	WORD indices[] =
-	{
-		3,1,0,
-		2,1,3,
-
-		0,5,4,
-		1,5,0,
-
-		3,4,7,
-		0,4,3,
-
-		1,6,5,
-		2,6,1,
-
-		2,7,6,
-		3,7,2,
-
-		6,4,5,
-		7,4,6,
-	};
-
-	Application->getRender_Buffer()->InitSimpleBuffer(&FileShaders, &Functions, &Version, Some.size(), &Some.at(0), 36, &indices[0], sizeof(Things));
+	for (int i = 0; i < Meshes.size(); i++)
+		Meshes.at(i).position = Matrix::CreateTranslation(Pos);
 }

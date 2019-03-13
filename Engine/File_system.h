@@ -47,7 +47,6 @@ public:
 	vector<string> getFilesInFolder(LPCSTR ext);
 
 	// Work With Files
-	string getDataFromFile(string *File, bool LineByline);
 	string getDataFromFile(string *File, bool LineByline, string start, string end);
 
 	vector<string> getDataFromFileVector(string *File, bool LineByline);

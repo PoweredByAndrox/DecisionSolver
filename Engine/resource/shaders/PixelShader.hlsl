@@ -1,10 +1,13 @@
-struct PS_INPUT
+Texture2D ObjTexture;
+SamplerState SampleType;
+
+struct PixelInputType
 {
-	float4 Pos : SV_POSITION;
-	float4 Color : COLOR;
+	float4 Pos: SV_POSITION;
+	float2 Text: TEXCOORD;
 };
 
-float4 PS(PS_INPUT input) : SV_Target
+float4 PS(PixelInputType input): SV_Target
 {
-	return input.Color;
+	return ObjTexture.Sample(SampleType, input.Text);
 }

@@ -2,20 +2,16 @@
 
 #include "Console.h"
 
-HRESULT EngineNS::Console::Init(Physics *Phys, Levels *level)
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+
+HRESULT Console::Init()
 {
 	try
 	{
-		//if (!ui->IsInitUI())
-		//{
-			ui->Init(1, Application->getFS()->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
-			ui->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
-		//}
-
-		this->Phys.reset(Phys);
-
-		this->level = level;
-
+		//ui->Init(1, Application->getFS()->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
+		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
 		//V(Settings(false));
 
 		InitClass = true;

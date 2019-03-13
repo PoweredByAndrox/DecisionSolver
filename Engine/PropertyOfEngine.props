@@ -10,7 +10,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\SpdLog\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\inc;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <PreprocessorDefinitions>USE_DIRECT3D11_4;_WIN32_WINNT=0x0600;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>

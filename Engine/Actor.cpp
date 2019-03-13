@@ -13,8 +13,9 @@ void Actor::Update(float Time)
 
 	Application->getCamera()->FrameMove(Time);
 
-	Application->getCamera()->SetProjParams(Application->getCamera()->getFOV(),
-		((float)Application->getWorkAreaSize().x / (float)Application->getWorkAreaSize().y), 0.01f, 1000.0f);
+	Application->getCamera()->SetProjParams(XM_PIDIV2, ((float)Application->getWorkAreaSize(Application->GetHWND()).x 
+		/ (float)Application->getWorkAreaSize(Application->GetHWND()).y),
+		0.01f, 1000.0f);
 }
 
 void Actor::Render(float Time)

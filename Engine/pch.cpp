@@ -128,13 +128,13 @@ string deleteWord(string context, char const what, char const OnWhat)
 
 string deleteWord(string context, string const start, string const end)
 {
+	size_t One = 0, Two = 0;
 	string str = context;
-	string::size_type pos = str.find(start.c_str());
-	while (pos != string::npos)
+	str.erase(remove(str.begin(), str.end(), '	'), str.end());
+
+	while (str.find(start) != string::npos & str.find(end) != string::npos)
 	{
-		size_t needtodelete = str.find(end.c_str()) + strlen(start.c_str());
-		str.erase(pos, needtodelete - 1);
-		pos = str.find(end.c_str());
+		str.erase(str.find(start), (str.find(end) + end.size())+1 - str.find(start));
 	}
 
 	return str;

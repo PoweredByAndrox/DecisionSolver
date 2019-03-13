@@ -16,6 +16,59 @@ class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
+#include "misc/cpp/imgui_stdlib.h"
+
+struct IText
+{
+	string IDTitle = "", Text = "";
+	bool IsVisible = false, IsNeedHistory = false,
+		NeedToUseTAB = false, EnterReturnsTrue = false;
+
+	ImGuiInputTextFlags_ Flags;
+
+	void ChangeText(string Text) { this->Text = Text; }
+	void ChangeTitle(string Text) { IDTitle = Text; }
+	LPCSTR GetText() { return IDTitle.c_str(); }
+	LPCSTR GetTitle() { return IDTitle.c_str(); }
+
+	IText() {}
+	IText(LPCSTR IDTitle, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, bool EnterReturnsTrue = false):
+		IDTitle(IDTitle), IsVisible(IsVisible), IsNeedHistory(IsNeedHistory), NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
+	{}
+
+	void Render()
+	{
+		Flags = IsNeedHistory ? ImGuiInputTextFlags_CallbackHistory : ImGuiInputTextFlags_None |
+			EnterReturnsTrue ? ImGuiInputTextFlags_EnterReturnsTrue : ImGuiInputTextFlags_None |
+			NeedToUseTAB ? ImGuiInputTextFlags_CallbackCompletion : ImGuiInputTextFlags_None;
+		ImGui::InputText(Text.c_str(), &IDTitle, Flags);
+	}
+};
+struct ITextMulti
+{
+	string IDTitle = "", Text = "";
+	bool IsVisible = false, ReadOnly = false, IsCtrlNewLine = false;
+
+	ImGuiInputTextFlags Flags;
+
+	void ChangeText(string Text) { this->Text = Text; }
+	void ChangeTitle(string Text) { IDTitle = Text; }
+	LPCSTR GetTitle() { return IDTitle.c_str(); }
+	LPCSTR GetText() { return Text.c_str(); }
+
+	ITextMulti() {}
+	ITextMulti(LPCSTR IDTitle, bool IsVisible, bool ReadOnly = false, bool IsCtrlNewLine = false):
+		IDTitle(IDTitle), IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
+	{}
+
+	void Render()
+	{
+		Flags = ImGuiInputTextFlags_AllowTabInput |
+			ReadOnly ? ImGuiInputTextFlags_ReadOnly : ImGuiInputTextFlags_None |
+			IsCtrlNewLine ? ImGuiInputTextFlags_CtrlEnterForNewLine : ImGuiInputTextFlags_None;
+		ImGui::InputTextMultiline(IDTitle.c_str(), &Text, ImVec2(0, 0), Flags);
+	}
+};
 struct Labels
 {
 	string IDTitle = "";
@@ -25,9 +78,9 @@ struct Labels
 	LPCSTR GetText() { return IDTitle.c_str(); }
 
 	Labels() {}
-	Labels(LPCSTR IDTitle, bool IsVisible): IDTitle(IDTitle), IsVisible(IsVisible) {}
+	Labels(LPCSTR IDTitle, bool IsVisible) : IDTitle(IDTitle), IsVisible(IsVisible) {}
 
-	void Render() // Also Render+Check click!!!
+	void Render()
 	{
 		ImGui::Text(IDTitle.c_str());
 	}
@@ -51,51 +104,87 @@ struct Buttons
 			clicked = false;
 	}
 };
-struct Dialogs: Buttons, Labels
+struct CollapsingHeaders
 {
-#ifndef WM_MOUSEHWHEEL
-#define WM_MOUSEHWHEEL 0x020E
-#endif
-#ifndef DBT_DEVNODES_CHANGED
-#define DBT_DEVNODES_CHANGED 0x0007
-#endif
+	string IDTitle = "";
+	bool SelDef = false;
+	ImGuiTreeNodeFlags flags = 0;
+	vector<Buttons> Btn;
+	vector<Labels> Label;
 
-	HWND g_hWnd = 0;
-	INT64 g_Time = 0;
-	INT64 g_TicksPerSecond = 0;
-	ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
+	void ChangeText(string Text) { IDTitle = Text; }
+	LPCSTR GetText() { return IDTitle.c_str(); }
 
+	CollapsingHeaders() {}
+	CollapsingHeaders(LPCSTR IDTitle, bool SelDef) : IDTitle(IDTitle), SelDef(SelDef) {}
+
+	void Render()
+	{
+		flags = ImGuiTreeNodeFlags_CollapsingHeader | (SelDef ? ImGuiTreeNodeFlags_Selected : 0);
+		if (ImGui::CollapsingHeader(IDTitle.c_str(), flags))
+		{
+			for (int i = 0; i < Btn.size(); i++)
+				if (Btn.at(i).IsVisible)
+					Btn.at(i).Render();
+
+			for (int i = 0; i < Label.size(); i++)
+				if (Label.at(i).IsVisible)
+					Label.at(i).Render();
+		}
+	}
+};
+struct dialogs
+{
+private:
+	void ChangeSize(float W, float H, enum ImGuiCond_ Cond)
+	{
+		if (NeedToResize)
+		{
+			SetNextWindowSize(ImVec2(W, H), Cond);
+			NeedToResize = false;
+		}
+	}
+
+public:
 	LPCSTR IDTitle = "";
 	bool IsVisible = false,
 		IsKeyboardSupport = false,
 		ShowTitle = false,
 		IsMoveble = false,
 		IsResizeble = false,
-		IsCollapsible = false,
-		g_HasGamepad = false,
-		g_WantUpdateHasGamepad = true;
+		IsCollapsible = false;
 
 	ImGuiWindowFlags window_flags = 0;
 
 	vector<Buttons> Btn;
 	vector<Labels> Label;
+	vector<CollapsingHeaders> CollpsHeader;
+	vector<IText> Itext;
+	vector<ITextMulti> Itextmul;
 
-	int style = 0; // This is a test bool.
+	int style = 0; // This is a test variable.
+	float SizeW = 0.f, SizeH = 0.f;
+	bool NeedToResize = false;
 
 	void ChangeText(LPCSTR Text) { IDTitle = Text; }
 	LPCSTR GetText() { return IDTitle; }
 	void SetShowTitle(bool Show) { ShowTitle = Show; }
 	void setVisible(bool Visible) { IsVisible = Visible; }
-
 	bool getVisible() { return IsVisible; }
+	void ChangeSize(float W, float H)
+	{
+		NeedToResize = true;
+		this->SizeW = W;
+		this->SizeH = H;
+	}
 
-	Dialogs() {}
-	~Dialogs() {}
-	Dialogs(LPCSTR IDTitle): IDTitle(IDTitle) {}
-	Dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble, bool IsCollapsible, int style):
-		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport),
-		style(style), IsMoveble(IsMoveble), IsResizeble(IsResizeble),
-		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle)
+	dialogs() {}
+	~dialogs() {}
+	dialogs(LPCSTR IDTitle): IDTitle(IDTitle) {}
+	dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble, bool IsCollapsible, int style,
+		float SizeW = 0.f, float SizeH = 0.f):
+		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), style(style), IsMoveble(IsMoveble), IsResizeble(IsResizeble),
+		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), SizeW(SizeW), SizeH(SizeH)
 	{
 		ImGuiIO &io = GetIO();
 		if (IsKeyboardSupport)
@@ -135,11 +224,24 @@ struct Dialogs: Buttons, Labels
 
 		if (IsVisible)
 		{
+			if (NeedToResize)
+				ChangeSize(this->SizeW, this->SizeH, ImGuiCond_Always);
 			Begin(IDTitle, &IsVisible, window_flags);
+
+			for (int i = 0; i < CollpsHeader.size(); i++)
+				CollpsHeader.at(i).Render();
 
 			for (int i = 0; i < Btn.size(); i++)
 				if (Btn.at(i).IsVisible)
 					Btn.at(i).Render();
+
+			for (int i = 0; i < Itext.size(); i++)
+				if (Itext.at(i).IsVisible)
+					Itext.at(i).Render();
+
+			for (int i = 0; i < Itextmul.size(); i++)
+				if (Itextmul.at(i).IsVisible)
+					Itextmul.at(i).Render();
 
 			for (int i = 0; i < Label.size(); i++)
 				if (Label.at(i).IsVisible)
@@ -164,34 +266,34 @@ public:
 
 	bool IsInitUI() { return InitUI; }
 
-	auto getDialogs() { return dialogs; }
+	auto getDialogs() { return Dialogs; }
 
 	HRESULT LoadXmlUI(LPCSTR File);
 	void ProcessXML();
 
 	void ReloadXML(LPCSTR File);
 
-	vector<LPCSTR> getID() { if (!ID.empty()) return ID; return vector<LPCSTR>{""}; }
-	vector<LPCSTR> getText() { if (!text.empty()) return text; return vector<LPCSTR>{""}; }
-	vector<int> getW() { if (!W.empty()) return W;  return vector<int>{0}; }
-	vector<int> getH() { if (!H.empty()) return H; return vector<int>{0}; }
-	vector<int> getX() { if (!X.empty()) return X; return vector<int>{0}; }
-	vector<int> getY() { if (!Y.empty()) return Y; return vector<int>{0}; }
+	HRESULT addDialog(LPCSTR IDName);
+	HRESULT addButton(LPCSTR IDName, LPCSTR IDDialog = "");
+	HRESULT addLabel(LPCSTR IDName, LPCSTR IDDialog = "");
+	HRESULT addCollapseHead(LPCSTR IDName, LPCSTR IDDialog = "");
+
 	vector<XMLElement *> getElement() { if (!Element.empty()) return Element; return vector<XMLElement *>{nullptr}; }
 
 	void Begin();
 	void End();
+	static void ResizeWnd();
 
 	UI() {}
 	~UI() {}
 
-	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, vector<void*> pUserContext);
+	static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 protected:
 	// **********
 	HRESULT hr = S_OK;
 
 	// **********
-	vector<Dialogs> dialogs;
+	vector<dialogs> Dialogs;
 
 	// **********
 	bool InitUI = false;
@@ -201,10 +303,6 @@ protected:
 
 	// **********
 	unique_ptr<tinyxml2::XMLDocument> doc;
-
-	// **********
-	vector<int> W, H, X, Y;
-	vector<LPCSTR> ID, text;
 
 	// **********
 	vector<XMLElement *> Element;

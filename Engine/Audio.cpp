@@ -1,13 +1,17 @@
 #include "pch.h"
 
 #include "Audio.h"
-#include "../Audio/WAVFileReader.h"
+#include "DXTK/Audio/WAVFileReader.h"
 
-void EngineNS::Audio::Init()
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+
+void Audio::Init()
 {
 	AUDIO_ENGINE_FLAGS eflags = AudioEngine_Default;
 
-#ifdef _DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	eflags = eflags | AudioEngine_Debug;
 #endif
 
@@ -21,7 +25,7 @@ void EngineNS::Audio::Init()
 	InitSoundSystem = true;
 }
 
-void EngineNS::Audio::AddNewSound()
+void Audio::AddNewSound()
 {
 	ListSoundsFile = Application->getFS()->getFilesInFolder(&wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
@@ -37,7 +41,7 @@ void EngineNS::Audio::AddNewSound()
 	}
 }
 
-void EngineNS::Audio::Update()
+void Audio::Update()
 {
 	if (!audEngine->Update())
 	{
@@ -49,37 +53,37 @@ void EngineNS::Audio::Update()
 	}
 }
 
-void EngineNS::Audio::doPlay()
+void Audio::doPlay()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Play(true);
 }
 
-void EngineNS::Audio::changeSoundVol(float Vol)
+void Audio::changeSoundVol(float Vol)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetVolume(Vol);
 }
 
-void EngineNS::Audio::changeSoundPan(float Pan)
+void Audio::changeSoundPan(float Pan)
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->SetPan(Pan);
 }
 
-void EngineNS::Audio::doPause()
+void Audio::doPause()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Pause();
 }
 
-void EngineNS::Audio::doResume()
+void Audio::doResume()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Resume();
 }
 
-void EngineNS::Audio::doStop()
+void Audio::doStop()
 {
 	for (int i = 0; i < sound.size(); i++)
 		sound.at(i)->Stop();

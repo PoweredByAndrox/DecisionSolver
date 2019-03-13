@@ -5,7 +5,7 @@
 
 //#include "GameObjects.h"
 #include "Camera.h"
-//#include "Dialogs.h"
+#include "Dialogs.h"
 
 class Engine;
 extern shared_ptr<Engine> Application;

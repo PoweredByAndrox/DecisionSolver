@@ -21,8 +21,8 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 		{
 #if defined(DEBUG) || defined(_DEBUG)
 			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
-			throw exception(strcat((char *)"Shaders->CompileShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ",
-				(char *)pErrorBlob->GetBufferPointer()));
+			throw exception(string(string((char *)"Shaders->CompileShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ") +
+				string((char *)pErrorBlob->GetBufferPointer())).c_str());
 #elif !defined(DEBUG) || !defined(_DEBUG)
 			MessageBoxA(Application->GetHWND(),
 				string(string("Shader compiller is failed with text:\n") +
@@ -83,8 +83,8 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 				{
 #if defined(DEBUG) || defined(_DEBUG)
 					OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
-					throw exception(strcat((char *)"Shaders->CreateShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ",
-						(char *)pErrorBlob->GetBufferPointer()));
+					throw exception(string(string((char *)"Shaders->CreateShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ")+
+						string((char *)pErrorBlob->GetBufferPointer())).c_str());
 #elif !defined(DEBUG)|| !defined(_DEBUG)
 					MessageBoxA(Application->GetHWND(),
 						string(string("Shader compiller is failed with text:\n") +

@@ -14,14 +14,10 @@
 #include <d3d9.h>
 #include <d3dx9.h>
 
-	// DXTK
-#include <SimpleMath.h>
-#include <DirectXMath.h>
-
-	// Included for use USES_CONVERSION (or A2W, W2A)
+	// Included for use USES_CONVERSION (for A2W, W2A)
 #include <AtlConv.h>
 
-#pragma warning( disable: 4995 )
+#pragma warning(disable: 4995)
 #include <fstream>
 #include <sstream>
 
@@ -30,11 +26,15 @@
 // *********
 		/// DXTK
 	#include "GeometricPrimitive.h"
+	#include <DirectXMath.h>
+
 		/// For ThrowIfFailed
 	#include "../Src/PlatformHelpers.h"
 // *********
 
 using namespace DirectX;
+
+#include <SimpleMath.h>
 using namespace DirectX::SimpleMath;
 using namespace std;
 
@@ -84,6 +84,33 @@ using namespace spdlog;
 #define MacroStr(x) #x
 #define MacroStr2(x) MacroStr(x)
 #define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))
+
+#if !defined(SAFE_DELETE)
+#define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }
+#endif
+#if !defined(SAFE_DELETE_ARRAY)
+#define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p);   (p) = nullptr; } }
+#endif
+#if !defined(SAFE_RELEASE)
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p) = nullptr; } }
+#define SAFE_release(p) { if (p) { (p)->release(); (p) = nullptr; } }
+#endif
+
+#if defined(DEBUG) || defined(_DEBUG)
+#ifndef V
+#define V(x) { hr = (x); if (FAILED(hr)) { DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
+#endif
+#ifndef V_RETURN
+#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
+#endif
+#else
+#if !defined(V)
+#define V(x) { hr = (x); }
+#endif
+#if !defined(V_RETURN)
+#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return hr; } }
+#endif
+#endif
 
 bool FindSubStr(wstring context, wstring const from);
 bool FindSubStr(string context, string const from);

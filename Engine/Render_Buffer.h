@@ -16,7 +16,7 @@ private:
 #pragma pack(push, 1)
 	struct ConstantBuffer
 	{
-		Matrix mWorld, mView, mProj;
+		Matrix mMVP;
 	} cb;
 #pragma pack()
 
@@ -28,22 +28,22 @@ public:
 		vector<UINT> indices, vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
 #endif // UseTerrain
 
-	HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct,
-		vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
+	HRESULT InitModels(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader,
+		UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct);
 
-	HRESULT CreateWF(); // WireFrame
+	vector<ID3D11RasterizerState *> CreateWF(); // WireFrame
 
 	ID3D11Buffer *CreateVB(UINT ByteWidth, void *vertices);
 	ID3D11Buffer *CreateIB(WORD ByteWidth, void *indices);
-	HRESULT CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
-	HRESULT CreateLayout(ID3DBlob *Buffer_blob);
+	ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
+	ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob);
 
-	void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, bool WF = false);
+	void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, ID3D11ShaderResourceView *RenderTextr = nullptr, bool WF = false);
 #if !defined(UseTerrain)
 	void RenderTerrain(Matrix World, Matrix View, Matrix Proj, int Indices, vector<ID3D11Buffer *> RenderBuff, UINT stride);
 #endif // UseTerrain
 
-	void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, UINT SizeStruct, ID3D11ShaderResourceView *RenderTextr, bool WF);
+	void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, bool WF);
 
 	Render_Buffer() {}
 	~Render_Buffer() {}

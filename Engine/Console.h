@@ -4,46 +4,35 @@
 #include "pch.h"
 
 #include "UI.h"
-#include "Physics.h"
-#include "Levels.h"
 
-namespace EngineNS
+class Console
 {
+private:
 	enum Console_STATE
 	{
 		Open = 1,
 		Close
 	};
 
-	class Console: public UI, public Physics
-	{
-	public:
-		HRESULT Init(Physics *Phys, Levels *level);
+public:
+	HRESULT Init();
 
-		//HRESULT Settings(bool Reset);
+	//HRESULT Settings(bool Reset);
 
-		//void Render(float Time);
-		//void Open();
-		//void Close();
+	//void Render(float Time);
+	//void Open();
+	//void Close();
 
-		Console() {}
-		~Console() {}
+	Console() {}
+	~Console() {}
 
-		bool IsInit() { return InitClass; }
-		Console_STATE *getState() { return &CState; }
-		void ChangeState(Console_STATE Cstate) { CState = Cstate; }
+	bool IsInit() { return InitClass; }
+	Console_STATE *getState() { return &CState; }
+	void ChangeState(Console_STATE Cstate) { CState = Cstate; }
 
-		UI *getUI() { if (ui.operator bool()) return ui.get(); return nullptr; }
-	protected:
-		HRESULT hr = S_OK;
-
-		unique_ptr<UI> ui = make_unique<UI>();
-		unique_ptr<Physics> Phys;
-		Levels *level = nullptr;
-	private:
-		bool InitClass = false;
-		Console_STATE CState = Console_STATE::Close;
-	};
+private:
+	bool InitClass = false;
+	Console_STATE CState = Console_STATE::Close;
 };
 #endif // !__CONSOLE__H_
 
