@@ -142,12 +142,12 @@ public:
 
 	void Draw(Matrix View, Matrix Proj, bool WF)
 	{
-		if (type == uint32)
-			Application->getRender_Buffer()->RenderModels(scale * rotate * position, View, Proj,
-				indices.size(), textures[0].texture, WF);
-		else if (type == uint16)
-			Application->getRender_Buffer()->RenderSimpleBuffer(scale * rotate * position, View, Proj, 
-				indices.size(), textures[0].texture, WF);
+		//if (type == uint32)
+		//	Application->getRender_Buffer()->RenderModels(scale * rotate * position, View, Proj,
+		//		indices.size(), textures[0].texture, WF);
+		//else if (type == uint16)
+		//	Application->getRender_Buffer()->RenderSimpleBuffer(scale * rotate * position, View, Proj, 
+		//		indices.size(), textures[0].texture, WF);
 		/*
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
 
@@ -206,12 +206,10 @@ private:
 		Version.push_back(string("vs_4_0"));
 		Version.push_back(string("ps_4_0"));
 
-		if (type == uint32)
-			Application->getRender_Buffer()->InitModels(&FileShaders, &Functions, &Version,
-				vertices.size(), &vertices, indices.size(), &indices, sizeof(Things));
-		else if (type == uint16)
-			Application->getRender_Buffer()->InitSimpleBuffer(&FileShaders, &Functions, &Version,
-				vertices.size(), &vertices, indices.size(), &indices, sizeof(Things));
+		//if (type == uint32)
+		//	Application->getRender_Buffer()->InitModels(vertices.size(), &vertices, indices.size(), &indices, sizeof(Things));
+		//else if (type == uint16)
+		//	Application->getRender_Buffer()->InitSimpleBuffer(vertices.size(), &vertices, indices.size(), &indices, sizeof(Things));
 
 		/*
 		vector<ID3DBlob *> Buffer_blob;

@@ -125,7 +125,7 @@ namespace EngineNS
 		{
 			while (!DynamicObjects.empty())
 			{
-				DynamicObjects.at(0)->release();
+				SAFE_RELEASE(DynamicObjects.at(0));
 				DynamicObjects.erase(DynamicObjects.begin());
 			}
 		}

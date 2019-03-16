@@ -17,11 +17,11 @@ private:
 public:
 	HRESULT Init();
 
-	//HRESULT Settings(bool Reset);
+	void Reload();
 
-	//void Render(float Time);
-	//void Open();
-	//void Close();
+	void Render();
+	void OpenConsole();
+	void CloseConsole();
 
 	Console() {}
 	~Console() {}
@@ -32,7 +32,9 @@ public:
 
 private:
 	bool InitClass = false;
-	Console_STATE CState = Console_STATE::Close;
+	Console_STATE CState = Console_STATE::Open;
+
+	shared_ptr<dialogs> Dialog;
 };
 #endif // !__CONSOLE__H_
 

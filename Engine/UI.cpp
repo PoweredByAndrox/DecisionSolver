@@ -5,8 +5,9 @@
 #include "Actor.h"
 #include "Models.h"
 #include "Audio.h"
+static shared_ptr<Render_Buffer> Buf = make_unique<Render_Buffer>();
 
-HRESULT UI::Init(int Count, LPCWSTR texture)
+HRESULT UI::Init()
 {
 	try
 	{
@@ -16,19 +17,51 @@ HRESULT UI::Init(int Count, LPCWSTR texture)
 		ImGuiIO &io = GetIO();
 		io.IniFilename = NULL;
 
-		Dialogs.push_back(dialogs("Main", true, true, true, false, true, true, 0, 3.0004f, 6.f));
-		Dialogs.back().CollpsHeader.push_back(CollapsingHeaders("Sounds", true));
-		Dialogs.back().CollpsHeader.back().Btn.push_back(Buttons("Start!", true));
-		Dialogs.back().CollpsHeader.back().Btn.push_back(Buttons("Stop!", true));
-		Dialogs.back().CollpsHeader.back().Btn.push_back(Buttons("Pause!", true));
+		vector<wstring> FileShaders;
+		vector<string> Functions, Version;
 
-		Dialogs.back().Label.push_back(Labels("", true));
+		FileShaders.push_back(Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW);
+		FileShaders.push_back(Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW);
 
-		//Dialogs.push_back(dialogs("Test#1", true, true, true, false, true, true, 0));
-		//Dialogs.back().Btn.push_back(Buttons("OneButton#1!", true));
-		
-		ImGui_ImplWin32_Init(Application->GetHWND());
-		ImGui_ImplDX11_Init(Application->getDevice(), Application->getDeviceContext());
+		Functions.push_back(string("VS"));
+		Functions.push_back(string("PS"));
+
+		Version.push_back(string("vs_4_0"));
+		Version.push_back(string("ps_4_0"));
+
+		Buf->SetShadersFile(FileShaders, Functions, Version);
+
+		if (!::QueryPerformanceFrequency((LARGE_INTEGER *)&g_TicksPerSecond))
+			return false;
+		if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
+			return false;
+
+		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+		io.BackendPlatformName = "DecisionSolver";
+		io.ImeWindowHandle = Application->GetHWND();
+
+		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
+		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+		io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
+		io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+		io.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
+		io.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
+		io.KeyMap[ImGuiKey_Home] = VK_HOME;
+		io.KeyMap[ImGuiKey_End] = VK_END;
+		io.KeyMap[ImGuiKey_Insert] = VK_INSERT;
+		io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
+		io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
+		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
+		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
+		io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+		io.KeyMap[ImGuiKey_A] = 'A';
+		io.KeyMap[ImGuiKey_C] = 'C';
+		io.KeyMap[ImGuiKey_V] = 'V';
+		io.KeyMap[ImGuiKey_X] = 'X';
+		io.KeyMap[ImGuiKey_Y] = 'Y';
+		io.KeyMap[ImGuiKey_Z] = 'Z';
 
 		InitUI = true;
 		return S_OK;
@@ -45,59 +78,65 @@ HRESULT UI::Init(int Count, LPCWSTR texture)
 
 void UI::ResizeWnd()
 {
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
+	Buf->Release();
 
-	ImGui_ImplWin32_Init(Application->GetHWND());
-	ImGui_ImplDX11_Init(Application->getDevice(), Application->getDeviceContext());
+	Buf->InitUI();
 }
 
 void UI::Begin()
 {
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
+	Buf->InitUI();
+	ImGuiIO &io = ImGui::GetIO();
+	IM_ASSERT(io.Fonts->IsBuilt() &&
+		"Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function? e.g. ImGui_ImplOpenGL3_NewFrame().");
+
+	RECT rect;
+	::GetClientRect(Application->GetHWND(), &rect);
+	io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
+
+	INT64 current_time;
+	::QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
+	io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
+	g_Time = current_time;
+
+	// Read keyboard modifiers inputs
+	io.KeyCtrl = (::GetKeyState(VK_CONTROL) & 0x8000) != 0;
+	io.KeyShift = (::GetKeyState(VK_SHIFT) & 0x8000) != 0;
+	io.KeyAlt = (::GetKeyState(VK_MENU) & 0x8000) != 0;
+	io.KeySuper = false;
+
+	UpdateMousePos();
+
+	ImGuiMouseCursor mouse_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
+	if (g_LastMouseCursor != mouse_cursor)
+	{
+		g_LastMouseCursor = mouse_cursor;
+		UpdateMouseCursor();
+	}
+
+	Gamepads();
 	ImGui::NewFrame();
 }
 
-void UI::End()
+void UI::End(bool WF)
 {
 	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	Buf->RenderUI(ImGui::GetDrawData(), WF);
 }
 
-void UI::Render(float Time, int ID)
+void UI::Render()
 {
 	for (int i = 0; i < Dialogs.size(); i++)
-		if (Dialogs.at(i).IsVisible)
-		{
-			Dialogs.at(0).Label.at(0).ChangeText(string((boost::format(
-				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
-				% Application->getFPS() % Application->getActor()->getPosition().x % Application->getActor()->getPosition().y
-				% Application->getActor()->getPosition().z % Application->IsWireFrame()).str()).data());
-
-			if (Dialogs.at(0).CollpsHeader.back().Btn.at(0).clicked)
-				Application->getSound()->doPlay();
-			if (Dialogs.at(0).CollpsHeader.back().Btn.at(1).clicked)
-				Application->getSound()->doStop();
-			if (Dialogs.at(0).CollpsHeader.back().Btn.at(2).clicked)
-				Application->getSound()->doPause();
-
-			Dialogs.at(i).Render();
-		}
-}
-
-extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-LRESULT WINAPI UI::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
-	return 0;
+	{
+		if (Dialogs.at(i)->IsVisible)
+			Dialogs.at(i)->Render();
+	}
 }
 
 void UI::Destroy()
 {
-	ImGui_ImplDX11_Shutdown();
-	ImGui_ImplWin32_Shutdown();
+	Buf->Release();
+	//ImGui_ImplWin32_Shutdown();
 	DestroyContext();
 }
 
@@ -136,63 +175,63 @@ void UI::ProcessXML()
 	// ********
 		// Dialog
 
-	dialogs dialog;
+	shared_ptr<dialogs> dialog = make_unique<dialogs>();
 
 	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
 	for (int i = 1; i < INT16_MAX; i++)
 	{
 		if (strcmp(FirstAttr->Name(), "id") == 0)
 		{
-			dialog.IDTitle = FirstAttr->Value();
+			dialog->IDTitle = FirstAttr->Value();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "width") == 0)
 		{
-			dialog.SizeW = FirstAttr->FloatValue();
+			dialog->SizeW = FirstAttr->FloatValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "height") == 0)
 		{
-			dialog.SizeH = FirstAttr->FloatValue();
+			dialog->SizeH = FirstAttr->FloatValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "open") == 0)
 		{
-			dialog.IsVisible = FirstAttr->BoolValue();
+			dialog->IsVisible = FirstAttr->BoolValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "resize") == 0)
 		{
-			dialog.IsResizeble = FirstAttr->BoolValue();
+			dialog->IsResizeble = FirstAttr->BoolValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "show_title") == 0)
 		{
-			dialog.ShowTitle = FirstAttr->BoolValue();
+			dialog->ShowTitle = FirstAttr->BoolValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "moveble") == 0)
 		{
-			dialog.IsMoveble = FirstAttr->BoolValue();
+			dialog->IsMoveble = FirstAttr->BoolValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
 		}
 		if (strcmp(FirstAttr->Name(), "collapse") == 0)
 		{
-			dialog.IsCollapsible = FirstAttr->BoolValue();
+			dialog->IsCollapsible = FirstAttr->BoolValue();
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
@@ -203,9 +242,9 @@ void UI::ProcessXML()
 	// ********
 		// Other
 
-	Buttons btn;
-	IText itext;
-	ITextMulti itextmul;
+	shared_ptr<Buttons> btn = make_unique<Buttons>();
+	shared_ptr<IText> itext = make_unique<IText>();
+	shared_ptr<ITextMulti> itextmul = make_unique<ITextMulti>();
 	for (int i = 1; i < INT16_MAX; i++)
 	{
 		if (strcmp(Element.back()->Name(), "Button") == 0)
@@ -215,14 +254,14 @@ void UI::ProcessXML()
 			{
 				if (strcmp(FirstAttr->Name(), "visible") == 0)
 				{
-					btn.IsVisible = FirstAttr->BoolValue();
+					btn->IsVisible = FirstAttr->BoolValue();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
 				}
 				if (strcmp(FirstAttr->Name(), "text") == 0)
 				{
-					btn.IDTitle = FirstAttr->Value();
+					btn->IDTitle = FirstAttr->Value();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
@@ -241,21 +280,21 @@ void UI::ProcessXML()
 			{
 				if (strcmp(FirstAttr->Name(), "visible") == 0)
 				{
-					itext.IsVisible = FirstAttr->BoolValue();
+					itext->IsVisible = FirstAttr->BoolValue();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
 				}
 				if (strcmp(FirstAttr->Name(), "text") == 0)
 				{
-					itext.Text = FirstAttr->Value();
+					itext->Text = FirstAttr->Value();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
 				}
 				if (strcmp(FirstAttr->Name(), "history") == 0)
 				{
-					itext.IsNeedHistory = FirstAttr->BoolValue();
+					itext->IsNeedHistory = FirstAttr->BoolValue();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
@@ -274,21 +313,21 @@ void UI::ProcessXML()
 			{
 				if (strcmp(FirstAttr->Name(), "visible") == 0)
 				{
-					itextmul.IsVisible = FirstAttr->BoolValue();
+					itextmul->IsVisible = FirstAttr->BoolValue();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
 				}
 				if (strcmp(FirstAttr->Name(), "text") == 0)
 				{
-					itextmul.Text = FirstAttr->Value();
+					itextmul->Text = FirstAttr->Value();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
 				}
 				if (strcmp(FirstAttr->Name(), "readonly") == 0)
 				{
-					itextmul.ReadOnly = FirstAttr->BoolValue();
+					itextmul->ReadOnly = FirstAttr->BoolValue();
 					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 					if (!FirstAttr)
 						break;
@@ -302,30 +341,30 @@ void UI::ProcessXML()
 		}
 	}
 
-	dialog.Btn.push_back(btn);
-	dialog.Itext.push_back(itext);
-	dialog.Itextmul.push_back(itextmul);
+	dialog->Btn.push_back(btn);
+	dialog->Itext.push_back(itext);
+	dialog->Itextmul.push_back(itextmul);
 	Dialogs.push_back(dialog);
 }
 
 void UI::ReloadXML(LPCSTR File)
 {
+	Reload = true;
+	Dialogs.clear();
+	Element.clear();
+
+	Buf->Release();
 	LoadXmlUI(File);
+
+	Buf->InitUI();
+	Reload = false;
 }
 
 HRESULT UI::addDialog(LPCSTR IDName)
 {
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addDialog()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addDialog()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	Dialogs.push_back(dialogs(IDName, true, true, true, false, true, false, 0));
+	Dialogs.push_back(make_unique<dialogs>(IDName, true, true, true, false, true, false, 0));
 	return S_OK;
 }
-
 HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
 {
 	if (Dialogs.empty())
@@ -336,16 +375,15 @@ HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
 	}
 
 	if (!IDDialog)
-		Dialogs.back().Btn.push_back(Buttons(IDName, true));
+		Dialogs.back()->Btn.push_back(make_unique<Buttons>(IDName, true));
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (Dialogs.at(i).IDTitle == IDDialog)
-				Dialogs.at(i).Btn.push_back(Buttons(IDName, true));
+			if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+				Dialogs.at(i)->Btn.push_back(make_unique<Buttons>(IDName, true));
 		}
 	return S_OK;
 }
-
 HRESULT UI::addLabel(LPCSTR IDName, LPCSTR IDDialog)
 {
 	if (Dialogs.empty())
@@ -356,17 +394,16 @@ HRESULT UI::addLabel(LPCSTR IDName, LPCSTR IDDialog)
 	}
 
 	if (!IDDialog)
-		Dialogs.back().Label.push_back(Labels(IDName, true));
+		Dialogs.back()->Label.push_back(make_unique<Labels>(IDName, true));
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (Dialogs.at(i).IDTitle == IDDialog)
-				Dialogs.at(i).Label.push_back(Labels(IDName, true));
+			if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+				Dialogs.at(i)->Label.push_back(make_unique<Labels>(IDName, true));
 		}
 	return S_OK;
 }
-
-HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog)
+HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog, bool SelDef)
 {
 	if (Dialogs.empty())
 	{
@@ -376,12 +413,290 @@ HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog)
 	}
 
 	if (!IDDialog)
-		Dialogs.back().CollpsHeader.push_back(CollapsingHeaders(IDName, false));
+		Dialogs.back()->CollpsHeader.push_back(make_unique<CollapsingHeaders>(IDName, SelDef));
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (Dialogs.at(i).IDTitle == IDDialog)
-				Dialogs.at(i).CollpsHeader.push_back(CollapsingHeaders(IDName, false));
+			if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+				Dialogs.at(i)->CollpsHeader.push_back(make_unique<CollapsingHeaders>(IDName, SelDef));
 		}
 	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<Buttons> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->CollpsHeader.back()->Btn.push_back(Component);
+	}
+	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<CollapsingHeaders> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->CollpsHeader.push_back(Component);
+	}
+	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<Labels> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->CollpsHeader.back()->Label.push_back(Component);
+	}
+	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<IText> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->CollpsHeader.back()->Itext.push_back(Component);
+	}
+	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<ITextMulti> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->CollpsHeader.back()->Itextmul.push_back(Component);
+	}
+	return S_OK;
+}
+
+void UI::DisableDialog(LPCSTR IDDialog)
+{
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->setVisible(false);
+	}
+}
+void UI::EnableDialog(LPCSTR IDDialog)
+{
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			Dialogs.at(i)->setVisible(true);
+	}
+}
+
+shared_ptr<dialogs> UI::getDialog(LPCSTR IDDialog)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addButton()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addButton()::Dialogs->empty() == empty!!!");
+		return nullptr;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->IDTitle, IDDialog) == 0)
+			return Dialogs.at(i);
+	}
+}
+
+bool UI::UpdateMouseCursor()
+{
+	ImGuiIO &io = ImGui::GetIO();
+	if (io.ConfigFlags & ImGuiConfigFlags_NoMouseCursorChange)
+		return false;
+
+	ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+	if (imgui_cursor == ImGuiMouseCursor_None || io.MouseDrawCursor)
+		::SetCursor(NULL);
+	else
+	{
+		LPTSTR win32_cursor = IDC_ARROW;
+		switch (imgui_cursor)
+		{
+		case ImGuiMouseCursor_Arrow:      win32_cursor = IDC_ARROW; break;
+		case ImGuiMouseCursor_TextInput:  win32_cursor = IDC_IBEAM; break;
+		case ImGuiMouseCursor_ResizeAll:  win32_cursor = IDC_SIZEALL; break;
+		case ImGuiMouseCursor_ResizeEW:   win32_cursor = IDC_SIZEWE; break;
+		case ImGuiMouseCursor_ResizeNS:   win32_cursor = IDC_SIZENS; break;
+		case ImGuiMouseCursor_ResizeNESW: win32_cursor = IDC_SIZENESW; break;
+		case ImGuiMouseCursor_ResizeNWSE: win32_cursor = IDC_SIZENWSE; break;
+		case ImGuiMouseCursor_Hand:       win32_cursor = IDC_HAND; break;
+		}
+		::SetCursor(::LoadCursor(NULL, win32_cursor));
+	}
+	return true;
+}
+void UI::UpdateMousePos()
+{
+	ImGuiIO& io = ImGui::GetIO();
+
+	if (io.WantSetMousePos)
+	{
+		POINT pos = { (int)io.MousePos.x, (int)io.MousePos.y };
+		::ClientToScreen(Application->GetHWND(), &pos);
+		::SetCursorPos(pos.x, pos.y);
+	}
+
+	io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+	POINT pos;
+	if (HWND active_window = ::GetForegroundWindow())
+		if (active_window == Application->GetHWND() || ::IsChild(active_window, Application->GetHWND()))
+			if (::GetCursorPos(&pos) && ::ScreenToClient(Application->GetHWND(), &pos))
+				io.MousePos = ImVec2((float)pos.x, (float)pos.y);
+}
+
+void UI::Gamepads()
+{
+	ImGuiIO &io = ImGui::GetIO();
+	memset(io.NavInputs, 0, sizeof(io.NavInputs));
+	if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) == 0)
+		return;
+
+	if (g_WantUpdateHasGamepad)
+	{
+		g_HasGamepad = Application->getGamepad()->GetState(0).IsConnected();
+		g_WantUpdateHasGamepad = false;
+	}
+
+	io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+	if (g_HasGamepad)
+	{
+		io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
+		io.NavInputs[ImGuiNavInput_Activate] = Application->getTracherGamepad().a;
+		io.NavInputs[ImGuiNavInput_Cancel] = Application->getTracherGamepad().b;
+		io.NavInputs[ImGuiNavInput_Menu] = Application->getTracherGamepad().x;
+		io.NavInputs[ImGuiNavInput_Input] = Application->getTracherGamepad().y;
+
+		io.NavInputs[ImGuiNavInput_DpadLeft] = Application->getTracherGamepad().dpadLeft;
+		io.NavInputs[ImGuiNavInput_DpadRight] = Application->getTracherGamepad().dpadRight;
+		io.NavInputs[ImGuiNavInput_DpadUp] = Application->getTracherGamepad().dpadUp;
+		io.NavInputs[ImGuiNavInput_DpadDown] = Application->getTracherGamepad().dpadDown;
+
+		io.NavInputs[ImGuiNavInput_FocusPrev] = Application->getTracherGamepad().leftShoulder;
+		io.NavInputs[ImGuiNavInput_FocusNext] = Application->getTracherGamepad().rightShoulder;
+		io.NavInputs[ImGuiNavInput_TweakSlow] = Application->getTracherGamepad().leftShoulder;
+		io.NavInputs[ImGuiNavInput_TweakFast] = Application->getTracherGamepad().rightShoulder;
+
+		//MAP_ANALOG(ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+		//MAP_ANALOG(ImGuiNavInput_LStickRight, gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+		//MAP_ANALOG(ImGuiNavInput_LStickUp, gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+		//MAP_ANALOG(ImGuiNavInput_LStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
+	}
+}
+
+LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	if (ImGui::GetCurrentContext() == NULL)
+		return 0;
+
+	ImGuiIO &io = ImGui::GetIO();
+	switch (uMsg)
+	{
+	case WM_LBUTTONDOWN: case WM_LBUTTONDBLCLK:
+	case WM_RBUTTONDOWN: case WM_RBUTTONDBLCLK:
+	case WM_MBUTTONDOWN: case WM_MBUTTONDBLCLK:
+	case WM_XBUTTONDOWN: case WM_XBUTTONDBLCLK:
+	{
+		int button = 0;
+		if (uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK)
+			button = Application->getTrackerMouse().leftButton;
+
+		if (uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONDBLCLK)
+			button = Application->getTrackerMouse().rightButton;
+
+		if (uMsg == WM_MBUTTONDOWN || uMsg == WM_MBUTTONDBLCLK)
+			button = Application->getTrackerMouse().middleButton;
+
+		if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK)
+			button = Application->getTrackerMouse().xButton1 ? 3 : 4;
+
+		if (!ImGui::IsAnyMouseDown() && ::GetCapture() == NULL)
+			::SetCapture(Application->GetHWND());
+		io.MouseDown[button] = true;
+		return 0;
+	}
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MBUTTONUP:
+	case WM_XBUTTONUP:
+	{
+		int button = 0;
+		if (uMsg == WM_LBUTTONUP) 
+			button = Application->getTrackerMouse().leftButton;
+
+			if (uMsg == WM_RBUTTONUP) 
+				button = Application->getTrackerMouse().rightButton;
+
+			if (uMsg == WM_MBUTTONUP) 
+				button = Application->getTrackerMouse().middleButton;
+
+		if (uMsg == WM_XBUTTONUP) 
+			button = Application->getTrackerMouse().xButton1 ? 3 : 4;
+
+		io.MouseDown[button] = false;
+		return 0;
+	}
+	case WM_MOUSEWHEEL:
+		io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+		return 0;
+	case WM_MOUSEHWHEEL:
+		io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
+		return 0;
+	case WM_KEYDOWN:
+	case WM_SYSKEYDOWN:
+		if (wParam < 256)
+			io.KeysDown[wParam] = 1;
+		return 0;
+	case WM_KEYUP:
+	case WM_SYSKEYUP:
+		if (wParam < 256)
+			io.KeysDown[wParam] = 0;
+		return 0;
+	case WM_CHAR:
+		if (wParam > 0 && wParam < 0x10000)
+			io.AddInputCharacter((unsigned short)wParam);
+		return 0;
+	case WM_SETCURSOR:
+		if (LOWORD(lParam) == HTCLIENT && UpdateMouseCursor())
+			return 1;
+		return 0;
+	}
+	return false;
 }

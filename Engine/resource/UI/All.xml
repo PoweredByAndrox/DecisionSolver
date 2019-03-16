@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="Console" width="250" height="250" open="true" resize="true" 
+<gui id="Console" width="200" height="250" open="true" resize="true" 
 show_title="true" moveble="true" collapse="false">
-	<InputText text="CommandLine" visible="true" history="true"/>
-	<Button text="Apply" visible="true"/>
-	<InputTextMultiline text="ConsoleText" visible="true" readonly="true"/>
+	<InputText text="CommandLineV32" visible="true" history="true"/>
+	<Button text="Apply\Done" visible="true"/>
+	<InputTextMultiline text="" visible="true" readonly="false"/>
 </gui>

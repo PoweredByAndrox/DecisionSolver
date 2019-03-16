@@ -5,14 +5,14 @@
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
+#include "Audio.h"
 
 HRESULT Console::Init()
 {
 	try
 	{
-		//ui->Init(1, Application->getFS()->GetFile(string("Main_texures_UI.dds"))->PathW.c_str());
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
-		//V(Settings(false));
+		Dialog = Application->getUI()->getDialog("Console");
 
 		InitClass = true;
 		return S_OK;
@@ -26,89 +26,49 @@ HRESULT Console::Init()
 	}
 }
 
-/*
-HRESULT Engine::Console::Settings(bool Reset)
+void Console::Reload()
 {
-	USES_CONVERSION;
-	try
-	{
-		vector<int> W = ui->getW(), H = ui->getH(), X = ui->getX(), Y = ui->getY();
-		vector<LPCSTR> Text = ui->getText();
-
-		if (!Reset)
-			ui->getDialog()->at(0)->SetCallback(OnGUIEvent, vector<void *>{this});
-
-		if (!Reset)
-		{
-			ui->getDialog()->at(0)->AddButton(0, A2W(Text.at(0)), X.at(0), Y.at(0), W.at(1), H.at(1));
-			ui->getDialog()->at(0)->AddListBox(2, X.at(1), Y.at(1), W.at(2), H.at(2));
-			ui->getDialog()->at(0)->AddEditBox(1, A2W(Text.at(1)), X.at(2), Y.at(2), W.at(3), H.at(3));
-		}
-		else
-		{
-			ui->getDialog()->at(0)->GetButton(0)->SetText(A2W(Text.at(0)));
-			ui->getDialog()->at(0)->GetButton(0)->SetLocation(X.at(0), Y.at(0));
-			ui->getDialog()->at(0)->GetButton(0)->SetSize(W.at(1), H.at(1));
-
-			ui->getDialog()->at(0)->GetListBox(2)->SetLocation(X.at(1), Y.at(1));
-			ui->getDialog()->at(0)->GetListBox(2)->SetSize(W.at(2), H.at(2));
-
-			//ui->getDialog()->at(0)->GetEditBox(1)->SetText(A2W(Text.at(1)));
-			ui->getDialog()->at(0)->GetEditBox(1)->SetLocation(X.at(2), Y.at(2));
-			ui->getDialog()->at(0)->GetEditBox(1)->SetSize(W.at(3), H.at(3));
-		}
-
-		ui->getDialog()->at(0)->SetSize(W.at(0), H.at(0));
-		ui->getDialog()->at(0)->SetBackgroundColors(D3DCOLOR_ARGB(rand() % 255, rand() % 255, rand() % 255, rand() % 255),
-			D3DCOLOR_ARGB(rand() % 255, rand() % 255, rand() % 105, rand() % 255),
-			D3DCOLOR_ARGB(rand() % 255, rand() % 298, rand() % 255, rand() % 255),
-			D3DCOLOR_ARGB(rand() % 255, rand() % 10, rand() % 764, rand() % 179));
-		ui->getDialog()->at(0)->SetLocation(W.at(0), H.at(0));
-		ui->getDialog()->at(0)->SetCaptionText(L"Console!");
-
-		return S_OK;
-	}
-	catch (const std::exception &)
-	{
-		DebugTrace("Console->Settings() is failed.\n");
-		throw exception("Console is failed!!!");
-
-		return E_FAIL;
-	}
+	Application->getUI()->ReloadXML(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
+	Dialog = Application->getUI()->getDialog("Console");
 }
 
-void Engine::Console::Render(float Time)
+void Console::Render()
 {
 	if (CState == Console_STATE::Close)
 		return;
 
-	ui->Render(Time);
-	ui->getDialog()->at(0)->SetSize(DXUTGetDXGIBackBufferSurfaceDesc()->Width, DXUTGetDXGIBackBufferSurfaceDesc()->Height -256);
-	ui->getDialog()->at(0)->SetLocation(0, DXUTGetDXGIBackBufferSurfaceDesc()->Height -256);
-	ui->getDialog()->at(0)->GetListBox(2)->SetSize(ui->getDialog()->at(0)->GetWidth(), ui->getDialog()->at(0)->GetListBox(2)->m_height);
-	ui->getDialog()->at(0)->GetButton(0)->SetLocation(ui->getDialog()->at(0)->GetWidth() / 3, ui->getDialog()->at(0)->GetButton(0)->m_y);
-	ui->getDialog()->at(0)->GetEditBox(1)->SetLocation(ui->getDialog()->at(0)->GetButton(0)->m_x + 150, ui->getDialog()->at(0)->GetEditBox(1)->m_y);
-	ui->getDialog()->at(0)->GetEditBox(1)->SetSize(ui->getDialog()->at(0)->GetWidth() / 4,
-		ui->getDialog()->at(0)->GetEditBox(1)->m_height);
+	if (Dialog->Btn.back()->clicked)
+		Reload();
+
+	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(0).IsClicked())
+	//	Application->getSound()->doPlay();
+
+	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(1).IsClicked())
+	//	Application->getSound()->doStop();
+
+	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(2).IsClicked())
+	//	Application->getSound()->doPause();
 }
 
-void Engine::Console::Open()
+void Console::OpenConsole()
 {
 	if (CState == Console_STATE::Close)
 	{
-		ui->getDialog()->at(0)->SetMinimized(false);
+		Application->getUI()->DisableDialog("Console");
 		CState = Console_STATE::Open;
 	}
 }
 
-void Engine::Console::Close()
+void Console::CloseConsole()
 {
 	if (CState == Console_STATE::Open)
 	{
-		ui->getDialog()->at(0)->SetMinimized(true);
+		Application->getUI()->EnableDialog("Console");
 		CState = Console_STATE::Close;
 	}
 }
+
+/*
 void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
 {
 	USES_CONVERSION;

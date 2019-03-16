@@ -5,14 +5,14 @@
 
 #include <Keyboard.h>
 #include <Mouse.h>
+#include <GamePad.h>
 
 #define Never
 //#define NEEDED_DEBUG_INFO
 
-class Render_Buffer;
 class File_system;
 class UI;
-class Models;
+//class Models;
 class Camera;
 class Actor;
 class Shaders;
@@ -76,13 +76,13 @@ private:
 	//#define UseConsole
 
 	shared_ptr<File_system> FS;
-	shared_ptr<Models> model;
+	//shared_ptr<Models> model;
 	shared_ptr<Audio> Sound;
+	shared_ptr<Console> console;
 	shared_ptr<UI> ui;
 	//shared_ptr<Picking> Pick;
 	// shared_ptr<Terrain> terrain;
 	//shared_ptr<Frustum> frustum;
-	shared_ptr<Render_Buffer> R_buffer;
 	shared_ptr<Actor> mainActor;
 	//shared_ptr<Physics> PhysX;
 	//shared_ptr<Levels> Level;
@@ -90,7 +90,7 @@ private:
 	shared_ptr<Shaders> shader;
 	shared_ptr<Mouse> mouse = make_unique<Mouse>();
 	shared_ptr<Keyboard> keyboard = make_unique<Keyboard>();
-	shared_ptr<Console> console;
+	shared_ptr<GamePad> gamepad = make_unique<GamePad>();
 
 #if defined(Never_MainMenu)
 	shared_ptr<MainMenu> Menu = make_unique<MainMenu>();
@@ -110,12 +110,11 @@ public:
 	LPCWSTR getNameWnd() { return NameWnd; }
 
 	shared_ptr<File_system> getFS() { return FS; }
-	shared_ptr<Models> getModel() { return model; }
+	//shared_ptr<Models> getModel() { return model; }
 	shared_ptr<Audio> getSound() { return Sound; }
 	shared_ptr<UI> getUI() { return ui; }
 	//shared_ptr<Picking> getPick() { return Pick; }
 	//shared_ptr<Frustum> getFrustum() { return frustum; }
-	shared_ptr<Render_Buffer> getRender_Buffer() { return R_buffer; }
 	shared_ptr<Actor> getActor() { return mainActor; }
 	//shared_ptr<Physics> getPhysics() { return PhysX; }
 	//shared_ptr<Levels> getLevel() { return Level; }
@@ -128,21 +127,21 @@ public:
 		if (!this->ui.operator bool())
 			this->ui = ui;
 	}
-	void setRender_Buffer(shared_ptr<Render_Buffer> R_buffer)
+	void setConsole(shared_ptr<Console> console)
 	{
-		if (!this->R_buffer.operator bool())
-			this->R_buffer = R_buffer;
+		if (!this->console.operator bool())
+			this->console = console;
 	}
 	void setFS(shared_ptr<File_system> Pick)
 	{
 		if (!this->FS.operator bool())
 			this->FS = Pick;
 	}
-	void setModel(shared_ptr<Models> model)
-	{
-		if (!this->model.operator bool())
-			this->model = model;
-	}
+	//void setModel(shared_ptr<Models> model)
+	//{
+	//	if (!this->model.operator bool())
+	//		this->model = model;
+	//}
 	void setCamera(shared_ptr<Camera> camera)
 	{
 		if (!this->camera.operator bool())
@@ -162,11 +161,6 @@ public:
 	{
 		if (!this->Sound.operator bool())
 			this->Sound = Sound;
-	}
-	void setConsole(shared_ptr<Console> console)
-	{
-		if (!this->console.operator bool())
-			this->console = console;
 	}
 	/*
 	void setPick(shared_ptr<Picking> Pick)
@@ -193,6 +187,7 @@ public:
 
 	shared_ptr<Mouse> getMouse() { return mouse; }
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }
+	shared_ptr<GamePad> getGamepad() { return gamepad; }
 
 	ID3D11Device *getDevice()
 	{
@@ -247,6 +242,9 @@ public:
 	}
 	static void ResizeWindow()
 	{
+		if (!SwapChain)
+			return;
+
 		ID3D11Texture2D *pBackBuffer = nullptr;
 		SAFE_RELEASE(RenderTargetView);
 		SAFE_RELEASE(DepthStencilView);
@@ -391,10 +389,12 @@ public:
 
 	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
 	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
+	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
 private:
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;
 	Mouse::ButtonStateTracker TrackerMouse;
 	Keyboard::KeyboardStateTracker TrackerKeyboard;
+	GamePad::ButtonStateTracker TrackerGamepad;
 };
 #endif // __ENGINE_H__

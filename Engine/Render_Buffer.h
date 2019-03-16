@@ -21,20 +21,26 @@ private:
 #pragma pack()
 
 public:
-	HRESULT InitSimpleBuffer(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader, UINT VertexSize = 0U,
-		void *Vertix = nullptr, UINT IndicesSize = 0U, void *Indix = nullptr, UINT SizeStruct = 0U);
+	void SetShadersFile(vector<wstring> ShaderFile, vector<string> Func, vector<string> VersionShader);
+
+	HRESULT InitSimpleBuffer(UINT VertexSize = 0U, void *Vertix = nullptr, UINT IndicesSize = 0U, void *Indix = nullptr, UINT SizeStruct = 0U);
 #if defined(UseTerrain)
 	HRESULT InitTerrain(shared_ptr<Engine> engine, UINT SizeofVertex, void *vertices,
 		vector<UINT> indices, vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
 #endif // UseTerrain
 
-	HRESULT InitModels(vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader,
-		UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct);
+	HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct);
+
+	HRESULT InitUI();
+	void RenderUI(ImDrawData *draw_data, bool WF);
 
 	vector<ID3D11RasterizerState *> CreateWF(); // WireFrame
 
-	ID3D11Buffer *CreateVB(UINT ByteWidth, void *vertices);
-	ID3D11Buffer *CreateIB(WORD ByteWidth, void *indices);
+	ID3D11Buffer *CreateVB(UINT ByteWidth, bool NeedVertice = false,
+		D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CPUAccessFlags = 0, void *vertices = nullptr);
+	ID3D11Buffer *CreateIB(WORD ByteWidth, bool NeedIndices = false,
+		D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CPUAccessFlags = 0, void *indices = nullptr);
+
 	ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
 	ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob);
 
@@ -61,7 +67,7 @@ protected:
 
 	HRESULT hr = S_OK;
 
-	ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_pConstBuffer = nullptr, *m_matrixBuffer = nullptr;
+	ID3D11Buffer *m_vertexBuffer = nullptr, *m_indexBuffer = nullptr, *m_pConstBuffer = nullptr;
 	ID3D11VertexShader *m_vertexShader = nullptr;
 	ID3D11PixelShader *m_pixelShader = nullptr;
 
@@ -72,10 +78,22 @@ protected:
 	ID3D11RasterizerState* g_pRasWireFrame = nullptr, *g_pRasStateSolid = nullptr;
 	ID3D11Texture2D *g_pDepthStencil = nullptr;
 	ID3D11DepthStencilView *g_pDepthStencilView = nullptr;
+	ID3D11DepthStencilState *g_pDepthStencilState = nullptr;
 
-	Shaders *Shader = new Shaders;
+	ID3D11SamplerState *g_pFontSampler = nullptr;
+	ID3D11ShaderResourceView *g_pFontTextureView = nullptr;
+	ID3D11BlendState *g_pBlendState = nullptr;
+
+	shared_ptr<Shaders> Shader = make_unique<Shaders>();
 
 	vector<ID3DBlob *> Buffer_blob;
 	vector<void *> Buffers;
+
+	// ***********
+	// For UI
+	int VBufferSize = 5000, IBufferSize = 10000;
+
+	vector<wstring> ShaderFile;
+	vector<string> Func, VersionShader;
 };
 #endif // !__RENDER_BUFFER_H__

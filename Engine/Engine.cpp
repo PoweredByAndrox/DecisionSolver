@@ -170,30 +170,28 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 
 void Engine::Run()
 {
-	ui->Begin();
-
 	ClearRenderTarget();
 
 	Render();
 
 	mainActor->Render(frameTime);
 
-	ui->Render(0);
-	ui->End();
+	console->Render();
+
+	ui->Begin();
+
+	ui->Render();
+	//ui->getDialogs().front().Label.front().IDTitle = string((boost::format(
+	//	string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
+	//	% Application->getFPS() % Application->getActor()->getPosition().x % Application->getActor()->getPosition().y
+	//	% Application->getActor()->getPosition().z % Application->IsWireFrame()).str()).data();
+
+	ui->End(WireFrame);
 
 	SwapChain->Present(0, 0);
 
 	Sound->Update();
 
-	/*
-	if (getMouse()->IsConnected())
-	{
-		auto state = mouse->GetState();
-		TrackerMouse.Update(state);
-		if (TrackerMouse.leftButton == ButtonState::PRESSED)
-			MessageBoxW(GetHWND(), L"You're click on LB", getNameWnd(), MB_OK);
-	}
-	*/
 	if (getKeyboard()->IsConnected())
 	{
 		auto state = keyboard->GetState();
@@ -207,6 +205,11 @@ void Engine::Run()
 				WireFrame = false;
 			else
 				WireFrame = true;
+	}
+	if (getGamepad()->GetState(0).IsConnected())
+	{
+		auto state = gamepad->GetState(0);
+		TrackerGamepad.Update(state);
 	}
 }
 
@@ -232,7 +235,7 @@ void Engine::Render()
 
 	frameTime = GetFrameTime();
 
-	model->Render(camera->GetViewMatrix(), camera->GetProjMatrix(), WireFrame);
+//	model->Render(camera->GetViewMatrix(), camera->GetProjMatrix(), WireFrame);
 
 	/*
 	//ui->SetTextStatic(ui->getDialog()->at(0), 0, &string("Cam Pos: "), PosCam);
@@ -293,12 +296,14 @@ void Engine::Destroy(HINSTANCE hInstance)
 
 LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	UI::WndProc(hWnd, uMsg, wParam, lParam);
+	if (Application->getUI().operator bool())
+		if (UI::MsgProc(hWnd, uMsg, wParam, lParam))
+			return true;
 
 	switch (uMsg)
 	{
 	case WM_SIZE:
-		if (Device && wParam != SIZE_MINIMIZED)
+		if (wParam != SIZE_MINIMIZED & Application->getUI().operator bool())
 		{
 			ResizeWindow();
 			UI::ResizeWnd();
@@ -334,5 +339,6 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	}
 	}
-	return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+	return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 }

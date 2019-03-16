@@ -56,12 +56,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		//	// GUI!!!
 		Application->setUI(make_unique<UI>());
 		Application->getUI()->Init();
+		Application->getUI()->addDialog("Main");
+		Application->getUI()->addCollapseHead("Sounds", "Main", true);
+		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Start!", true));
+		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Stop!", true));
+		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Pause!", true));
+		Application->getUI()->addLabel("", "Main");
 
-		//	// Render Buffers!!!
-		Application->setRender_Buffer(make_unique<Render_Buffer>());
+		//	// Console Class!!!
+		Application->setConsole(make_unique<Console>());
+		Application->getConsole()->Init();
 
 		//	// Models Class
-		Application->setModel(make_unique<Models>());
+		//Application->setModel(make_unique<Models>());
 
 		//	// Camera Class
 		Application->setCamera(make_unique<Camera>());
@@ -76,10 +83,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getSound()->Init();
 		Application->getSound()->AddNewSound();
 		Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
-		
-		//	// Console Class!!!
-		Application->setConsole(make_unique<Console>());
-		Application->getConsole()->Init();
 		// ***********
 
 		MSG msg = {0};
@@ -95,7 +98,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 		Application->getUI()->Destroy();
-		Application->getRender_Buffer()->Release();
+		//Application->getRender_Buffer()->Release();
 		Application->Destroy(hInstance);
 	}
 	catch (const exception &Catch)
