@@ -4,6 +4,7 @@
 #include "pch.h"
 
 #include "UI.h"
+#include "CCommands.h"
 
 class Console
 {
@@ -29,12 +30,12 @@ public:
 	bool IsInit() { return InitClass; }
 	Console_STATE *getState() { return &CState; }
 	void ChangeState(Console_STATE Cstate) { CState = Cstate; }
-
 private:
 	bool InitClass = false;
 	Console_STATE CState = Console_STATE::Open;
 
 	shared_ptr<dialogs> Dialog;
+	shared_ptr<Commands> command = make_unique<Commands>();
 };
 #endif // !__CONSOLE__H_
 

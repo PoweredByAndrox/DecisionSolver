@@ -103,6 +103,8 @@ public:
 
 	void Render();
 	void Destroy(HINSTANCE hInstance);
+	void Quit() { ::PostQuitMessage(0); }
+
 	Engine() {}
 	~Engine() {}
 

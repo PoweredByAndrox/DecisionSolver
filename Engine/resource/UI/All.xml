@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<gui id="Main" width="200" height="250" open="true" resize="true" 
+show_title="true" moveble="true" collapsible="false">
+	<Collapse text="Sound" seldefault="true" collapsible="true">
+		<Button text="Start!" visible="true"/>
+		<Button text="Stop!" visible="true"/>
+		<Button text="Pause!" visible="true"/>
+	</Collapse>
+	<Label text="A Simple Text!" visible="true"/>
+</gui>
+
 <gui id="Console" width="200" height="250" open="true" resize="true" 
-show_title="true" moveble="true" collapse="false">
-	<InputText text="CommandLineV32" visible="true" history="true"/>
-	<Button text="Apply\Done" visible="true"/>
+show_title="true" moveble="true" collapsible="true">
 	<InputTextMultiline text="" visible="true" readonly="false"/>
+	<InputText text="CommandLineV32" visible="true" history="true" hint="true"
+	texthint="Input Command Here!"/>
 </gui>

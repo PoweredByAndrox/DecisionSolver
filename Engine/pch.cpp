@@ -134,7 +134,7 @@ string deleteWord(string context, string const start, string const end)
 
 	while (str.find(start) != string::npos & str.find(end) != string::npos)
 	{
-		str.erase(str.find(start), (str.find(end) + end.size())+1 - str.find(start));
+		str.erase(str.find(start), (str.find(end) + end.size()) + 1 - str.find(start));
 	}
 
 	return str;

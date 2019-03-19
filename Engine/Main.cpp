@@ -56,12 +56,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		//	// GUI!!!
 		Application->setUI(make_unique<UI>());
 		Application->getUI()->Init();
-		Application->getUI()->addDialog("Main");
-		Application->getUI()->addCollapseHead("Sounds", "Main", true);
-		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Start!", true));
-		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Stop!", true));
-		Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Pause!", true));
-		Application->getUI()->addLabel("", "Main");
+		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
+		//Application->getUI()->addDialog("Main");
+		//Application->getUI()->addCollapseHead("Sounds", "Main", true);
+		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Start!", true));
+		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Stop!", true));
+		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Pause!", true));
+		//Application->getUI()->addLabel("", "Main");
 
 		//	// Console Class!!!
 		Application->setConsole(make_unique<Console>());

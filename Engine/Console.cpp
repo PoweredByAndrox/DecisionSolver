@@ -5,7 +5,6 @@
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
-#include "Audio.h"
 
 HRESULT Console::Init()
 {
@@ -37,17 +36,8 @@ void Console::Render()
 	if (CState == Console_STATE::Close)
 		return;
 
-	if (Dialog->Btn.back()->clicked)
-		Reload();
-
-	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(0).IsClicked())
-	//	Application->getSound()->doPlay();
-
-	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(1).IsClicked())
-	//	Application->getSound()->doStop();
-
-	//if (Application->getUI()->getDialogs().back().CollpsHeader.back().Btn.at(2).IsClicked())
-	//	Application->getSound()->doPause();
+	if (Dialog->getITexts().back()->getTextChange())
+		command->Work(Dialog->getITextMultis().back(), Dialog->getITexts().back()->GetText());
 }
 
 void Console::OpenConsole()

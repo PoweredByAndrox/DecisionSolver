@@ -181,10 +181,19 @@ void Engine::Run()
 	ui->Begin();
 
 	ui->Render();
-	//ui->getDialogs().front().Label.front().IDTitle = string((boost::format(
-	//	string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
-	//	% Application->getFPS() % Application->getActor()->getPosition().x % Application->getActor()->getPosition().y
-	//	% Application->getActor()->getPosition().z % Application->IsWireFrame()).str()).data();
+	ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
+		string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
+		% Application->getFPS() % Application->getActor()->getPosition().x % Application->getActor()->getPosition().y
+		% Application->getActor()->getPosition().z % Application->IsWireFrame()).str()));
+
+	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(0)->IsClicked())
+		Application->getSound()->doPlay();
+
+	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
+		Application->getSound()->doStop();
+
+	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(2)->IsClicked())
+		Application->getSound()->doPause();
 
 	ui->End(WireFrame);
 
