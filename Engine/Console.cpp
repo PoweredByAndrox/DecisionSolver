@@ -10,7 +10,6 @@ HRESULT Console::Init()
 {
 	try
 	{
-		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
 		Dialog = Application->getUI()->getDialog("Console");
 
 		InitClass = true;
@@ -36,8 +35,11 @@ void Console::Render()
 	if (CState == Console_STATE::Close)
 		return;
 
-	if (Dialog->getITexts().back()->getTextChange())
-		command->Work(Dialog->getITextMultis().back(), Dialog->getITexts().back()->GetText());
+	if (Dialog->getChilds().back()->getITexts().back()->getTextChange())
+		command->Work(Dialog->getChilds().back()->getUTexts().back(), Dialog->getChilds().back()->getITexts().back()->GetText());
+
+	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
+	Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));
 }
 
 void Console::OpenConsole()

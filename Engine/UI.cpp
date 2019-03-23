@@ -135,7 +135,6 @@ void UI::Render()
 void UI::Destroy()
 {
 	Buf->Release();
-	//ImGui_ImplWin32_Shutdown();
 	DestroyContext();
 }
 
@@ -161,459 +160,860 @@ HRESULT UI::LoadXmlUI(LPCSTR File)
 	return S_OK;
 }
 
-void UI::ProcessXML()
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder)
 {
-	Element = { doc->RootElement() };
-	if (!Element.front())
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
 	{
-		DebugTrace("UI->LoadXmlUI()::doc->RootElement() == nullptr!!!");
-		throw exception("UI->LoadXmlUI()::doc->RootElement() == nullptr!!!");
-		return;
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			btn->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			btn->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	btn->ChangeOrder(CountOrder);
+	dialog->setComponent(btn);
+}
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Label->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Label->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Label->ChangeOrder(CountOrder);
+	dialog->setComponent(Label);
+}
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Itext->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Itext->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "history") == 0)
+		{
+			Itext->setHistory(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "hint") == 0)
+		{
+			Itext->setHint(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "texthint") == 0)
+		{
+			Itext->ChangeTextHint(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Itext->ChangeOrder(CountOrder);
+	dialog->setComponent(Itext);
+}
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			ItextMul->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			ItextMul->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "readonly") == 0)
+		{
+			ItextMul->setReadOnly(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	ItextMul->ChangeOrder(CountOrder);
+	dialog->setComponent(ItextMul);
+}
+
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, child *XMLchild, shared_ptr<Child> &child, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLchild->_Child->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			child->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "border") == 0)
+		{
+			child->setBorder(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "horizontal_scroll") == 0)
+		{
+			child->setHScroll(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	
+	//	Button
+	for (int i = 0; i < XMLchild->buttons.size(); i++)
+	{
+		shared_ptr<Buttons> btn = make_unique<Buttons>();
+		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), btn, CountOrder);
+	}
+	//	InputText
+	for (int i = 0; i < XMLchild->texts.size(); i++)
+	{
+		shared_ptr<IText> Itext = make_unique<IText>();
+		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), Itext, CountOrder);
+	}
+	//	InputTextMultiline
+	for (int i = 0; i < XMLchild->textmuls.size(); i++)
+	{
+		shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
+		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), ItextMul, CountOrder);
+	}
+	//	Collapse
+	//for (int i = 0; i < XMLchild->collpheaders.size(); i++)
+	//{
+	//	shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
+	//	WorkOnComponents(child, XMLchild->collpheaders.at(i), CHeader, CountOrder);
+	//}
+	//	Label
+	for (int i = 0; i < XMLchild->labels.size(); i++)
+	{
+		shared_ptr<Labels> label = make_unique<Labels>();
+		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), label, CountOrder);
+	}
+	//	Separator
+	for (int i = 0; i < XMLchild->separators.size(); i++)
+	{
+		shared_ptr<_Separator> separator = make_unique<_Separator>();
+		separator->ChangeOrder(CountOrder);
+	}
+	//	ChildDialog
+	//for (int i = 0; i < XMLchild->childs.size(); i++)
+	//{
+	//	shared_ptr<Child> _child = make_unique<Child>();
+	//	WorkOnComponents(child, XMLchild, _child, CountOrder);
+	//}
+	//	UnformatedText
+	for (int i = 0; i < XMLchild->utext.size(); i++)
+	{
+		shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
+		UText->ChangeOrder(CountOrder);
+		child->setComponent(UText);
 	}
 
-	vector<shared_ptr<dialogs>> dialog;
+	child->ChangeOrder(CountOrder);
+	dialog->setComponent(child);
+}
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, collpheader *XMLCHeader, shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLCHeader->CollpsHead->ToElement()->FirstAttribute());
 	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "seldefault") == 0)
+		{
+			CHeader->setSelDefault(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			CHeader->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "collapsible") == 0)
+		{
+			CHeader->setCollapse(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+
+	//	Button
+	for (int i = 0; i < XMLCHeader->buttons.size(); i++)
+	{
+		shared_ptr<Buttons> btn = make_unique<Buttons>();
+		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), btn, CountOrder);
+	}
+	//	InputText
+	for (int i = 0; i < XMLCHeader->texts.size(); i++)
+	{
+		shared_ptr<IText> Itext = make_unique<IText>();
+		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), Itext, CountOrder);
+	}
+	//	InputTextMultiline
+	for (int i = 0; i < XMLCHeader->textmuls.size(); i++)
+	{
+		shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
+		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), ItextMul, CountOrder);
+	}
+	//	Collapse
+	//for (int i = 0; i < XMLCHeader->collpheaders.size(); i++)
+	//{
+	//	shared_ptr<CollapsingHeaders> _CHeader = make_unique<CollapsingHeaders>();
+	//	WorkOnComponents(CHeader, XMLCHeader, _CHeader, CountOrder);
+	//}
+	//	Label
+	for (int i = 0; i < XMLCHeader->labels.size(); i++)
+	{
+		shared_ptr<Labels> label = make_unique<Labels>();
+		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), label, CountOrder);
+	}
+	//	Separator
+	for (int i = 0; i < XMLCHeader->separators.size(); i++)
+	{
+		shared_ptr<_Separator> separator = make_unique<_Separator>();
+		separator->ChangeOrder(CountOrder);
+	}
+	//	ChildDialog
+	//for (int i = 0; i < XMLCHeader->childs.size(); i++)
+	//{
+	//	shared_ptr<Child> child = make_unique<Child>();
+	//	WorkOnComponents(dialog, XMLCHeader, child, CountOrder);
+	//}
+		//	UnformatedText
+	for (int i = 0; i < XMLCHeader->utext.size(); i++)
+	{
+		shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
+		UText->ChangeOrder(CountOrder);
+		CHeader->setComponent(UText);
+	}
+
+	CHeader->ChangeOrder(CountOrder);
+	dialog->setComponent(CHeader);
+}
+
+void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			btn->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			btn->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	btn->ChangeOrder(CountOrder);
+	InChild->setComponent(btn);
+}
+void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Label->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Label->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Label->ChangeOrder(CountOrder);
+	InChild->setComponent(Label);
+}
+void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Itext->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Itext->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "history") == 0)
+		{
+			Itext->setHistory(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "hint") == 0)
+		{
+			Itext->setHint(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "texthint") == 0)
+		{
+			Itext->ChangeTextHint(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Itext->ChangeOrder(CountOrder);
+	InChild->setComponent(Itext);
+}
+void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			ItextMul->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			ItextMul->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "readonly") == 0)
+		{
+			ItextMul->setReadOnly(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	ItextMul->ChangeOrder(CountOrder);
+	InChild->setComponent(ItextMul);
+}
+
+void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			btn->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			btn->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	btn->ChangeOrder(CountOrder);
+	InCollaps->setComponent(btn);
+}
+void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Label->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Label->ChangeText(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Label->ChangeOrder(CountOrder);
+	InCollaps->setComponent(Label);
+}
+void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			Itext->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			Itext->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "history") == 0)
+		{
+			Itext->setHistory(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "hint") == 0)
+		{
+			Itext->setHint(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "texthint") == 0)
+		{
+			Itext->ChangeTextHint(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	Itext->ChangeOrder(CountOrder);
+	InCollaps->setComponent(Itext);
+}
+void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			ItextMul->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			ItextMul->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "readonly") == 0)
+		{
+			ItextMul->setReadOnly(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	ItextMul->ChangeOrder(CountOrder);
+	InCollaps->setComponent(ItextMul);
+}
+
+void UI::ProcessXML()
+{
+	vector<shared_ptr<dialogs>> dialog;
+
+	XMLDialogs = { &dial(doc->RootElement()->Parent()->FirstChild()->NextSibling()), &dial(doc->RootElement()->Parent()->LastChild()) };
+
+	ToDo("Need To Rewrite The Code Below!!!");
+	//for (int i = 0; i < INT16_MAX; i++)
+	//{
+	//	if (doc->RootElement()->Parent()->LastChild() != XMLDialogs.back()->Dial->NextSibling())
+	//	{
+	//		if (XMLDialogs.back()->Dial && XMLDialogs.back()->Dial->NextSibling())
+	//			XMLDialogs.push_back(&dial(XMLDialogs.back()->Dial->NextSibling()));
+	//		else
+	//			XMLDialogs.push_back(&dial(XMLDialogs.back()->Dial->NextSibling()));
+	//	}
+	//	else
+	//		break;
+	//}
+
+	int i = 0;
+	for (auto It = XMLDialogs.begin(); It != XMLDialogs.end(); ++It)
+	{
+		vector<XMLNode *> TheFirstComponent;
+		for (int i = 0; i < INT16_MAX; i++)
+		{
+			if (TheFirstComponent.empty())
+				TheFirstComponent.push_back((*It)->Dial->FirstChild());
+			if ((*It)->Dial->LastChild() != TheFirstComponent.back())
+			{
+				if (TheFirstComponent.back()->NextSibling())
+					TheFirstComponent.push_back(TheFirstComponent.back()->NextSibling());
+			}
+			else
+				break;
+		}
+		for (auto ItComponents = TheFirstComponent.begin(); ItComponents != TheFirstComponent.end(); ++ItComponents)
+		{
+			if (strcmp((*ItComponents)->Value(), "Collapse") == 0)
+			{
+				XMLDialogs.at(i)->collpheaders.push_back(&collpheader(*ItComponents, true));
+				XMLDialogs.at(i)->IDcollpheaders.push_back(XMLDialogs.at(i)->IDcollpheaders.size() + 1);
+
+				vector<XMLNode *> TheSecondComponent;
+				for (int i = 0; i < INT16_MAX; i++)
+				{
+					if (TheSecondComponent.empty())
+						TheSecondComponent.push_back((*ItComponents)->ToElement()->FirstChild());
+					if ((*ItComponents)->ToElement()->LastChild() != TheSecondComponent.back())
+					{
+						if (TheSecondComponent.back()->NextSibling())
+							TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					}
+					else
+						break;
+				}
+				for (auto ItComponents = TheSecondComponent.begin(); ItComponents != TheSecondComponent.end(); ++ItComponents)
+				{
+					if (strcmp((*ItComponents)->Value(), "Button") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDbuttons.push_back(XMLDialogs.at(i)->collpheaders.back()->IDbuttons.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDtexts.push_back(XMLDialogs.at(i)->collpheaders.back()->IDtexts.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDtextmuls.push_back(XMLDialogs.at(i)->collpheaders.back()->IDtextmuls.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "Label") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDlabels.push_back(XMLDialogs.at(i)->collpheaders.back()->IDlabels.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDseparators.push_back(XMLDialogs.at(i)->collpheaders.back()->IDseparators.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDchilds.push_back(XMLDialogs.at(i)->collpheaders.back()->IDchilds.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDutext.push_back(XMLDialogs.at(i)->collpheaders.back()->IDutext.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
+				}
+			}
+			else if (strcmp((*ItComponents)->Value(), "Button") == 0)
+			{
+				XMLDialogs.at(i)->IDbuttons.push_back(XMLDialogs.at(i)->IDbuttons.size() + 1);
+				XMLDialogs.at(i)->buttons.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
+			{
+				XMLDialogs.at(i)->IDtexts.push_back(XMLDialogs.at(i)->IDtexts.size() + 1);
+				XMLDialogs.at(i)->texts.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
+			{
+				XMLDialogs.at(i)->IDtextmuls.push_back(XMLDialogs.at(i)->IDtextmuls.size() + 1);
+				XMLDialogs.at(i)->textmuls.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "Label") == 0)
+			{
+				XMLDialogs.at(i)->IDlabels.push_back(XMLDialogs.at(i)->IDlabels.size() + 1);
+				XMLDialogs.at(i)->labels.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
+			{
+				XMLDialogs.at(i)->IDseparators.push_back(XMLDialogs.at(i)->IDseparators.size() + 1);
+				XMLDialogs.at(i)->separators.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
+			{
+				XMLDialogs.at(i)->childs.push_back(&child(*ItComponents, true));
+				XMLDialogs.at(i)->IDchilds.push_back(XMLDialogs.at(i)->IDchilds.size() + 1);
+
+				vector<XMLNode *> TheSecondComponent;
+				for (int i = 0; i < INT16_MAX; i++)
+				{
+					if (TheSecondComponent.empty())
+						TheSecondComponent.push_back((*ItComponents)->ToElement()->FirstChild());
+					if ((*ItComponents)->ToElement()->LastChild() != TheSecondComponent.back())
+					{
+						if (TheSecondComponent.back()->NextSibling())
+							TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					}
+					else
+						break;
+				}
+				for (auto ItComponents = TheSecondComponent.begin(); ItComponents != TheSecondComponent.end(); ++ItComponents)
+				{
+					if (strcmp((*ItComponents)->Value(), "Button") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDbuttons.push_back(XMLDialogs.at(i)->childs.back()->IDbuttons.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDtexts.push_back(XMLDialogs.at(i)->childs.back()->IDtexts.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDtextmuls.push_back(XMLDialogs.at(i)->childs.back()->IDtextmuls.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "Label") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDlabels.push_back(XMLDialogs.at(i)->childs.back()->IDlabels.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDseparators.push_back(XMLDialogs.at(i)->childs.back()->IDseparators.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDchilds.push_back(XMLDialogs.at(i)->childs.back()->IDchilds.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+					else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDutext.push_back(XMLDialogs.at(i)->childs.back()->IDutext.size() + 1);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
+
+				}
+			}
+			else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
+			{
+				XMLDialogs.at(i)->IDutext.push_back(XMLDialogs.at(i)->IDutext.size() + 1);
+				XMLDialogs.at(i)->utext.push_back(*ItComponents);
+			}
+		}
+
+		i++;
+	}
+
+	for (int IDDial = 0; IDDial < XMLDialogs.size(); IDDial++)
 	{
 		// ********
 			// Dialog
 
 		dialog.push_back(make_unique<dialogs>());
-
+		
 		int CountOrder = 0;
-		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
 		for (int i = 1; i < INT16_MAX; i++)
 		{
 			if (strcmp(FirstAttr->Name(), "id") == 0)
 			{
-				dialog.back()->ChangeTitle(FirstAttr->Value());
+				dialog.at(IDDial)->ChangeTitle(FirstAttr->Value());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "width") == 0)
 			{
-				dialog.back()->setSizeW(FirstAttr->FloatValue());
+				dialog.at(IDDial)->setSizeW(FirstAttr->FloatValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "height") == 0)
 			{
-				dialog.back()->setSizeW(FirstAttr->FloatValue());
+				dialog.at(IDDial)->setSizeW(FirstAttr->FloatValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "open") == 0)
 			{
-				dialog.back()->setVisible(FirstAttr->BoolValue());
+				dialog.at(IDDial)->setVisible(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "resize") == 0)
 			{
-				dialog.back()->setResizeble(FirstAttr->BoolValue());
+				dialog.at(IDDial)->setResizeble(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "show_title") == 0)
 			{
-				dialog.back()->SetShowTitle(FirstAttr->BoolValue());
+				dialog.at(IDDial)->SetShowTitle(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "moveble") == 0)
 			{
-				dialog.back()->setMoveble(FirstAttr->BoolValue());
+				dialog.at(IDDial)->setMoveble(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "collapsible") == 0)
 			{
-				dialog.back()->setCollapsible(FirstAttr->BoolValue());
+				dialog.at(IDDial)->setCollapsible(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 		}
-		Element.push_back(Element.back()->FirstChild()->ToElement());
 
 		// ********
 			// Other
 
-		for (int i = 1; i < INT16_MAX; i++)
+		//	Button
+		for (int i = 0; i < XMLDialogs.at(IDDial)->buttons.size(); i++)
 		{
-			if (strcmp(Element.back()->Name(), "Button") == 0)
-			{
-				CountOrder++;
-				shared_ptr<Buttons> btn = make_unique<Buttons>();
+			CountOrder++;
 
-				XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(FirstAttr->Name(), "visible") == 0)
-					{
-						btn->setVisible(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "text") == 0)
-					{
-						btn->ChangeText(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-				}
-				btn->ChangeOrder(CountOrder);
-				dialog.back()->setComponent(btn);
-
-				if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-					Element.back()->FirstAttribute()->Value()) == 0)
-					break;
-
-				Element.push_back(Element.back()->NextSibling()->ToElement());
-			}
-			if (strcmp(Element.back()->Name(), "InputText") == 0)
-			{
-				CountOrder++;
-				shared_ptr<IText> itext = make_unique<IText>();
-
-				XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(FirstAttr->Name(), "visible") == 0)
-					{
-						itext->setVisible(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "text") == 0)
-					{
-						itext->ChangeTitle(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "history") == 0)
-					{
-						itext->setHistory(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "hint") == 0)
-					{
-						itext->setHint(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "texthint") == 0)
-					{
-						itext->ChangeTextHint(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-				}
-				itext->ChangeOrder(CountOrder);
-				dialog.back()->setComponent(itext);
-
-				if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-					Element.back()->FirstAttribute()->Value()) == 0)
-					break;
-
-				Element.push_back(Element.back()->NextSibling()->ToElement());
-			}
-			if (strcmp(Element.back()->Name(), "InputTextMultiline") == 0)
-			{
-				CountOrder++;
-				shared_ptr<ITextMulti> itextmul = make_unique<ITextMulti>();
-
-				XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(FirstAttr->Name(), "visible") == 0)
-					{
-						itextmul->setVisible(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "text") == 0)
-					{
-						itextmul->ChangeTitle(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "readonly") == 0)
-					{
-						itextmul->setReadOnly(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-				}
-				itextmul->ChangeOrder(CountOrder);
-				dialog.back()->setComponent(itextmul);
-
-				if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-					Element.back()->FirstAttribute()->Value()) == 0)
-					break;
-
-				Element.push_back(Element.back()->NextSibling()->ToElement());
-			}
-			if (strcmp(Element.back()->Name(), "Collapse") == 0)
-			{
-				CountOrder++;
-				shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
-
-				XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(FirstAttr->Name(), "seldefault") == 0)
-					{
-						CHeader->setSelDefault(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "text") == 0)
-					{
-						CHeader->ChangeText(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "collapsible") == 0)
-					{
-						CHeader->setCollapse(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-				}
-
-				Element.push_back(Element.back()->FirstChild()->ToElement());
-
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(Element.back()->Name(), "Button") == 0)
-					{
-						CountOrder++;
-
-						shared_ptr<Buttons> Btn = make_unique<Buttons>();
-						XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-						for (int i = 1; i < INT16_MAX; i++)
-						{
-							if (strcmp(FirstAttr->Name(), "visible") == 0)
-							{
-								Btn->setVisible(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "text") == 0)
-							{
-								Btn->ChangeText(FirstAttr->Value());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-						}
-						Btn->ChangeOrder(CountOrder);
-						CHeader->setComponent(Btn);
-
-						if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-							Element.back()->FirstAttribute()->Value()) == 0)
-							break;
-
-						Element.push_back(Element.back()->NextSibling()->ToElement());
-					}
-					if (strcmp(Element.back()->Name(), "Label") == 0)
-					{
-						CountOrder++;
-
-						shared_ptr<Labels> label = make_unique<Labels>();
-						XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-						for (int i = 1; i < INT16_MAX; i++)
-						{
-							if (strcmp(FirstAttr->Name(), "visible") == 0)
-							{
-								label->setVisible(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "text") == 0)
-							{
-								label->ChangeText(FirstAttr->Value());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-						}
-						label->ChangeOrder(CountOrder);
-						CHeader->setComponent(label);
-
-						if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-							Element.back()->FirstAttribute()->Value()) == 0)
-							break;
-
-						Element.push_back(Element.back()->NextSibling()->ToElement());
-					}
-					if (strcmp(Element.back()->Name(), "InputTextMultiline") == 0)
-					{
-						CountOrder++;
-
-						shared_ptr<ITextMulti> itextmul = make_unique<ITextMulti>();
-						XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-						for (int i = 1; i < INT16_MAX; i++)
-						{
-							if (strcmp(FirstAttr->Name(), "visible") == 0)
-							{
-								itextmul->setVisible(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "text") == 0)
-							{
-								itextmul->ChangeText(FirstAttr->Value());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "readonly") == 0)
-							{
-								itextmul->setReadOnly(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-						}
-						itextmul->ChangeOrder(CountOrder);
-						CHeader->setComponent(itextmul);
-
-						if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-							Element.back()->FirstAttribute()->Value()) == 0)
-							break;
-
-						Element.push_back(Element.back()->NextSibling()->ToElement());
-					}
-					if (strcmp(Element.back()->Name(), "InputText") == 0)
-					{
-						CountOrder++;
-
-						shared_ptr<IText> itext = make_unique<IText>();
-						XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-						for (int i = 1; i < INT16_MAX; i++)
-						{
-							if (strcmp(FirstAttr->Name(), "visible") == 0)
-							{
-								itext->setVisible(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "text") == 0)
-							{
-								itext->ChangeText(FirstAttr->Value());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "history") == 0)
-							{
-								itext->setHistory(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "hint") == 0)
-							{
-								itext->setHint(FirstAttr->BoolValue());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-							if (strcmp(FirstAttr->Name(), "texthint") == 0)
-							{
-								itext->ChangeTextHint(FirstAttr->Value());
-								FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-								if (!FirstAttr)
-									break;
-							}
-						}
-						itext->ChangeOrder(CountOrder);
-						CHeader->setComponent(itext);
-
-						if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-							Element.back()->FirstAttribute()->Value()) == 0)
-							break;
-
-						Element.push_back(Element.back()->NextSibling()->ToElement());
-					}
-				}
-
-				CHeader->ChangeOrder(CountOrder);
-				dialog.back()->setComponent(CHeader);
-
-				if (strcmp(Element.back()->Parent()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-					Element.back()->FirstAttribute()->Value()) == 0)
-					break;
-
-				Element.push_back(Element.back()->Parent()->NextSibling()->ToElement());
-			}
-			if (strcmp(Element.back()->Name(), "Label") == 0)
-			{
-				CountOrder++;
-				shared_ptr<Labels> label = make_unique<Labels>();
-
-				XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Element.back()->ToElement()->FirstAttribute());
-				for (int i = 1; i < INT16_MAX; i++)
-				{
-					if (strcmp(FirstAttr->Name(), "visible") == 0)
-					{
-						label->setVisible(FirstAttr->BoolValue());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-					if (strcmp(FirstAttr->Name(), "text") == 0)
-					{
-						label->ChangeText(FirstAttr->Value());
-						FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-						if (!FirstAttr)
-							break;
-					}
-				}
-				label->ChangeOrder(CountOrder);
-				dialog.back()->setComponent(label);
-
-				if (strcmp(Element.back()->Parent()->LastChild()->ToElement()->FirstAttribute()->Value(),
-					Element.back()->FirstAttribute()->Value()) == 0)
-					break;
-
-				Element.push_back(Element.back()->NextSibling()->ToElement());
-			}
-
+			shared_ptr<Buttons> btn = make_unique<Buttons>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->buttons.at(i)->ToElement(), btn, XMLDialogs.at(IDDial)->IDbuttons.at(i));
 		}
-		dialog.back()->ChangeOrder(CountOrder);
+		//	InputText
+		for (int i = 0; i < XMLDialogs.at(IDDial)->texts.size(); i++)
+		{
+			CountOrder++;
 
-		if (strcmp(Element.front()->GetDocument()->LastChild()->LastChild()->ToElement()->FirstAttribute()->Value(),
-			Element.back()->FirstAttribute()->Value()) == 0)
-			break;
+			shared_ptr<IText> Itext = make_unique<IText>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->texts.at(i)->ToElement(), Itext, XMLDialogs.at(IDDial)->IDtexts.at(i));
+		}
+		//	InputTextMultiline
+		for (int i = 0; i < XMLDialogs.at(IDDial)->textmuls.size(); i++)
+		{
+			CountOrder++;
 
-		Element.push_back(Element.front()->NextSibling()->ToElement());
+			shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->textmuls.at(i)->ToElement(), ItextMul, XMLDialogs.at(IDDial)->IDtextmuls.at(i));
+		}
+		//	Collapse
+		for (int i = 0; i < XMLDialogs.at(IDDial)->collpheaders.size(); i++)
+		{
+			CountOrder++;
+
+			shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->collpheaders.at(i), CHeader, XMLDialogs.at(IDDial)->IDcollpheaders.at(i));
+		}
+		//	Label
+		for (int i = 0; i < XMLDialogs.at(IDDial)->labels.size(); i++)
+		{
+			CountOrder++;
+
+			shared_ptr<Labels> label = make_unique<Labels>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->labels.at(i)->ToElement(), label, XMLDialogs.at(IDDial)->IDlabels.at(i));
+		}
+		//	Separator
+		for (int i = 0; i < XMLDialogs.at(IDDial)->separators.size(); i++)
+		{
+			CountOrder++;
+
+			shared_ptr<_Separator> separator = make_unique<_Separator>();
+			separator->ChangeOrder(CountOrder);
+			dialog.at(IDDial)->setComponent(separator);
+		}
+		//	ChildDialog
+		for (int i = 0; i < XMLDialogs.at(IDDial)->childs.size(); i++)
+		{
+			CountOrder++;
+
+			shared_ptr<Child> child = make_unique<Child>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->childs.at(i), child, XMLDialogs.at(IDDial)->IDchilds.at(i));
+		}
+		//	UnformatedText
+		for (int i = 0; i < XMLDialogs.at(IDDial)->utext.size(); i++)
+		{
+			CountOrder++;
+
+			shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
+			UText->ChangeOrder(CountOrder);
+			dialog.at(IDDial)->setComponent(UText);
+		}
+
+		dialog.at(IDDial)->ChangeOrder(CountOrder);
 	}
 	Dialogs = dialog;
 }
@@ -622,7 +1022,7 @@ void UI::ReloadXML(LPCSTR File)
 {
 	Reload = true;
 	Dialogs.clear();
-	Element.clear();
+	XMLDialogs.clear();
 
 	Buf->Release();
 	LoadXmlUI(File);
@@ -852,7 +1252,7 @@ bool UI::UpdateMouseCursor()
 }
 void UI::UpdateMousePos()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 
 	if (io.WantSetMousePos)
 	{
@@ -986,4 +1386,71 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	}
 	return false;
+}
+
+void CollapsingHeaders::Render()
+{
+	Flags = 0;
+	Flags = ImGuiTreeNodeFlags_CollapsingHeader;
+
+	if (SelDef)
+		Flags |= ImGuiTreeNodeFlags_Selected;
+
+	if (ImGui::CollapsingHeader(IDTitle.c_str(), &IsCollapse, Flags))
+	{
+		int Count = this->getCountOrderRender(), now = 0;
+
+		while (Count != now)
+		{
+			now++;
+
+			for (int i = 0; i < Label.size(); i++)
+			{
+				if (Label.at(i)->GetVisible() & Label.at(i)->getRenderOrder() == now)
+					Label.at(i)->Render();
+			}
+
+			for (int i = 0; i < Btn.size(); i++)
+			{
+				if (Btn.at(i)->GetVisible() & Btn.at(i)->getRenderOrder() == now)
+					Btn.at(i)->Render();
+			}
+
+			for (int i = 0; i < Itextmul.size(); i++)
+			{
+				if (Itextmul.at(i)->GetVisible() & Itextmul.at(i)->getRenderOrder() == now)
+					Itextmul.at(i)->Render();
+			}
+
+			for (int i = 0; i < Itext.size(); i++)
+			{
+				if (Itext.at(i)->GetVisible() & Itext.at(i)->getRenderOrder() == now)
+					Itext.at(i)->Render();
+			}
+
+			for (int i = 0; i < separators.size(); i++)
+			{
+				if (separators.at(i)->getRenderOrder() == now)
+					separators.at(i)->Render();
+			}
+
+			for (int i = 0; i < childs.size(); i++)
+			{
+				if (childs.at(i)->getCountOrderRender() == now)
+					childs.at(i)->Render();
+			}
+
+			for (int i = 0; i < CollpsHeader.size(); i++)
+			{
+				if (CollpsHeader.at(i)->Collapse() & CollpsHeader.at(i)->getCountOrderRender() == now)
+					CollpsHeader.at(i)->Render();
+			}
+
+			for (int i = 0; i < UText.size(); i++)
+			{
+				if (UText.at(i)->getRenderOrder() == now)
+					UText.at(i)->Render();
+			}
+		}
+	}
 }

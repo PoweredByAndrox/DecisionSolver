@@ -3,7 +3,7 @@
 #define __COMMANDS_H__
 #include "pch.h"
 
-static vector<string> ListCommands = { string("Help"), string("TestMsg"), string("Quit") };
+static vector<string> ListCommands = { string("Help"), string("TestMsg"), string("Quit"), string("Clear") };
 static vector<string> History;
 
 class Commands
@@ -11,16 +11,19 @@ class Commands
 public:
 	Commands() {}
 	~Commands() {}
-	void Work(shared_ptr<ITextMulti> TextInputMul, string Text)
+	void Work(shared_ptr<UnformatedText> UText, string Text)
 	{
 		if (!Text.empty())
 		{
 			string FindCommand = FindPieceCommand(Text);
 			if (!FindCommand.empty())
-				ExecCommand(TextInputMul, FindCommand);
+				ExecCommand(UText, FindCommand);
+			else
+				UText->AddCLText(UnformatedText::Type::Error,
+					string(string("You're typed: ")+ Text + string("\n[error]: Unknown command type help for help!")));
 		}
 	}
-	void ExecCommand(shared_ptr<ITextMulti> TextInputMul, string Text)
+	void ExecCommand(shared_ptr<UnformatedText> UText, string Text)
 	{
 		if (strcmp(Text.c_str(), "Help") == 0)
 		{
@@ -29,15 +32,20 @@ public:
 			{
 				all.append(string(string("\n") + ListCommands.at(i)));
 			}
-			TextInputMul->ChangeText(string("#list of available command: ") + all);
+
+			UText->AddCLText(UnformatedText::Type::Information, string("#list of available command: ") + all);
 		}
-		else if (strcmp(Text.c_str(), "TestMsg") == 0)
+		else if (strcmp(Text.c_str(), "Error") == 0)
 		{
-			MessageBoxA(Application->GetHWND(), "You call this message box)", "DecisionSolver", MB_OK);
+			UText->AddCLText(UnformatedText::Type::Information, string("[error]: Unknown command type help for help!"));
 		}
 		else if (strcmp(Text.c_str(), "Quit") == 0)
 		{
 			Application->Quit();
+		}
+		else if (strcmp(Text.c_str(), "Clear") == 0)
+		{
+			UText->ClearText();
 		}
 	}
 	string FindPieceCommand(string Text)

@@ -76,7 +76,7 @@ using namespace tinyxml2;
 	// For Debug!!!
 #define MacroStr(x) #x
 #define MacroStr2(x) MacroStr(x)
-#define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) ") :" #desc))
+#define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) "): " #desc))
 
 #if !defined(SAFE_DELETE)
 #define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }
