@@ -36,7 +36,7 @@ void Console::Render()
 		return;
 
 	if (Dialog->getChilds().back()->getITexts().back()->getTextChange())
-		command->Work(Dialog->getChilds().back()->getUTexts().back(), Dialog->getChilds().back()->getITexts().back()->GetText());
+		command->Work(Dialog, Dialog->getChilds().back()->getITexts().back()->GetText());
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 	Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));

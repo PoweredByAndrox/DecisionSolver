@@ -8,7 +8,6 @@ extern shared_ptr<Engine> Application;
 
 using namespace DirectX;
 
-_Use_decl_annotations_
 void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
 	XMStoreFloat3(&m_vEye, vEyePt);
@@ -21,17 +20,15 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	Matrix mView = Matrix::CreateLookAt(vEyePt, vLookatPt, Vector3(0, 1, 0));
 	XMStoreFloat4x4(&m_mView, mView);
 
-	XMMATRIX mInvView = XMMatrixInverse(&XMVectorSet(0, 0, 0, 0), mView);
+	//Matrix mInvView = mView.Invert();
 
 	Vector3 zBasis;
-	XMStoreFloat3(&zBasis, mInvView.r[2]);
+	zBasis = vLookatPt;
 
+	m_fCameraPitchAngle = -atan2f(zBasis.y, sqrtf(zBasis.z * zBasis.z + zBasis.x * zBasis.x));
 	m_fCameraYawAngle = atan2f(zBasis.x, zBasis.z);
-	float fLen = sqrtf(zBasis.z * zBasis.z + zBasis.x * zBasis.x);
-	m_fCameraPitchAngle = -atan2f(zBasis.y, fLen);
 }
 
-_Use_decl_annotations_
 void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
 {
 		// Set attributes for the projection matrix
@@ -43,15 +40,12 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
 }
 
-_Use_decl_annotations_
-void Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGamepadInput)
+void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 {
 	if (bGetKeyboardInput)
 	{
-		m_vKeyboardDirection = Vector3(0.f, 0.f, 0.f);
+		m_vKeyboardDirection = Vector3::Zero;
 
-			// Update acceleration vector based on keyboard state
-		//if (IsKeyDown(m_aKeys[CAM_MOVE_FORWARD]))
 		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::W))
 			m_vKeyboardDirection.z += 1.0f;
 
@@ -74,7 +68,7 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetMouseInput, bool bGetGame
 			m_vKeyboardDirection.x -= 1.0f;
 	}
 
-	if (bGetMouseInput)
+	if ((Left || Right) != WithoutButton)
 		UpdateMouseDelta();
 	/*
 	if (bGetGamepadInput)
@@ -144,7 +138,8 @@ void Camera::UpdateMouseDelta()
 		m_ptLastMousePosition = ptCenter;
 	}
 
-	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData, fPercentOfOld = 1.0f - fPercentOfNew;
+	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData,
+		  fPercentOfOld = 1.0f - fPercentOfNew;
 	m_vMouseDelta.x = m_vMouseDelta.x * fPercentOfOld + ptCurMouseDelta.x * fPercentOfNew;
 	m_vMouseDelta.y = m_vMouseDelta.y * fPercentOfOld + ptCurMouseDelta.y * fPercentOfNew;
 
@@ -203,7 +198,8 @@ void Camera::UpdateVelocity(_In_ float fElapsedTime)
 
 void Camera::Reset()
 {
-	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
+	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), 
+			vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
 
 	SetViewParams(vDefaultEye, vDefaultLookAt);
 }
@@ -218,29 +214,30 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	if (Application->getTrackerKeyboard().IsKeyPressed(DirectX::Keyboard::Keys::Home))
 		Reset();
 
-		// Get keyboard/mouse/gamepad input
-	GetInput(m_bEnablePositionMovement, (m_nActiveButtonMask) || m_bRotateWithoutButtonDown, true);
+	// Get keyboard/mouse/gamepad input
+	GetInput(m_bEnablePositionMovement, true);
 
-		// Get amount of velocity based on the keyboard input and drag (if any)
+	// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
 
-		// Simple euler method to calculate position delta
+	// Simple euler method to calculate position delta
 	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
 
-		// If rotating the camera 
-	if ((m_nActiveButtonMask) || m_bRotateWithoutButtonDown || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
+	// If rotating the camera 
+	if (((Left || Right) != WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
-			// Update the pitch & yaw angle based on mouse movement
-		float fYawDelta = m_vRotVelocity.x, fPitchDelta = m_vRotVelocity.y;
+		// Update the pitch & yaw angle based on mouse movement
+		float fYawDelta = m_vRotVelocity.x,
+			fPitchDelta = m_vRotVelocity.y;
 
-			// Invert pitch if requested
+		// Invert pitch if requested
 		if (m_bInvertPitch)
 			fPitchDelta = -fPitchDelta;
 
 		m_fCameraPitchAngle += fPitchDelta;
 		m_fCameraYawAngle += fYawDelta;
 
-			// Limit pitch to straight up or straight down
+		// Limit pitch to straight up or straight down
 		m_fCameraPitchAngle = max(-XM_PI / 2.0f, m_fCameraPitchAngle);
 		m_fCameraPitchAngle = min(+XM_PI / 2.0f, m_fCameraPitchAngle);
 	}
@@ -275,13 +272,6 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 
 	Matrix mCameraWorld = XMMatrixInverse(&XMVectorSet(0, 0, 0, 0), mView);
 	XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
-}
-
-_Use_decl_annotations_
-void Camera::SetRotateButtons(bool bLeft, bool bMiddle, bool bRight, bool bRotateWithoutButtonDown)
-{
-	//m_nActiveButtonMask = (bLeft ? MOUSE_LEFT_BUTTON : 0) | (bMiddle ? MOUSE_MIDDLE_BUTTON : 0) | (bRight ? MOUSE_RIGHT_BUTTON : 0);
-	m_bRotateWithoutButtonDown = bRotateWithoutButtonDown;
 }
 
 void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)

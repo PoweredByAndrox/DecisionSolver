@@ -31,7 +31,7 @@ HRESULT Actor::Init()
 	//DLG->getMAReplices();
 
 	Application->getCamera()->SetScalers(0.010f, 6.0f);
-	Application->getCamera()->SetRotateButtons(true, false, false);
+	Application->getCamera()->setCameraControlButtons(true, false, false);
 	Application->getCamera()->SetEnableYAxisMovement(true);
 
 	InitClass = true;

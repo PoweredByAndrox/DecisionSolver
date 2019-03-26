@@ -11,7 +11,7 @@ public:
 	HRESULT Init(float W, float H)
 	{
 		// Setup the view matrix
-		SetViewParams(Vector3(0.0000001f, 0.0000001f, 0.0000001f), Vector3(0.0f, 0.0f, 1.0f));
+		SetViewParams(Vector3(0, 0, 0), Vector3(1.0f, 0.0f, 0.0f));
 
 		// Setup the projection matrix
 		SetProjParams(XM_PIDIV2, W / H, 1.0f, 1000.0f);
@@ -20,31 +20,31 @@ public:
 
 	// Functions to change camera matrices
 	virtual void Reset();
-	virtual void SetViewParams(_In_ Vector3 vEyePt, _In_ Vector3 vLookatPt);
-	virtual void SetProjParams(_In_ float fFOV, _In_ float fAspect, _In_ float fNearPlane, _In_ float fFarPlane);
+	virtual void SetViewParams(Vector3 vEyePt, Vector3 vLookatPt);
+	virtual void SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane);
 
 	// Functions to change behavior
-	void SetInvertPitch(_In_ bool bInvertPitch) { m_bInvertPitch = bInvertPitch; }
-	void SetDrag(_In_ bool bMovementDrag, _In_ float fTotalDragTimeToZero = 0.25f)
+	void SetInvertPitch(bool bInvertPitch) { m_bInvertPitch = bInvertPitch; }
+	void SetDrag(bool bMovementDrag, float fTotalDragTimeToZero = 0.25f)
 	{
 		m_bMovementDrag = bMovementDrag;
 		m_fTotalDragTimeToZero = fTotalDragTimeToZero;
 	}
-	void SetEnableYAxisMovement(_In_ bool bEnableYAxisMovement) { m_bEnableYAxisMovement = bEnableYAxisMovement; }
-	void SetEnablePositionMovement(_In_ bool bEnablePositionMovement) { m_bEnablePositionMovement = bEnablePositionMovement; }
-	void SetClipToBoundary(_In_ bool bClipToBoundary, _In_opt_ Vector3 pvMinBoundary, _In_opt_ Vector3 pvMaxBoundary)
+	void SetEnableYAxisMovement(bool bEnableYAxisMovement) { m_bEnableYAxisMovement = bEnableYAxisMovement; }
+	void SetEnablePositionMovement(bool bEnablePositionMovement) { m_bEnablePositionMovement = bEnablePositionMovement; }
+	void SetClipToBoundary(bool bClipToBoundary, Vector3 pvMinBoundary, Vector3 pvMaxBoundary)
 	{
 		m_bClipToBoundary = bClipToBoundary;
 		m_vMinBoundary = pvMinBoundary;
 		m_vMaxBoundary = pvMaxBoundary;
 	}
-	void SetScalers(_In_ float fRotationScaler = 0.01f, _In_ float fMoveScaler = 5.0f)
+	void SetScalers(float fRotationScaler = 0.01f, float fMoveScaler = 5.0f)
 	{
 		m_fRotationScaler = fRotationScaler;
 		m_fMoveScaler = fMoveScaler;
 	}
-	void SetNumberOfFramesToSmoothMouseData(_In_ int nFrames) { if (nFrames > 0) m_fFramesToSmoothMouseData = (float)nFrames; }
-	void SetResetCursorAfterMove(_In_ bool bResetCursorAfterMove) { m_bResetCursorAfterMove = bResetCursorAfterMove; }
+	void SetNumberOfFramesToSmoothMouseData(int nFrames) { if (nFrames > 0) m_fFramesToSmoothMouseData = (float)nFrames; }
+	void SetResetCursorAfterMove(bool bResetCursorAfterMove) { m_bResetCursorAfterMove = bResetCursorAfterMove; }
 
 	// Functions to get state
 	Matrix GetViewMatrix() const { return DirectX::XMLoadFloat4x4(&m_mView); }
@@ -53,7 +53,7 @@ public:
 	float GetNearClip() const { return m_fNearPlane; }
 	float GetFarClip() const { return m_fFarPlane; }
 protected:
-	Vector3 ConstrainToBoundary(_In_ Vector3 v)
+	Vector3 ConstrainToBoundary(Vector3 v)
 	{
 		Vector3 vMin = XMLoadFloat3(&m_vMinBoundary);
 		Vector3 vMax = XMLoadFloat3(&m_vMaxBoundary);
@@ -62,8 +62,8 @@ protected:
 	}
 
 	void UpdateMouseDelta();
-	void UpdateVelocity(_In_ float fElapsedTime);
-	void GetInput(_In_ bool bGetKeyboardInput, _In_ bool bGetMouseInput, _In_ bool bGetGamepadInput);
+	void UpdateVelocity(float fElapsedTime);
+	void GetInput(bool bGetKeyboardInput, bool bGetGamepadInput);
 
 	Matrix m_mView = {},                    // View matrix 
 		m_mProj = {};                    // Projection matrix
@@ -107,11 +107,10 @@ protected:
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
-	POINT m_ptLastMousePosition;            // Last absolute position of mouse cursor
+	POINT m_ptLastMousePosition = { 0, 0 };            // Last absolute position of mouse cursor
 
 public:
-	void FrameMove(_In_ float fElapsedTime);
-	void SetRotateButtons(_In_ bool bLeft, _In_ bool bMiddle, _In_ bool bRight, _In_ bool bRotateWithoutButtonDown = false);
+	void FrameMove(float fElapsedTime);
 
 	Matrix GetWorldMatrix() const { return DirectX::XMLoadFloat4x4(&m_mCameraWorld); }
 
@@ -120,7 +119,7 @@ public:
 	Vector3 GetWorldAhead() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._31)); }
 	Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
 
-	void setPosCam(_In_ Vector3 Pos)
+	void setPosCam(Vector3 Pos)
 	{
 		if (m_vEye != Pos)
 		{
@@ -137,7 +136,7 @@ public:
 		}
 		m_vEye = Pos;
 	}
-	void setPosCam(_In_ float Y)
+	void setPosCam(float Y)
 	{
 		if (m_vEye.y != Y)
 		{
@@ -154,11 +153,18 @@ public:
 		}
 		m_vEye.y = Y;
 	}
-protected:
-	Matrix m_mCameraWorld;
 
-	int m_nActiveButtonMask = 0x07;
-	bool m_bRotateWithoutButtonDown = false;
+	void setCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
+	{
+		Left = LeftM;
+		Right = RightM;
+		WithoutButton = WithoutButtons;
+	}
+protected:
+	Matrix m_mCameraWorld = {};
+
+	bool Left = true, Right = false;
+	bool WithoutButton = false;
 };
 
 class Frustum

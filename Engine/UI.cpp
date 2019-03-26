@@ -281,7 +281,7 @@ void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shar
 	dialog->setComponent(ItextMul);
 }
 
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, child *XMLchild, shared_ptr<Child> &child, int &CountOrder)
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<child> XMLchild, shared_ptr<Child> &child, int &CountOrder)
 {
 	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLchild->_Child->ToElement()->FirstAttribute());
 	for (int i = 1; i < INT16_MAX; i++)
@@ -362,7 +362,8 @@ void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, child *XMLchild, shared_p
 	child->ChangeOrder(CountOrder);
 	dialog->setComponent(child);
 }
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, collpheader *XMLCHeader, shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<collpheader> XMLCHeader, shared_ptr<CollapsingHeaders> &CHeader, 
+	int &CountOrder)
 {
 	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLCHeader->CollpsHead->ToElement()->FirstAttribute());
 	for (int i = 1; i < INT16_MAX; i++)
@@ -690,21 +691,21 @@ void UI::ProcessXML()
 {
 	vector<shared_ptr<dialogs>> dialog;
 
-	XMLDialogs = { &dial(doc->RootElement()->Parent()->FirstChild()->NextSibling()), &dial(doc->RootElement()->Parent()->LastChild()) };
+	for (int i = 0; i < INT16_MAX; i++)
+	{
+		if (XMLDialogs.empty())
+			XMLDialogs.push_back(make_unique<dial>(doc->RootElement()->Parent()->FirstChild()->NextSibling()));
 
-	ToDo("Need To Rewrite The Code Below!!!");
-	//for (int i = 0; i < INT16_MAX; i++)
-	//{
-	//	if (doc->RootElement()->Parent()->LastChild() != XMLDialogs.back()->Dial->NextSibling())
-	//	{
-	//		if (XMLDialogs.back()->Dial && XMLDialogs.back()->Dial->NextSibling())
-	//			XMLDialogs.push_back(&dial(XMLDialogs.back()->Dial->NextSibling()));
-	//		else
-	//			XMLDialogs.push_back(&dial(XMLDialogs.back()->Dial->NextSibling()));
-	//	}
-	//	else
-	//		break;
-	//}
+		if (doc->RootElement()->Parent()->LastChild() != XMLDialogs.back()->Dial)
+		{
+			if (XMLDialogs.back()->Dial && XMLDialogs.back()->Dial->NextSibling())
+				XMLDialogs.push_back(make_unique<dial>(XMLDialogs.back()->Dial->NextSibling()));
+			else
+				break;
+		}
+		else
+			break;
+	}
 
 	int i = 0;
 	for (auto It = XMLDialogs.begin(); It != XMLDialogs.end(); ++It)
@@ -724,10 +725,14 @@ void UI::ProcessXML()
 		}
 		for (auto ItComponents = TheFirstComponent.begin(); ItComponents != TheFirstComponent.end(); ++ItComponents)
 		{
+			int countComponents = 0;
+
 			if (strcmp((*ItComponents)->Value(), "Collapse") == 0)
 			{
-				XMLDialogs.at(i)->collpheaders.push_back(&collpheader(*ItComponents, true));
-				XMLDialogs.at(i)->IDcollpheaders.push_back(XMLDialogs.at(i)->IDcollpheaders.size() + 1);
+				int countComponentsForCollapse = 0;
+
+				XMLDialogs.at(i)->collpheaders.push_back(make_unique<collpheader>(*ItComponents, true));
+				XMLDialogs.at(i)->IDcollpheaders.push_back(countComponentsForCollapse++);
 
 				vector<XMLNode *> TheSecondComponent;
 				for (int i = 0; i < INT16_MAX; i++)
@@ -746,70 +751,74 @@ void UI::ProcessXML()
 				{
 					if (strcmp((*ItComponents)->Value(), "Button") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDbuttons.push_back(XMLDialogs.at(i)->collpheaders.back()->IDbuttons.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDbuttons.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDtexts.push_back(XMLDialogs.at(i)->collpheaders.back()->IDtexts.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDtexts.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDtextmuls.push_back(XMLDialogs.at(i)->collpheaders.back()->IDtextmuls.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDtextmuls.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "Label") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDlabels.push_back(XMLDialogs.at(i)->collpheaders.back()->IDlabels.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDlabels.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDseparators.push_back(XMLDialogs.at(i)->collpheaders.back()->IDseparators.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDseparators.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDchilds.push_back(XMLDialogs.at(i)->collpheaders.back()->IDchilds.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDchilds.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
 					{
-						XMLDialogs.at(i)->collpheaders.back()->IDutext.push_back(XMLDialogs.at(i)->collpheaders.back()->IDutext.size() + 1);
+						XMLDialogs.at(i)->collpheaders.back()->IDutext.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
+
+					XMLDialogs.at(i)->collpheaders.back()->OrderlyRender = countComponentsForCollapse;
 				}
 			}
 			else if (strcmp((*ItComponents)->Value(), "Button") == 0)
 			{
-				XMLDialogs.at(i)->IDbuttons.push_back(XMLDialogs.at(i)->IDbuttons.size() + 1);
+				XMLDialogs.at(i)->IDbuttons.push_back(countComponents++);
 				XMLDialogs.at(i)->buttons.push_back(*ItComponents);
 			}
 			else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
 			{
-				XMLDialogs.at(i)->IDtexts.push_back(XMLDialogs.at(i)->IDtexts.size() + 1);
+				XMLDialogs.at(i)->IDtexts.push_back(countComponents++);
 				XMLDialogs.at(i)->texts.push_back(*ItComponents);
 			}
 			else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
 			{
-				XMLDialogs.at(i)->IDtextmuls.push_back(XMLDialogs.at(i)->IDtextmuls.size() + 1);
+				XMLDialogs.at(i)->IDtextmuls.push_back(countComponents++);
 				XMLDialogs.at(i)->textmuls.push_back(*ItComponents);
 			}
 			else if (strcmp((*ItComponents)->Value(), "Label") == 0)
 			{
-				XMLDialogs.at(i)->IDlabels.push_back(XMLDialogs.at(i)->IDlabels.size() + 1);
+				XMLDialogs.at(i)->IDlabels.push_back(countComponents++);
 				XMLDialogs.at(i)->labels.push_back(*ItComponents);
 			}
 			else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
 			{
-				XMLDialogs.at(i)->IDseparators.push_back(XMLDialogs.at(i)->IDseparators.size() + 1);
+				XMLDialogs.at(i)->IDseparators.push_back(countComponents++);
 				XMLDialogs.at(i)->separators.push_back(*ItComponents);
 			}
 			else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
 			{
-				XMLDialogs.at(i)->childs.push_back(&child(*ItComponents, true));
-				XMLDialogs.at(i)->IDchilds.push_back(XMLDialogs.at(i)->IDchilds.size() + 1);
+				int countComponentsForChild = 0;
+
+				XMLDialogs.at(i)->childs.push_back(make_unique<child>(*ItComponents, true));
+				XMLDialogs.at(i)->IDchilds.push_back(countComponents++);
 
 				vector<XMLNode *> TheSecondComponent;
 				for (int i = 0; i < INT16_MAX; i++)
@@ -828,47 +837,50 @@ void UI::ProcessXML()
 				{
 					if (strcmp((*ItComponents)->Value(), "Button") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDbuttons.push_back(XMLDialogs.at(i)->childs.back()->IDbuttons.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDbuttons.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "InputText") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDtexts.push_back(XMLDialogs.at(i)->childs.back()->IDtexts.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDtexts.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "InputTextMultiline") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDtextmuls.push_back(XMLDialogs.at(i)->childs.back()->IDtextmuls.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDtextmuls.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "Label") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDlabels.push_back(XMLDialogs.at(i)->childs.back()->IDlabels.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDlabels.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "Separator") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDseparators.push_back(XMLDialogs.at(i)->childs.back()->IDseparators.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDseparators.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "ChildDialog") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDchilds.push_back(XMLDialogs.at(i)->childs.back()->IDchilds.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDchilds.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 					else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
 					{
-						XMLDialogs.at(i)->childs.back()->IDutext.push_back(XMLDialogs.at(i)->childs.back()->IDutext.size() + 1);
+						XMLDialogs.at(i)->childs.back()->IDutext.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
 
+					XMLDialogs.at(i)->childs.back()->OrderlyRender = countComponentsForChild;
 				}
 			}
 			else if (strcmp((*ItComponents)->Value(), "UnformatedText") == 0)
 			{
-				XMLDialogs.at(i)->IDutext.push_back(XMLDialogs.at(i)->IDutext.size() + 1);
+				XMLDialogs.at(i)->IDutext.push_back(countComponents++);
 				XMLDialogs.at(i)->utext.push_back(*ItComponents);
 			}
+
+			XMLDialogs.at(i)->OrderlyRender = countComponents;
 		}
 
 		i++;
@@ -879,9 +891,9 @@ void UI::ProcessXML()
 		// ********
 			// Dialog
 
+		int countComponents = 0;
 		dialog.push_back(make_unique<dialogs>());
 		
-		int CountOrder = 0;
 		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
 		for (int i = 1; i < INT16_MAX; i++)
 		{
@@ -901,7 +913,7 @@ void UI::ProcessXML()
 			}
 			if (strcmp(FirstAttr->Name(), "height") == 0)
 			{
-				dialog.at(IDDial)->setSizeW(FirstAttr->FloatValue());
+				dialog.at(IDDial)->setSizeH(FirstAttr->FloatValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
@@ -949,71 +961,76 @@ void UI::ProcessXML()
 		//	Button
 		for (int i = 0; i < XMLDialogs.at(IDDial)->buttons.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<Buttons> btn = make_unique<Buttons>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->buttons.at(i)->ToElement(), btn, XMLDialogs.at(IDDial)->IDbuttons.at(i));
+
+			countComponents++;
 		}
 		//	InputText
 		for (int i = 0; i < XMLDialogs.at(IDDial)->texts.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<IText> Itext = make_unique<IText>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->texts.at(i)->ToElement(), Itext, XMLDialogs.at(IDDial)->IDtexts.at(i));
+		
+			countComponents++;
 		}
 		//	InputTextMultiline
 		for (int i = 0; i < XMLDialogs.at(IDDial)->textmuls.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->textmuls.at(i)->ToElement(), ItextMul, XMLDialogs.at(IDDial)->IDtextmuls.at(i));
+
+			countComponents++;
 		}
 		//	Collapse
 		for (int i = 0; i < XMLDialogs.at(IDDial)->collpheaders.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->collpheaders.at(i), CHeader, XMLDialogs.at(IDDial)->IDcollpheaders.at(i));
+			CHeader->ChangeOrder(XMLDialogs.at(IDDial)->collpheaders.at(i)->getCountOrder());
+			
+			CHeader->ChangeOrderInDial(countComponents);
+
+			countComponents++;
 		}
 		//	Label
 		for (int i = 0; i < XMLDialogs.at(IDDial)->labels.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<Labels> label = make_unique<Labels>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->labels.at(i)->ToElement(), label, XMLDialogs.at(IDDial)->IDlabels.at(i));
+
+			countComponents++;
 		}
 		//	Separator
 		for (int i = 0; i < XMLDialogs.at(IDDial)->separators.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<_Separator> separator = make_unique<_Separator>();
-			separator->ChangeOrder(CountOrder);
-			dialog.at(IDDial)->setComponent(separator);
+			separator->ChangeOrder(XMLDialogs.at(IDDial)->IDseparators.at(i));
+
+			countComponents++;
 		}
 		//	ChildDialog
 		for (int i = 0; i < XMLDialogs.at(IDDial)->childs.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<Child> child = make_unique<Child>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->childs.at(i), child, XMLDialogs.at(IDDial)->IDchilds.at(i));
+			child->ChangeOrder(XMLDialogs.at(IDDial)->childs.at(i)->getCountOrder());
+
+			child->ChangeOrderInDial(countComponents);
+
+			countComponents++;
 		}
 		//	UnformatedText
 		for (int i = 0; i < XMLDialogs.at(IDDial)->utext.size(); i++)
 		{
-			CountOrder++;
-
 			shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
-			UText->ChangeOrder(CountOrder);
+			UText->ChangeOrder(XMLDialogs.at(IDDial)->IDutext.at(i));
 			dialog.at(IDDial)->setComponent(UText);
+
+			countComponents++;
 		}
 
-		dialog.at(IDDial)->ChangeOrder(CountOrder);
+		dialog.at(IDDial)->ChangeOrder(countComponents);
 	}
 	Dialogs = dialog;
 }
@@ -1398,33 +1415,31 @@ void CollapsingHeaders::Render()
 
 	if (ImGui::CollapsingHeader(IDTitle.c_str(), &IsCollapse, Flags))
 	{
-		int Count = this->getCountOrderRender(), now = 0;
+		int Count = OrderlyRender, now = 0;
 
 		while (Count != now)
 		{
-			now++;
-
 			for (int i = 0; i < Label.size(); i++)
 			{
-				if (Label.at(i)->GetVisible() & Label.at(i)->getRenderOrder() == now)
+				if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
 					Label.at(i)->Render();
 			}
 
 			for (int i = 0; i < Btn.size(); i++)
 			{
-				if (Btn.at(i)->GetVisible() & Btn.at(i)->getRenderOrder() == now)
+				if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
 					Btn.at(i)->Render();
 			}
 
 			for (int i = 0; i < Itextmul.size(); i++)
 			{
-				if (Itextmul.at(i)->GetVisible() & Itextmul.at(i)->getRenderOrder() == now)
+				if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
 					Itextmul.at(i)->Render();
 			}
 
 			for (int i = 0; i < Itext.size(); i++)
 			{
-				if (Itext.at(i)->GetVisible() & Itext.at(i)->getRenderOrder() == now)
+				if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
 					Itext.at(i)->Render();
 			}
 
@@ -1436,13 +1451,13 @@ void CollapsingHeaders::Render()
 
 			for (int i = 0; i < childs.size(); i++)
 			{
-				if (childs.at(i)->getCountOrderRender() == now)
+				if (childs.at(i)->getCountOrderRenderInDial() == now)
 					childs.at(i)->Render();
 			}
 
 			for (int i = 0; i < CollpsHeader.size(); i++)
 			{
-				if (CollpsHeader.at(i)->Collapse() & CollpsHeader.at(i)->getCountOrderRender() == now)
+				if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
 					CollpsHeader.at(i)->Render();
 			}
 
@@ -1451,6 +1466,8 @@ void CollapsingHeaders::Render()
 				if (UText.at(i)->getRenderOrder() == now)
 					UText.at(i)->Render();
 			}
+
+			now++;
 		}
 	}
 }

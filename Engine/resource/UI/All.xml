@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="Main" width="200" height="250" open="true" resize="true" 
+<gui id="Main" width="250" height="300" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>
@@ -9,11 +9,18 @@ show_title="true" moveble="true" collapsible="false">
 	<Label text="A Simple Text!" visible="true"/>
 </gui>
 
-<gui id="Console" width="200" height="250" open="true" resize="true" 
+<gui id="Console" width="300" height="400" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="true">
 	<ChildDialog id="ConsoleText" border="true" horizontal_scroll="true">
 		<UnformatedText/>
 		<InputText text="Input" visible="true" history="true" hint="true"
 		texthint="Input Command Here!"/>
 	</ChildDialog>
+</gui>
+
+<gui id="Test" width="300" height="400" open="true" resize="true" 
+show_title="true" moveble="true" collapsible="true">
+	<Button text="One!" visible="true"/>
+	<Button text="Two!" visible="true"/>
+	<Button text="Three!" visible="true"/>
 </gui>

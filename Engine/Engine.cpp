@@ -14,6 +14,8 @@ ID3D11Texture2D *Engine::DepthStencil = nullptr;
 ID3D11DepthStencilView *Engine::DepthStencilView = nullptr;
 HWND Engine::hwnd = nullptr;
 
+shared_ptr<GeometricPrimitive> oneCobe;
+
 HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 {
 	try
@@ -159,6 +161,8 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
+
+		oneCobe = GeometricPrimitive::CreateCube(DeviceContext, 4.f, false);
 	}
 	catch (const exception &Catch)
 	{
@@ -167,7 +171,6 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		return E_FAIL;
 	}
 }
-
 void Engine::Run()
 {
 	ClearRenderTarget();
@@ -177,6 +180,8 @@ void Engine::Run()
 	mainActor->Render(frameTime);
 
 	console->Render();
+
+	oneCobe->Draw(Matrix::Identity * Matrix::CreateTranslation(0, 0, 0), camera->GetViewMatrix(), camera->GetProjMatrix(), Colors::CadetBlue);
 
 	ui->Begin();
 
@@ -312,7 +317,7 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_SIZE:
-		if (wParam != SIZE_MINIMIZED & Application->getUI().operator bool())
+		if (wParam != SIZE_MINIMIZED && Application->getUI().operator bool())
 		{
 			ResizeWindow();
 			UI::ResizeWnd();
