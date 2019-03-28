@@ -16,6 +16,7 @@ HRESULT UI::Init()
 
 		ImGuiIO &io = GetIO();
 		io.IniFilename = NULL;
+		io.LogFilename = NULL;
 
 		vector<wstring> FileShaders;
 		vector<string> Functions, Version;
@@ -36,8 +37,8 @@ HRESULT UI::Init()
 		if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
 			return false;
 
-		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
-		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
 		io.BackendPlatformName = "DecisionSolver";
 		io.ImeWindowHandle = Application->GetHWND();
 
@@ -95,13 +96,12 @@ void UI::Begin()
 
 	INT64 current_time;
 	::QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
-	io.DeltaTime = (float)(current_time - g_Time) / g_TicksPerSecond;
+	io.DeltaTime = (float)(current_time - g_Time) / (float)g_TicksPerSecond;
 	g_Time = current_time;
 
-	// Read keyboard modifiers inputs
-	io.KeyCtrl = (::GetKeyState(VK_CONTROL) & 0x8000) != 0;
-	io.KeyShift = (::GetKeyState(VK_SHIFT) & 0x8000) != 0;
-	io.KeyAlt = (::GetKeyState(VK_MENU) & 0x8000) != 0;
+	io.KeyCtrl = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftControl);
+	io.KeyShift = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftShift);
+	io.KeyAlt = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftAlt);
 	io.KeySuper = false;
 
 	UpdateMousePos();

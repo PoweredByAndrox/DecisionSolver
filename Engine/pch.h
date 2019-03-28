@@ -108,10 +108,6 @@ using namespace tinyxml2;
 bool FindSubStr(wstring context, wstring const from);
 bool FindSubStr(string context, string const from);
 
-#include <foundation/PxVec3.h>
-physx::PxVec3 ToPxVec3(Vector3 var);
-Vector3 ToVec3(physx::PxVec3 var);
-
 wstring &replaceAll(wstring &context, wstring const &from, wstring const &to);
 wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also);
 

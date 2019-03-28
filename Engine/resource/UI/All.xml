@@ -17,10 +17,3 @@ show_title="true" moveble="true" collapsible="true">
 		texthint="Input Command Here!"/>
 	</ChildDialog>
 </gui>
-
-<gui id="Test" width="300" height="400" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="true">
-	<Button text="One!" visible="true"/>
-	<Button text="Two!" visible="true"/>
-	<Button text="Three!" visible="true"/>
-</gui>

@@ -5,6 +5,7 @@
 #include "Shaders.h"
 #include "Audio.h"
 #include "Console.h"
+#include "Physics.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -13,8 +14,6 @@ ID3D11RenderTargetView *Engine::RenderTargetView = nullptr;
 ID3D11Texture2D *Engine::DepthStencil = nullptr;
 ID3D11DepthStencilView *Engine::DepthStencilView = nullptr;
 HWND Engine::hwnd = nullptr;
-
-shared_ptr<GeometricPrimitive> oneCobe;
 
 HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 {
@@ -33,7 +32,7 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		wnd.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 		wnd.lpszMenuName = NULL;
 		wnd.lpszClassName = L"WND_ENGINE";
-		wnd.cbSize = sizeof(WNDCLASSEX);
+		wnd.cbSize = sizeof(WNDCLASSEXW);
 
 		if (!RegisterClassEx(&wnd))
 		{
@@ -151,8 +150,8 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 
 		D3D11_VIEWPORT vp;
-		vp.Width = (FLOAT)getWorkAreaSize(hwnd).x;
-		vp.Height = (FLOAT)getWorkAreaSize(hwnd).y;
+		vp.Width = (float)getWorkAreaSize(hwnd).x;
+		vp.Height = (float)getWorkAreaSize(hwnd).y;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -161,8 +160,6 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
-
-		oneCobe = GeometricPrimitive::CreateCube(DeviceContext, 4.f, false);
 	}
 	catch (const exception &Catch)
 	{
@@ -181,7 +178,7 @@ void Engine::Run()
 
 	console->Render();
 
-	oneCobe->Draw(Matrix::Identity * Matrix::CreateTranslation(0, 0, 0), camera->GetViewMatrix(), camera->GetProjMatrix(), Colors::CadetBlue);
+	PhysX->Simulation(false, frameTime, camera->GetViewMatrix(), camera->GetProjMatrix());
 
 	ui->Begin();
 

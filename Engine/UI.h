@@ -50,7 +50,7 @@ public:
 		Type type = Normal;
 		string str = "";
 
-		ColorText(Type type, string str) : type(type), str(str) {}
+		ColorText(Type type, string str): type(type), str(str) {}
 	};
 	vector<ColorText> clText;
 
@@ -62,9 +62,6 @@ public:
 	vector<ColorText> getCLText() { return clText; }
 	void AddCLText(Type type, string str)
 	{
-		if (clText.empty())
-			clText.push_back(ColorText(type, str));
-
 		for (int i = 0; i < clText.size(); i++)
 		{
 			if (clText.at(i).type == type && clText.at(i).str == str)
@@ -83,12 +80,13 @@ public:
 	UnformatedText() {}
 	~UnformatedText() {}
 
+	ToDo("Need To Add Repeat Message!!!");
 	void Render()
 	{
 		for (int i = 0; i < clText.size(); i++)
 		{
 			if (clText.at(i).type == Type::Normal)
-				ImGui::TextUnformatted(Text.c_str());
+				ImGui::TextUnformatted(clText.at(i).str.c_str());
 			else if (clText.at(i).type == Type::Information)
 			{
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.6f, 1.0f));

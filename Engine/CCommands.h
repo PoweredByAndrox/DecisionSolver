@@ -2,8 +2,14 @@
 #if !defined(__COMMANDS_H__)
 #define __COMMANDS_H__
 #include "pch.h"
+#include "Physics.h"
+#include "Camera.h"
 
-static vector<string> ListCommands = { string("Help"), string("TestMsg"), string("Quit"), string("Clear"), string("ChangeSize") };
+static vector<string> ListCommands = { string("Help"), string("TestMsg"), 
+									   string("Quit"), string("Clear"),
+ string("ChangeSize"), string("AddPhysBox"), string("DoTorque") };
+
+static vector<string> ListCommandsWithParams = { };
 static vector<string> History;
 
 class Commands
@@ -25,7 +31,7 @@ public:
 	}
 	void ExecCommand(shared_ptr<dialogs> &Console, string Text)
 	{
-		if (strcmp(Text.c_str(), "Help") == 0)
+		if (strstr(Text.c_str(), "Help"))
 		{
 			string all;
 			for (size_t i = 0; i < ListCommands.size(); i++)
@@ -36,26 +42,66 @@ public:
 			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information, 
 				string("#list of available command: ") + all);
 		}
-		else if (strcmp(Text.c_str(), "Error") == 0)
-		{
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string("[error]: Unknown command type help for help!"));
-		}
-		else if (strcmp(Text.c_str(), "Quit") == 0)
+		else if (strstr(Text.c_str(), "Quit"))
 		{
 			Application->Quit();
+
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+				string(Text + string(" #Apply")));
 		}
-		else if (strcmp(Text.c_str(), "Clear") == 0)
+		else if (strstr(Text.c_str(), "Clear"))
 		{
 			Console->getChilds().back()->getUTexts().back()->ClearText();
+
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+				string(Text + string(" #Apply")));
 		}
-		else if (strcmp(Text.c_str(), "ChangeSize"))
+		else if (strstr(Text.c_str(), "ChangeSize"))
 		{
+			string Cache = Text;
+
 			float H = 0.f, W = 0.f;
 			deleteWord(Text, string("ChangeSize "));
 			sscanf_s(Text.c_str(), "%f, %f", &W, &H);
 			Console->ChangeSize(W, H);
-			//ImGui::SetWindowSize(ImVec2(H, W) , ImGuiCond_::ImGuiCond_Once);
+
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+				string(Cache + string(" #Apply")));
+		}
+		else if (strstr(Text.c_str(), "AddPhysBox"))
+		{
+			string Cache = Text;
+
+			float Size = 0.f, Mass = 0.f;
+			deleteWord(Text, string("AddPhysBox "));
+			sscanf_s(Text.c_str(), "%f, %f", &Mass, &Size);
+			Application->getPhysics()->AddNewActor(Vector3(
+				Application->getCamera()->GetEyePt().x + 10,
+				Application->getCamera()->GetEyePt().y + 5, 
+				Application->getCamera()->GetEyePt().z + 10), Vector3(Size, Size, Size), Mass, Size);
+
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+				string(Cache + string(" #Apply")));
+		}
+		else if (strstr(Text.c_str(), "DoTorque"))
+		{
+			auto ObjPhys = Application->getPhysics()->GetPhysDynamicObject();
+
+			if (!ObjPhys.empty())
+				Application->getPhysics()->AddTorque(ObjPhys.at((std::rand() % ObjPhys.size())),
+					PxVec3(
+						Application->getCamera()->GetEyePt().x + 10,
+						Application->getCamera()->GetEyePt().y + 5,
+						Application->getCamera()->GetEyePt().z + 10), PxForceMode::eFORCE);
+			else
+			{
+				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+					string(Text + string(" GetPhysDynamicObject() return NULL!!!")));
+				return;
+			}
+
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+				string(Text + string(" #Apply")));
 		}
 	}
 	string FindPieceCommand(string Text)
@@ -72,7 +118,5 @@ public:
 
 		return "";
 	}
-
-private:
 };
 #endif // __COMMANDS_H__

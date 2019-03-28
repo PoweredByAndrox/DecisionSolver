@@ -28,16 +28,6 @@ bool FindSubStr(string context, string const from)
 		return false;
 }
 
-physx::PxVec3 ToPxVec3(Vector3 var)
-{
-	return physx::PxVec3(var.x, var.y, var.z);
-}
-
-Vector3 ToVec3(physx::PxVec3 var)
-{
-	return Vector3(var.x, var.y, var.z);
-}
-
 wstring &replaceAll(wstring &context, wstring const &from, wstring const &to)
 {
 	size_t lookHere = 0;

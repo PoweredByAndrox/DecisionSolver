@@ -2,13 +2,14 @@
 
 #include "Engine.h"
 /*
-#include "Physics.h"
 #include "MainMenu.h"
 #include "Picking.h"
 #include "Terrain.h"
 #include "GameObjects.h"
 #include "Levels.h"
 */
+
+#include "DebugDraw.h"
 
 #include "File_system.h"
 #include "Render_Buffer.h"
@@ -17,6 +18,7 @@
 #include "Actor.h"
 #include "Audio.h"
 #include "Console.h"
+#include "Physics.h"
 
 shared_ptr<Engine> Application;
 #include "UI.h"
@@ -29,6 +31,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	try
 	{
 		Application = make_unique<Engine>();
+
+		// Debug Draw!!!
+		Application->setDebugDraw(make_unique<DebugDraw>());
 
 		// Shader Class!!!
 		Application->setShader(make_unique<Shaders>());
@@ -84,6 +89,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getSound()->Init();
 		Application->getSound()->AddNewSound();
 		Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
+		
+		Application->setPhysics(make_unique<Physics>());
+		Application->getPhysics()->Init();
 		// ***********
 
 		MSG msg = {0};

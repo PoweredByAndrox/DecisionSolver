@@ -10,6 +10,8 @@
 #define Never
 //#define NEEDED_DEBUG_INFO
 
+class DebugDraw;
+
 class File_system;
 class UI;
 //class Models;
@@ -18,6 +20,7 @@ class Actor;
 class Shaders;
 class Audio;
 class Console;
+class Physics;
 class Engine
 {
 private:
@@ -84,13 +87,15 @@ private:
 	// shared_ptr<Terrain> terrain;
 	//shared_ptr<Frustum> frustum;
 	shared_ptr<Actor> mainActor;
-	//shared_ptr<Physics> PhysX;
+	shared_ptr<Physics> PhysX;
 	//shared_ptr<Levels> Level;
 	shared_ptr<Camera> camera;
 	shared_ptr<Shaders> shader;
 	shared_ptr<Mouse> mouse = make_unique<Mouse>();
 	shared_ptr<Keyboard> keyboard = make_unique<Keyboard>();
 	shared_ptr<GamePad> gamepad = make_unique<GamePad>();
+
+	shared_ptr<DebugDraw>dDraw;
 
 #if defined(Never_MainMenu)
 	shared_ptr<MainMenu> Menu = make_unique<MainMenu>();
@@ -118,11 +123,13 @@ public:
 	//shared_ptr<Picking> getPick() { return Pick; }
 	//shared_ptr<Frustum> getFrustum() { return frustum; }
 	shared_ptr<Actor> getActor() { return mainActor; }
-	//shared_ptr<Physics> getPhysics() { return PhysX; }
+	shared_ptr<Physics> getPhysics() { return PhysX; }
 	//shared_ptr<Levels> getLevel() { return Level; }
 	shared_ptr<Camera> getCamera() { return camera; }
 	shared_ptr<Shaders> getShader() { return shader; }
 	shared_ptr<Console> getConsole() { return console; }
+
+	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 
 	void setUI(shared_ptr<UI> ui)
 	{
@@ -164,6 +171,16 @@ public:
 		if (!this->Sound.operator bool())
 			this->Sound = Sound;
 	}
+	void setPhysics(shared_ptr<Physics> PhysX)
+	{
+		if (!this->PhysX.operator bool())
+			this->PhysX = PhysX;
+	}
+	void setDebugDraw(shared_ptr<DebugDraw> dDraw)
+	{
+		if (!this->dDraw.operator bool())
+			this->dDraw = dDraw;
+	}
 	/*
 	void setPick(shared_ptr<Picking> Pick)
 	{
@@ -174,11 +191,6 @@ public:
 	{
 		if (!this->frustum.operator bool())
 			this->frustum = frustum;
-	}
-	void setPhysics(shared_ptr<Physics> PhysX)
-	{
-		if (!this->PhysX.operator bool())
-			this->PhysX = PhysX;
 	}
 	void setLevel(shared_ptr<Levels> Level)
 	{

@@ -2,11 +2,21 @@
 
 #include "Physics.h"
 
-HRESULT EngineNS::Physics::Init()
+vector<shared_ptr<GeometricPrimitive>> Cobes;
+
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+#include "CommonStates.h"
+#include "PrimitiveBatch.h"
+#include <Effects.h>
+#include "Camera.h"
+
+HRESULT Physics::Init()
 {
 	try
 	{
-		gFoundation = PxCreateFoundation(PX_FOUNDATION_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+		gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		if (!gFoundation)
 		{
 			DebugTrace("Physics: PxCreateFoundation failed.\n");
@@ -36,7 +46,7 @@ HRESULT EngineNS::Physics::Init()
 
 		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
-		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true);
+		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
 		if (!gPhysics)
 		{
 			DebugTrace("Physics: gPhysics failed.\n");
@@ -90,8 +100,7 @@ HRESULT EngineNS::Physics::Init()
 			return E_FAIL;
 		}
 
-		gPlane->createShape(PxPlaneGeometry(), *gMaterial);
-		gScene->addActor(*gPlane);
+		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*gPlane, PxPlaneGeometry(), *gMaterial)->getActor());
 
 		StaticObjects.push_back(gPlane);
 		
@@ -119,16 +128,38 @@ HRESULT EngineNS::Physics::Init()
 	}
 }
 
-void EngineNS::Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
+#include "DebugDraw.h"
+void Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
 {
-	if (!StopIT) 
+	if (!StopIT)
 	{
+		for (int i = 0; i < Cobes.size(); i++)
+		{
+			vector<PxQuat> aq;
+			vector<PxVec3> pos;
+			auto PhysObj = DynamicObjects;
+
+			for (int i1 = 0; i1 < PhysObj.size(); i1++)
+			{
+				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
+				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
+
+				Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
+					Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)), View, Proj);
+			}
+		}
+
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
+
+		gScene->getScenePvdClient()->updateCamera(
+			"Main Camera", ToPxVec3(Application->getCamera()->GetEyePt()), PxVec3(0, 1, 0),
+			ToPxVec3(Application->getCamera()->GetLookAtPt()));
 	}
 }
+
 /*
-void EngineNS::Physics::_createTriMesh(Models *Model, bool stat_dyn)
+void Physics::_createTriMesh(Models *Model, bool stat_dyn)
 {
 	auto Meshes = Model;
 
@@ -191,8 +222,7 @@ void EngineNS::Physics::_createTriMesh(Models *Model, bool stat_dyn)
 		DynamicObjects.push_back(TriMesh);
 	}
 }
-*/
-void EngineNS::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
+void Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
 {
 	gActorCamera = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 	gActorCamera->setMass(5.0f);
@@ -207,8 +237,9 @@ void EngineNS::Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Positi
 
 	// DynamicObjects.push_back(gActorCamera);
 }
+*/
 
-void EngineNS::Physics::Destroy()
+void Physics::Destroy()
 {
 	if (gPvd)
 	{
@@ -224,12 +255,34 @@ void EngineNS::Physics::Destroy()
 	SAFE_release(gFoundation);
 }
 
-void EngineNS::Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass)
+void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel)
 {
 	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 
 	gBox->setMass(Mass);
 
 	gScene->addActor(*gBox);
+	Cobes.push_back(GeometricPrimitive::CreateCube(Application->getDeviceContext(), SizeModel, false));
+
 	DynamicObjects.push_back(gBox);
+}
+
+PxVec3 ToPxVec3(Vector3 var)
+{
+	return PxVec3(var.x, var.y, var.z);
+}
+
+Vector3 ToVec3(PxVec3 var)
+{
+	return Vector3(var.x, var.y, var.z);
+}
+
+Quaternion ToQuat(PxQuat var)
+{
+	return Quaternion(var.x, var.y, var.z, var.w);
+}
+
+PxQuat ToQuaternion(Quaternion var)
+{
+	return PxQuat(var.x, var.y, var.z, var.w);
 }
