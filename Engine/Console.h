@@ -35,7 +35,7 @@ private:
 	Console_STATE CState = Console_STATE::Open;
 
 	shared_ptr<dialogs> Dialog;
-	shared_ptr<Commands> command = make_unique<Commands>();
+	shared_ptr<Commands> ProcessCommand = make_unique<Commands>();
 };
 #endif // !__CONSOLE__H_
 

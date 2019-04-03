@@ -2,11 +2,10 @@
 
 bool FindSubStr(wstring context, wstring const from)
 {
-	if (context.empty())
+	if (context.empty() || from.empty())
 		return false;
 
-	auto Pos = context.find(from);
-	if (Pos != std::string::npos)
+	if (context.find(from) != std::string::npos)
 		//found
 		return true;
 	else
@@ -16,11 +15,10 @@ bool FindSubStr(wstring context, wstring const from)
 
 bool FindSubStr(string context, string const from)
 {
-	if (context.empty())
+	if (context.empty() || from.empty())
 		return false;
 
-	auto Pos = context.find(from);
-	if (Pos != std::string::npos)
+	if (context.find(from) != std::string::npos)
 		//found
 		return true;
 	else
@@ -122,12 +120,26 @@ string deleteWord(string context, string const start, string const end)
 	string str = context;
 	str.erase(remove(str.begin(), str.end(), '	'), str.end());
 
-	while (str.find(start) != string::npos & str.find(end) != string::npos)
+	while (str.find(start) != string::npos && str.find(end) != string::npos)
 	{
 		str.erase(str.find(start), (str.find(end) + end.size()) + 1 - str.find(start));
 	}
 
 	return str;
+}
+
+void deleteWord(string &context, string const start, ModeProcessString const mode)
+{
+	if (mode == ModeProcessString::UntilTheEnd)
+		if (context.find(start) != string::npos)
+		{
+			context.erase(context.find(start), context.length());
+			context.erase(remove(context.begin(), context.end(), ' '), context.end());
+		}
+
+	if (mode == ModeProcessString::UntilTheBegin)
+		if (context.find(start) != string::npos)
+			context.erase(0, context.find(start));
 }
 
 wstring formatstr(const char *Buff, float X, float Y, float Z)

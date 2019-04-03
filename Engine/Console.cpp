@@ -11,6 +11,7 @@ HRESULT Console::Init()
 	try
 	{
 		Dialog = Application->getUI()->getDialog("Console");
+		ProcessCommand->Init();
 
 		InitClass = true;
 		return S_OK;
@@ -35,8 +36,63 @@ void Console::Render()
 	if (CState == Console_STATE::Close)
 		return;
 
-	if (Dialog->getChilds().back()->getITexts().back()->getTextChange())
-		command->Work(Dialog, Dialog->getChilds().back()->getITexts().back()->GetText());
+	auto text = Dialog->getITexts().back()->GetText();
+	auto History = ProcessCommand->getHistoryCommands();
+
+	if (!History.empty() && Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown())
+	{
+		int PosHistory = ProcessCommand->getPosHistory();
+		if (PosHistory == -1 || PosHistory >= History.size())
+		{
+			ProcessCommand->changePosHistory(-1);
+			PosHistory = ProcessCommand->getPosHistory();
+		}
+
+		if (PosHistory == -1)
+			Dialog->getITexts().back()->ChangeText("");
+		else
+			Dialog->getITexts().back()->ChangeText(History.at(PosHistory));
+
+		if (Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown())
+		{
+			PosHistory++;
+			ProcessCommand->changePosHistory(PosHistory);
+		}
+	}
+
+	if (!text.empty() &&
+		Dialog->getTextLists().back()->getSelectedIndx() != -1 &&
+		!Dialog->getTextLists().back()->getItems().empty())
+	{
+		string text = Dialog->getTextLists().back()->getSelectedIndxString(Dialog->getTextLists().back()->getSelectedIndx());
+		if (text.find("#") != string::npos)
+			deleteWord(text, "#", ModeProcessString::UntilTheEnd);
+		Dialog->getITexts().back()->ChangeText(text);
+	}
+
+	if (Dialog->getITexts().back()->getTextChange())
+		ProcessCommand->Work(Dialog, text);
+
+	if (!text.empty() && text.length() >= 2)
+	{
+		for (int i = 0; i < ProcessCommand->getAllCommands().size(); i++)
+		{
+			auto cmd = ProcessCommand->FindPieceCommand(Dialog, text);
+			if (cmd.operator bool() && !cmd->CommandStr.empty())
+			{
+				if (cmd->type == 1)
+				{
+					if (!Dialog->getTextLists().back()->FindInItems(cmd->CommandStr))
+						Dialog->getTextLists().back()->addItem(cmd->CommandStr);
+				}
+				else
+					if (!Dialog->getTextLists().back()->FindInItems(cmd->CommandStr + string(" ") + cmd->CommandNeededParams))
+						Dialog->getTextLists().back()->addItem(cmd->CommandStr + string(" ") + cmd->CommandNeededParams);
+			}
+		}
+	}
+	else
+		Dialog->getTextLists().back()->clearItems();
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 	Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));

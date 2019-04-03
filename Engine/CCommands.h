@@ -5,118 +5,195 @@
 #include "Physics.h"
 #include "Camera.h"
 
-static vector<string> ListCommands = { string("Help"), string("TestMsg"), 
-									   string("Quit"), string("Clear"),
- string("ChangeSize"), string("AddPhysBox"), string("DoTorque") };
-
-static vector<string> ListCommandsWithParams = { };
-static vector<string> History;
+// Need Add a Struct For All the our commands. All the struct is neccessery to have string of command and string with params (also their values and ect)
+static const vector<string> ListCommands = 
+{ 
+	string("Help"), string("TestMsg"),
+	string("Quit"), string("Clear"),
+	string("test165"), string("test15"),
+	string("DoTorque")
+};
+static const vector<string> ListCommandsWithParams =
+{
+	string("ChangeSize #float W, #float H"), string("AddPhysBox #float MassObj, #float SizeModel")
+};
 
 class Commands
 {
+private:
+	struct Command
+	{
+		enum TypeOfCommand
+		{
+			WithParam = 0, WithoutParam
+		};
+		TypeOfCommand type;
+
+		string CommandStr = "", CommandParamsProcess = "", CommandUnprocessed = "";
+		const string CommandNeededParams = "";
+		int CountOfParams = 0;
+		float One = 0.f, Two = 0.f, Three = 0.f;
+		bool Checked = false;
+
+		void CheckNeededParam()
+		{
+			deleteWord(CommandUnprocessed, " ");
+
+			int i = 0;
+			for (int i1 = 1; INT16_MAX; i1++)
+			{
+				if (i == CommandNeededParams.length())
+					break;
+
+				if (CommandNeededParams.at(i) == '#')
+					CountOfParams++;
+
+				i++;
+			}
+			if (CountOfParams == 2)
+			{
+				sscanf_s(CommandUnprocessed.c_str(), "%f, %f", &One, &Two);
+				CommandParamsProcess = (boost::format("%.3f, %.3f") % One % Two).str();
+			}
+			if (CountOfParams == 3)
+			{
+				sscanf_s(CommandUnprocessed.c_str(), "%f, %f, %f", &One, &Two, &Three);
+				CommandParamsProcess = (boost::format("%.3f, %.3f, %.3f") % One % Two % Three).str();
+			}
+
+			Checked = true;
+		}
+		Command() {}
+		Command(string CommandStr, string CommandNeededParams, TypeOfCommand type): CommandStr(CommandStr),
+			CommandNeededParams(CommandNeededParams), type(type) {}
+	};
+	vector<shared_ptr<Command>> commands;
+	vector<string> History;
+	int PosHistory = 0;
 public:
+	void Init()
+	{
+		for (int i = 0; i < ListCommands.size(); i++)
+		{
+			commands.push_back(make_unique<Command>(ListCommands.at(i), "", Command::TypeOfCommand::WithoutParam));
+		}
+		for (int i = 0; i < ListCommandsWithParams.size(); i++)
+		{
+			auto deleteStringParam = ListCommandsWithParams.at(i), deleteStringComand = ListCommandsWithParams.at(i);
+			deleteWord(deleteStringParam, string("#"), ModeProcessString::UntilTheBegin);
+			deleteWord(deleteStringComand, string("#"), ModeProcessString::UntilTheEnd);
+			commands.push_back(make_unique<Command>(deleteStringComand, deleteStringParam, Command::TypeOfCommand::WithParam));
+		}
+	}
+
+	auto getAllCommands() { return commands; }
+	auto getHistoryCommands() { return History; }
+
+	int getPosHistory() { return PosHistory; }
+
+	void changePosHistory(int num) { PosHistory = num; }
+
 	Commands() {}
 	~Commands() {}
 	void Work(shared_ptr<dialogs> &Console, string Text)
 	{
 		if (!Text.empty())
 		{
-			string FindCommand = FindPieceCommand(Text);
-			if (!FindCommand.empty())
-				ExecCommand(Console, FindCommand);
+			auto cmd = FindPieceCommand(Console, Text);
+			if (cmd.operator bool() && !cmd->CommandStr.empty())
+				ExecCommand(Console, cmd);
 			else
 				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
-					string(string("You're typed: ")+ Text + string("\n[error]: Unknown command type help for help!")));
+					string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
 		}
 	}
-	void ExecCommand(shared_ptr<dialogs> &Console, string Text)
+	void ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> cmd)
 	{
-		if (strstr(Text.c_str(), "Help"))
+		if (cmd->type == Command::TypeOfCommand::WithParam)
+			if (!cmd->Checked)
+				cmd->CheckNeededParam();
+
+		if (stricmp(cmd->CommandStr.c_str(), "Help") == 0)
 		{
 			string all;
-			for (size_t i = 0; i < ListCommands.size(); i++)
+			for (int i = 0; i < ListCommands.size(); i++)
 			{
 				all.append(string(string("\n") + ListCommands.at(i)));
 			}
 
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information, 
+			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
 				string("#list of available command: ") + all);
 		}
-		else if (strstr(Text.c_str(), "Quit"))
-		{
+		else if (stricmp(cmd->CommandStr.c_str(), "Quit") == 0)
 			Application->Quit();
-
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string(Text + string(" #Apply")));
-		}
-		else if (strstr(Text.c_str(), "Clear"))
-		{
+		else if (stricmp(cmd->CommandStr.c_str(), "Clear") == 0)
 			Console->getChilds().back()->getUTexts().back()->ClearText();
-
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string(Text + string(" #Apply")));
-		}
-		else if (strstr(Text.c_str(), "ChangeSize"))
+		else if (stricmp(cmd->CommandStr.c_str(), "ChangeSize") == 0)
+			Console->ChangeSize(cmd->One, cmd->Two);
+		else if (stricmp(cmd->CommandStr.c_str(), "AddPhysBox") == 0)
 		{
-			string Cache = Text;
+			string Cache = cmd->CommandStr;
 
-			float H = 0.f, W = 0.f;
-			deleteWord(Text, string("ChangeSize "));
-			sscanf_s(Text.c_str(), "%f, %f", &W, &H);
-			Console->ChangeSize(W, H);
-
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string(Cache + string(" #Apply")));
-		}
-		else if (strstr(Text.c_str(), "AddPhysBox"))
-		{
-			string Cache = Text;
-
-			float Size = 0.f, Mass = 0.f;
-			deleteWord(Text, string("AddPhysBox "));
-			sscanf_s(Text.c_str(), "%f, %f", &Mass, &Size);
+			float Size = cmd->One, Mass = cmd->Two;
 			Application->getPhysics()->AddNewActor(Vector3(
 				Application->getCamera()->GetEyePt().x + 10,
-				Application->getCamera()->GetEyePt().y + 5, 
+				Application->getCamera()->GetEyePt().y + 5,
 				Application->getCamera()->GetEyePt().z + 10), Vector3(Size, Size, Size), Mass, Size);
-
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string(Cache + string(" #Apply")));
 		}
-		else if (strstr(Text.c_str(), "DoTorque"))
+		else if (stricmp(cmd->CommandStr.c_str(), "DoTorque") == 0)
 		{
 			auto ObjPhys = Application->getPhysics()->GetPhysDynamicObject();
-
 			if (!ObjPhys.empty())
+			{
 				Application->getPhysics()->AddTorque(ObjPhys.at((std::rand() % ObjPhys.size())),
 					PxVec3(
 						Application->getCamera()->GetEyePt().x + 10,
 						Application->getCamera()->GetEyePt().y + 5,
 						Application->getCamera()->GetEyePt().z + 10), PxForceMode::eFORCE);
-			else
-			{
-				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
-					string(Text + string(" GetPhysDynamicObject() return NULL!!!")));
-				return;
 			}
-
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string(Text + string(" #Apply")));
+			else
+				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+					string(cmd->CommandStr + string(": GetPhysDynamicObject() return NULL!!!")));
 		}
+
+		if (cmd->CommandParamsProcess.empty())
+			History.push_back(cmd->CommandStr);
+		else
+			History.push_back(cmd->CommandStr + " " + cmd->CommandParamsProcess);
+
+		Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+			string(cmd->CommandStr + string(" #Apply")));
 	}
-	string FindPieceCommand(string Text)
+
+	shared_ptr<Command> FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
 	{
-		for (int i = 0; i < ListCommands.size(); i++)
+		for (int i = 0; i < commands.size(); i++)
 		{
 			if (Text.length() >= 2)
-				if (std::search(Text.begin(), Text.end(), ListCommands.at(i).begin(), ListCommands.at(i).end()) != Text.end())
-					if (Text.length() > ListCommands.at(i).length())
-						return Text;
-					else
-						return ListCommands.at(i);
+			{
+				string GetCommand = Text;
+				string GetParam = Text;
+
+				if (GetParam.length() > commands.at(i)->CommandStr.length())
+					deleteWord(GetParam, " ", ModeProcessString::UntilTheBegin);
+
+				deleteWord(GetCommand, " ", ModeProcessString::UntilTheEnd);
+
+				if (commands.at(i)->CommandStr.find(GetCommand) != string::npos)
+					if (commands.at(i)->CommandStr.substr(commands.at(i)->CommandStr.find(GetCommand), GetCommand.length()) == GetCommand)
+					{
+						if (Text.length() == 2 || Text.length() <= commands.at(i)->CommandStr.length())
+							return commands.at(i);
+
+						commands.at(i)->CommandUnprocessed = GetParam;
+						return commands.at(i);
+					}
+			}
+			else
+				Console->getTextLists().back()->clearItems();
 		}
 
-		return "";
+		return make_unique<Command>();
 	}
 };
 #endif // __COMMANDS_H__

@@ -118,6 +118,9 @@ void deleteWord(string &context, string const &what);
 string deleteWord(string context, char const what, char const OnWhat);
 string deleteWord(string context, string const start, string const end);
 
+enum ModeProcessString { UntilTheBegin = 0, UntilTheEnd };
+void deleteWord(string &context, string const start, ModeProcessString const mode);
+
 #include <boost/algorithm/string.hpp>
 using namespace boost::algorithm;
 

@@ -280,6 +280,29 @@ void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shar
 	ItextMul->ChangeOrder(CountOrder);
 	dialog->setComponent(ItextMul);
 }
+void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			TList->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "label") == 0)
+		{
+			TList->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	TList->ChangeOrder(CountOrder);
+	dialog->setComponent(TList);
+}
 
 void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<child> XMLchild, shared_ptr<Child> &child, int &CountOrder)
 {
@@ -565,6 +588,29 @@ void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, share
 	ItextMul->ChangeOrder(CountOrder);
 	InChild->setComponent(ItextMul);
 }
+void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			TList->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "label") == 0)
+		{
+			TList->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	TList->ChangeOrder(CountOrder);
+	InChild->setComponent(TList);
+}
 
 void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder)
 {
@@ -686,6 +732,29 @@ void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *
 	ItextMul->ChangeOrder(CountOrder);
 	InCollaps->setComponent(ItextMul);
 }
+void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder)
+{
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(element->ToElement()->FirstAttribute());
+	for (int i = 1; i < INT16_MAX; i++)
+	{
+		if (strcmp(FirstAttr->Name(), "visible") == 0)
+		{
+			TList->setVisible(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			TList->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+	TList->ChangeOrder(CountOrder);
+	InCollaps->setComponent(TList);
+}
 
 void UI::ProcessXML()
 {
@@ -784,6 +853,11 @@ void UI::ProcessXML()
 						XMLDialogs.at(i)->collpheaders.back()->IDutext.push_back(countComponentsForCollapse++);
 						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
 					}
+					else if (strcmp((*ItComponents)->Value(), "ListBox") == 0)
+					{
+						XMLDialogs.at(i)->collpheaders.back()->IDtlist.push_back(countComponentsForCollapse++);
+						XMLDialogs.at(i)->collpheaders.back()->setComponentCHeader(*ItComponents);
+					}
 
 					XMLDialogs.at(i)->collpheaders.back()->OrderlyRender = countComponentsForCollapse;
 				}
@@ -870,6 +944,11 @@ void UI::ProcessXML()
 						XMLDialogs.at(i)->childs.back()->IDutext.push_back(countComponentsForChild++);
 						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
 					}
+					else if (strcmp((*ItComponents)->Value(), "ListBox") == 0)
+					{
+						XMLDialogs.at(i)->childs.back()->IDtlist.push_back(countComponentsForChild++);
+						XMLDialogs.at(i)->childs.back()->setComponentChild(*ItComponents);
+					}
 
 					XMLDialogs.at(i)->childs.back()->OrderlyRender = countComponentsForChild;
 				}
@@ -878,6 +957,11 @@ void UI::ProcessXML()
 			{
 				XMLDialogs.at(i)->IDutext.push_back(countComponents++);
 				XMLDialogs.at(i)->utext.push_back(*ItComponents);
+			}
+			else if (strcmp((*ItComponents)->Value(), "ListBox") == 0)
+			{
+				XMLDialogs.at(i)->IDtlist.push_back(countComponents++);
+				XMLDialogs.at(i)->tlist.push_back(*ItComponents);
 			}
 
 			XMLDialogs.at(i)->OrderlyRender = countComponents;
@@ -894,6 +978,8 @@ void UI::ProcessXML()
 		int countComponents = 0;
 		dialog.push_back(make_unique<dialogs>());
 		
+		float W = 0.f, H = 0.f;
+
 		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
 		for (int i = 1; i < INT16_MAX; i++)
 		{
@@ -906,14 +992,14 @@ void UI::ProcessXML()
 			}
 			if (strcmp(FirstAttr->Name(), "width") == 0)
 			{
-				dialog.at(IDDial)->setSizeW(FirstAttr->FloatValue());
+				W = FirstAttr->FloatValue();
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
 			}
 			if (strcmp(FirstAttr->Name(), "height") == 0)
 			{
-				dialog.at(IDDial)->setSizeH(FirstAttr->FloatValue());
+				H = FirstAttr->FloatValue();
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
@@ -1029,8 +1115,17 @@ void UI::ProcessXML()
 
 			countComponents++;
 		}
+		//	TextList
+		for (int i = 0; i < XMLDialogs.at(IDDial)->tlist.size(); i++)
+		{
+			shared_ptr<TextList> TList = make_unique<TextList>();
+			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->tlist.at(i)->ToElement(), TList, XMLDialogs.at(IDDial)->IDtlist.at(i));
+
+			countComponents++;
+		}
 
 		dialog.at(IDDial)->ChangeOrder(countComponents);
+		dialog.at(IDDial)->ChangeSize(W, H);
 	}
 	Dialogs = dialog;
 }
@@ -1187,6 +1282,26 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 	return S_OK;
 }
 HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<ITextMulti> Component)
+{
+	if (Dialogs.empty())
+	{
+		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
+		return E_FAIL;
+	}
+
+	for (int i = 0; i < Dialogs.size(); i++)
+	{
+		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		{
+			if (Dialogs.at(i)->getCollapsHeaders().empty())
+				addCollapseHead(IDColpsHead);
+			Dialogs.at(i)->getCollapsHeaders().back()->setComponent(Component);
+		}
+	}
+	return S_OK;
+}
+HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<TextList> Component)
 {
 	if (Dialogs.empty())
 	{
@@ -1467,6 +1582,12 @@ void CollapsingHeaders::Render()
 					UText.at(i)->Render();
 			}
 
+			for (int i = 0; i < TList.size(); i++)
+			{
+				if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
+					TList.at(i)->Render();
+			}
+			
 			now++;
 		}
 	}

@@ -360,7 +360,7 @@ string File_system::getDataFromFile(string *File, bool LineByline, string start,
 
 		if (!Returned_val.empty())
 			if (!start.empty() & !end.empty())
-				return deleteWord(Returned_val, start, end.c_str());
+				return deleteWord(Returned_val, start, end);
 			else
 				return Returned_val;
 		else

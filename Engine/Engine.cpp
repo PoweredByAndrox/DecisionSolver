@@ -20,7 +20,7 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 	try
 	{
 		WNDCLASSEXW wnd;
-		wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
 		wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
 		wnd.cbClsExtra = 0;
 		wnd.cbWndExtra = 0;
@@ -313,8 +313,10 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	switch (uMsg)
 	{
+	case WM_ACTIVATEAPP:
+	{
 	case WM_SIZE:
-		if (wParam != SIZE_MINIMIZED && Application->getUI().operator bool())
+		if ((wParam != SIZE_MINIMIZED || uMsg != WM_DESTROY) && Application->getUI().operator bool())
 		{
 			ResizeWindow();
 			UI::ResizeWnd();
@@ -325,8 +327,6 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		::PostQuitMessage(0);
 		break;
 
-	case WM_ACTIVATEAPP:
-	{
 	case WM_INPUT:
 	case WM_MOUSEMOVE:
 	case WM_LBUTTONDOWN:
@@ -347,6 +347,11 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		Keyboard::ProcessMessage(uMsg, wParam, lParam);
+		break;
+
+	case WM_SYSCOMMAND:
+		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
+			return false;
 		break;
 	}
 	}

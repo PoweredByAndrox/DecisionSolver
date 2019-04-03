@@ -113,7 +113,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	catch (const exception &Catch)
 	{
 		MessageBoxA(Application->GetHWND(), string(string("The engine was crashed with this error message: ") + string(Catch.what())).c_str(), "Error!!!", MB_OK);
-		MessageBoxA(Application->GetHWND(), string(string("You can find a solution using this error code: ") + to_string(0)).c_str(), "Error!!!", MB_OK);
+		MessageBoxA(Application->GetHWND(), string(string("You can find a solution to using this error code: ") + to_string(0)).c_str(), "Error!!!", MB_OK);
 	}
 
 	return 0;
