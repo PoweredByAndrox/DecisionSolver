@@ -4,7 +4,7 @@ using namespace EngineNS;
 
 HRESULT Levels::LoadXML(LPCSTR File)
 {
-	doc = make_unique<tinyxml2::XMLDocument>();
+	doc = make_shared<tinyxml2::XMLDocument>();
 
 	doc->LoadFile(File);
 	if (doc->ErrorID() > 0)

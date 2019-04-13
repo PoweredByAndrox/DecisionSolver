@@ -1,7 +1,12 @@
 #include "pch.h"
 
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+
 #include "Shaders.h"
 #include "d3dx9effect.h"
+#include "File_system.h"
 
 HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader, ID3DBlob **ppBlobOut)
 {

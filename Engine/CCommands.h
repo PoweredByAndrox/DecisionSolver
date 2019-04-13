@@ -5,12 +5,10 @@
 #include "Physics.h"
 #include "Camera.h"
 
-// Need Add a Struct For All the our commands. All the struct is neccessery to have string of command and string with params (also their values and ect)
 static const vector<string> ListCommands = 
 { 
 	string("Help"), string("TestMsg"),
 	string("Quit"), string("Clear"),
-	string("test165"), string("test15"),
 	string("DoTorque")
 };
 static const vector<string> ListCommandsWithParams =
@@ -107,11 +105,19 @@ public:
 					string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
 		}
 	}
-	void ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> cmd)
+	void ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cmd)
 	{
 		if (cmd->type == Command::TypeOfCommand::WithParam)
-			if (!cmd->Checked)
-				cmd->CheckNeededParam();
+		{
+			if (cmd->CommandUnprocessed.empty())
+			{
+				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+					string(cmd->CommandStr + string(": No parameters found! You must add several parameters, such like: ") + cmd->CommandNeededParams));
+				return;
+			}
+
+			cmd->CheckNeededParam();
+		}
 
 		if (stricmp(cmd->CommandStr.c_str(), "Help") == 0)
 		{
@@ -134,7 +140,7 @@ public:
 		{
 			string Cache = cmd->CommandStr;
 
-			float Size = cmd->One, Mass = cmd->Two;
+			float Size = cmd->Two, Mass = cmd->One;
 			Application->getPhysics()->AddNewActor(Vector3(
 				Application->getCamera()->GetEyePt().x + 10,
 				Application->getCamera()->GetEyePt().y + 5,
@@ -163,6 +169,11 @@ public:
 
 		Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
 			string(cmd->CommandStr + string(" #Apply")));
+
+		cmd->CommandParamsProcess = cmd->CommandUnprocessed = "";
+		cmd->One = cmd->Two = cmd->Three = 0.f;
+		cmd->CountOfParams = 0;
+		cmd->Checked = false;
 	}
 
 	shared_ptr<Command> FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
@@ -182,7 +193,7 @@ public:
 				if (commands.at(i)->CommandStr.find(GetCommand) != string::npos)
 					if (commands.at(i)->CommandStr.substr(commands.at(i)->CommandStr.find(GetCommand), GetCommand.length()) == GetCommand)
 					{
-						if (Text.length() == 2 || Text.length() <= commands.at(i)->CommandStr.length())
+						if (Text.length() <= commands.at(i)->CommandStr.length() || GetParam.empty())
 							return commands.at(i);
 
 						commands.at(i)->CommandUnprocessed = GetParam;

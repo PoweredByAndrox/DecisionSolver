@@ -3,11 +3,6 @@
 #define __SHADERS_H__
 #include "pch.h"
 
-#include "File_system.h"
-class Engine;
-extern shared_ptr<Engine> Application;
-#include "Engine.h"
-
 class Shaders
 {
 public:

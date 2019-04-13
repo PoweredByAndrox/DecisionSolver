@@ -1,14 +1,24 @@
 Texture2D ObjTexture;
 SamplerState SampleType;
 
-struct PixelInputType
+struct PInputTypeModel
 {
 	float4 Pos: SV_POSITION;
-	float4 col : COLOR0;
-	float2 Text: TEXCOORD;
+	float2 Tex: TEXCOORD;
+};
+struct PInputTypeUI
+{
+	float4 Pos: SV_POSITION;
+	float4 col: COLOR0;
+	float2 Tex: TEXCOORD;
 };
 
-float4 PS(PixelInputType input): SV_Target
+float4 Pixel_model_PS(PInputTypeModel input): SV_Target
 {
-	return input.col * ObjTexture.Sample(SampleType, input.Text);
+	return ObjTexture.Sample(SampleType, input.Tex);
+}
+
+float4 Pixel_ui_PS(PInputTypeUI input): SV_Target
+{
+	return input.col * ObjTexture.Sample(SampleType, input.Tex);
 }

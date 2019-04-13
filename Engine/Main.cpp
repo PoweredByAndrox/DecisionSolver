@@ -26,22 +26,26 @@ shared_ptr<Engine> Application;
 shared_ptr<Actor> mActor;
 #include "Shaders.h"
 
+#include "CLua.h"
+
+ToDo("Does not work minimize the application!");
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	try
 	{
-		Application = make_unique<Engine>();
+		Application = make_shared<Engine>();
 
 		// Debug Draw!!!
-		Application->setDebugDraw(make_unique<DebugDraw>());
+		Application->setDebugDraw(make_shared<DebugDraw>());
 
 		// Shader Class!!!
-		Application->setShader(make_unique<Shaders>());
+		Application->setShader(make_shared<Shaders>());
 
 		// FS (File System)!!!
-		Application->setFS(make_unique<File_system>());
+		Application->setFS(make_shared<File_system>());
 
-		if (FAILED(Application->Init(L"Engine Programm", hInstance)))
+		if (FAILED(Application->Init(wstring(L"DecisionEngine"), hInstance)))
 		{
 			DebugTrace("wWinMain::engine->Init() is failed.");
 			throw exception("wWinMain is failed!!!");
@@ -58,52 +62,50 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		// ***********
 		// INITIALIZATION ALL THE CLASSES
 
+		Application->setCLua(make_shared<CLua>());
+
 		//	// GUI!!!
-		Application->setUI(make_unique<UI>());
+		Application->setUI(make_shared<UI>());
 		Application->getUI()->Init();
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
-		//Application->getUI()->addDialog("Main");
-		//Application->getUI()->addCollapseHead("Sounds", "Main", true);
-		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Start!", true));
-		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Stop!", true));
-		//Application->getUI()->addComponentToCollapseHead("Sounds", "Main", make_unique<Buttons>("Pause!", true));
-		//Application->getUI()->addLabel("", "Main");
 
 		//	// Console Class!!!
-		Application->setConsole(make_unique<Console>());
+		Application->setConsole(make_shared<Console>());
 		Application->getConsole()->Init();
 
 		//	// Models Class
-		//Application->setModel(make_unique<Models>());
+		//Application->setModel(make_shared<Models>(Application->getFS()->GetFile(string("cargo transport 3.obj"))->PathA));
 
 		//	// Camera Class
-		Application->setCamera(make_unique<Camera>());
+		Application->setCamera(make_shared<Camera>());
 		Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x, Application->getWorkAreaSize(Application->GetHWND()).y);
 
 		//	// Main Actor Class!!!
-		Application->setActor(make_unique<Actor>());
+		Application->setActor(make_shared<Actor>());
 		Application->getActor()->Init();
 
 		//	// Audio (Sound) Class!!!
-		Application->setSound(make_unique<Audio>());
+		Application->setSound(make_shared<Audio>());
 		Application->getSound()->Init();
 		Application->getSound()->AddNewSound();
 		Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
-		Application->setPhysics(make_unique<Physics>());
+		Application->setPhysics(make_shared<Physics>());
 		Application->getPhysics()->Init();
+
+		Application->getCLua()->Init();
 		// ***********
 
 		MSG msg = {0};
 		while (msg.message != WM_QUIT)
 		{
-			if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+			if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 			{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+				::TranslateMessage(&msg);
+				::DispatchMessage(&msg);
+				continue;
 			}
-			else
-				Application->Run();
+			Application->Run();
 		}
 
 		Application->getUI()->Destroy();

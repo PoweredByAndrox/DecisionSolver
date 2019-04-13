@@ -5,12 +5,15 @@
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
+#include "CLua.h"
+
+shared_ptr<Commands> Console::ProcessCommand = make_shared<Commands>();
+shared_ptr<dialogs> Console::Dialog;
 
 HRESULT Console::Init()
 {
 	try
 	{
-		Dialog = Application->getUI()->getDialog("Console");
 		ProcessCommand->Init();
 
 		InitClass = true;
@@ -36,10 +39,17 @@ void Console::Render()
 	if (CState == Console_STATE::Close)
 		return;
 
+	Dialog = Application->getUI()->getDialog("Console");
+	if (!Dialog.operator bool())
+		return;
+
+	Dialog->Render();
+
 	auto text = Dialog->getITexts().back()->GetText();
 	auto History = ProcessCommand->getHistoryCommands();
 
-	if (!History.empty() && Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown())
+	if (!Dialog->getITexts().back()->isActive() && !History.empty() &&
+		(Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown()))
 	{
 		int PosHistory = ProcessCommand->getPosHistory();
 		if (PosHistory == -1 || PosHistory >= History.size())
@@ -53,11 +63,8 @@ void Console::Render()
 		else
 			Dialog->getITexts().back()->ChangeText(History.at(PosHistory));
 
-		if (Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown())
-		{
-			PosHistory++;
-			ProcessCommand->changePosHistory(PosHistory);
-		}
+		PosHistory++;
+		ProcessCommand->changePosHistory(PosHistory);
 	}
 
 	if (!text.empty() &&
@@ -86,8 +93,10 @@ void Console::Render()
 						Dialog->getTextLists().back()->addItem(cmd->CommandStr);
 				}
 				else
+				{
 					if (!Dialog->getTextLists().back()->FindInItems(cmd->CommandStr + string(" ") + cmd->CommandNeededParams))
 						Dialog->getTextLists().back()->addItem(cmd->CommandStr + string(" ") + cmd->CommandNeededParams);
+				}
 			}
 		}
 	}
@@ -102,18 +111,23 @@ void Console::OpenConsole()
 {
 	if (CState == Console_STATE::Close)
 	{
-		Application->getUI()->DisableDialog("Console");
+		Application->getUI()->EnableDialog("Console");
 		CState = Console_STATE::Open;
+		return;
+	}
+	if (CState == Console_STATE::Open)
+	{
+		Application->getUI()->DisableDialog("Console");
+		CState = Console_STATE::Close;
+		return;
 	}
 }
 
-void Console::CloseConsole()
+void Console::AddCmd(LPCSTR Text)
 {
-	if (CState == Console_STATE::Open)
-	{
-		Application->getUI()->EnableDialog("Console");
-		CState = Console_STATE::Close;
-	}
+	if (!Text || !ProcessCommand.operator bool() || !Dialog.operator bool())
+		return;
+	ProcessCommand->Work(Dialog, Text);
 }
 
 /*

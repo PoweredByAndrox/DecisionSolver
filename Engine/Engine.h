@@ -12,9 +12,10 @@
 
 class DebugDraw;
 
+class CLua;
 class File_system;
 class UI;
-//class Models;
+class Models;
 class Camera;
 class Actor;
 class Shaders;
@@ -55,7 +56,7 @@ private:
 	};
 	HRESULT hr = S_OK;
 	POINT Desktop = { 0, 0 };
-	LPCWSTR NameWnd = L"", ClassWND = L"";
+	wstring NameWnd = L"", ClassWND = L"";
 
 	double countsPerSecond = 0.0, frameTime = 0.0;
 	__int64 CounterStart = 0, frameTimeOld = 0;
@@ -63,10 +64,15 @@ private:
 
 	static ID3D11Device *Device;
 	static ID3D11DeviceContext *DeviceContext;
+	static ID3D11Device1 *Device1;
+	static ID3D11DeviceContext1 *DeviceContext1;
 	static IDXGISwapChain *SwapChain;
+	static IDXGISwapChain1 *SwapChain1;
 	static ID3D11RenderTargetView *RenderTargetView;
 	static ID3D11Texture2D *DepthStencil;
 	static ID3D11DepthStencilView *DepthStencilView;
+	static IDXGIFactory1 *dxgiFactory;
+	static IDXGIFactory2 *dxgiFactory2;
 
 	D3D_FEATURE_LEVEL *featureLevel = nullptr;
 	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0 };
@@ -76,13 +82,13 @@ private:
 #endif
 
 	//#define Never_MainMenu
-	//#define UseConsole
 
 	shared_ptr<File_system> FS;
-	//shared_ptr<Models> model;
+	shared_ptr<Models> model;
 	shared_ptr<Audio> Sound;
 	shared_ptr<Console> console;
 	shared_ptr<UI> ui;
+	shared_ptr<CLua> lua;
 	//shared_ptr<Picking> Pick;
 	// shared_ptr<Terrain> terrain;
 	//shared_ptr<Frustum> frustum;
@@ -102,7 +108,7 @@ private:
 #endif
 
 public:
-	HRESULT Init(LPCWSTR NameWnd, HINSTANCE hInstance);
+	HRESULT Init(wstring NameWnd, HINSTANCE hInstance);
 
 	void Run();
 
@@ -114,10 +120,10 @@ public:
 	~Engine() {}
 
 	static HWND GetHWND() { return hwnd; }
-	LPCWSTR getNameWnd() { return NameWnd; }
+	wstring getNameWnd() { return NameWnd; }
 
 	shared_ptr<File_system> getFS() { return FS; }
-	//shared_ptr<Models> getModel() { return model; }
+	shared_ptr<Models> getModel() { return model; }
 	shared_ptr<Audio> getSound() { return Sound; }
 	shared_ptr<UI> getUI() { return ui; }
 	//shared_ptr<Picking> getPick() { return Pick; }
@@ -128,6 +134,7 @@ public:
 	shared_ptr<Camera> getCamera() { return camera; }
 	shared_ptr<Shaders> getShader() { return shader; }
 	shared_ptr<Console> getConsole() { return console; }
+	shared_ptr<CLua> getCLua() { return lua; }
 
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 
@@ -146,11 +153,11 @@ public:
 		if (!this->FS.operator bool())
 			this->FS = Pick;
 	}
-	//void setModel(shared_ptr<Models> model)
-	//{
-	//	if (!this->model.operator bool())
-	//		this->model = model;
-	//}
+	void setModel(shared_ptr<Models> model)
+	{
+		if (!this->model.operator bool())
+			this->model = model;
+	}
 	void setCamera(shared_ptr<Camera> camera)
 	{
 		if (!this->camera.operator bool())
@@ -180,6 +187,11 @@ public:
 	{
 		if (!this->dDraw.operator bool())
 			this->dDraw = dDraw;
+	}
+	void setCLua(shared_ptr<CLua> lua)
+	{
+		if (!this->lua.operator bool())
+			this->lua = lua;
 	}
 	/*
 	void setPick(shared_ptr<Picking> Pick)
@@ -276,7 +288,7 @@ public:
 		sd.OutputWindow = GetHWND();
 		sd.SampleDesc.Count = 1;
 		sd.SampleDesc.Quality = 0;
-		sd.Windowed = TRUE;
+		sd.Windowed = true;
 
 		//sd.Flags = !vsettings.windowed ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
 

@@ -6,6 +6,7 @@
 #include "Audio.h"
 #include "Console.h"
 #include "Physics.h"
+#include "CLua.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -15,7 +16,13 @@ ID3D11Texture2D *Engine::DepthStencil = nullptr;
 ID3D11DepthStencilView *Engine::DepthStencilView = nullptr;
 HWND Engine::hwnd = nullptr;
 
-HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
+ID3D11Device1 *Engine::Device1 = nullptr;
+ID3D11DeviceContext1 *Engine::DeviceContext1 = nullptr;
+IDXGISwapChain1 *Engine::SwapChain1 = nullptr;
+IDXGIFactory1 *Engine::dxgiFactory = nullptr;
+IDXGIFactory2 *Engine::dxgiFactory2 = nullptr;
+
+HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 {
 	try
 	{
@@ -34,14 +41,14 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		wnd.lpszClassName = L"WND_ENGINE";
 		wnd.cbSize = sizeof(WNDCLASSEXW);
 
-		if (!RegisterClassEx(&wnd))
+		if (!RegisterClassExW(&wnd))
 		{
 			DebugTrace("Engine::Init()->RegisterClassEx() is failed");
 			throw exception("Init is failed!!!");
 			return E_FAIL;
 		}
 
-		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd, WS_CLIPSIBLINGS | WS_VISIBLE | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
+		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_CLIPSIBLINGS | WS_VISIBLE | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
 			WS_SYSMENU | WS_CAPTION, 0, 0, 1024, 768, NULL, NULL, hInstance, NULL)))
 		{
 			DebugTrace("Engine::Init()->CreateWindow() is failed");
@@ -53,7 +60,7 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		ClassWND = wnd.lpszClassName;
 
 		UINT createDeviceFlags = 0;
-#ifdef _DEBUG
+#if defined(_DEBUG) || defined(DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -67,31 +74,18 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 
 		D3D_FEATURE_LEVEL featureLevels[] =
 		{
+			D3D_FEATURE_LEVEL_11_1,
 			D3D_FEATURE_LEVEL_11_0,
 			D3D_FEATURE_LEVEL_10_1,
 			D3D_FEATURE_LEVEL_10_0,
 		};
 		UINT numFeatureLevels = ARRAYSIZE(featureLevels);
 
-		DXGI_SWAP_CHAIN_DESC sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.BufferCount = 1;
-		sd.BufferDesc.Width = getWorkAreaSize(hwnd).x;
-		sd.BufferDesc.Height = getWorkAreaSize(hwnd).y;
-		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.BufferDesc.RefreshRate.Numerator = 60;
-		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow = hwnd;
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.Windowed = TRUE;
-
 		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 		{
 			auto m_driverType = driverTypes[driverTypeIndex];
-			hr = D3D11CreateDeviceAndSwapChain(NULL, m_driverType, NULL, createDeviceFlags, featureLevels, numFeatureLevels,
-				D3D11_SDK_VERSION, &sd, &SwapChain, &Device, &*featureLevel, &DeviceContext);
+			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
+				D3D11_SDK_VERSION, &Device, &*featureLevel, &DeviceContext);
 			if (SUCCEEDED(hr))
 				break;
 		}
@@ -101,8 +95,78 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 			throw exception("Create failed!!!");
 		}
 
+		UINT m4xMsaaQuality;
+		Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality);
+
+		IDXGIDevice *dxgiDevice = nullptr;
+		hr = Device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
+		if (SUCCEEDED(hr))
+		{
+			IDXGIAdapter* adapter = nullptr;
+			hr = dxgiDevice->GetAdapter(&adapter);
+			if (SUCCEEDED(hr))
+			{
+				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(&dxgiFactory));
+				adapter->Release();
+			}
+			SAFE_RELEASE(dxgiDevice);
+		}
+		else
+		{
+			DebugTrace("Engine::Init->DXGI Factory couldn't be obtained.");
+			throw exception("Create failed!!!");
+		}
+
+		hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void **>(&dxgiFactory2));
+		if (dxgiFactory2)
+		{
+			// DirectX 11.1 or later
+			hr = Device->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void **>(&Device1));
+			if (SUCCEEDED(hr))
+			{
+				(void)DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void **>(&DeviceContext1));
+			}
+
+			DXGI_SWAP_CHAIN_DESC1 sd;
+			ZeroMemory(&sd, sizeof(sd));
+			sd.Width = getWorkAreaSize(hwnd).x;
+			sd.Height = getWorkAreaSize(hwnd).y;
+			sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sd.SampleDesc.Count = 4;
+			sd.SampleDesc.Quality = m4xMsaaQuality - 1;
+			sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			sd.BufferCount = 1;
+
+			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &sd, nullptr, nullptr, &SwapChain1);
+			if (SUCCEEDED(hr))
+			{
+				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void **>(&SwapChain));
+			}
+
+			SAFE_RELEASE(dxgiFactory2);
+		}
+		else
+		{
+			// DirectX 11.0 systems
+			DXGI_SWAP_CHAIN_DESC sd;
+			ZeroMemory(&sd, sizeof(sd));
+			sd.BufferCount = 1;
+			sd.BufferDesc.Width = getWorkAreaSize(hwnd).x;
+			sd.BufferDesc.Height = getWorkAreaSize(hwnd).y;
+			sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			sd.BufferDesc.RefreshRate.Numerator = 60;
+			sd.BufferDesc.RefreshRate.Denominator = 1;
+			sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			sd.OutputWindow = hwnd;
+			sd.SampleDesc.Count = 1;
+			sd.SampleDesc.Quality = m4xMsaaQuality - 1;
+			sd.Windowed = true;
+
+			hr = dxgiFactory->CreateSwapChain(Device, &sd, &SwapChain);
+		}
+
 		ID3D11Texture2D *pBackBuffer = nullptr;
-		if (FAILED(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer)))
+		if (FAILED(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer)))
 		{
 			DebugTrace("Engine::Init->GetBuffer() failed.");
 			throw exception("Get failed!!!");
@@ -122,8 +186,8 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		descDepth.MipLevels = 1;
 		descDepth.ArraySize = 1;
 		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		descDepth.SampleDesc.Count = 1;
-		descDepth.SampleDesc.Quality = 0;
+		descDepth.SampleDesc.Count = 4;
+		descDepth.SampleDesc.Quality = m4xMsaaQuality - 1;
 		descDepth.Usage = D3D11_USAGE_DEFAULT;
 		descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		descDepth.CPUAccessFlags = 0;
@@ -138,7 +202,7 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 		ZeroMemory(&descDSV, sizeof(descDSV));
 		descDSV.Format = descDepth.Format;
-		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 		descDSV.Texture2D.MipSlice = 0;
 
 		if (FAILED(Device->CreateDepthStencilView(DepthStencil, &descDSV, &DepthStencilView)))
@@ -148,6 +212,22 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		}
 
 		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+
+		D3D11_RASTERIZER_DESC rasterDesc;
+		ID3D11RasterizerState *rasterState;
+		rasterDesc.AntialiasedLineEnable = false;
+		rasterDesc.CullMode = D3D11_CULL_BACK;
+		rasterDesc.DepthBias = 0;
+		rasterDesc.DepthBiasClamp = 0.0f;
+		rasterDesc.DepthClipEnable = true;
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.FrontCounterClockwise = false;
+		rasterDesc.MultisampleEnable = false;
+		rasterDesc.ScissorEnable = false;
+		rasterDesc.SlopeScaledDepthBias = 0.0f;
+
+		Device->CreateRasterizerState(&rasterDesc, &rasterState);
+		DeviceContext->RSSetState(rasterState);
 
 		D3D11_VIEWPORT vp;
 		vp.Width = (float)getWorkAreaSize(hwnd).x;
@@ -168,6 +248,7 @@ HRESULT Engine::Init(LPCWSTR NameWnd, HINSTANCE hInstance)
 		return E_FAIL;
 	}
 }
+
 void Engine::Run()
 {
 	ClearRenderTarget();
@@ -176,34 +257,52 @@ void Engine::Run()
 
 	mainActor->Render(frameTime);
 
-	console->Render();
-
 	PhysX->Simulation(false, frameTime, camera->GetViewMatrix(), camera->GetProjMatrix());
 
 	ui->Begin();
 
 	ui->Render();
+
 	ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
 		string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
-		% Application->getFPS() % Application->getActor()->getPosition().x % Application->getActor()->getPosition().y
-		% Application->getActor()->getPosition().z % Application->IsWireFrame()).str()));
+		% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame).str()));
 
-	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(0)->IsClicked())
-		Application->getSound()->doPlay();
+	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().front()->IsClicked())
+		Sound->doPlay();
 
-	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
-		Application->getSound()->doStop();
+	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
+		Sound->doStop();
 
-	if (Application->getUI()->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(2)->IsClicked())
-		Application->getSound()->doPause();
+	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().back()->IsClicked())
+		Sound->doPause();
 
-	ui->End(WireFrame);
+	console->Render();
+
+	ui->FrameEnd();
 
 	SwapChain->Present(0, 0);
 
 	Sound->Update();
 
-	if (getKeyboard()->IsConnected())
+	lua->Update();
+}
+
+void Engine::Render()
+{
+	if (!DeviceContext)
+		return;
+
+	frameCount++;
+	if (GetTime() > 1.0f)
+	{
+		fps = frameCount;
+		frameCount = 0;
+		StartTimer();
+	}
+
+	frameTime = GetFrameTime();
+
+	if (keyboard->IsConnected())
 	{
 		auto state = keyboard->GetState();
 		TrackerKeyboard.Update(state);
@@ -216,75 +315,18 @@ void Engine::Run()
 				WireFrame = false;
 			else
 				WireFrame = true;
+
+		if (TrackerKeyboard.pressed.OemTilde && console.operator bool())
+			console->OpenConsole();
 	}
-	if (getGamepad()->GetState(0).IsConnected())
+	if (gamepad->GetState(0).IsConnected())
 	{
 		auto state = gamepad->GetState(0);
 		TrackerGamepad.Update(state);
 	}
-}
 
-void Engine::Render()
-{
-	if (!DeviceContext)
-		return;
-
-#if defined(UseConsole)
-	console->Render(fElapsedTime);
-
-	if (*console->getState() == Console_STATE::Close)
-		V(ui->getDialog()->at(0)->OnRender(fElapsedTime));
-#endif // UseConsole
-
-	frameCount++;
-	if (GetTime() > 1.0f)
-	{
-		fps = frameCount;
-		frameCount = 0;
-		StartTimer();
-	}
-
-	frameTime = GetFrameTime();
-
-//	model->Render(camera->GetViewMatrix(), camera->GetProjMatrix(), WireFrame);
-
-	/*
-	//ui->SetTextStatic(ui->getDialog()->at(0), 0, &string("Cam Pos: "), PosCam);
-	//ui->SetLocationStatic(ui->getDialog()->at(0), 0, 0, PosText += 5, false);
-
-	//ui->SetTextStatic(ui->getDialog()->at(0), 1, &string("FPS: "), DXUTGetFPS());
-	//ui->SetLocationStatic(ui->getDialog()->at(0), 1, SCREEN_WIDTH / 2, -3, false);
-
-	//auto ObjStatic = PhysX->GetPhysStaticObject();
-	//ui->SetTextStatic(ui->getDialog()->at(0), 2, &string("Count Phys Object: "), PhysX->GetPhysDynamicObject().size() + ObjStatic.size());
-	//ui->SetLocationStatic(ui->getDialog()->at(0), 2, 0, PosText += 15, false);
-
-	//ui->SetLocationStatic(ui->getDialog()->at(0), 3, 0, PosText += 15, false);
-
-	//ui->SetTextStatic(ui->getDialog()->at(0), 3, &string("Main Actor Health Is: "), mainActor->getHealthActor());
-		auto PhysObj = PhysX->GetPhysDynamicObject();
-	if (!PhysObj.empty())
-	{
-		PhysX->Simulation(StopIT, fElapsedTime, mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix());
-
-		for (int i = 0; i < m_shape.size(); i++)
-		{
-			vector<PxQuat> aq;
-			vector<PxVec3> pos;
-			for (int i1 = 0; i1 < PhysObj.size(); i1++)
-			{
-				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
-				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
-
-				m_shape.at(i)->Draw(XMMatrixRotationQuaternion(XMVectorSet(aq[i1].x, aq[i1].y, aq[i1].z, aq[i1].w))
-					* XMMatrixTranslation(pos[i1].x, pos[i1].y, pos[i1].z), mainActor->getObjCamera()->GetViewMatrix(), mainActor->getObjCamera()->GetProjMatrix()//,
-					//_Color[rand() % 9 + 1]
-				);
-			}
-		}
-	}
-
-	*/
+	//model->setPosition(Vector3::One);
+	//model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
 
 #if defined(NEEDED_DEBUG_INFO)
 	Device->QueryInterface(IID_ID3D11Debug, (void **) &debug);
@@ -294,8 +336,8 @@ void Engine::Render()
 
 void Engine::Destroy(HINSTANCE hInstance)
 {
-	DestroyWindow(hwnd);
-	UnregisterClass(ClassWND, hInstance);
+	::DestroyWindow(hwnd);
+	::UnregisterClassW(ClassWND.c_str(), hInstance);
 
 	SAFE_DELETE(m_desc);
 
@@ -303,6 +345,11 @@ void Engine::Destroy(HINSTANCE hInstance)
 	SAFE_RELEASE(SwapChain);
 	SAFE_RELEASE(DeviceContext);
 	SAFE_RELEASE(Device);
+	SAFE_RELEASE(SwapChain1);
+	SAFE_RELEASE(DeviceContext1);
+	SAFE_RELEASE(Device1);
+	SAFE_RELEASE(dxgiFactory);
+	SAFE_RELEASE(dxgiFactory2);
 }
 
 LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -313,18 +360,18 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	switch (uMsg)
 	{
-	case WM_ACTIVATEAPP:
-	{
 	case WM_SIZE:
 		if ((wParam != SIZE_MINIMIZED || uMsg != WM_DESTROY) && Application->getUI().operator bool())
 		{
 			ResizeWindow();
 			UI::ResizeWnd();
 		}
+		return false;
 		break;
 
 	case WM_DESTROY:
 		::PostQuitMessage(0);
+		return false;
 		break;
 
 	case WM_INPUT:
@@ -340,6 +387,7 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_XBUTTONUP:
 	case WM_MOUSEHOVER:
 		Mouse::ProcessMessage(uMsg, wParam, lParam);
+		return false;
 		break;
 
 	case WM_KEYDOWN:
@@ -347,13 +395,13 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		Keyboard::ProcessMessage(uMsg, wParam, lParam);
+		return false;
 		break;
 
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
 			return false;
 		break;
-	}
 	}
 
 	return ::DefWindowProc(hWnd, uMsg, wParam, lParam);

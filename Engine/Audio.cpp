@@ -27,7 +27,7 @@ void Audio::Init()
 
 void Audio::AddNewSound()
 {
-	ListSoundsFile = Application->getFS()->getFilesInFolder(&wstring(L"Sounds"), false, false);
+	ListSoundsFile = Application->getFS()->getFilesInFolder(wstring(L"Sounds"), false, false);
 	for (int i = 0; i < ListSoundsFile.size(); i++)
 	{
 		soundEffect[i] = make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i).c_str());

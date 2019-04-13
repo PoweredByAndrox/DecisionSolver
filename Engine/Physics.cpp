@@ -145,7 +145,8 @@ void Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
 				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
 				Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
-					Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)), View, Proj);
+					Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)), View, Proj, Colors::DarkSeaGreen, nullptr,
+					Application->IsWireFrame());
 			}
 		}
 
@@ -257,6 +258,9 @@ void Physics::Destroy()
 
 void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel)
 {
+	if (SizeModel <= 0)
+		SizeModel = 1.f;
+
 	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 
 	gBox->setMass(Mass);

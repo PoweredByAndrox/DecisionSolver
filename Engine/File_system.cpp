@@ -17,7 +17,7 @@ void File_system::ScanFilesInRes()
 {
 	USES_CONVERSION;
 	int i = 0;
-	auto file = getFilesInFolder(&string(""), true, true);
+	auto file = getFilesInFolder(string(""), true, true);
 	for (i = 0; i < file.size(); i++)
 	{
 		string someFile = file.at(i),
@@ -33,6 +33,8 @@ void File_system::ScanFilesInRes()
 			type = TYPE::TEXTURES;
 		else if (ext == ".wav")
 			type = TYPE::SOUNDS;
+		else if (ext == ".lua")
+			type = TYPE::SCRIPTS;
 		else if (ext == ".xml")
 		{
 			if (FindSubStr(path(file.at(i)).string(), string("UI")))
@@ -47,7 +49,7 @@ void File_system::ScanFilesInRes()
 
 		if (type != TYPE::NONE)
 		{
-			Files.push_back(new File(someFile, ext, Fname, (size_t)file_size(path(someFile)), type));
+			Files.push_back(make_unique<File>(someFile, ext, Fname, (size_t)file_size(path(someFile)), type));
 			Files.back()->ExtW = path(A2W(someFile.c_str())).extension().wstring();
 			Files.back()->FileW = path(someFile).filename().wstring();
 			Files.back()->PathW = wstring(A2W(someFile.c_str()));
@@ -55,7 +57,7 @@ void File_system::ScanFilesInRes()
 	}
 }
 
-File_system::File *File_system::GetFile(string file)
+shared_ptr<File> File_system::GetFile(string file)
 {
 	USES_CONVERSION;
 
@@ -80,13 +82,13 @@ File_system::File *File_system::GetFile(string file)
 		{
 			if (extA == ".obj")
 			{
-				auto cache = getFilesInFolder(&string(ResPath + string("models/")), true, true);
+				auto cache = getFilesInFolder(string(ResPath + string("models/")), true, true);
 				for (int i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
 					{
-						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::MODELS));
+						Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::MODELS));
 						Files.back()->PathW = path(cache.at(i)).wstring();
 						Files.back()->FileW = path(cache.at(i)).filename().wstring();
 						Files.back()->ExtW = extW;
@@ -96,13 +98,13 @@ File_system::File *File_system::GetFile(string file)
 			}
 			else if (extA == ".dds" || extA == ".png" || extA == ".bmp")
 			{
-				auto cache = getFilesInFolder(&string(ResPath + string("textures/")), true, true);
+				auto cache = getFilesInFolder(string(ResPath + string("textures/")), true, true);
 				for (int i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
 					{
-						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
+						Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
 						Files.back()->PathW = path(cache.at(i)).wstring();
 						Files.back()->FileW = path(cache.at(i)).filename().wstring();
 						Files.back()->ExtW = extW;
@@ -112,7 +114,7 @@ File_system::File *File_system::GetFile(string file)
 			}
 			else if (extA == ".hlsl" || extA == ".fx" || extA == ".vs" || extA == ".ps")
 			{
-				auto cache = getFilesInFolder(&string(ResPath + string("shaders/")), true, true);
+				auto cache = getFilesInFolder(string(ResPath + string("shaders/")), true, true);
 				for (int i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
@@ -121,7 +123,7 @@ File_system::File *File_system::GetFile(string file)
 						auto filePath = path(cache.at(i)).filename().string();
 						if (filePath == string(file))
 						{
-							Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::SHADERS));
+							Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::SHADERS));
 							Files.back()->PathW = path(cache.at(i)).wstring();
 							Files.back()->FileW = path(cache.at(i)).filename().wstring();
 							Files.back()->ExtW = extW;
@@ -132,13 +134,13 @@ File_system::File *File_system::GetFile(string file)
 			}
 			else if (extA == ".wav")
 			{
-				auto cache = getFilesInFolder(&string(ResPath + string("sounds/")), true, true);
+				auto cache = getFilesInFolder(string(ResPath + string("sounds/")), true, true);
 				for (int i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
 					{
-						Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
+						Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::TEXTURES));
 						Files.back()->PathW = path(cache.at(i)).wstring();
 						Files.back()->FileW = path(cache.at(i)).filename().wstring();
 						Files.back()->ExtW = extW;
@@ -148,7 +150,7 @@ File_system::File *File_system::GetFile(string file)
 			}
 			else if (extA == ".xml")
 			{
-					auto cache = getFilesInFolder(&string(ResPath + string("text/")), true, true);
+					auto cache = getFilesInFolder(string(ResPath + string("text/")), true, true);
 					for (int i = 0; i < cache.size(); i++)
 					{
 						auto filePath = path(cache.at(i)).filename().string();
@@ -157,7 +159,7 @@ File_system::File *File_system::GetFile(string file)
 							auto filePath = path(cache.at(i)).filename().string();
 							if (filePath == string(file))
 							{
-								Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::DIALOGS));
+								Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::DIALOGS));
 								Files.back()->PathW = path(cache.at(i)).wstring();
 								Files.back()->FileW = path(cache.at(i)).filename().wstring();
 								Files.back()->ExtW = extW;
@@ -165,7 +167,7 @@ File_system::File *File_system::GetFile(string file)
 							}
 						}
 					}
-					cache = getFilesInFolder(&string(ResPath + string("UI/")), true, false);
+					cache = getFilesInFolder(string(ResPath + string("UI/")), true, false);
 					for (int i = 0; i < cache.size(); i++)
 					{
 						auto filePath = path(cache.at(i)).filename().string();
@@ -174,7 +176,7 @@ File_system::File *File_system::GetFile(string file)
 							auto filePath = path(cache.at(i)).filename().string();
 							if (filePath == string(file))
 							{
-								Files.push_back(new File(cache.at(i), filePath, extA, (size_t)file_size(cache.at(i)), TYPE::UIS));
+								Files.push_back(make_unique<File>(cache.at(i), filePath, extA, (size_t)file_size(cache.at(i)), TYPE::UIS));
 								Files.back()->PathW = path(cache.at(i)).wstring();
 								Files.back()->FileW = path(cache.at(i)).filename().wstring();
 								Files.back()->ExtW = extW;
@@ -182,19 +184,35 @@ File_system::File *File_system::GetFile(string file)
 							}
 						}
 					}
-					cache = getFilesInFolder(&string(ResPath + string("maps/")), true, false);
+					cache = getFilesInFolder(string(ResPath + string("maps/")), true, false);
 					for (int i = 0; i < cache.size(); i++)
 					{
 						auto filePath = path(cache.at(i)).filename().string();
 						if (filePath == string(file))
 						{
-							Files.push_back(new File(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::LEVELS));
+							Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::LEVELS));
 							Files.back()->PathW = path(cache.at(i)).wstring();
 							Files.back()->FileW = path(cache.at(i)).filename().wstring();
 							Files.back()->ExtW = extW;
 							return Files.back();
 						}
 					}
+			}
+			else if (extA == ".lua")
+			{
+			auto cache = getFilesInFolder(string(ResPath + string("scripts/")), true, true);
+			for (int i = 0; i < cache.size(); i++)
+			{
+				auto filePath = path(cache.at(i)).filename().string();
+				if (filePath == string(file))
+				{
+					Files.push_back(make_unique<File>(cache.at(i), filePath, extA, file_size(cache.at(i)), TYPE::SCRIPTS));
+					Files.back()->PathW = path(cache.at(i)).wstring();
+					Files.back()->FileW = path(cache.at(i)).filename().wstring();
+					Files.back()->ExtW = extW;
+					return Files.back();
+				}
+			}
 			}
 		}
 	}
@@ -205,15 +223,15 @@ File_system::File *File_system::GetFile(string file)
 	}
 }
 
-vector<wstring> File_system::getFilesInFolder(wstring *Folder, bool Recursive, bool onlyFile)
+vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bool onlyFile)
 {
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
-		ResPath = wstring(Folder->c_str());	// If found
+	if (wcsstr(Folder.c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
+		ResPath = wstring(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder->c_str());	// No!
+		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder.c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -242,15 +260,15 @@ vector<wstring> File_system::getFilesInFolder(wstring *Folder, bool Recursive, b
 
 	return files;
 }
-vector<wstring> File_system::getFilesInFolder(wstring *Folder)
+vector<wstring> File_system::getFilesInFolder(wstring Folder)
 {
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder->c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
-		ResPath = wstring(Folder->c_str());	// If found
+	if (wcsstr(Folder.c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"/resource/")).c_str()) != NULL)
+		ResPath = wstring(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder->c_str());	// No!
+		ResPath = p.generic_path().generic_wstring() + wstring(L"/resource/") + wstring(Folder.c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -260,15 +278,15 @@ vector<wstring> File_system::getFilesInFolder(wstring *Folder)
 
 	return files;
 }
-vector<string> File_system::getFilesInFolder(string *Folder, bool Recursive, bool onlyFile)
+vector<string> File_system::getFilesInFolder(string Folder, bool Recursive, bool onlyFile)
 {
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
-		ResPath = string(Folder->c_str());	// If found
+	if (strstr(Folder.c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
+		ResPath = string(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
+		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder.c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -301,15 +319,15 @@ vector<string> File_system::getFilesInFolder(string *Folder, bool Recursive, boo
 
 	return files;
 }
-vector<string> File_system::getFilesInFolder(string *Folder)
+vector<string> File_system::getFilesInFolder(string Folder)
 {
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
-		ResPath = string(Folder->c_str());	// If found
+	if (strstr(Folder.c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
+		ResPath = string(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
+		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder.c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -322,21 +340,6 @@ vector<string> File_system::getFilesInFolder(string *Folder)
 vector<string> File_system::getFilesInFolder(LPCSTR ext)
 {
 	vector<string> files;
-	/*string ResPath;
-
-	if (strstr(Folder->c_str(), string(p.generic_path().generic_string() + string("/resource/")).c_str()) != NULL)
-		ResPath = string(Folder->c_str());	// If found
-	else
-		ResPath = p.generic_path().generic_string() + string("/resource/") + string(Folder->c_str());	// No!
-
-	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
-	{
-		auto str = it->path();
-		if (strstr(str.extension().string().c_str(), ext) != NULL)
-			files.push_back(replaceAll(*const_cast<string*>(&str.string()), string("\\"), string("/"), string("//")));
-	}
-	*/
-
 	for (int i = 0; i < Files.size(); i++)
 	{
 		if (Files.at(i)->ExtA == ext)
@@ -346,13 +349,13 @@ vector<string> File_system::getFilesInFolder(LPCSTR ext)
 	return files;
 }
 
-string File_system::getDataFromFile(string *File, bool LineByline, string start, string end)
+string File_system::getDataFromFile(string File, bool LineByline, string start, string end)
 {
-	if (File->empty())
+	if (File.empty())
 		return "";
 
 	string Returned_val;
-	std::ifstream streamObj = std::ifstream(File->c_str());
+	std::ifstream streamObj = std::ifstream(File.c_str());
 	streamObj >> std::noskipws;
 	if (streamObj.is_open())
 	{
@@ -375,11 +378,11 @@ string File_system::getDataFromFile(string *File, bool LineByline, string start,
 	return "";
 }
 
-vector<string> File_system::getDataFromFileVector(string *File, bool LineByline)
+vector<string> File_system::getDataFromFileVector(string File, bool LineByline)
 {
 	vector<string> Returned_val;
 	string Cache;
-	auto streamObj = std::ifstream(File->c_str());
+	auto streamObj = std::ifstream(File.c_str());
 	if (LineByline)
 		while (!streamObj.eof())
 		{

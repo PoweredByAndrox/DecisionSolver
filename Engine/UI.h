@@ -6,8 +6,6 @@
 
 #include "File_system.h"
 #include "tinyxml2.h"
-#include "examples\imgui_impl_dx11.h"
-#include "examples/imgui_impl_win32.h"
 
 using namespace tinyxml2;
 using namespace ImGui;
@@ -20,14 +18,14 @@ extern shared_ptr<Engine> Application;
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui_internal.h"
 
-	static auto vector_getter = [](void *vec, int idx, const char **out_text)
-	{
-		std::vector<string> &vector = *static_cast<std::vector<string> *>(vec);
-		if (idx < 0 || idx >= static_cast<int>(vector.size()))
-			return false;
-		*out_text = vector.at(idx).c_str();
-		return true;
-	};
+static auto vector_getter = [](void *vec, int idx, const char **out_text)
+{
+	std::vector<string> &vector = *static_cast<std::vector<string> *>(vec);
+	if (idx < 0 || idx >= static_cast<int>(vector.size()))
+		return false;
+	*out_text = vector.at(idx).c_str();
+	return true;
+};
 
 class TextList
 {
@@ -222,16 +220,16 @@ public:
 
 	bool isPressUp() { return Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Up); }
 	bool isPressDown() { return Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Down); }
+	bool isActive() { return Active; }
 
 	string GetText()
 	{
-		ImGuiInputTextState *state = nullptr;
-		if (state = &ImGui::GetCurrentContext()->InputTextState)
-			if (state->TextA.Data)
-				return const_cast<const char *>(state->TextA.Data);
+		if (!Text.empty())
+			return Text;
 
 		return string("");
 	}
+
 	string GetTitle() { return IDTitle; }
 
 	bool GetVisible() { return IsVisible; }
@@ -268,6 +266,7 @@ public:
 				IsTextChange = true;
 			else
 				IsTextChange = false;
+		Active = ImGui::IsItemActive();
 	}
 
 private:
@@ -275,7 +274,8 @@ private:
 
 	bool IsVisible = false, IsNeedHistory = false,
 		NeedToUseTAB = false, EnterReturnsTrue = true,
-		IsTextChange = false, IsNeedHint = false;
+		IsTextChange = false, IsNeedHint = false,
+		Active = false;
 	int OrderlyRender = 0;
 
 	ImGuiInputTextFlags Flags = 0;
@@ -701,23 +701,22 @@ public:
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeSize(float W, float H)
 	{
-		setSizeW(W);
-		setSizeH(H);
+		SizeW = W;
+		SizeH = H;
 	}
 
 	void SetShowTitle(bool Show) { ShowTitle = Show; }
 	void setVisible(bool Visible) { IsVisible = Visible; }
 
-	LPCSTR GetTitle() { return IDTitle; }
+	string GetTitle() { return IDTitle; }
 
 	bool getVisible() { return IsVisible; }
 	int getOrderCount() { return OrderlyRender; }
 
-	void setSizeW(float W) { SizeW = W; }
-	void setSizeH(float H) { SizeH = H; }
 	void setResizeble(bool Resizeble) { IsResizeble = Resizeble; }
 	void setMoveble(bool Moveble) { IsMoveble = Moveble; }
 	void setCollapsible(bool Collapsible) { IsCollapsible = Collapsible; }
+	void setBringToFont(bool BringToFont) { IsNeedBringToFont = BringToFont; }
 
 	vector<shared_ptr<Labels>> getLabels() { return Label; }
 	vector<shared_ptr<Buttons>> getButtons() { return Btn; }
@@ -773,9 +772,9 @@ public:
 
 	dialogs(LPCSTR IDTitle): IDTitle(IDTitle) {}
 	dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble, bool IsCollapsible, int style,
-		float SizeW = 0.f, float SizeH = 0.f):
+		bool IsNeedBringToFont, float SizeW = 0.f, float SizeH = 0.f):
 		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), style(style), IsMoveble(IsMoveble), IsResizeble(IsResizeble),
-		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), SizeW(SizeW), SizeH(SizeH)
+		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont), SizeW(SizeW), SizeH(SizeH)
 	{
 		ImGuiIO &io = GetIO();
 		if (IsKeyboardSupport)
@@ -791,105 +790,16 @@ public:
 		StyleColorsClassic();
 	}
 
-	void Render()
-	{
-		window_flags = 0;
-
-		if (!ShowTitle)
-			window_flags |= ImGuiWindowFlags_NoTitleBar;
-		if (!IsMoveble)
-			window_flags |= ImGuiWindowFlags_NoMove;
-		if (!IsResizeble)
-			window_flags |= ImGuiWindowFlags_NoResize;
-		if (!IsCollapsible)
-			window_flags |= ImGuiWindowFlags_NoCollapse;
-
-		if (IsVisible)
-		{
-			Begin(IDTitle, &IsVisible, window_flags);
-
-			if (SizeW != SizeW_Last && SizeH != SizeH_Last)
-			{
-				ImGui::SetWindowSize(GetCurrentWindow(), ImVec2(SizeW, SizeH), ImGuiCond_::ImGuiCond_Always);
-				SizeW_Last = SizeW;
-				SizeH_Last = SizeH;
-			}
-
-			int Count = this->getOrderCount(), now = 0;
-
-			while (Count != now)
-			{
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
-
-				for (int i = 0; i < CollpsHeader.size(); i++)
-				{
-					if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-						CollpsHeader.at(i)->Render();
-				}
-
-				for (int i = 0; i < Label.size(); i++)
-				{
-					if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
-						Label.at(i)->Render();
-				}
-
-				for (int i = 0; i < Itext.size(); i++)
-				{
-					if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
-						Itext.at(i)->Render();
-				}
-
-				for (int i = 0; i < separator.size(); i++)
-				{
-					if (separator.at(i)->getRenderOrder() == now)
-						separator.at(i)->Render();
-				}
-
-				for (int i = 0; i < Itextmul.size(); i++)
-				{
-					if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
-						Itextmul.at(i)->Render();
-				}
-
-				for (int i = 0; i < Btn.size(); i++)
-				{
-					if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
-						Btn.at(i)->Render();
-				}
-
-				for (int i = 0; i < child.size(); i++)
-				{
-					if (child.at(i)->getCountOrderRenderInDial() == now)
-						child.at(i)->Render();
-				}
-
-				for (int i = 0; i < UText.size(); i++)
-				{
-					if (UText.at(i)->getRenderOrder() == now)
-						UText.at(i)->Render();
-				}
-
-				for (int i = 0; i < TList.size(); i++)
-				{
-					if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
-						TList.at(i)->Render();
-				}
-
-				now++;
-				ImGui::PopStyleVar();
-			}
-
-			End();
-		}
-	}
+	void Render();
 private:
-	LPCSTR IDTitle = "";
+	string IDTitle = "";
 	bool IsVisible = false,
 		IsKeyboardSupport = false,
 		ShowTitle = false,
 		IsMoveble = false,
 		IsResizeble = false,
-		IsCollapsible = false;
+		IsCollapsible = false,
+		IsNeedBringToFont = false;
 
 	ImGuiWindowFlags window_flags = 0;
 
@@ -915,7 +825,7 @@ public:
 
 	void Begin();
 	void Render();
-	void End(bool WF);
+	void FrameEnd();
 
 	void Destroy();
 
@@ -964,7 +874,8 @@ protected:
 	int iY = 10;
 
 	// **********
-	unique_ptr<tinyxml2::XMLDocument> doc;
+	shared_ptr<tinyxml2::XMLDocument> doc;
+	//unique_ptr<Render_Buffer> Buf = make_unique<Render_Buffer>();
 
 	struct collpheader
 	{

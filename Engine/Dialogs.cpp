@@ -7,7 +7,7 @@ extern shared_ptr<Engine> Application;
 
 HRESULT Dialogs::Init()
 {
-	doc = make_unique<tinyxml2::XMLDocument>();
+	doc = make_shared<tinyxml2::XMLDocument>();
 	if (!doc.operator bool())
 	{
 		throw exception("Dialogs->Init()::doc == nullptr!!!");

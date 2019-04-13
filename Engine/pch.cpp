@@ -132,14 +132,13 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 {
 	if (mode == ModeProcessString::UntilTheEnd)
 		if (context.find(start) != string::npos)
-		{
 			context.erase(context.find(start), context.length());
-			context.erase(remove(context.begin(), context.end(), ' '), context.end());
-		}
 
 	if (mode == ModeProcessString::UntilTheBegin)
 		if (context.find(start) != string::npos)
 			context.erase(0, context.find(start));
+
+	context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
 wstring formatstr(const char *Buff, float X, float Y, float Z)

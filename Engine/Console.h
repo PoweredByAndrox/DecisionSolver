@@ -6,36 +6,55 @@
 #include "UI.h"
 #include "CCommands.h"
 
+/*
+template<typename... Args>
+void callFunc(state &lua, LPCSTR name, Args &&... args)
+{
+	try
+	{
+		lua.get<function>(name).template call<void>(args...);
+	}
+	catch (error e)
+	{
+		printf("Lua error: %s", e.what());
+	}
+}
+*/
+
 class Console
 {
-private:
+public:
 	enum Console_STATE
 	{
 		Open = 1,
 		Close
 	};
 
-public:
 	HRESULT Init();
 
 	void Reload();
 
 	void Render();
 	void OpenConsole();
-	void CloseConsole();
 
 	Console() {}
 	~Console() {}
 
 	bool IsInit() { return InitClass; }
-	Console_STATE *getState() { return &CState; }
+
+	Console_STATE getState() { return CState; }
 	void ChangeState(Console_STATE Cstate) { CState = Cstate; }
+
+	shared_ptr<dialogs> getConsoleDial() { return Dialog; }
+	shared_ptr<Commands> getCmd() { return ProcessCommand; }
+
+	static void AddCmd(LPCSTR Text);
 private:
 	bool InitClass = false;
 	Console_STATE CState = Console_STATE::Open;
 
-	shared_ptr<dialogs> Dialog;
-	shared_ptr<Commands> ProcessCommand = make_unique<Commands>();
+	static shared_ptr<dialogs> Dialog;
+	static shared_ptr<Commands> ProcessCommand;
 };
 #endif // !__CONSOLE__H_
 

@@ -10,3 +10,9 @@
 [submodule "submodules/imgui"]
 	path = submodules/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "submodules/LuaJIT"]
+	path = submodules/LuaJIT
+	url = https://github.com/LuaJIT/LuaJIT
+[submodule "submodules/SOL2"]
+	path = submodules/SOL2
+	url = https://github.com/ThePhD/sol2

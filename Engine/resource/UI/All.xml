@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gui id="Main" width="320" height="120" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="false">
+show_title="true" moveble="true" collapsible="false" bring_to_font="false">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>
 		<Button text="Stop!" visible="true"/>
@@ -10,7 +10,7 @@ show_title="true" moveble="true" collapsible="false">
 </gui>
 
 <gui id="Console" width="400" height="250" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="true">
+show_title="true" moveble="true" collapsible="true" bring_to_font="true">
 	<ListBox label="##ForHintCmd" visible="true"/>
 	<InputText text="Input" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>

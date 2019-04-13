@@ -45,7 +45,7 @@ namespace EngineNS
 		bool InitClass = false;
 
 		// **********
-		unique_ptr<tinyxml2::XMLDocument> doc;
+		shared_ptr<tinyxml2::XMLDocument> doc;
 
 		// **********
 		vector<GameObjects::Object> g_Obj;

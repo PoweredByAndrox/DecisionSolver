@@ -24,8 +24,8 @@ HRESULT UI::Init()
 		FileShaders.push_back(Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW);
 		FileShaders.push_back(Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW);
 
-		Functions.push_back(string("VS"));
-		Functions.push_back(string("PS"));
+		Functions.push_back(string("Vertex_ui_VS"));
+		Functions.push_back(string("Pixel_ui_PS"));
 
 		Version.push_back(string("vs_4_0"));
 		Version.push_back(string("ps_4_0"));
@@ -117,19 +117,17 @@ void UI::Begin()
 	ImGui::NewFrame();
 }
 
-void UI::End(bool WF)
+void UI::FrameEnd()
 {
 	ImGui::Render();
-	Buf->RenderUI(ImGui::GetDrawData(), WF);
+	Buf->RenderUI(ImGui::GetDrawData(), Application->IsWireFrame());
 }
 
 void UI::Render()
 {
-	for (int i = 0; i < Dialogs.size(); i++)
-	{
-		if (Dialogs.at(i)->getVisible())
-			Dialogs.at(i)->Render();
-	}
+	auto Dial = getDialog("Main");
+	if ((Dial.operator bool() && !Dial->GetTitle().empty()) && Dial->getVisible())
+		Dial->Render();
 }
 
 void UI::Destroy()
@@ -140,7 +138,7 @@ void UI::Destroy()
 
 HRESULT UI::LoadXmlUI(LPCSTR File)
 {
-	doc = make_unique<tinyxml2::XMLDocument>();
+	doc = make_shared<tinyxml2::XMLDocument>();
 
 	doc->LoadFile(File);
 	if (doc->ErrorID() > 0)
@@ -149,7 +147,7 @@ HRESULT UI::LoadXmlUI(LPCSTR File)
 		throw exception("UI->LoatXmlUI()::doc->LoadFile() == 0!!!");
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(&string(File), true, string("<!--"), string("-->")).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true, string("<!--"), string("-->")).c_str()) > 0)
 	{
 		throw exception(string(string("UI->LoatXmlUI()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
@@ -1039,6 +1037,13 @@ void UI::ProcessXML()
 				if (!FirstAttr)
 					break;
 			}
+			if (strcmp(FirstAttr->Name(), "bring_to_font") == 0)
+			{
+				dialog.at(IDDial)->setBringToFont(FirstAttr->BoolValue());
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
 		}
 
 		// ********
@@ -1145,7 +1150,7 @@ void UI::ReloadXML(LPCSTR File)
 
 HRESULT UI::addDialog(LPCSTR IDName)
 {
-	Dialogs.push_back(make_unique<dialogs>(IDName, true, true, true, false, true, false, 0));
+	Dialogs.push_back(make_unique<dialogs>(IDName, true, true, true, false, true, false, false, 0));
 	return S_OK;
 }
 HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
@@ -1162,7 +1167,7 @@ HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<Buttons>(IDName, true));
 		}
 	return S_OK;
@@ -1181,7 +1186,7 @@ HRESULT UI::addLabel(LPCSTR IDName, LPCSTR IDDialog)
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<Labels>(IDName, true));
 		}
 	return S_OK;
@@ -1200,7 +1205,7 @@ HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog, bool SelDef, bool Co
 	else
 		for (int i = 0; i < Dialogs.size(); i++)
 		{
-			if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<CollapsingHeaders>(IDName, SelDef));
 		}
 	return S_OK;
@@ -1216,7 +1221,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
 			if (Dialogs.at(i)->getCollapsHeaders().empty())
 				addCollapseHead(IDColpsHead);
@@ -1236,7 +1241,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setComponent(Component);
 	}
 	return S_OK;
@@ -1252,7 +1257,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
 			if (Dialogs.at(i)->getCollapsHeaders().empty())
 				addCollapseHead(IDColpsHead);
@@ -1272,7 +1277,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
 			if (Dialogs.at(i)->getCollapsHeaders().empty())
 				addCollapseHead(IDColpsHead);
@@ -1292,7 +1297,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
 			if (Dialogs.at(i)->getCollapsHeaders().empty())
 				addCollapseHead(IDColpsHead);
@@ -1312,7 +1317,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
 			if (Dialogs.at(i)->getCollapsHeaders().empty())
 				addCollapseHead(IDColpsHead);
@@ -1326,7 +1331,7 @@ void UI::DisableDialog(LPCSTR IDDialog)
 {
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setVisible(false);
 	}
 }
@@ -1334,7 +1339,7 @@ void UI::EnableDialog(LPCSTR IDDialog)
 {
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setVisible(true);
 	}
 }
@@ -1350,9 +1355,11 @@ shared_ptr<dialogs> UI::getDialog(LPCSTR IDDialog)
 
 	for (int i = 0; i < Dialogs.size(); i++)
 	{
-		if (strcmp(Dialogs.at(i)->GetTitle(), IDDialog) == 0)
+		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			return Dialogs.at(i);
 	}
+
+	return make_unique<dialogs>();
 }
 
 bool UI::UpdateMouseCursor()
@@ -1442,7 +1449,7 @@ void UI::Gamepads()
 
 LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui::GetCurrentContext() == NULL)
+	if (!ImGui::GetCurrentContext())
 		return 0;
 
 	ImGuiIO &io = ImGui::GetIO();
@@ -1466,7 +1473,7 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (uMsg == WM_XBUTTONDOWN || uMsg == WM_XBUTTONDBLCLK)
 			button = Application->getTrackerMouse().xButton1 ? 3 : 4;
 
-		if (!ImGui::IsAnyMouseDown() && ::GetCapture() == NULL)
+		if (!ImGui::IsAnyMouseDown() && !::GetCapture())
 			::SetCapture(Application->GetHWND());
 		io.MouseDown[button] = true;
 		return 0;
@@ -1590,5 +1597,101 @@ void CollapsingHeaders::Render()
 			
 			now++;
 		}
+	}
+}
+
+void dialogs::Render()
+{
+	window_flags = 0;
+
+	if (!ShowTitle)
+		window_flags |= ImGuiWindowFlags_NoTitleBar;
+	if (!IsMoveble)
+		window_flags |= ImGuiWindowFlags_NoMove;
+	if (!IsResizeble)
+		window_flags |= ImGuiWindowFlags_NoResize;
+	if (!IsCollapsible)
+		window_flags |= ImGuiWindowFlags_NoCollapse;
+		//window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+	if (IsVisible)
+	{
+		Begin(IDTitle.c_str(), &IsVisible, window_flags);
+
+		if (IsNeedBringToFont)
+			ImGui::BringWindowToFocusFront(GetCurrentWindow());
+
+		if (SizeW != SizeW_Last || SizeH != SizeH_Last)
+		{
+			ImGui::SetWindowSize(GetCurrentWindow(), ImVec2(SizeW, SizeH), ImGuiCond_::ImGuiCond_Always);
+			SizeW_Last = SizeW;
+			SizeH_Last = SizeH;
+		}
+
+		int Count = this->getOrderCount(), now = 0;
+
+		while (Count != now)
+		{
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
+
+			for (int i = 0; i < CollpsHeader.size(); i++)
+			{
+				if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
+					CollpsHeader.at(i)->Render();
+			}
+
+			for (int i = 0; i < Label.size(); i++)
+			{
+				if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
+					Label.at(i)->Render();
+			}
+
+			for (int i = 0; i < Itext.size(); i++)
+			{
+				if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
+					Itext.at(i)->Render();
+			}
+
+			for (int i = 0; i < separator.size(); i++)
+			{
+				if (separator.at(i)->getRenderOrder() == now)
+					separator.at(i)->Render();
+			}
+
+			for (int i = 0; i < Itextmul.size(); i++)
+			{
+				if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
+					Itextmul.at(i)->Render();
+			}
+
+			for (int i = 0; i < Btn.size(); i++)
+			{
+				if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
+					Btn.at(i)->Render();
+			}
+
+			for (int i = 0; i < child.size(); i++)
+			{
+				if (child.at(i)->getCountOrderRenderInDial() == now)
+					child.at(i)->Render();
+			}
+
+			for (int i = 0; i < UText.size(); i++)
+			{
+				if (UText.at(i)->getRenderOrder() == now)
+					UText.at(i)->Render();
+			}
+
+			for (int i = 0; i < TList.size(); i++)
+			{
+				if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
+					TList.at(i)->Render();
+			}
+
+			now++;
+			ImGui::PopStyleVar();
+		}
+
+		End();
 	}
 }

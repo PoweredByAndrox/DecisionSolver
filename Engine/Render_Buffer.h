@@ -6,10 +6,6 @@
 #include "Shaders.h"
 #include <WICTextureLoader.h>
 
-class Engine;
-extern shared_ptr<Engine> Application;
-#include "Engine.h"
-
 class Render_Buffer
 {
 private:
@@ -23,31 +19,25 @@ private:
 public:
 	void SetShadersFile(vector<wstring> ShaderFile, vector<string> Func, vector<string> VersionShader);
 
-	HRESULT InitSimpleBuffer(UINT VertexSize = 0U, void *Vertix = nullptr, UINT IndicesSize = 0U, void *Indix = nullptr, UINT SizeStruct = 0U);
-#if defined(UseTerrain)
-	HRESULT InitTerrain(shared_ptr<Engine> engine, UINT SizeofVertex, void *vertices,
-		vector<UINT> indices, vector<wstring> *ShaderFile, vector<string> *Func, vector<string> *VersionShader);
-#endif // UseTerrain
+	HRESULT InitSimpleBuffer(UINT VertexSize = 0U, void *Vertix = nullptr, UINT IndicesSize = 0U, void *Indix = nullptr, UINT SizeStruct = 0U,
+		bool LayoutWithColor = false);
 
-	HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct);
+	HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct, bool LayoutWithColor);
 
 	HRESULT InitUI();
 	void RenderUI(ImDrawData *draw_data, bool WF);
 
 	vector<ID3D11RasterizerState *> CreateWF(); // WireFrame
 
-	ID3D11Buffer *CreateVB(UINT ByteWidth, bool NeedVertice = false,
-		D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CPUAccessFlags = 0, void *vertices = nullptr);
-	ID3D11Buffer *CreateIB(WORD ByteWidth, bool NeedIndices = false,
-		D3D11_USAGE Usage = D3D11_USAGE_DEFAULT, UINT CPUAccessFlags = 0, void *indices = nullptr);
+	ID3D11Buffer *CreateVB(UINT ByteWidth, bool NeedVertice,
+		D3D11_USAGE Usage, UINT CPUAccessFlags, void *vertices);
+	ID3D11Buffer *CreateIB(WORD ByteWidth, bool NeedIndices,
+		D3D11_USAGE Usage, UINT CPUAccessFlags, void *indices);
 
 	ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
-	ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob);
+	ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob, bool WithColor = true);
 
 	void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, ID3D11ShaderResourceView *RenderTextr = nullptr, bool WF = false);
-#if !defined(UseTerrain)
-	void RenderTerrain(Matrix World, Matrix View, Matrix Proj, int Indices, vector<ID3D11Buffer *> RenderBuff, UINT stride);
-#endif // UseTerrain
 
 	void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, bool WF);
 
