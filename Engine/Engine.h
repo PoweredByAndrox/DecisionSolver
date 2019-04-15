@@ -62,6 +62,8 @@ private:
 	__int64 CounterStart = 0, frameTimeOld = 0;
 	int frameCount = 0, fps = 0;
 
+	WNDCLASSEXW wnd;
+
 	static ID3D11Device *Device;
 	static ID3D11DeviceContext *DeviceContext;
 	static ID3D11Device1 *Device1;
@@ -75,7 +77,17 @@ private:
 	static IDXGIFactory2 *dxgiFactory2;
 
 	D3D_FEATURE_LEVEL *featureLevel = nullptr;
-	const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0 };
+	static DXGI_SWAP_CHAIN_DESC SCD;
+	static DXGI_SWAP_CHAIN_DESC1 SCD1;
+	static D3D11_TEXTURE2D_DESC descDepth;
+	static D3D11_VIEWPORT vp;
+
+	D3D11_RASTERIZER_DESC rasterDesc;
+	ID3D11RasterizerState *rasterState = nullptr;
+
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+
+	UINT m4xMsaaQuality = 0l;
 
 #if defined(NEEDED_DEBUG_INFO)
 	ID3D11Debug *debug = nullptr;
@@ -120,7 +132,13 @@ public:
 	~Engine() {}
 
 	static HWND GetHWND() { return hwnd; }
-	wstring getNameWnd() { return NameWnd; }
+
+	wstring getNameWndW() { return NameWnd; }
+	string getNameWndA() 
+	{
+		USES_CONVERSION;
+		return W2A(NameWnd.c_str());
+	}
 
 	shared_ptr<File_system> getFS() { return FS; }
 	shared_ptr<Models> getModel() { return model; }
@@ -260,109 +278,20 @@ public:
 		}
 	}
 
+	DXGI_SWAP_CHAIN_DESC getSwapChainDesc() { return SCD; }
+	DXGI_SWAP_CHAIN_DESC1 getSwapChainDesc1() { return SCD1; }
+	D3D11_TEXTURE2D_DESC getDescDepth() { return descDepth; }
+	D3D11_VIEWPORT getViewPort() { return vp; }
+
+	UINT getMsaaQuality() { return m4xMsaaQuality; }
+
 	void ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }
 	void ClearRenderTarget()
 	{
 		DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
 		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
 	}
-	static void ResizeWindow()
-	{
-		if (!SwapChain)
-			return;
-
-		ID3D11Texture2D *pBackBuffer = nullptr;
-		SAFE_RELEASE(RenderTargetView);
-		SAFE_RELEASE(DepthStencilView);
-		SAFE_RELEASE(DepthStencil);
-
-		DXGI_SWAP_CHAIN_DESC sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.BufferCount = 1;
-		sd.BufferDesc.Width = getWorkAreaSize(GetHWND()).x;
-		sd.BufferDesc.Height = getWorkAreaSize(GetHWND()).y;
-		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		sd.BufferDesc.RefreshRate.Numerator = 60;
-		sd.BufferDesc.RefreshRate.Denominator = 1;
-		sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		sd.OutputWindow = GetHWND();
-		sd.SampleDesc.Count = 1;
-		sd.SampleDesc.Quality = 0;
-		sd.Windowed = true;
-
-		//sd.Flags = !vsettings.windowed ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
-
-		if (FAILED(SwapChain->ResizeBuffers(sd.BufferCount, sd.BufferDesc.Width, sd.BufferDesc.Height, sd.BufferDesc.Format, sd.Flags)))
-		{
-			DebugTrace("Engine::ResizeWindow->ResizeBuffers() failed.");
-			throw exception("Resize failed!!!");
-		}
-
-		DXGI_MODE_DESC md;
-		md.Width = sd.BufferDesc.Width;
-		md.Height = sd.BufferDesc.Height;
-		md.RefreshRate = sd.BufferDesc.RefreshRate;
-		md.Format = sd.BufferDesc.Format;
-		md.Scaling = sd.BufferDesc.Scaling;
-		md.ScanlineOrdering = sd.BufferDesc.ScanlineOrdering;
-
-		if (FAILED(SwapChain->ResizeTarget(&md)))
-		{
-			DebugTrace("Engine::ResizeWindow->ResizeTarget() failed.");
-			throw exception("Resize failed!!!");
-		}
-
-		if (FAILED(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer))))
-		{
-			DebugTrace("Engine::ResizeWindow->GetBuffer() failed.");
-			throw exception("Get failed!!!");
-		}
-
-		if (FAILED(Device->CreateRenderTargetView(pBackBuffer, 0, &RenderTargetView)))
-		{
-			DebugTrace("Engine::ResizeWindow->CreateRenderTargetView() failed.");
-			throw exception("Create failed!!!");
-		}
-
-		UINT Count = 1;
-		UINT Quality = 0;
-		D3D11_TEXTURE2D_DESC depthStencilDesc;
-		depthStencilDesc.Width = sd.BufferDesc.Width;
-		depthStencilDesc.Height = sd.BufferDesc.Height;
-		depthStencilDesc.MipLevels = 1;
-		depthStencilDesc.ArraySize = 1;
-		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		depthStencilDesc.SampleDesc.Count = Count;
-		depthStencilDesc.SampleDesc.Quality = Quality;
-		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		depthStencilDesc.CPUAccessFlags = 0;
-		depthStencilDesc.MiscFlags = 0;
-
-		if (FAILED(Device->CreateTexture2D(&depthStencilDesc, 0, &DepthStencil)))
-		{
-			DebugTrace("Engine::ResizeWindow->CreateTexture2D() failed.");
-			throw exception("Create failed!!!");
-		}
-
-		if (FAILED(Device->CreateDepthStencilView(DepthStencil, 0, &DepthStencilView)))
-		{
-			DebugTrace("Engine::ResizeWindow->CreateDepthStencilView() failed.");
-			throw exception("Create failed!!!");
-		}
-
-		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
-
-		D3D11_VIEWPORT vp;
-		vp.Width = (FLOAT)getWorkAreaSize(GetHWND()).x;
-		vp.Height = (FLOAT)getWorkAreaSize(GetHWND()).y;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		DeviceContext->RSSetViewports(1, &vp);
-		pBackBuffer->Release();
-	}
+	static void ResizeWindow(WPARAM wParam);
 
 	bool IsWireFrame() { return WireFrame; }
 

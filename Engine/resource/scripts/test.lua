@@ -1,4 +1,4 @@
 --PBAX 13.04.19
-function TestConsole()
-	Engine.Console.AddCmd("Help");
+function TestConsole(Cmd)
+	Engine.Console.AddCmd(Cmd);
 end

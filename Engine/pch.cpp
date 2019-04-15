@@ -26,119 +26,197 @@ bool FindSubStr(string context, string const from)
 		return false;
 }
 
-wstring &replaceAll(wstring &context, wstring const &from, wstring const &to)
+void replaceAll(wstring &context, wstring const &from, wstring const &to, bool OneTime, bool FindInEnd)
 {
-	size_t lookHere = 0;
+	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
-
-	return context;
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
 }
-wstring &replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also)
+void replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also, bool OneTime, bool FindInEnd)
 {
-	size_t lookHere = 0;
+	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
 
-	lookHere = 0;
+	lookHere = FindInEnd ? context.length() : 0;
 	foundHere = 0;
-	while ((foundHere = context.find(also, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, also.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(also, lookHere) : context.find(also, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, also.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
-
-	return context;
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(also, lookHere) : context.find(also, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, also.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
 }
 
-string &replaceAll(string &context, string const &from, string const &to)
+void replaceAll(string &context, string const &from, string const &to, bool OneTime, bool FindInEnd)
 {
-	size_t lookHere = 0;
+	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
-
-	return context;
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
 }
-string &replaceAll(string &context, string const &from, string const &to, string const &also)
+void replaceAll(string &context, string const &from, string const &to, string const &also, bool OneTime, bool FindInEnd)
 {
-	size_t lookHere = 0;
+	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
-	while ((foundHere = context.find(from, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, from.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
-
-	lookHere = 0;
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(from, lookHere) : context.find(from, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, from.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
+	lookHere = FindInEnd ? context.length() : 0;
 	foundHere = 0;
-	while ((foundHere = context.find(also, lookHere)) != string::npos)
+	if (OneTime)
 	{
-		context.replace(foundHere, also.size(), to);
-		lookHere = foundHere + to.size();
+		if ((foundHere = FindInEnd ? context.rfind(also, lookHere) : context.find(also, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, also.size(), to);
+			lookHere = foundHere + to.size();
+		}
 	}
-
-	return context;
+	else
+	{
+		while ((foundHere = FindInEnd ? context.rfind(also, lookHere) : context.find(also, lookHere)) != string::npos)
+		{
+			context.replace(foundHere, also.size(), to);
+			lookHere = foundHere + to.size();
+		}
+	}
 }
 
-void deleteWord(string &context, string const &what)
+void deleteWord(string &context, string const &what, bool OneTime, bool FindInEnd)
 {
-	string::size_type pos = context.find(what.c_str());
-	while (pos != string::npos)
+	string::size_type pos = FindInEnd ? context.rfind(what.c_str()) : context.find(what.c_str());
+	if (OneTime)
 	{
-		context.erase(pos, strlen(what.c_str()));
-		pos = context.find(what.c_str(), pos + 1);
+		if (pos != string::npos)
+		{
+			context.erase(pos, strlen(what.c_str()));
+			pos = FindInEnd ? context.rfind(what.c_str(), pos + 1) : context.find(what.c_str(), pos + 1);
+		}
+	}
+	else
+	{
+		while (pos != string::npos)
+		{
+			context.erase(pos, strlen(what.c_str()));
+			pos = FindInEnd ? context.rfind(what.c_str(), pos + 1) : context.find(what.c_str(), pos + 1);
+		}
 	}
 }
 
-string deleteWord(string context, char const what, char const OnWhat)
+void deleteWord(string &context, char const what, char const OnWhat)
 {
-	string str = context;
-	for (int i = 0; i < str.length(); i++)
+	for (int i = 0; i < context.length(); i++)
 	{
-		if (str.at(i) == what)
-			str[i] = OnWhat;
+		if (context.at(i) == what)
+			context[i] = OnWhat;
 	}
-
-	return str;
 }
 
-string deleteWord(string context, string const start, string const end)
+void deleteWord(string &context, string const start, string const end, bool OneTime, bool FindInEnd, bool AlsoDeleteSpace)
 {
 	size_t One = 0, Two = 0;
 	string str = context;
-	str.erase(remove(str.begin(), str.end(), '	'), str.end());
 
-	while (str.find(start) != string::npos && str.find(end) != string::npos)
+	if (AlsoDeleteSpace)
+		str.erase(remove(str.begin(), str.end(), '	'), str.end());
+
+	if (OneTime)
 	{
-		str.erase(str.find(start), (str.find(end) + end.size()) + 1 - str.find(start));
+		if (FindInEnd ? str.rfind(start) : str.find(start) != string::npos && FindInEnd ? str.rfind(end) : str.find(end) != string::npos)
+		{
+			str.erase(FindInEnd ? str.find(start) : str.rfind(start), (FindInEnd ? str.rfind(end) : str.find(end) + end.size()) +
+				1 - FindInEnd ? str.rfind(start) : str.find(start));
+		}
 	}
-
-	return str;
+	else
+	{
+		while (FindInEnd ? str.rfind(start) : str.find(start) != string::npos && FindInEnd ? str.rfind(end) : str.find(end) != string::npos)
+		{
+			str.erase(FindInEnd ? str.find(start) : str.rfind(start), (FindInEnd ? str.rfind(end) : str.find(end) + end.size()) +
+				1 - FindInEnd ? str.rfind(start) : str.find(start));
+		}
+	}
 }
 
-void deleteWord(string &context, string const start, ModeProcessString const mode)
+void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd, bool AlsoDeleteSpace)
 {
 	if (mode == ModeProcessString::UntilTheEnd)
 		if (context.find(start) != string::npos)
 			context.erase(context.find(start), context.length());
 
 	if (mode == ModeProcessString::UntilTheBegin)
-		if (context.find(start) != string::npos)
+		if (FindInEnd ? context.rfind(start) : context.find(start) != string::npos)
 			context.erase(0, context.find(start));
 
-	context.erase(remove(context.begin(), context.end(), ' '), context.end());
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
 wstring formatstr(const char *Buff, float X, float Y, float Z)

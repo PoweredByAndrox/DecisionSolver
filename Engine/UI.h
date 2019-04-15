@@ -833,7 +833,7 @@ public:
 
 	auto getDialogs() { return Dialogs; }
 
-	HRESULT LoadXmlUI(LPCSTR File);
+	HRESULT LoadXmlUI(string File);
 	void ProcessXML();
 
 	void ReloadXML(LPCSTR File);

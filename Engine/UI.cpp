@@ -136,20 +136,20 @@ void UI::Destroy()
 	DestroyContext();
 }
 
-HRESULT UI::LoadXmlUI(LPCSTR File)
+HRESULT UI::LoadXmlUI(string File)
 {
 	doc = make_shared<tinyxml2::XMLDocument>();
 
-	doc->LoadFile(File);
+	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() > 0)
 	{
 		StackTrace(doc->ErrorStr());
 		throw exception("UI->LoatXmlUI()::doc->LoadFile() == 0!!!");
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true, string("<!--"), string("-->")).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"), string("-->")).c_str()) > 0)
 	{
-		throw exception(string(string("UI->LoatXmlUI()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+		throw exception(string(string("UI->LoatXmlUI()::doc->Parse:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
 

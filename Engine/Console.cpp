@@ -5,7 +5,6 @@
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
-#include "CLua.h"
 
 shared_ptr<Commands> Console::ProcessCommand = make_shared<Commands>();
 shared_ptr<dialogs> Console::Dialog;
@@ -45,11 +44,12 @@ void Console::Render()
 
 	Dialog->Render();
 
-	auto text = Dialog->getITexts().back()->GetText();
+	auto IText = Dialog->getITexts().back();
+	auto text = IText->GetText();
 	auto History = ProcessCommand->getHistoryCommands();
+	auto TextList = Dialog->getTextLists().back();
 
-	if (!Dialog->getITexts().back()->isActive() && !History.empty() &&
-		(Dialog->getITexts().back()->isPressUp() || Dialog->getITexts().back()->isPressDown()))
+	if (!IText->isActive() && !History.empty() && (IText->isPressUp() || IText->isPressDown()))
 	{
 		int PosHistory = ProcessCommand->getPosHistory();
 		if (PosHistory == -1 || PosHistory >= History.size())
@@ -59,25 +59,23 @@ void Console::Render()
 		}
 
 		if (PosHistory == -1)
-			Dialog->getITexts().back()->ChangeText("");
+			IText->ChangeText("");
 		else
-			Dialog->getITexts().back()->ChangeText(History.at(PosHistory));
+			IText->ChangeText(History.at(PosHistory));
 
 		PosHistory++;
 		ProcessCommand->changePosHistory(PosHistory);
 	}
 
-	if (!text.empty() &&
-		Dialog->getTextLists().back()->getSelectedIndx() != -1 &&
-		!Dialog->getTextLists().back()->getItems().empty())
+	if (!text.empty() && TextList->getSelectedIndx() != -1 && !TextList->getItems().empty())
 	{
-		string text = Dialog->getTextLists().back()->getSelectedIndxString(Dialog->getTextLists().back()->getSelectedIndx());
+		string text = TextList->getSelectedIndxString(TextList->getSelectedIndx());
 		if (text.find("#") != string::npos)
 			deleteWord(text, "#", ModeProcessString::UntilTheEnd);
-		Dialog->getITexts().back()->ChangeText(text);
+		IText->ChangeText(text);
 	}
 
-	if (Dialog->getITexts().back()->getTextChange())
+	if (IText->getTextChange())
 		ProcessCommand->Work(Dialog, text);
 
 	if (!text.empty() && text.length() >= 2)
@@ -89,19 +87,17 @@ void Console::Render()
 			{
 				if (cmd->type == 1)
 				{
-					if (!Dialog->getTextLists().back()->FindInItems(cmd->CommandStr))
-						Dialog->getTextLists().back()->addItem(cmd->CommandStr);
+					if (!TextList->FindInItems(cmd->CommandStr))
+						TextList->addItem(cmd->CommandStr);
 				}
 				else
-				{
-					if (!Dialog->getTextLists().back()->FindInItems(cmd->CommandStr + string(" ") + cmd->CommandNeededParams))
-						Dialog->getTextLists().back()->addItem(cmd->CommandStr + string(" ") + cmd->CommandNeededParams);
-				}
+					if (!TextList->FindInItems(cmd->CommandStr + string(" ") + cmd->CommandNeededParams))
+						TextList->addItem(cmd->CommandStr + string(" ") + cmd->CommandNeededParams);
 			}
 		}
 	}
 	else
-		Dialog->getTextLists().back()->clearItems();
+		TextList->clearItems();
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 	Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));

@@ -1,11 +1,11 @@
 #pragma once
-#if !defined(__CLUA_H__)
-#define __CLUA_H__
+#if !defined(__CLUA__H_)
+#define __CLUA__H_
+#include "pch.h"
 
 #include <sol/sol.hpp>
 using namespace sol;
 
-// Need To Add FS Here!!! And Get All The Script Files And Init Them
 class CLua
 {
 public:
@@ -13,8 +13,7 @@ public:
 	void GetDate(string Text);
 
 	void Update();
-	template<typename... Args>
-	//void callFuncion(state &lua, LPCSTR name, Args &&... args);
+	void callFunction(string FileName, string Function, string params);
 	CLua() {}
 	~CLua() {}
 
@@ -22,4 +21,4 @@ public:
 private:
 	state LuaState;
 };
-#endif // !__CLUA_H__
+#endif // !__CLUA__H_

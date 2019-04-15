@@ -21,12 +21,15 @@ ID3D11DeviceContext1 *Engine::DeviceContext1 = nullptr;
 IDXGISwapChain1 *Engine::SwapChain1 = nullptr;
 IDXGIFactory1 *Engine::dxgiFactory = nullptr;
 IDXGIFactory2 *Engine::dxgiFactory2 = nullptr;
+DXGI_SWAP_CHAIN_DESC Engine::SCD;
+DXGI_SWAP_CHAIN_DESC1 Engine::SCD1;
+D3D11_TEXTURE2D_DESC Engine::descDepth;
+D3D11_VIEWPORT Engine::vp;
 
 HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 {
 	try
 	{
-		WNDCLASSEXW wnd;
 		wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
 		wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
 		wnd.cbClsExtra = 0;
@@ -95,14 +98,13 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			throw exception("Create failed!!!");
 		}
 
-		UINT m4xMsaaQuality;
 		Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality);
 
 		IDXGIDevice *dxgiDevice = nullptr;
 		hr = Device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
 		if (SUCCEEDED(hr))
 		{
-			IDXGIAdapter* adapter = nullptr;
+			IDXGIAdapter *adapter = nullptr;
 			hr = dxgiDevice->GetAdapter(&adapter);
 			if (SUCCEEDED(hr))
 			{
@@ -123,21 +125,18 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			// DirectX 11.1 or later
 			hr = Device->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void **>(&Device1));
 			if (SUCCEEDED(hr))
-			{
 				(void)DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void **>(&DeviceContext1));
-			}
 
-			DXGI_SWAP_CHAIN_DESC1 sd;
-			ZeroMemory(&sd, sizeof(sd));
-			sd.Width = getWorkAreaSize(hwnd).x;
-			sd.Height = getWorkAreaSize(hwnd).y;
-			sd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			sd.SampleDesc.Count = 4;
-			sd.SampleDesc.Quality = m4xMsaaQuality - 1;
-			sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			sd.BufferCount = 1;
+			ZeroMemory(&SCD1, sizeof(SCD1));
+			SCD1.Width = getWorkAreaSize(hwnd).x;
+			SCD1.Height = getWorkAreaSize(hwnd).y;
+			SCD1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			SCD1.SampleDesc.Count = 4;
+			SCD1.SampleDesc.Quality = m4xMsaaQuality - 1;
+			SCD1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			SCD1.BufferCount = 1;
 
-			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &sd, nullptr, nullptr, &SwapChain1);
+			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &SCD1, nullptr, nullptr, &SwapChain1);
 			if (SUCCEEDED(hr))
 			{
 				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void **>(&SwapChain));
@@ -148,21 +147,20 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		else
 		{
 			// DirectX 11.0 systems
-			DXGI_SWAP_CHAIN_DESC sd;
-			ZeroMemory(&sd, sizeof(sd));
-			sd.BufferCount = 1;
-			sd.BufferDesc.Width = getWorkAreaSize(hwnd).x;
-			sd.BufferDesc.Height = getWorkAreaSize(hwnd).y;
-			sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			sd.BufferDesc.RefreshRate.Numerator = 60;
-			sd.BufferDesc.RefreshRate.Denominator = 1;
-			sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			sd.OutputWindow = hwnd;
-			sd.SampleDesc.Count = 1;
-			sd.SampleDesc.Quality = m4xMsaaQuality - 1;
-			sd.Windowed = true;
+			ZeroMemory(&SCD, sizeof(SCD));
+			SCD.BufferCount = 1;
+			SCD.BufferDesc.Width = getWorkAreaSize(hwnd).x;
+			SCD.BufferDesc.Height = getWorkAreaSize(hwnd).y;
+			SCD.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			SCD.BufferDesc.RefreshRate.Numerator = 60;
+			SCD.BufferDesc.RefreshRate.Denominator = 1;
+			SCD.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+			SCD.OutputWindow = hwnd;
+			SCD.SampleDesc.Count = 1;
+			SCD.SampleDesc.Quality = m4xMsaaQuality - 1;
+			SCD.Windowed = true;
 
-			hr = dxgiFactory->CreateSwapChain(Device, &sd, &SwapChain);
+			hr = dxgiFactory->CreateSwapChain(Device, &SCD, &SwapChain);
 		}
 
 		ID3D11Texture2D *pBackBuffer = nullptr;
@@ -179,7 +177,6 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		}
 		SAFE_RELEASE(pBackBuffer);
 
-		D3D11_TEXTURE2D_DESC descDepth;
 		ZeroMemory(&descDepth, sizeof(descDepth));
 		descDepth.Width = getWorkAreaSize(hwnd).x;
 		descDepth.Height = getWorkAreaSize(hwnd).y;
@@ -199,7 +196,6 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			throw exception("Create failed!!!");
 		}
 
-		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 		ZeroMemory(&descDSV, sizeof(descDSV));
 		descDSV.Format = descDepth.Format;
 		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
@@ -213,8 +209,6 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 
-		D3D11_RASTERIZER_DESC rasterDesc;
-		ID3D11RasterizerState *rasterState;
 		rasterDesc.AntialiasedLineEnable = false;
 		rasterDesc.CullMode = D3D11_CULL_BACK;
 		rasterDesc.DepthBias = 0;
@@ -229,7 +223,6 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		Device->CreateRasterizerState(&rasterDesc, &rasterState);
 		DeviceContext->RSSetState(rasterState);
 
-		D3D11_VIEWPORT vp;
 		vp.Width = (float)getWorkAreaSize(hwnd).x;
 		vp.Height = (float)getWorkAreaSize(hwnd).y;
 		vp.MinDepth = 0.0f;
@@ -352,6 +345,83 @@ void Engine::Destroy(HINSTANCE hInstance)
 	SAFE_RELEASE(dxgiFactory2);
 }
 
+void Engine::ResizeWindow(WPARAM wParam)
+{
+	if (!SwapChain || wParam == SIZE_MINIMIZED)
+		return;
+
+	ID3D11Texture2D *pBackBuffer = nullptr;
+	SAFE_RELEASE(RenderTargetView);
+	SAFE_RELEASE(DepthStencilView);
+	SAFE_RELEASE(DepthStencil);
+
+	//sd.Flags = !vsettings.windowed ? DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH : 0;
+
+	SCD.BufferDesc.Width = getWorkAreaSize(hwnd).x;
+	SCD.BufferDesc.Height = getWorkAreaSize(hwnd).y;
+
+	if (FAILED(SwapChain->ResizeBuffers(
+		SCD.BufferCount, SCD.BufferDesc.Width,
+		SCD.BufferDesc.Height, SCD.BufferDesc.Format,
+		SCD.Flags)))
+	{
+		DebugTrace("Engine::ResizeWindow->ResizeBuffers() failed.");
+		throw exception("Resize failed!!!");
+	}
+
+	DXGI_MODE_DESC md;
+	md.Width = SCD.BufferDesc.Width;
+	md.Height = SCD.BufferDesc.Height;
+	md.RefreshRate = SCD.BufferDesc.RefreshRate;
+	md.Format = SCD.BufferDesc.Format;
+	md.Scaling = SCD.BufferDesc.Scaling;
+	md.ScanlineOrdering = SCD.BufferDesc.ScanlineOrdering;
+
+	if (FAILED(SwapChain->ResizeTarget(&md)))
+	{
+		DebugTrace("Engine::ResizeWindow->ResizeTarget() failed.");
+		throw exception("Resize failed!!!");
+	}
+
+	if (FAILED(SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&pBackBuffer))))
+	{
+		DebugTrace("Engine::ResizeWindow->GetBuffer() failed.");
+		throw exception("Get failed!!!");
+	}
+
+	if (FAILED(Device->CreateRenderTargetView(pBackBuffer, 0, &RenderTargetView)))
+	{
+		DebugTrace("Engine::ResizeWindow->CreateRenderTargetView() failed.");
+		throw exception("Create failed!!!");
+	}
+
+	descDepth.Width = SCD.BufferDesc.Width;
+	descDepth.Height = SCD.BufferDesc.Height;
+
+	if (FAILED(Device->CreateTexture2D(&descDepth, 0, &DepthStencil)))
+	{
+		DebugTrace("Engine::ResizeWindow->CreateTexture2D() failed.");
+		throw exception("Create failed!!!");
+	}
+
+	if (FAILED(Device->CreateDepthStencilView(DepthStencil, 0, &DepthStencilView)))
+	{
+		DebugTrace("Engine::ResizeWindow->CreateDepthStencilView() failed.");
+		throw exception("Create failed!!!");
+	}
+
+	DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+
+	vp.Width = (FLOAT)getWorkAreaSize(GetHWND()).x;
+	vp.Height = (FLOAT)getWorkAreaSize(GetHWND()).y;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	DeviceContext->RSSetViewports(1, &vp);
+	pBackBuffer->Release();
+}
+
 LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (Application->getUI().operator bool())
@@ -361,9 +431,9 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_SIZE:
-		if ((wParam != SIZE_MINIMIZED || uMsg != WM_DESTROY) && Application->getUI().operator bool())
+		if (uMsg != WM_DESTROY && Application->getUI().operator bool())
 		{
-			ResizeWindow();
+			ResizeWindow(wParam);
 			UI::ResizeWnd();
 		}
 		return false;
