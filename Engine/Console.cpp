@@ -14,6 +14,7 @@ HRESULT Console::Init()
 	try
 	{
 		ProcessCommand->Init();
+		Dialog = Application->getUI()->getDialog("Console");
 
 		InitClass = true;
 		return S_OK;
@@ -67,7 +68,7 @@ void Console::Render()
 		ProcessCommand->changePosHistory(PosHistory);
 	}
 
-	if (!text.empty() && TextList->getSelectedIndx() != -1 && !TextList->getItems().empty())
+	if (TextList->IsMouseSelected() && !text.empty() && TextList->getSelectedIndx() != -1 && !TextList->getItems().empty())
 	{
 		string text = TextList->getSelectedIndxString(TextList->getSelectedIndx());
 		if (text.find("#") != string::npos)
@@ -100,7 +101,8 @@ void Console::Render()
 		TextList->clearItems();
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-	Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));
+	if (!Dialog->getChilds().empty())
+		Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));
 }
 
 void Console::OpenConsole()

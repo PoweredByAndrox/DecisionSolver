@@ -60,7 +60,7 @@ class Physics/*: public Models*/
 public:
 	HRESULT Init();
 
-	void Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj);
+	void Simulation(float Timestep);
 
 	void SetGravity(PxRigidDynamic *RigDyn, PxVec3 Vec3) { RigDyn->getScene()->setGravity(Vec3); }
 	void SetMass(PxRigidDynamic *RigDyn, PxReal Mass) { RigDyn->setMass(Mass); }

@@ -68,7 +68,8 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 			m_vKeyboardDirection.x -= 1.0f;
 	}
 
-	if ((Left || Right) != WithoutButton)
+	if (((Application->getMouse()->GetState().leftButton && Left) || (Application->getMouse()->GetState().rightButton && Right)) !=
+		WithoutButton)
 		UpdateMouseDelta();
 	/*
 	if (bGetGamepadInput)
@@ -116,12 +117,10 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 void Camera::UpdateMouseDelta()
 {
 		// Get current position of mouse
-	POINT ptCurMousePos;
 	ptCurMousePos.x = Application->getMouse()->GetState().x;
 	ptCurMousePos.y = Application->getMouse()->GetState().y;
 
 		// Calc how far it's moved since last frame
-	POINT ptCurMouseDelta;
 	ptCurMouseDelta.x = ptCurMousePos.x - m_ptLastMousePosition.x;
 	ptCurMouseDelta.y = ptCurMousePos.y - m_ptLastMousePosition.y;
 
@@ -224,7 +223,8 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
 
 	// If rotating the camera 
-	if (((Left || Right) != WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
+	if (((Application->getMouse()->GetState().leftButton && Left || Application->getMouse()->GetState().rightButton && Right) != 
+		WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
 		// Update the pitch & yaw angle based on mouse movement
 		float fYawDelta = m_vRotVelocity.x,

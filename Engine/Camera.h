@@ -80,7 +80,7 @@ protected:
 
 	float m_fCameraYawAngle = 0.f,                // Yaw angle of camera
 		m_fCameraPitchAngle = 0.f,              // Pitch angle of camera
-		m_fFramesToSmoothMouseData = 2.0f;       // Number of frames to smooth mouse data over
+		m_fFramesToSmoothMouseData = 10.0f;       // Number of frames to smooth mouse data over
 
 	Vector3 m_vVelocity = { 0.f, 0.f, 0.f },          // Velocity of camera
 		m_vVelocityDrag = { 0.f, 0.f, 0.f };      // Velocity drag force
@@ -107,7 +107,9 @@ protected:
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
-	POINT m_ptLastMousePosition = { 0, 0 };            // Last absolute position of mouse cursor
+	POINT m_ptLastMousePosition = { 0, 0 },            // Last absolute position of mouse cursor
+		ptCurMousePos = { 0, 0 },
+		ptCurMouseDelta = { 0, 0 };
 
 public:
 	void FrameMove(float fElapsedTime);
@@ -163,7 +165,7 @@ public:
 protected:
 	Matrix m_mCameraWorld = {};
 
-	bool Left = true, Right = false;
+	bool Left = false, Right = false;
 	bool WithoutButton = false;
 };
 

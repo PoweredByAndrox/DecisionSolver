@@ -19,6 +19,7 @@
 #include "Audio.h"
 #include "Console.h"
 #include "Physics.h"
+//#include "Picking.h"
 
 shared_ptr<Engine> Application;
 #include "UI.h"
@@ -28,16 +29,11 @@ shared_ptr<Actor> mActor;
 
 #include "CLua.h"
 
-ToDo("Does not work minimize the application!");
-
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	try
 	{
 		Application = make_shared<Engine>();
-
-		// Debug Draw!!!
-		Application->setDebugDraw(make_shared<DebugDraw>());
 
 		// Shader Class!!!
 		Application->setShader(make_shared<Shaders>());
@@ -88,12 +84,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setSound(make_shared<Audio>());
 		Application->getSound()->Init();
 		Application->getSound()->AddNewSound();
-		Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
+		Application->getSound()->changeSoundVol(0.04f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
 		Application->setPhysics(make_shared<Physics>());
 		Application->getPhysics()->Init();
 
 		Application->getCLua()->Init();
+
+		//	// Debug Draw!!!
+		Application->setDebugDraw(make_shared<DebugDraw>());
+		Application->getDebugDraw()->Init();
+
+		//Application->setPick(make_shared<Picking>());
 		// ***********
 
 		MSG msg = {0};

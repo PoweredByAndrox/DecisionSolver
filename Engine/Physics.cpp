@@ -128,34 +128,30 @@ HRESULT Physics::Init()
 	}
 }
 
-#include "DebugDraw.h"
-void Physics::Simulation(bool StopIT, float Timestep, Matrix View, Matrix Proj)
+void Physics::Simulation(float Timestep)
 {
-	if (!StopIT)
+	for (int i = 0; i < Cobes.size(); i++)
 	{
-		for (int i = 0; i < Cobes.size(); i++)
+		vector<PxQuat> aq;
+		vector<PxVec3> pos;
+		auto PhysObj = DynamicObjects;
+
+		for (int i1 = 0; i1 < PhysObj.size(); i1++)
 		{
-			vector<PxQuat> aq;
-			vector<PxVec3> pos;
-			auto PhysObj = DynamicObjects;
+			aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
+			pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
-			for (int i1 = 0; i1 < PhysObj.size(); i1++)
-			{
-				aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
-				pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
-
-				Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
-					Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)), View, Proj, Colors::DarkSeaGreen, nullptr,
-					Application->IsWireFrame());
-			}
+			Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
+				Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)),
+				Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix(), Colors::DarkSeaGreen,
+				nullptr, Application->IsWireFrame());
 		}
+	}
 
+	if (!Application->PausePhysics())
+	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
-
-		gScene->getScenePvdClient()->updateCamera(
-			"Main Camera", ToPxVec3(Application->getCamera()->GetEyePt()), PxVec3(0, 1, 0),
-			ToPxVec3(Application->getCamera()->GetLookAtPt()));
 	}
 }
 

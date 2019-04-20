@@ -35,77 +35,71 @@
 #include "pch.h"
 
 #include "Physics.h"
-#include "Camera.h"
 
-#define USE_D6_JOINT_FOR_MOUSE 1			// PT: please keep it 0 for interactive tests where one needs to rotate objects
+#define USE_D6_JOINT_FOR_MOUSE 1	// PT: please keep it 0 for interactive tests where one needs to rotate objects
 #define USE_SPHERICAL_JOINT_FOR_MOUSE 0
 //#define VISUALIZE_PICKING_RAYS
 
-namespace EngineNS
+struct PickingCommands
 {
-	struct PickingCommands
+	enum Enum
 	{
-		enum Enum
-		{
-			PICK_START, //Bound to mouse 1 down
-			PICK_STOP,  //bound to mouse 1 up
-			SCREEN_MOTION_CURSOR, //See DefaultMovementStrategy
-			SCREEN_MOTION_CURSOR_DEPTH, //See DefaultMovementStrategy
-		};
+		PICK_START, //Bound to mouse 1 down
+		PICK_STOP,  //bound to mouse 1 up
+		SCREEN_MOTION_CURSOR, //See DefaultMovementStrategy
+		SCREEN_MOTION_CURSOR_DEPTH, //See DefaultMovementStrategy
 	};
+};
 
-	class Picking: public Camera
-	{
-	public:
-		Picking();
-		Picking(Physics *PhysX, Camera *Camera) { this->PhysX = PhysX; this->camera = Camera; }
-		~Picking();
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
 
-		PX_FORCE_INLINE	void						lazyPick() { pick(mMouseScreenX, mMouseScreenY); }
-		bool						isPicked() const;
-		bool						pick(int x, int y);
-		void						moveCursor(PxI32 x, PxI32 y);
-		void SetObjClasses(Physics *PhysX, Camera *camera) { this->PhysX = PhysX; this->camera = camera; }
-		//void						moveCursor(PxReal deltaDepth);
+class Picking
+{
+public:
+	Picking() {}
+	~Picking() {}
 
-		void						computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y)	const;
+	PX_FORCE_INLINE void UpdatePick() { pick(Application->getMouse()->GetState().x, Application->getMouse()->GetState().y); }
+	bool isPicked() const;
+	bool pick(int x, int y);
+	void computeCameraRay(PxVec3 &Pos, PxVec3 &dir, PxI32 x, PxI32 y)	const;
+	void project(const PxVec3 &v, int &xi, int &yi, float &depth) const;
 
 		// returns picked actor
-		PxActor*					letGo();
-		void						tick();
+	PxActor *ReleasePick();
+	void tick();
 
 #ifdef VISUALIZE_PICKING_RAYS
-		struct Ray
-		{
-			PxVec3	origin;
-			PxVec3	dir;
-		};
-		PX_FORCE_INLINE	const std::vector<Ray>&		getRays()	const { return mRays; }
+	struct Ray
+	{
+		PxVec3 origin;
+		PxVec3 dir;
+	};
+	PX_FORCE_INLINE	const vector<Ray> &getRays() const { return mRays; }
 #endif
 
-	private:
-		void						grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin);
-		void						moveActor(int x, int y);
+private:
+	void grabActor(const PxVec3 &worldImpact, const PxVec3 &rayOrigin);
+	void moveActor(int x, int y);
+	PxVec3 unProject(int x, int y, float depth) const;
 
-		PxActor*					mSelectedActor;
+	PxActor *mSelectedActor = nullptr;
 
 #if USE_D6_JOINT_FOR_MOUSE
-		PxD6Joint*					mMouseJoint;
+	PxD6Joint *mMouseJoint = nullptr;
 #elif USE_SPHERICAL_JOINT_FOR_MOUSE
-		PxSphericalJoint*			mMouseJoint;
+	PxSphericalJoint *mMouseJoint = nullptr;
 #else
-		PxDistanceJoint*			mMouseJoint;
+	PxDistanceJoint *mMouseJoint = nullptr;
 #endif
-		PxRigidDynamic*				mMouseActor;
-		PxRigidDynamic*				mMouseActorToDelete;
-		PxReal						mDistanceToPicked;
-		int							mMouseScreenX, mMouseScreenY;
+	PxRigidDynamic *mMouseActor = nullptr,
+		*mMouseActorToDelete = nullptr;
+	PxReal mDistanceToPicked = 0.f;
 
-		Physics *PhysX 			   = nullptr;
-		Camera *camera = nullptr;
 #ifdef VISUALIZE_PICKING_RAYS
-		std::vector<Ray>			mRays;
+	vector<Ray>	mRays;
 #endif
-	};
-}
+};
 #endif // !__PICKING_H__

@@ -27,7 +27,7 @@ struct Texture
 struct Things
 {
 	Vector3 Pos;
-	Vector4 Tex;
+	Vector2 Tex;
 };
 #pragma pack()
 
@@ -38,31 +38,19 @@ private:
 	class Mesh
 	{
 	public:
-		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, string ID)
+		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
 		{
-			Init(vertices, indices, textures, ID);
+			Init(vertices, indices, textures);
 		}
 		Mesh() {}
 		~Mesh() {}
 
-		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, string ID);
+		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures);
 		void Draw(Matrix World, Matrix View, Matrix Proj);
-
-		string getIDFileModel() { return ID; }
-
-		auto getType() { return type; }
 	private:
 		vector<Things> vertices;
 		vector<UINT> indices;
 		vector<Texture> textures;
-
-		string ID = "";
-
-		enum Type
-		{
-			uint16 = 0,
-			uint32
-		} type = uint16;
 
 		ID3D11Buffer *VertexBuffer, *IndexBuffer, *pConstantBuffer;
 		ID3D11VertexShader *pVS;

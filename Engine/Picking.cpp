@@ -33,89 +33,82 @@
 
 #include "Picking.h"
 
-using namespace EngineNSNS;	// PT: please DO NOT indent the whole file
+#include "Camera.h"
+
 using namespace physx;
-
-Picking::Picking() :
-	mSelectedActor(nullptr),
-	mMouseJoint(nullptr),
-	mMouseActor(nullptr),
-	mMouseActorToDelete(nullptr),
-	mDistanceToPicked(0.0f),
-	mMouseScreenX(0),
-	mMouseScreenY(0) 
-{}
-
-Picking::~Picking() {}
 
 bool Picking::isPicked() const
 {
-	return mMouseJoint != 0;
+	return mMouseJoint != nullptr;
 }
-
-void Picking::moveCursor(PxI32 x, PxI32 y)
-{
-	mMouseScreenX = x;
-	mMouseScreenY = y;
-}
-
-/*void Picking::moveCursor(PxReal deltaDepth)
-{
-	const PxReal range[2] = { 0.0f, 1.0f };
-
-	const PxReal r = (range[1] - range[0]);
-	const PxReal d = (mMouseDepth - range[0])/r;
-	const PxReal delta = deltaDepth*0.02f*(1.0f - d);
-
-	mMouseDepth = PxClamp(mMouseDepth + delta, range[0], range[1]); 
-}*/
 
 void Picking::tick()
 {
 	if (mMouseJoint)
-		moveActor(mMouseScreenX, mMouseScreenY);
+		moveActor(Application->getMouse()->GetState().x, Application->getMouse()->GetState().y);
 
-	// PT: delete mouse actor one frame later to avoid crashes
-	_SAFE_RELEASE(mMouseActorToDelete);
+		// PT: delete mouse actor one frame later to avoid crashes
+	SAFE_release(mMouseActorToDelete);
 }
 
-void Picking::computeCameraRay(PxVec3& orig, PxVec3& dir, PxI32 x, PxI32 y) const
+PxVec3 Picking::unProject(int x, int y, float depth) const
 {
-	Vector3 vPickRayDir, vPickRayOrig, v;
+	PxU32 windowWidth = Application->getWorkAreaSize(Application->GetHWND()).x;
+	PxU32 windowHeight = Application->getWorkAreaSize(Application->GetHWND()).y;
 
-	const Matrix pmatProj = camera->GetProjMatrix();
-	Matrix mWorldView = camera->GetWorldMatrix() * camera->GetViewMatrix();
-	Matrix m;
+	const PxF32 outX = (float)x / (float)windowWidth;
+	const PxF32 outY = (float)y / (float)windowHeight;
 
-	POINT ptCursor;
-	GetCursorPos(&ptCursor);
-	ScreenToClient(DXUTGetHWND(), &ptCursor);
+	Vector3 Done;//= Application->UnProject(outX * 2, outY * 2, depth * 2);
+	return PxVec3(Done.x, Done.y, Done.z);
+}
+void Picking::project(const PxVec3 &v, int &xi, int &yi, float &depth) const
+{
+	Vector3 pos;//= Application->Project(v.x, v.y, v.z);
+		//* Map x, y and z to range 0-1 */
+	pos.x = (pos.x + 1) * 0.5f;
+	pos.y = (pos.y + 1) * 0.5f;
+	pos.z = (pos.z + 1) * 0.5f;
 
-		// Compute the vector of the pick ray in screen space
-	v.x = -(((2.f * ptCursor.x) / DXUTGetDXGIBackBufferSurfaceDesc()->Width)) / pmatProj._11;
-	v.y = -(((2.f * ptCursor.y) / DXUTGetDXGIBackBufferSurfaceDesc()->Height) - 1) / pmatProj._22;
-	v.z = 2.f;
+	PxU32 windowWidth = Application->getWorkAreaSize(Application->GetHWND()).x;
+	PxU32 windowHeight = Application->getWorkAreaSize(Application->GetHWND()).y;
 
-		// Get the inverse view matrix
-	m = XMMatrixInverse(NULL, mWorldView);
+		/* Map x,y to viewport */
+	pos.x *= windowWidth;
+	pos.y *= windowHeight;
 
-		// Transform the screen space pick ray into 3D space
-	vPickRayDir.x = v.x * m._11 + v.y * m._21 + v.z * m._31;
-	vPickRayDir.y = v.x * m._12 + v.y * m._22 + v.z * m._32;
-	vPickRayDir.z = v.x * m._13 + v.y * m._23 + v.z * m._33;
-	vPickRayOrig.x = m._41;
-	vPickRayOrig.y = m._42;
-	vPickRayOrig.z = m._43;
+	depth = (float)pos.z;
 
-	orig = PxVec3(vPickRayOrig.x, vPickRayOrig.y, vPickRayOrig.z);
-	dir = PxVec3(vPickRayDir.x, vPickRayDir.y, vPickRayDir.z).getNormalized();
+	xi = (int)(pos.x + 0.5);
+	yi = (int)(pos.y + 0.5);
+}
+
+void Picking::computeCameraRay(PxVec3 &Pos, PxVec3 &dir, PxI32 x, PxI32 y) const
+{
+	const Matrix pmatProj = Application->getCamera()->GetProjMatrix();
+
+	// Compute the vector of the pick ray in screen space
+	Vector3 v;
+	v.x = (+2.0f * x /  - 1.0f) / pmatProj._11;
+	v.y = (-2.0f * y /  + 1.0f) / pmatProj._22;
+	v.z = 1.0f;
+//	vPickRayDir = Vector3(v.x, v.y, 0.0f);
+//	vPickRayPos = Application->getCamera()->GetEyePt();
+	Vector3 rayOrigin = XMVector3Unproject(Vector4(x, y, 0.f, 1.f), Application->getViewPort().TopLeftX, Application->getViewPort().TopLeftY,
+		Application->getViewPort().Width,
+		Application->getViewPort().Height, 0.f, 1000.f, Application->getCamera()->GetProjMatrix(),
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetWorldMatrix());
+	Vector3 rayDirection = XMVector3Unproject(Vector4(x, y, 1.f, 1.f), Application->getViewPort().TopLeftX, Application->getViewPort().TopLeftY,
+		Application->getViewPort().Width,
+		Application->getViewPort().Height, 0.f, 1000.f, Application->getCamera()->GetProjMatrix(),
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetWorldMatrix());
+
+	Pos = ToPxVec3(rayOrigin);
+	dir = ToPxVec3(rayDirection - rayOrigin).getNormalized();
 }
 
 bool Picking::pick(int x, int y)
 {
-	PxScene *scene = nullptr;
-	scene = PhysX->getScene();
-
 	PxVec3 rayOrig, rayDir;
 	computeCameraRay(rayOrig, rayDir, x, y);
 
@@ -123,20 +116,20 @@ bool Picking::pick(int x, int y)
 	PxRaycastHit hit; hit.shape = nullptr;
 	PxRaycastBuffer hit1;
 
-	scene->raycast(rayOrig, rayDir, PX_MAX_F32, hit1, PxHitFlag::ePOSITION);
+	Application->getPhysics()->getScene()->raycast(rayOrig, rayDir, 100000.f, hit1, PxHitFlag::ePOSITION);
 	hit = hit1.block;
 
 	if (hit.shape)
 	{
-		const char* shapeName = hit.shape->getName();
-		PxRigidActor* actor = hit.actor;
+		LPCSTR shapeName = hit.shape->getName();
+		PxRigidActor *actor = hit.actor;
 		PX_ASSERT(actor);
 		mSelectedActor = static_cast<PxRigidActor*>(actor->is<PxRigidDynamic>());
 
 		if (!mSelectedActor)
 			mSelectedActor = static_cast<PxRigidActor*>(actor->is<PxArticulationLink>());
 
-		//ML::this is very useful to debug some collision problem
+			//ML::this is very useful to debug some collision problem
 		PxTransform t = actor->getGlobalPose();
 		PX_UNUSED(t);
 		//shdfnd::printFormatted("id = %i\n PxTransform transform(PxVec3(%f, %f, %f), PxQuat(%f, %f, %f, %f))\n", reinterpret_cast<size_t>(actor->userData), t.p.x, t.p.y, t.p.z, t.q.x, t.q.y, t.q.z, t.q.w);
@@ -145,8 +138,13 @@ bool Picking::pick(int x, int y)
 		mSelectedActor = 0;
 
 	if (mSelectedActor)
+	{
+		Application->SetWireFrame(true);
 		//if its a dynamic rigid body, joint it for dragging purposes:
 		grabActor(hit.position, rayOrig);
+	}
+	else
+		Application->SetWireFrame(false);
 
 #ifdef VISUALIZE_PICKING_RAYS
 	Ray ray;
@@ -157,10 +155,7 @@ bool Picking::pick(int x, int y)
 	return true;
 }
 
-
-//----------------------------------------------------------------------------//
-
-PxActor *Picking::letGo()
+PxActor *Picking::ReleasePick()
 {
 	// let go any picked actor
 	if (mMouseJoint)
@@ -187,25 +182,19 @@ void Picking::grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin)
 			&& mSelectedActor->getType() != PxActorType::eARTICULATION_LINK))
 		return;
 
-	PxScene *scene = nullptr;
-	scene = PhysX->getScene();
-
-	PxPhysics *physics = nullptr;
-	physics = PhysX->getPhysics();
-
 	//create a shape less actor for the mouse
 	{
-		mMouseActor = physics->createRigidDynamic(PxTransform(worldImpact, PxQuat(PxIdentity)));
+		mMouseActor = Application->getPhysics()->getPhysics()->createRigidDynamic(PxTransform(worldImpact, PxQuat(PxIdentity)));
 		mMouseActor->setRigidBodyFlag(PxRigidBodyFlag::eKINEMATIC, true);
 		mMouseActor->setMass(1.0f);
 		mMouseActor->setMassSpaceInertiaTensor(PxVec3(1.0f, 1.0f, 1.0f));
 
-		scene->addActor(*mMouseActor);
+		Application->getPhysics()->getScene()->addActor(*mMouseActor);
 	}
-	PxRigidActor* pickedActor = static_cast<PxRigidActor*>(mSelectedActor);
+	PxRigidActor *pickedActor = static_cast<PxRigidActor *>(mSelectedActor);
 
 #if USE_D6_JOINT_FOR_MOUSE
-	mMouseJoint = PxD6JointCreate(*physics,
+	mMouseJoint = PxD6JointCreate(*Application->getPhysics()->getPhysics(),
 		mMouseActor,
 		PxTransform(PxIdentity),
 		pickedActor,
@@ -230,7 +219,7 @@ void Picking::grabActor(const PxVec3& worldImpact, const PxVec3& rayOrigin)
 	mMouseJoint->setDistanceJointFlags(PxDistanceJointFlag::eMAX_DISTANCE_ENABLED);
 #endif
 
-	mDistanceToPicked = (worldImpact - rayOrigin).magnitude();
+	mDistanceToPicked = (worldImpact.multiply(rayOrigin)).magnitude();
 }
 
 //----------------------------------------------------------------------------//

@@ -3,8 +3,6 @@
 
 #include "CLua.h"
 
-ToDo("It's Necessary To Add Catch Some Errors!");
-
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"

@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "UI.h"
 #include "Models.h"
 #include "Actor.h"
@@ -7,6 +8,8 @@
 #include "Console.h"
 #include "Physics.h"
 #include "CLua.h"
+//#include "Picking.h"
+#include "DebugDraw.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -35,10 +38,9 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		wnd.cbClsExtra = 0;
 		wnd.cbWndExtra = 0;
 		wnd.hInstance = hInstance;
-		wnd.hIcon = LoadIcon(NULL, IDI_WINLOGO);
+		wnd.hIcon = LoadIconW(hInstance, IDI_WINLOGO);
 		wnd.hIconSm = wnd.hIcon;
-		wnd.hCursor = LoadCursor(NULL, IDC_ARROW);
-		wnd.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+		wnd.hCursor = LoadCursorW(hInstance, IDC_ARROW);
 		wnd.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 		wnd.lpszMenuName = NULL;
 		wnd.lpszClassName = L"WND_ENGINE";
@@ -250,15 +252,15 @@ void Engine::Run()
 
 	mainActor->Render(frameTime);
 
-	PhysX->Simulation(false, frameTime, camera->GetViewMatrix(), camera->GetProjMatrix());
+	PhysX->Simulation(frameTime);
 
 	ui->Begin();
 
 	ui->Render();
 
 	ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
-		string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"))
-		% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame).str()));
+		string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n"))
+		% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame % !PauseSimulation).str()));
 
 	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().front()->IsClicked())
 		Sound->doPlay();
@@ -309,6 +311,12 @@ void Engine::Render()
 			else
 				WireFrame = true;
 
+		if (TrackerKeyboard.pressed.F3)
+			if (PauseSimulation)
+				PauseSimulation = false;
+			else
+				PauseSimulation = true;
+
 		if (TrackerKeyboard.pressed.OemTilde && console.operator bool())
 			console->OpenConsole();
 	}
@@ -317,6 +325,41 @@ void Engine::Render()
 		auto state = gamepad->GetState(0);
 		TrackerGamepad.Update(state);
 	}
+
+	DirectX::BoundingSphere Sphere;
+	DirectX::BoundingOrientedBox Box;
+	Box.Center = Vector3(10, 2, 10);
+	Box.Extents = Vector3(0.5, 0.5f, 0.5f);
+
+	DirectX::BoundingSphere::CreateFromBoundingBox(Sphere, Box);
+
+	dDraw->DrawRay(Vector3::Zero, Vector3::One, (Vector4)Colors::DarkGreen);
+	dDraw->Draw(Box, (Vector4)Colors::Red);
+	dDraw->Draw(Sphere, (Vector4)Colors::LightBlue);
+
+	/*
+	Pick->tick();
+	if (mouse->GetState().leftButton)
+	{
+		if (!Pick->isPicked())
+			Pick->UpdatePick();
+		else
+			Pick->ReleasePick();
+	}
+	*/
+
+#if defined(VISUALIZE_PICKING_RAYS)
+	if (mPicking)
+	{
+		const vector<Picking::Ray> &rays = Pick->getRays();
+		PxU32 nbRays = rays.size();
+		const RendererColor color(255, 0, 0);
+		for (PxU32 i = 0; i < nbRays; i++)
+		{
+			dDraw->DrawRay(m_batch.get(), rays[i].origin, rays[i].origin + rays[i].dir * 1000.0f, color);
+		}
+	}
+#endif
 
 	//model->setPosition(Vector3::One);
 	//model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
@@ -331,8 +374,6 @@ void Engine::Destroy(HINSTANCE hInstance)
 {
 	::DestroyWindow(hwnd);
 	::UnregisterClassW(ClassWND.c_str(), hInstance);
-
-	SAFE_DELETE(m_desc);
 
 	SAFE_RELEASE(RenderTargetView);
 	SAFE_RELEASE(SwapChain);

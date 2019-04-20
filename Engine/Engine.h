@@ -22,22 +22,10 @@ class Shaders;
 class Audio;
 class Console;
 class Physics;
+//class Picking;
 class Engine
 {
 private:
-	struct DescWindow
-	{
-		DescWindow() {}
-		DescWindow(LPCWSTR Title, float PosX, float PosY, float W, float H, bool Resizing): Title(Title), PosX(PosX), W(W), PosY(PosY), H(H),
-			Resizing(Resizing) {}
-		float PosX = 0.f,
-			PosY = 0.f,
-			W = 0.f,
-			H = 0.f;
-		bool Resizing = false;
-		LPCWSTR Title = L"Engine";
-	} *m_desc = nullptr;
-
 	static HWND hwnd;
 	bool WireFrame = false,
 		PauseSimulation = false;
@@ -55,7 +43,6 @@ private:
 		DirectX::Colors::SkyBlue
 	};
 	HRESULT hr = S_OK;
-	POINT Desktop = { 0, 0 };
 	wstring NameWnd = L"", ClassWND = L"";
 
 	double countsPerSecond = 0.0, frameTime = 0.0;
@@ -113,7 +100,7 @@ private:
 	shared_ptr<Keyboard> keyboard = make_unique<Keyboard>();
 	shared_ptr<GamePad> gamepad = make_unique<GamePad>();
 
-	shared_ptr<DebugDraw>dDraw;
+	shared_ptr<DebugDraw> dDraw;
 
 #if defined(Never_MainMenu)
 	shared_ptr<MainMenu> Menu = make_unique<MainMenu>();
@@ -294,6 +281,10 @@ public:
 	static void ResizeWindow(WPARAM wParam);
 
 	bool IsWireFrame() { return WireFrame; }
+	void SetWireFrame(bool WF) { WireFrame = WF; }
+
+	bool PausePhysics() { return PauseSimulation; }
+	void SetPausePhysics(bool Pause) { PauseSimulation = Pause; }
 
 	float getFPS() { return fps; }
 	static POINT getWorkAreaSize(HWND hwnd)

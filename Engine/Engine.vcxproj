@@ -203,7 +203,6 @@
     </ClCompile>
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Picking.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -240,9 +239,7 @@
     </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="Physics.h" />
-    <ClInclude Include="Picking.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Picking.h" />
     <ClInclude Include="Render_Buffer.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="UI.h" />

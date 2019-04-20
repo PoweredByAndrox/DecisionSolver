@@ -64,6 +64,8 @@ public:
 	~TextList() {}
 
 	bool GetVisible() { return IsVisible; }
+	bool IsMouseSelected() { return Active; }
+
 	int getRenderOrder() { return OrderlyRender; }
 	LPCSTR GetTitle() { return IDTitle.c_str(); }
 	//	Current
@@ -83,7 +85,9 @@ public:
 	void Render()
 	{
 		if (IsVisible)
-				ListBox(IDTitle.c_str(), &Selected, Items);
+			ListBox(IDTitle.c_str(), &Selected, Items);
+
+		Active = ImGui::IsItemActive();
 	}
 
 private:
@@ -91,7 +95,7 @@ private:
 	vector<string> Items;
 
 	int OrderlyRender = 0, Selected = -1;
-	bool IsVisible = false;
+	bool IsVisible = false, Active = false;
 };
 class _Separator
 {

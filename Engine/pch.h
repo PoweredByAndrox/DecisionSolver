@@ -90,15 +90,15 @@ using namespace tinyxml2;
 #endif
 
 #if defined(DEBUG) || defined(_DEBUG)
-#ifndef V
-#define V(x) { hr = (x); if (FAILED(hr)) { DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
+#if !defined(EngineTrace)
+#define EngineTrace(x) { hr = (x); if (FAILED(hr)) { DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
 #endif
-#ifndef V_RETURN
+#if !defined(V_RETURN)
 #define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
 #endif
 #else
-#if !defined(V)
-#define V(x) { hr = (x); }
+#if !defined(EngineTrace)
+#define EngineTrace(x) { hr = (x); }
 #endif
 #if !defined(V_RETURN)
 #define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return hr; } }

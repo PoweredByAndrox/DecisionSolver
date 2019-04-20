@@ -8,11 +8,14 @@
 //-------------------------------------------------------------------------------------
 
 #pragma once
-
 #include <DirectXCollision.h>
 
 #include "PrimitiveBatch.h"
 #include "VertexTypes.h"
+#include "CommonStates.h"
+#include "Effects.h"
+
+#include <wrl.h>
 
 class DebugDraw
 {
@@ -20,30 +23,37 @@ public:
 	DebugDraw() {}
 	~DebugDraw() {}
 
-	inline void DrawCube(PrimitiveBatch<VertexPositionColor> *batch, Matrix matWorld, Vector4 color);
+	void Init();
 
-	void Draw(PrimitiveBatch<VertexPositionColor> *batch,
-		const BoundingSphere &sphere, Vector4 color);
+	inline void DrawCube(Matrix matWorld, Vector4 color, bool BBox);
 
-	void Draw(PrimitiveBatch<VertexPositionColor> *batch,
-		const BoundingBox &box, Vector4 color);
+	void Draw(const BoundingSphere &sphere, Vector4 color);
 
-	void Draw(PrimitiveBatch<VertexPositionColor> *batch,
-		const BoundingOrientedBox &obb, Vector4 color);
+	void Draw(const BoundingBox &box, Vector4 color);
 
-	void Draw(PrimitiveBatch<VertexPositionColor> *batch,
-		const BoundingFrustum &frustum, Vector4 color);
+	void Draw(const BoundingOrientedBox &obb, Vector4 color);
 
-	void DrawGrid(PrimitiveBatch<VertexPositionColor> *batch,
-		Vector3 xAxis, Vector3 yAxis,
-		Vector3 origin, size_t xdivs, size_t ydivs, Vector4 color);
+	void Draw(const BoundingFrustum &frustum, Vector4 color);
 
-	void DrawRing(PrimitiveBatch<VertexPositionColor> *batch,
-		Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, Vector4 color);
+	void DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, size_t xdivs, size_t ydivs, Vector4 color);
 
-	void DrawRay(PrimitiveBatch<VertexPositionColor> *batch,
-		Vector3 origin, Vector3 direction, Vector4 color, bool normalize = true);
+	void DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, Vector4 color);
 
-	void DrawTriangle(PrimitiveBatch<VertexPositionColor> *batch,
-		Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector4 color);
+	void DrawRay(Vector3 origin, Vector3 direction, Vector4 color, bool normalize = true);
+
+	void DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector4 color);
+
+private:
+	unique_ptr<CommonStates> m_states_Ray, m_states_Box, m_states_BBox,
+		m_states_Sphere, m_states_Frustum, m_states_Grid, m_states_Triangle;
+
+	unique_ptr<BasicEffect> m_effect_Ray, m_effect_Box, m_effect_BBox,
+		m_effect_Sphere, m_effect_Frustum, m_effect_Grid, m_effect_Triangle;
+
+	unique_ptr<PrimitiveBatch<VertexPositionColor>> m_batch_Ray, m_batch_Box, m_batch_BBox,
+		m_batch_Sphere, m_batch_Frustum, m_batch_Grid, m_batch_Triangle;
+
+	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout_Ray, m_inputLayout_Box, 
+		m_inputLayout_BBox, m_inputLayout_Sphere, m_inputLayout_Frustum,
+		m_inputLayout_Grid, m_inputLayout_Triangle;
 };
