@@ -37,9 +37,18 @@ private:
 
 	// ************
 	unique_ptr<AudioEngine> audEngine;
-	unique_ptr<SoundEffect> soundEffect[FILENAME_MAX];
+	vector<unique_ptr<SoundEffect>> soundEffect;
 	vector<unique_ptr<SoundEffectInstance>> sound;
-	vector<wstring> ListSoundsFile;
-	HRESULT hr = S_OK;
+	unique_ptr<AudioListener> Listener;
+	unique_ptr<AudioEmitter> Emitter;
+
+	// ************
+	Vector3 NewPos, OldPos;
+
+	// ************
+	AUDIO_ENGINE_FLAGS eflags;
+
+	// ************
+	vector<AudioEngine::RendererDetail> enumList;
 };
 #endif // !__SOUND_SYSTEM_H__

@@ -64,10 +64,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setUI(make_shared<UI>());
 		Application->getUI()->Init();
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
+		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y - 10.f,
+			ImVec2(0.f, 1.f));
 
 		//	// Console Class!!!
 		Application->setConsole(make_shared<Console>());
 		Application->getConsole()->Init();
+		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
+		Application->getUI()->getDialog("Console")->ChangeSize(Application->getWorkAreaSize(Application->GetHWND()).x, 
+			Application->getWorkAreaSize(Application->GetHWND()).y/3);
 
 		//	// Models Class
 		//Application->setModel(make_shared<Models>(Application->getFS()->GetFile(string("cargo transport 3.obj"))->PathA));
@@ -84,7 +89,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setSound(make_shared<Audio>());
 		Application->getSound()->Init();
 		Application->getSound()->AddNewSound();
-		Application->getSound()->changeSoundVol(0.04f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
+		Application->getSound()->changeSoundVol(0.4f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
 		Application->setPhysics(make_shared<Physics>());
 		Application->getPhysics()->Init();

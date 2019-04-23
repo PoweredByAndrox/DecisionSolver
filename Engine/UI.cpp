@@ -14,7 +14,7 @@ HRESULT UI::Init()
 		IMGUI_CHECKVERSION();
 		CreateContext();
 
-		ImGuiIO &io = GetIO();
+		ImGuiIO &io = Get_IO();
 		io.IniFilename = NULL;
 		io.LogFilename = NULL;
 
@@ -81,6 +81,13 @@ void UI::ResizeWnd()
 {
 	Buf->Release();
 	Buf->InitUI();
+
+	ToDo("Change This!!!");
+	Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y - 10.f,
+		ImVec2(0.f, 1.f));
+	Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
+	Application->getUI()->getDialog("Console")->ChangeSize(Application->getWorkAreaSize(Application->GetHWND()).x,
+		Application->getWorkAreaSize(Application->GetHWND()).y/3);
 }
 
 void UI::Begin()
@@ -1616,6 +1623,13 @@ void dialogs::Render()
 
 	if (IsVisible)
 	{
+		if (PosX != PosX_Last || PosY != PosY_Last)
+		{
+			ImGui::SetNextWindowPos(ImVec2(PosX, PosY), ImGuiCond_::ImGuiCond_Always, Pivot);
+			PosX_Last = PosX;
+			PosY_Last = PosY;
+		}
+
 		Begin(IDTitle.c_str(), &IsVisible, window_flags);
 
 		if (IsNeedBringToFont)

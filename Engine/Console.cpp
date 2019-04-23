@@ -79,7 +79,7 @@ void Console::Render()
 	if (IText->getTextChange())
 		ProcessCommand->Work(Dialog, text);
 
-	if (!text.empty() && text.length() >= 2)
+	if (!text.empty())
 	{
 		for (int i = 0; i < ProcessCommand->getAllCommands().size(); i++)
 		{
@@ -126,6 +126,39 @@ void Console::AddCmd(LPCSTR Text)
 	if (!Text || !ProcessCommand.operator bool() || !Dialog.operator bool())
 		return;
 	ProcessCommand->Work(Dialog, Text);
+}
+
+void Console::LogError(string Msg)
+{
+	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+		|| !Application->getUI()->getDialog("Console").operator bool()
+		|| Application->getUI()->getDialog("Console")->getChilds().empty()
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		return;
+
+	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error, Msg);
+}
+
+void Console::LogInfo(string Msg)
+{
+	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+		|| !Application->getUI()->getDialog("Console").operator bool()
+		|| Application->getUI()->getDialog("Console")->getChilds().empty()
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		return;
+
+	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information, Msg);
+}
+
+void Console::LogNormal(string Msg)
+{
+	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+		|| !Application->getUI()->getDialog("Console").operator bool()
+		|| Application->getUI()->getDialog("Console")->getChilds().empty()
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		return;
+
+	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Normal, Msg);
 }
 
 /*

@@ -218,9 +218,3 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 	if (AlsoDeleteSpace)
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
-
-wstring formatstr(const char *Buff, float X, float Y, float Z)
-{
-	USES_CONVERSION;
-	return A2W((boost::format(Buff) % X % Y % Z).str().c_str());
-}

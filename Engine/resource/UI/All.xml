@@ -9,8 +9,8 @@ show_title="true" moveble="true" collapsible="false" bring_to_font="false">
 	<Label text="A Simple Text!" visible="true"/>
 </gui>
 
-<gui id="Console" width="400" height="250" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="true" bring_to_font="true">
+<gui id="Console" width="400" height="250" open="true" resize="false" 
+show_title="true" moveble="false" collapsible="true" bring_to_font="true">
 	<ListBox label="##ForHintCmd" visible="true"/>
 	<InputText text="Input" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>

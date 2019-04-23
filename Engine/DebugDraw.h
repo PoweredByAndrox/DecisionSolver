@@ -35,7 +35,7 @@ public:
 
 	void Draw(const BoundingFrustum &frustum, Vector4 color);
 
-	void DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, size_t xdivs, size_t ydivs, Vector4 color);
+	void DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float DisCells, Vector4 color);
 
 	void DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, Vector4 color);
 
@@ -56,4 +56,6 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout_Ray, m_inputLayout_Box, 
 		m_inputLayout_BBox, m_inputLayout_Sphere, m_inputLayout_Frustum,
 		m_inputLayout_Grid, m_inputLayout_Triangle;
+
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_raster;
 };

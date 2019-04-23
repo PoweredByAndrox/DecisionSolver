@@ -125,4 +125,3 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 using namespace boost::algorithm;
 
 #include <boost/format.hpp>
-wstring formatstr(const char *Buff, float X, float Y, float Z);

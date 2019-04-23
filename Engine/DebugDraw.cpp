@@ -105,6 +105,12 @@ void DebugDraw::Init()
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
 		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Triangle.ReleaseAndGetAddressOf()));
 	m_batch_Triangle = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
+
+	CD3D11_RASTERIZER_DESC rastDesc(D3D11_FILL_SOLID, D3D11_CULL_NONE, false,
+		D3D11_DEFAULT_DEPTH_BIAS, D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
+		D3D11_DEFAULT_SLOPE_SCALED_DEPTH_BIAS, true, false, true, true);
+
+	ThrowIfFailed(Application->getDevice()->CreateRasterizerState(&rastDesc, m_raster.ReleaseAndGetAddressOf()));
 }
 
 void DebugDraw::DrawCube(Matrix matWorld, Vector4 color, bool BBox)
@@ -185,7 +191,7 @@ void DebugDraw::Draw(const BoundingBox &box, Vector4 color)
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Box->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Box->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Box->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Box->Apply(Application->getDeviceContext());
 
@@ -212,7 +218,7 @@ void DebugDraw::Draw(const BoundingOrientedBox &obb, Vector4 color)
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_BBox->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_BBox->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_BBox->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_BBox->Apply(Application->getDeviceContext());
 
@@ -238,7 +244,7 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Frustum->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Frustum->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Frustum->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Frustum->Apply(Application->getDeviceContext());
 
@@ -286,7 +292,7 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 	m_batch_Frustum->End();
 }
 
-void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, size_t xdivs, size_t ydivs, Vector4 color)
+void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float DisCells, Vector4 color)
 {
 	if (!m_states_Grid.operator bool() || !m_effect_Grid.operator bool() ||
 		!m_batch_Grid.operator bool() || !m_inputLayout_Grid)
@@ -300,7 +306,7 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, size_t xd
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Grid->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Grid->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Grid->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Grid->Apply(Application->getDeviceContext());
 
@@ -308,30 +314,29 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, size_t xd
 
 	m_batch_Grid->Begin();
 
-	xdivs = std::max<size_t>(1, xdivs);
-	ydivs = std::max<size_t>(1, ydivs);
+	size_t divisions = max<float>(1, DisCells);
 
-	for (size_t i = 0; i <= xdivs; ++i)
+	for (size_t i = 0; i <= divisions; ++i)
 	{
-		float percent = float(i) / float(xdivs);
-		percent = (percent * 2.f) - 1.f;
-		Vector3 scale = XMVectorScale(xAxis, percent);
-		scale = XMVectorAdd(scale, origin);
+		float fPercent = float(i) / float(divisions);
+		fPercent = (fPercent * 2.0f) - 1.0f;
 
-		VertexPositionColor v1(XMVectorSubtract(scale, yAxis), color);
-		VertexPositionColor v2(XMVectorAdd(scale, yAxis), color);
+		Vector3 scale = xAxis * fPercent + origin;
+
+		VertexPositionColor v1(scale - yAxis, color);
+		VertexPositionColor v2(scale + yAxis, color);
 		m_batch_Grid->DrawLine(v1, v2);
 	}
 
-	for (size_t i = 0; i <= ydivs; i++)
+	for (size_t i = 0; i <= divisions; i++)
 	{
-		float percent = float(i) / float(ydivs);
-		percent = (percent * 2.f) - 1.f;
-		Vector3 scale = XMVectorScale(yAxis, percent);
-		scale = XMVectorAdd(scale, origin);
+		float fPercent = float(i) / float(divisions);
+		fPercent = (fPercent * 2.0f) - 1.0f;
 
-		VertexPositionColor v1(XMVectorSubtract(scale, xAxis), color);
-		VertexPositionColor v2(XMVectorAdd(scale, xAxis), color);
+		Vector3 scale = yAxis * fPercent + origin;
+
+		VertexPositionColor v1(scale - xAxis, color);
+		VertexPositionColor v2(scale + xAxis, color);
 		m_batch_Grid->DrawLine(v1, v2);
 	}
 
@@ -352,7 +357,7 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Sphere->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Sphere->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Sphere->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Sphere->Apply(Application->getDeviceContext());
 
@@ -408,7 +413,7 @@ void DebugDraw::DrawRay(Vector3 origin, Vector3 direction, Vector4 color, bool n
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Ray->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Ray->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Ray->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Ray->Apply(Application->getDeviceContext());
 
@@ -459,7 +464,7 @@ void DebugDraw::DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vec
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Triangle->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Triangle->DepthNone(), 0);
-	Application->getDeviceContext()->RSSetState(m_states_Triangle->CullNone());
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
 
 	m_effect_Triangle->Apply(Application->getDeviceContext());
 

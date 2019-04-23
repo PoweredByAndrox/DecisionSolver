@@ -10,7 +10,6 @@ class CLua
 {
 public:
 	void Init();
-	void GetDate(string Text);
 
 	void Update();
 	void callFunction(string FileName, string Function, string params);

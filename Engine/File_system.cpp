@@ -237,6 +237,25 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 
 	return make_shared<AllFile::File>();
 }
+vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeOfFile T)
+{
+	if (T == MODELS)
+		return Files.back()->Models;
+	else if (T == SHADERS)
+		return Files.back()->Shaders;
+	else if (T == TEXTURES)
+		return Files.back()->Textures;
+	else if (T == SOUNDS)
+		return Files.back()->Sounds;
+	else if (T == SCRIPTS)
+		return Files.back()->Scripts;
+	else if (T == UIS)
+		return Files.back()->Uis;
+	else if (T == LEVELS)
+		return Files.back()->Levels;
+	else if (T == DIALOGS)
+		return Files.back()->Dialogs;
+}
 
 shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 {

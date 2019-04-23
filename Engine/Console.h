@@ -34,6 +34,9 @@ public:
 	shared_ptr<Commands> getCmd() { return ProcessCommand; }
 
 	static void AddCmd(LPCSTR Text);
+	static void LogError(string Msg);
+	static void LogInfo(string Msg);
+	static void LogNormal(string Msg);
 private:
 	bool InitClass = false;
 	Console_STATE CState = Console_STATE::Open;

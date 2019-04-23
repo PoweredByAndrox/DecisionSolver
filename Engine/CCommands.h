@@ -16,7 +16,7 @@ private:
 		TypeOfCommand type;
 
 		string CommandStr = "", CommandParamsProcess = "", CommandUnprocessed = "",
-				S_One = "", S_Two = "", S_Three = "";
+				S_One = "", S_Two = "", S_Three = "", TypedCmd = "";
 		const string CommandNeededParams = "";
 		int CountOfParams = 0;
 		float One = 0.f, Two = 0.f, Three = 0.f;

@@ -54,7 +54,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		}
 
 		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_CLIPSIBLINGS | WS_VISIBLE | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
-			WS_SYSMENU | WS_CAPTION, 0, 0, 1024, 768, NULL, NULL, hInstance, NULL)))
+			WS_SYSMENU | WS_CAPTION, 392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
 		{
 			DebugTrace("Engine::Init()->CreateWindow() is failed");
 			throw exception("Init is failed!!!");
@@ -235,6 +235,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
+
+		CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 	}
 	catch (const exception &Catch)
 	{
@@ -326,17 +328,6 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
-	DirectX::BoundingSphere Sphere;
-	DirectX::BoundingOrientedBox Box;
-	Box.Center = Vector3(10, 2, 10);
-	Box.Extents = Vector3(0.5, 0.5f, 0.5f);
-
-	DirectX::BoundingSphere::CreateFromBoundingBox(Sphere, Box);
-
-	dDraw->DrawRay(Vector3::Zero, Vector3::One, (Vector4)Colors::DarkGreen);
-	dDraw->Draw(Box, (Vector4)Colors::Red);
-	dDraw->Draw(Sphere, (Vector4)Colors::LightBlue);
-
 	/*
 	Pick->tick();
 	if (mouse->GetState().leftButton)
@@ -363,6 +354,8 @@ void Engine::Render()
 
 	//model->setPosition(Vector3::One);
 	//model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
+
+	dDraw->DrawGrid(Vector3(800.f, 0.f, 0.f), Vector3(0.f, 0.f, 800.f), Vector3(0.f, 0.7f, 0.f), 250, (Vector4)Colors::OldLace);
 
 #if defined(NEEDED_DEBUG_INFO)
 	Device->QueryInterface(IID_ID3D11Debug, (void **) &debug);

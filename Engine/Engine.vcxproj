@@ -93,7 +93,7 @@
       <ShaderType>Effect</ShaderType>
     </FxCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Debug-DLL\;$(SolutionDir)..\submodules\LuaJIT\src</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Debug-DLL\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

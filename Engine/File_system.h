@@ -53,6 +53,7 @@ public:
 
 	shared_ptr<AllFile::File> GetFile(string file);
 	shared_ptr<AllFile::File> GetFileByType(string file);
+	vector<shared_ptr<AllFile::File>> GetFileByType(_TypeOfFile T);
 
 	//********
 	vector<wstring> getFilesInFolder(wstring Folder, _TypeOfFile type = NONE);

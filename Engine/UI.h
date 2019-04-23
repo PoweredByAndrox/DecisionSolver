@@ -18,6 +18,8 @@ extern shared_ptr<Engine> Application;
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui_internal.h"
 
+ToDo("Need To Do Support Cyrillic Chars!");
+
 static auto vector_getter = [](void *vec, int idx, const char **out_text)
 {
 	std::vector<string> &vector = *static_cast<std::vector<string> *>(vec);
@@ -708,6 +710,12 @@ public:
 		SizeW = W;
 		SizeH = H;
 	}
+	void ChangePosition(float X, float Y, ImVec2 Pivot = { 0.f, 0.f })
+	{
+		PosX = X;
+		PosY = Y;
+		this->Pivot = Pivot;
+	}
 
 	void SetShowTitle(bool Show) { ShowTitle = Show; }
 	void setVisible(bool Visible) { IsVisible = Visible; }
@@ -819,7 +827,9 @@ private:
 
 	int style = 1, // <-- This is a test variable.
 		OrderlyRender = 0;
-	float SizeW = 400.f, SizeW_Last, SizeH = 250.f, SizeH_Last;
+	float SizeW = 400.f, SizeW_Last, SizeH = 250.f, SizeH_Last,
+		PosX = 0.f, PosX_Last, PosY = 0.f, PosY_Last;
+	ImVec2 Pivot;
 };
 
 class UI
@@ -858,6 +868,7 @@ public:
 	void EnableDialog(LPCSTR IDDialog);
 
 	shared_ptr<dialogs> getDialog(LPCSTR IDDialog);
+	ImGuiIO &Get_IO() { return ImGui::GetIO(); }
 
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

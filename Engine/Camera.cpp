@@ -20,8 +20,6 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	Matrix mView = Matrix::CreateLookAt(vEyePt, vLookatPt, Vector3(0, 1, 0));
 	XMStoreFloat4x4(&m_mView, mView);
 
-	//Matrix mInvView = mView.Invert();
-
 	Vector3 zBasis;
 	zBasis = vLookatPt;
 
@@ -68,8 +66,8 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 			m_vKeyboardDirection.x -= 1.0f;
 	}
 
-	if (((Application->getMouse()->GetState().leftButton && Left) || (Application->getMouse()->GetState().rightButton && Right)) !=
-		WithoutButton)
+	if (((Application->getMouse()->GetState().leftButton && Left) || (Application->getMouse()->GetState().rightButton && Right))
+		!= WithoutButton)
 		UpdateMouseDelta();
 	/*
 	if (bGetGamepadInput)

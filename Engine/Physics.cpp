@@ -91,7 +91,7 @@ HRESULT Physics::Init()
 			IsInitPhysX = false;
 		}
 
-		PxTransform planePos = PxTransform(PxVec3(0.0f, 0, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+		PxTransform planePos = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
 		gPlane = gPhysics->createRigidStatic(planePos);
 		if (!gPlane)
 		{
@@ -255,7 +255,11 @@ void Physics::Destroy()
 void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel)
 {
 	if (SizeModel <= 0)
-		SizeModel = 1.f;
+		SizeModel = 10.f;
+	if (Mass <= 0)
+		Mass = 10.f;
+	if (Geom == Vector3::Zero)
+		Geom = Vector3::One;
 
 	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 
