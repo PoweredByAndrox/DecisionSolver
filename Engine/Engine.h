@@ -45,9 +45,8 @@ private:
 	HRESULT hr = S_OK;
 	wstring NameWnd = L"", ClassWND = L"";
 
-	double countsPerSecond = 0.0, frameTime = 0.0;
 	__int64 CounterStart = 0, frameTimeOld = 0;
-	int frameCount = 0, fps = 0;
+	float frameCount = 0.f, fps = 0.f, countsPerSecond = 0.f, frameTime = 0.f;
 
 	WNDCLASSEXW wnd;
 
@@ -276,7 +275,7 @@ public:
 	void ClearRenderTarget()
 	{
 		DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
-		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0.f);
+		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
 	static void ResizeWindow(WPARAM wParam);
 
@@ -297,13 +296,23 @@ public:
 		return Rect;
 	}
 
+	float getframeTime() { return frameTime; }
+
+#if defined(Never_MainMenu)
+	shared_ptr<MainMenu> getMainMenu() { return Menu; }
+#endif
+
+	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
+	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
+	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
+private:
 	// Work with Time!
 	void StartTimer()
 	{
 		LARGE_INTEGER frequencyCount;
 		QueryPerformanceFrequency(&frequencyCount);
 
-		countsPerSecond = double(frequencyCount.QuadPart);
+		countsPerSecond = float(frequencyCount.QuadPart);
 
 		QueryPerformanceCounter(&frequencyCount);
 		CounterStart = frequencyCount.QuadPart;
@@ -314,7 +323,7 @@ public:
 		QueryPerformanceCounter(&currentTime);
 		return double(currentTime.QuadPart - CounterStart) / countsPerSecond;
 	}
-	double GetFrameTime()
+	float GetFrameTime()
 	{
 		LARGE_INTEGER currentTime;
 		__int64 tickCount;
@@ -323,20 +332,12 @@ public:
 		tickCount = currentTime.QuadPart - frameTimeOld;
 		frameTimeOld = currentTime.QuadPart;
 
-		if (tickCount < 0.0f)
-			tickCount = 0.0f;
+		if (tickCount < 0)
+			tickCount = 0;
 
 		return float(tickCount) / countsPerSecond;
 	}
 
-#if defined(Never_MainMenu)
-	shared_ptr<MainMenu> getMainMenu() { return Menu; }
-#endif
-
-	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
-	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
-	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
-private:
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;
 	Mouse::ButtonStateTracker TrackerMouse;

@@ -36,11 +36,11 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 
 void Commands::Init()
 {
-	for (int i = 0; i < ListCommands.size(); i++)
+	for (size_t i = 0; i < ListCommands.size(); i++)
 	{
 		commands.push_back(make_shared<Command>(ListCommands.at(i), "", Command::TypeOfCommand::WithoutParam));
 	}
-	for (int i = 0; i < ListCommandsWithParams.size(); i++)
+	for (size_t i = 0; i < ListCommandsWithParams.size(); i++)
 	{
 		if (ListCommandsWithParams.at(i) == "exec_lua #PathToFile.function(param)") // HardCode CMD!!!
 		{
@@ -78,7 +78,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		if (contains(CMD, "help"))
 		{
 			string all;
-			for (int i = 0; i < ListCommands.size(); i++)
+			for (size_t i = 0; i < ListCommands.size(); i++)
 			{
 				all.append(string(string("\n") + ListCommands.at(i)));
 			}
@@ -130,7 +130,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
 		string(cmd->CommandStr + string(" #Apply")));
 
-	for (int i = 0; i < History.size(); i++)
+	for (size_t i = 0; i < History.size(); i++)
 	{
 		if (History.at(i) == (cmd->TypedCmd))
 		{
@@ -147,7 +147,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 
 shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
 {
-	for (int i = 0; i < commands.size(); i++)
+	for (size_t i = 0; i < commands.size(); i++)
 	{
 		string GetCommand = Text;
 		string GetParam = Text;

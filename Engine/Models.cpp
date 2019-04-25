@@ -99,7 +99,7 @@ bool Models::LoadFromFile(string Filename, UINT Flags, bool ConvertToLH)
 bool Models::LoadFromAllModels()
 {
 	auto Files = Application->getFS()->getFilesInFolder(".obj");
-	for (int i = 0; i < Files.size(); i++)
+	for (size_t i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
 
@@ -126,13 +126,13 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 	int i1 = 0;
 
 	auto Files = Application->getFS()->getFilesInFolder(".obj");
-	for (int i = 0; i < Files.size(); i++)
+	for (size_t i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
 
 		if (!ConvertToLH.empty())
 		{
-			for (i1 = 0; i1 < ConvertToLH.size(); i1++)
+			for (size_t i1 = 0; i1 < ConvertToLH.size(); i1++)
 			{
 				if (ConvertToLH.at(i1))
 				{
@@ -176,7 +176,7 @@ void Models::Render(Matrix View, Matrix Proj)
 	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
 	//devcon->PSSetSamplers(0, 1, &TexSamplerState);
 
-	for (int i = 0; i < meshes.size(); i++)
+	for (size_t i = 0; i < meshes.size(); i++)
 	{
 		meshes.at(i)->Draw(scale * rotate * position, View, Proj);
 	}
@@ -185,12 +185,12 @@ void Models::Render(Matrix View, Matrix Proj)
 vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
 {
 	vector<Texture> textures;
-	for (int i = 0; i < mat->GetTextureCount(type); i++)
+	for (UINT i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;
 		mat->GetTexture(type, i, &str);
 		bool skip = false;
-		for (int j = 0; j < Textures_loaded.size(); j++)
+		for (size_t j = 0; j < Textures_loaded.size(); j++)
 		{
 			if (strcmp(Textures_loaded.at(j).path.c_str(), str.C_Str()) == 0)
 			{
@@ -238,7 +238,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 
 void Models::processNode(aiNode *node, const aiScene *Scene)
 {
-	for (int i = 0; i < node->mNumMeshes; i++)
+	for (UINT i = 0; i < node->mNumMeshes; i++)
 	{
 		vector<Things> vertices;
 		vector<UINT> indices;
@@ -299,7 +299,7 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 		meshes.push_back(make_shared<Mesh>(vertices, indices, textures));
 	}
 
-	for (int i = 0; i < node->mNumChildren; i++)
+	for (UINT i = 0; i < node->mNumChildren; i++)
 		processNode(node->mChildren[i], Scene);
 }
 

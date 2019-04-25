@@ -17,8 +17,7 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
 
 		// Calc the view matrix
-	Matrix mView = Matrix::CreateLookAt(vEyePt, vLookatPt, Vector3(0, 1, 0));
-	XMStoreFloat4x4(&m_mView, mView);
+	m_mView = XMMatrixLookAtLH(vEyePt, vLookatPt, Vector3::Up);
 
 	Vector3 zBasis;
 	zBasis = vLookatPt;
@@ -195,10 +194,7 @@ void Camera::UpdateVelocity(_In_ float fElapsedTime)
 
 void Camera::Reset()
 {
-	Vector3 vDefaultEye = XMLoadFloat3(&m_vDefaultEye), 
-			vDefaultLookAt = XMLoadFloat3(&m_vDefaultLookAt);
-
-	SetViewParams(vDefaultEye, vDefaultLookAt);
+	SetViewParams(m_vDefaultEye, m_vDefaultLookAt);
 }
 
 void Camera::FrameMove(_In_ float fElapsedTime)
@@ -208,8 +204,10 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	else
 		SetScalers(0.010f, 6.0f);
 
+#if defined(DEBUG) || defined(_DEBUG)
 	if (Application->getTrackerKeyboard().IsKeyPressed(DirectX::Keyboard::Keys::Home))
 		Reset();
+#endif
 
 	// Get keyboard/mouse/gamepad input
 	GetInput(m_bEnablePositionMovement, true);
@@ -217,12 +215,9 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
 
-	// Simple euler method to calculate position delta
-	Vector3 vVelocity = XMLoadFloat3(&m_vVelocity), vPosDelta = vVelocity * fElapsedTime;
-
 	// If rotating the camera 
-	if (((Application->getMouse()->GetState().leftButton && Left || Application->getMouse()->GetState().rightButton && Right) != 
-		WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
+	if (((Application->getMouse()->GetState().leftButton && Left || Application->getMouse()->GetState().rightButton && Right)
+		!= WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
 		// Update the pitch & yaw angle based on mouse movement
 		float fYawDelta = m_vRotVelocity.x,
@@ -241,35 +236,28 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	}
 
 		// Make a rotation matrix based on the camera's yaw & pitch
-	Matrix mCameraRot = XMMatrixRotationRollPitchYaw(m_fCameraPitchAngle, m_fCameraYawAngle, 0);
+	mCameraRot = XMMatrixRotationRollPitchYaw(m_fCameraPitchAngle, m_fCameraYawAngle, 0);
 
-		// Transform vectors based on camera's rotation matrix
-	Vector3 vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot), vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
+	// Transform vectors based on camera's rotation matrix
+	vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot), 
+	vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
 
 		// Transform the position delta by the camera's rotation 
 	if (!m_bEnableYAxisMovement)
 		mCameraRot = XMMatrixRotationRollPitchYaw(0.0f, m_fCameraYawAngle, 0.0f);
-	Vector3 vPosDeltaWorld = XMVector3TransformCoord(vPosDelta, mCameraRot),
-		
-		// Move the eye position 
-	vEye = m_vEye;
-	vEye += vPosDeltaWorld;
+
+	m_vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot);
 
 	if (m_bClipToBoundary)
-		vEye = ConstrainToBoundary(vEye);
-
-	XMStoreFloat3(&m_vEye, vEye);
+		m_vEye = ConstrainToBoundary(m_vEye);
 
 		// Update the lookAt position based on the eye position
-	Vector3 vLookAt = vEye + vWorldAhead;
-	XMStoreFloat3(&m_vLookAt, vLookAt);
+	m_vLookAt = m_vEye + vWorldAhead;
 
 		// Update the view matrix
-	Matrix mView = XMMatrixLookAtLH(vEye, vLookAt, vWorldUp);
-	XMStoreFloat4x4(&m_mView, mView);
+	m_mView = XMMatrixLookAtLH(m_vEye, m_vLookAt, vWorldUp);
 
-	Matrix mCameraWorld = XMMatrixInverse(&XMVectorSet(0, 0, 0, 0), mView);
-	XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
+	m_mCameraWorld = m_mView.Invert();
 }
 
 void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)

@@ -22,7 +22,7 @@ void File_system::ScanFiles()
 
 	int i = 0;
 	auto file = getFilesInFolder("", true, true);
-	for (i = 0; i < file.size(); i++)
+	for (size_t i = 0; i < file.size(); i++)
 	{
 		string someFile = file.at(i),
 			ext = extension(someFile);
@@ -140,7 +140,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 
 	if (T == MODELS)
 	{
-		for (int i = 0; i < Files.back()->Models.size(); i++)
+		for (size_t i = 0; i < Files.back()->Models.size(); i++)
 		{
 			auto LowerA = Files.back()->Models.at(i)->FileA;
 			auto LowerW = Files.back()->Models.at(i)->FileW;
@@ -152,7 +152,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == SHADERS)
 	{
-		for (int i = 0; i < Files.back()->Shaders.size(); i++)
+		for (size_t i = 0; i < Files.back()->Shaders.size(); i++)
 		{
 			auto LowerA = Files.back()->Shaders.at(i)->FileA;
 			auto LowerW = Files.back()->Shaders.at(i)->FileW;
@@ -164,7 +164,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == TEXTURES)
 	{
-		for (int i = 0; i < Files.back()->Textures.size(); i++)
+		for (size_t i = 0; i < Files.back()->Textures.size(); i++)
 		{
 			auto LowerA = Files.back()->Textures.at(i)->FileA;
 			auto LowerW = Files.back()->Textures.at(i)->FileW;
@@ -176,7 +176,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == SOUNDS)
 	{
-		for (int i = 0; i < Files.back()->Sounds.size(); i++)
+		for (size_t i = 0; i < Files.back()->Sounds.size(); i++)
 		{
 			auto LowerA = Files.back()->Sounds.at(i)->FileA;
 			auto LowerW = Files.back()->Sounds.at(i)->FileW;
@@ -188,7 +188,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == SCRIPTS)
 	{
-		for (int i = 0; i < Files.back()->Scripts.size(); i++)
+		for (size_t i = 0; i < Files.back()->Scripts.size(); i++)
 		{
 			auto LowerA = Files.back()->Scripts.at(i)->FileA;
 			auto LowerW = Files.back()->Scripts.at(i)->FileW;
@@ -200,7 +200,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == UIS)
 	{
-		for (int i = 0; i < Files.back()->Uis.size(); i++)
+		for (size_t i = 0; i < Files.back()->Uis.size(); i++)
 		{
 			auto LowerA = Files.back()->Uis.at(i)->FileA;
 			auto LowerW = Files.back()->Uis.at(i)->FileW;
@@ -212,7 +212,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == LEVELS)
 	{
-		for (int i = 0; i < Files.back()->Levels.size(); i++)
+		for (size_t i = 0; i < Files.back()->Levels.size(); i++)
 		{
 			auto LowerA = Files.back()->Levels.at(i)->FileA;
 			auto LowerW = Files.back()->Levels.at(i)->FileW;
@@ -224,7 +224,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 	}
 	else if (T == DIALOGS)
 	{
-		for (int i = 0; i < Files.back()->Dialogs.size(); i++)
+		for (size_t i = 0; i < Files.back()->Dialogs.size(); i++)
 		{
 			auto LowerA = Files.back()->Dialogs.at(i)->FileA;
 			auto LowerW = Files.back()->Dialogs.at(i)->FileW;
@@ -255,6 +255,8 @@ vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeO
 		return Files.back()->Levels;
 	else if (T == DIALOGS)
 		return Files.back()->Dialogs;
+
+	return vector<shared_ptr<File_system::AllFile::File>>{make_unique<File_system::AllFile::File>()};
 }
 
 shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
@@ -279,7 +281,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			if (extA == ".obj")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("models/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -296,7 +298,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			else if (extA == ".dds" || extA == ".png" || extA == ".bmp")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("textures/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -313,7 +315,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			else if (extA == ".hlsl" || extA == ".fx" || extA == ".vs" || extA == ".ps")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("shaders/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -334,7 +336,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			else if (extA == ".wav")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("sounds/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -351,7 +353,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			else if (extA == ".xml")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("text/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -369,7 +371,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 					}
 				}
 				cache = getFilesInFolder(string(ResPath + string("UI/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -387,7 +389,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 					}
 				}
 				cache = getFilesInFolder(string(ResPath + string("maps/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -404,7 +406,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			else if (extA == ".lua")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("scripts/")), true, true);
-				for (int i = 0; i < cache.size(); i++)
+				for (size_t i = 0; i < cache.size(); i++)
 				{
 					auto filePath = path(cache.at(i)).filename().string();
 					if (filePath == string(file))
@@ -438,56 +440,56 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bo
 	{
 		if (type == MODELS)
 		{
-			for (int i = 0; i < Files.back()->Models.size(); i++)
+			for (size_t i = 0; i < Files.back()->Models.size(); i++)
 			{
 				files.push_back(Files.back()->Models.at(i)->FileW);
 			}
 		}
 		else if (type == SHADERS)
 		{
-			for (int i = 0; i < Files.back()->Shaders.size(); i++)
+			for (size_t i = 0; i < Files.back()->Shaders.size(); i++)
 			{
 				files.push_back(Files.back()->Shaders.at(i)->FileW);
 			}
 		}
 		else if (type == TEXTURES)
 		{
-			for (int i = 0; i < Files.back()->Textures.size(); i++)
+			for (size_t i = 0; i < Files.back()->Textures.size(); i++)
 			{
 				files.push_back(Files.back()->Textures.at(i)->FileW);
 			}
 		}
 		else if (type == SOUNDS)
 		{
-			for (int i = 0; i < Files.back()->Sounds.size(); i++)
+			for (size_t i = 0; i < Files.back()->Sounds.size(); i++)
 			{
 				files.push_back(Files.back()->Sounds.at(i)->FileW);
 			}
 		}
 		else if (type == SCRIPTS)
 		{
-			for (int i = 0; i < Files.back()->Scripts.size(); i++)
+			for (size_t i = 0; i < Files.back()->Scripts.size(); i++)
 			{
 				files.push_back(Files.back()->Scripts.at(i)->FileW);
 			}
 		}
 		else if (type == UIS)
 		{
-			for (int i = 0; i < Files.back()->Uis.size(); i++)
+			for (size_t i = 0; i < Files.back()->Uis.size(); i++)
 			{
 				files.push_back(Files.back()->Uis.at(i)->FileW);
 			}
 		}
 		else if (type == LEVELS)
 		{
-			for (int i = 0; i < Files.back()->Levels.size(); i++)
+			for (size_t i = 0; i < Files.back()->Levels.size(); i++)
 			{
 				files.push_back(Files.back()->Levels.at(i)->FileW);
 			}
 		}
 		else if (type == DIALOGS)
 		{
-			for (int i = 0; i < Files.back()->Dialogs.size(); i++)
+			for (size_t i = 0; i < Files.back()->Dialogs.size(); i++)
 			{
 				files.push_back(Files.back()->Dialogs.at(i)->FileW);
 			}
@@ -539,56 +541,56 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, _TypeOfFile type)
 	{
 		if (type == MODELS)
 		{
-			for (int i = 0; i < Files.back()->Models.size(); i++)
+			for (size_t i = 0; i < Files.back()->Models.size(); i++)
 			{
 				files.push_back(Files.back()->Models.at(i)->FileW);
 			}
 		}
 		else if (type == SHADERS)
 		{
-			for (int i = 0; i < Files.back()->Shaders.size(); i++)
+			for (size_t i = 0; i < Files.back()->Shaders.size(); i++)
 			{
 				files.push_back(Files.back()->Shaders.at(i)->FileW);
 			}
 		}
 		else if (type == TEXTURES)
 		{
-			for (int i = 0; i < Files.back()->Textures.size(); i++)
+			for (size_t i = 0; i < Files.back()->Textures.size(); i++)
 			{
 				files.push_back(Files.back()->Textures.at(i)->FileW);
 			}
 		}
 		else if (type == SOUNDS)
 		{
-			for (int i = 0; i < Files.back()->Sounds.size(); i++)
+			for (size_t i = 0; i < Files.back()->Sounds.size(); i++)
 			{
 				files.push_back(Files.back()->Sounds.at(i)->FileW);
 			}
 		}
 		else if (type == SCRIPTS)
 		{
-			for (int i = 0; i < Files.back()->Scripts.size(); i++)
+			for (size_t i = 0; i < Files.back()->Scripts.size(); i++)
 			{
 				files.push_back(Files.back()->Scripts.at(i)->FileW);
 			}
 		}
 		else if (type == UIS)
 		{
-			for (int i = 0; i < Files.back()->Uis.size(); i++)
+			for (size_t i = 0; i < Files.back()->Uis.size(); i++)
 			{
 				files.push_back(Files.back()->Uis.at(i)->FileW);
 			}
 		}
 		else if (type == LEVELS)
 		{
-			for (int i = 0; i < Files.back()->Levels.size(); i++)
+			for (size_t i = 0; i < Files.back()->Levels.size(); i++)
 			{
 				files.push_back(Files.back()->Levels.at(i)->FileW);
 			}
 		}
 		else if (type == DIALOGS)
 		{
-			for (int i = 0; i < Files.back()->Dialogs.size(); i++)
+			for (size_t i = 0; i < Files.back()->Dialogs.size(); i++)
 			{
 				files.push_back(Files.back()->Dialogs.at(i)->FileW);
 			}
@@ -620,56 +622,56 @@ vector<string> File_system::getFilesInFolder(string Folder, bool Recursive, bool
 	{
 		if (type == MODELS)
 		{
-			for (int i = 0; i < Files.back()->Models.size(); i++)
+			for (size_t i = 0; i < Files.back()->Models.size(); i++)
 			{
 				files.push_back(Files.back()->Models.at(i)->FileA);
 			}
 		}
 		else if (type == SHADERS)
 		{
-			for (int i = 0; i < Files.back()->Shaders.size(); i++)
+			for (size_t i = 0; i < Files.back()->Shaders.size(); i++)
 			{
 				files.push_back(Files.back()->Shaders.at(i)->FileA);
 			}
 		}
 		else if (type == TEXTURES)
 		{
-			for (int i = 0; i < Files.back()->Textures.size(); i++)
+			for (size_t i = 0; i < Files.back()->Textures.size(); i++)
 			{
 				files.push_back(Files.back()->Textures.at(i)->FileA);
 			}
 		}
 		else if (type == SOUNDS)
 		{
-			for (int i = 0; i < Files.back()->Sounds.size(); i++)
+			for (size_t i = 0; i < Files.back()->Sounds.size(); i++)
 			{
 				files.push_back(Files.back()->Sounds.at(i)->FileA);
 			}
 		}
 		else if (type == SCRIPTS)
 		{
-			for (int i = 0; i < Files.back()->Scripts.size(); i++)
+			for (size_t i = 0; i < Files.back()->Scripts.size(); i++)
 			{
 				files.push_back(Files.back()->Scripts.at(i)->FileA);
 			}
 		}
 		else if (type == UIS)
 		{
-			for (int i = 0; i < Files.back()->Uis.size(); i++)
+			for (size_t i = 0; i < Files.back()->Uis.size(); i++)
 			{
 				files.push_back(Files.back()->Uis.at(i)->FileA);
 			}
 		}
 		else if (type == LEVELS)
 		{
-			for (int i = 0; i < Files.back()->Levels.size(); i++)
+			for (size_t i = 0; i < Files.back()->Levels.size(); i++)
 			{
 				files.push_back(Files.back()->Levels.at(i)->FileA);
 			}
 		}
 		else if (type == DIALOGS)
 		{
-			for (int i = 0; i < Files.back()->Dialogs.size(); i++)
+			for (size_t i = 0; i < Files.back()->Dialogs.size(); i++)
 			{
 				files.push_back(Files.back()->Dialogs.at(i)->FileA);
 			}
@@ -733,56 +735,56 @@ vector<string> File_system::getFilesInFolder(string Folder, _TypeOfFile type)
 	{
 		if (type == MODELS)
 		{
-			for (int i = 0; i < Files.back()->Models.size(); i++)
+			for (size_t i = 0; i < Files.back()->Models.size(); i++)
 			{
 				files.push_back(Files.back()->Models.at(i)->FileA);
 			}
 		}
 		else if (type == SHADERS)
 		{
-			for (int i = 0; i < Files.back()->Shaders.size(); i++)
+			for (size_t i = 0; i < Files.back()->Shaders.size(); i++)
 			{
 				files.push_back(Files.back()->Shaders.at(i)->FileA);
 			}
 		}
 		else if (type == TEXTURES)
 		{
-			for (int i = 0; i < Files.back()->Textures.size(); i++)
+			for (size_t i = 0; i < Files.back()->Textures.size(); i++)
 			{
 				files.push_back(Files.back()->Textures.at(i)->FileA);
 			}
 		}
 		else if (type == SOUNDS)
 		{
-			for (int i = 0; i < Files.back()->Sounds.size(); i++)
+			for (size_t i = 0; i < Files.back()->Sounds.size(); i++)
 			{
 				files.push_back(Files.back()->Sounds.at(i)->FileA);
 			}
 		}
 		else if (type == SCRIPTS)
 		{
-			for (int i = 0; i < Files.back()->Scripts.size(); i++)
+			for (size_t i = 0; i < Files.back()->Scripts.size(); i++)
 			{
 				files.push_back(Files.back()->Scripts.at(i)->FileA);
 			}
 		}
 		else if (type == UIS)
 		{
-			for (int i = 0; i < Files.back()->Uis.size(); i++)
+			for (size_t i = 0; i < Files.back()->Uis.size(); i++)
 			{
 				files.push_back(Files.back()->Uis.at(i)->FileA);
 			}
 		}
 		else if (type == LEVELS)
 		{
-			for (int i = 0; i < Files.back()->Levels.size(); i++)
+			for (size_t i = 0; i < Files.back()->Levels.size(); i++)
 			{
 				files.push_back(Files.back()->Levels.at(i)->FileA);
 			}
 		}
 		else if (type == DIALOGS)
 		{
-			for (int i = 0; i < Files.back()->Dialogs.size(); i++)
+			for (size_t i = 0; i < Files.back()->Dialogs.size(); i++)
 			{
 				files.push_back(Files.back()->Dialogs.at(i)->FileA);
 			}

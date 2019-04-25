@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="Main" width="320" height="120" open="true" resize="true" 
+<gui id="Main" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>

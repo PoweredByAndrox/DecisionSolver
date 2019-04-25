@@ -338,49 +338,49 @@ void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<child> XMLchil
 	}
 	
 	//	Button
-	for (int i = 0; i < XMLchild->buttons.size(); i++)
+	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
 	{
 		shared_ptr<Buttons> btn = make_unique<Buttons>();
 		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), btn, CountOrder);
 	}
 	//	InputText
-	for (int i = 0; i < XMLchild->texts.size(); i++)
+	for (size_t i = 0; i < XMLchild->texts.size(); i++)
 	{
 		shared_ptr<IText> Itext = make_unique<IText>();
 		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), Itext, CountOrder);
 	}
 	//	InputTextMultiline
-	for (int i = 0; i < XMLchild->textmuls.size(); i++)
+	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
 	{
 		shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
 		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), ItextMul, CountOrder);
 	}
 	//	Collapse
-	//for (int i = 0; i < XMLchild->collpheaders.size(); i++)
+	//for (size_t i = 0; i < XMLchild->collpheaders.size(); i++)
 	//{
 	//	shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
 	//	WorkOnComponents(child, XMLchild->collpheaders.at(i), CHeader, CountOrder);
 	//}
 	//	Label
-	for (int i = 0; i < XMLchild->labels.size(); i++)
+	for (size_t i = 0; i < XMLchild->labels.size(); i++)
 	{
 		shared_ptr<Labels> label = make_unique<Labels>();
 		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), label, CountOrder);
 	}
 	//	Separator
-	for (int i = 0; i < XMLchild->separators.size(); i++)
+	for (size_t i = 0; i < XMLchild->separators.size(); i++)
 	{
 		shared_ptr<_Separator> separator = make_unique<_Separator>();
 		separator->ChangeOrder(CountOrder);
 	}
 	//	ChildDialog
-	//for (int i = 0; i < XMLchild->childs.size(); i++)
+	//for (size_t i = 0; i < XMLchild->childs.size(); i++)
 	//{
 	//	shared_ptr<Child> _child = make_unique<Child>();
 	//	WorkOnComponents(child, XMLchild, _child, CountOrder);
 	//}
 	//	UnformatedText
-	for (int i = 0; i < XMLchild->utext.size(); i++)
+	for (size_t i = 0; i < XMLchild->utext.size(); i++)
 	{
 		shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
 		UText->ChangeOrder(CountOrder);
@@ -420,49 +420,49 @@ void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<collpheader> X
 	}
 
 	//	Button
-	for (int i = 0; i < XMLCHeader->buttons.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
 	{
 		shared_ptr<Buttons> btn = make_unique<Buttons>();
 		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), btn, CountOrder);
 	}
 	//	InputText
-	for (int i = 0; i < XMLCHeader->texts.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
 	{
 		shared_ptr<IText> Itext = make_unique<IText>();
 		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), Itext, CountOrder);
 	}
 	//	InputTextMultiline
-	for (int i = 0; i < XMLCHeader->textmuls.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
 	{
 		shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
 		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), ItextMul, CountOrder);
 	}
 	//	Collapse
-	//for (int i = 0; i < XMLCHeader->collpheaders.size(); i++)
+	//for (size_t i = 0; i < XMLCHeader->collpheaders.size(); i++)
 	//{
 	//	shared_ptr<CollapsingHeaders> _CHeader = make_unique<CollapsingHeaders>();
 	//	WorkOnComponents(CHeader, XMLCHeader, _CHeader, CountOrder);
 	//}
 	//	Label
-	for (int i = 0; i < XMLCHeader->labels.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
 	{
 		shared_ptr<Labels> label = make_unique<Labels>();
 		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), label, CountOrder);
 	}
 	//	Separator
-	for (int i = 0; i < XMLCHeader->separators.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
 	{
 		shared_ptr<_Separator> separator = make_unique<_Separator>();
 		separator->ChangeOrder(CountOrder);
 	}
 	//	ChildDialog
-	//for (int i = 0; i < XMLCHeader->childs.size(); i++)
+	//for (size_t i = 0; i < XMLCHeader->childs.size(); i++)
 	//{
 	//	shared_ptr<Child> child = make_unique<Child>();
 	//	WorkOnComponents(dialog, XMLCHeader, child, CountOrder);
 	//}
 		//	UnformatedText
-	for (int i = 0; i < XMLCHeader->utext.size(); i++)
+	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
 	{
 		shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
 		UText->ChangeOrder(CountOrder);
@@ -975,7 +975,7 @@ void UI::ProcessXML()
 		i++;
 	}
 
-	for (int IDDial = 0; IDDial < XMLDialogs.size(); IDDial++)
+	for (size_t IDDial = 0; IDDial < XMLDialogs.size(); IDDial++)
 	{
 		// ********
 			// Dialog
@@ -1057,7 +1057,7 @@ void UI::ProcessXML()
 			// Other
 
 		//	Button
-		for (int i = 0; i < XMLDialogs.at(IDDial)->buttons.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->buttons.size(); i++)
 		{
 			shared_ptr<Buttons> btn = make_unique<Buttons>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->buttons.at(i)->ToElement(), btn, XMLDialogs.at(IDDial)->IDbuttons.at(i));
@@ -1065,7 +1065,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	InputText
-		for (int i = 0; i < XMLDialogs.at(IDDial)->texts.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->texts.size(); i++)
 		{
 			shared_ptr<IText> Itext = make_unique<IText>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->texts.at(i)->ToElement(), Itext, XMLDialogs.at(IDDial)->IDtexts.at(i));
@@ -1073,7 +1073,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	InputTextMultiline
-		for (int i = 0; i < XMLDialogs.at(IDDial)->textmuls.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->textmuls.size(); i++)
 		{
 			shared_ptr<ITextMulti> ItextMul = make_unique<ITextMulti>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->textmuls.at(i)->ToElement(), ItextMul, XMLDialogs.at(IDDial)->IDtextmuls.at(i));
@@ -1081,7 +1081,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	Collapse
-		for (int i = 0; i < XMLDialogs.at(IDDial)->collpheaders.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->collpheaders.size(); i++)
 		{
 			shared_ptr<CollapsingHeaders> CHeader = make_unique<CollapsingHeaders>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->collpheaders.at(i), CHeader, XMLDialogs.at(IDDial)->IDcollpheaders.at(i));
@@ -1092,7 +1092,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	Label
-		for (int i = 0; i < XMLDialogs.at(IDDial)->labels.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->labels.size(); i++)
 		{
 			shared_ptr<Labels> label = make_unique<Labels>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->labels.at(i)->ToElement(), label, XMLDialogs.at(IDDial)->IDlabels.at(i));
@@ -1100,7 +1100,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	Separator
-		for (int i = 0; i < XMLDialogs.at(IDDial)->separators.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->separators.size(); i++)
 		{
 			shared_ptr<_Separator> separator = make_unique<_Separator>();
 			separator->ChangeOrder(XMLDialogs.at(IDDial)->IDseparators.at(i));
@@ -1108,7 +1108,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	ChildDialog
-		for (int i = 0; i < XMLDialogs.at(IDDial)->childs.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->childs.size(); i++)
 		{
 			shared_ptr<Child> child = make_unique<Child>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->childs.at(i), child, XMLDialogs.at(IDDial)->IDchilds.at(i));
@@ -1119,7 +1119,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	UnformatedText
-		for (int i = 0; i < XMLDialogs.at(IDDial)->utext.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->utext.size(); i++)
 		{
 			shared_ptr<UnformatedText> UText = make_unique<UnformatedText>();
 			UText->ChangeOrder(XMLDialogs.at(IDDial)->IDutext.at(i));
@@ -1128,7 +1128,7 @@ void UI::ProcessXML()
 			countComponents++;
 		}
 		//	TextList
-		for (int i = 0; i < XMLDialogs.at(IDDial)->tlist.size(); i++)
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->tlist.size(); i++)
 		{
 			shared_ptr<TextList> TList = make_unique<TextList>();
 			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->tlist.at(i)->ToElement(), TList, XMLDialogs.at(IDDial)->IDtlist.at(i));
@@ -1172,7 +1172,7 @@ HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
 	if (!IDDialog)
 		Dialogs.back()->setComponent(make_unique<Buttons>(IDName, true));
 	else
-		for (int i = 0; i < Dialogs.size(); i++)
+		for (size_t i = 0; i < Dialogs.size(); i++)
 		{
 			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<Buttons>(IDName, true));
@@ -1191,7 +1191,7 @@ HRESULT UI::addLabel(LPCSTR IDName, LPCSTR IDDialog)
 	if (!IDDialog)
 		Dialogs.back()->setComponent(make_unique<Labels>(IDName, true));
 	else
-		for (int i = 0; i < Dialogs.size(); i++)
+		for (size_t i = 0; i < Dialogs.size(); i++)
 		{
 			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<Labels>(IDName, true));
@@ -1210,7 +1210,7 @@ HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog, bool SelDef, bool Co
 	if (!IDDialog)
 		Dialogs.back()->setComponent(make_unique<CollapsingHeaders>(IDName, SelDef, Collapse));
 	else
-		for (int i = 0; i < Dialogs.size(); i++)
+		for (size_t i = 0; i < Dialogs.size(); i++)
 		{
 			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 				Dialogs.at(i)->setComponent(make_unique<CollapsingHeaders>(IDName, SelDef));
@@ -1226,7 +1226,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
@@ -1246,7 +1246,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setComponent(Component);
@@ -1262,7 +1262,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
@@ -1282,7 +1282,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
@@ -1302,7 +1302,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
@@ -1322,7 +1322,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 		return E_FAIL;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 		{
@@ -1336,7 +1336,7 @@ HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shar
 
 void UI::DisableDialog(LPCSTR IDDialog)
 {
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setVisible(false);
@@ -1344,7 +1344,7 @@ void UI::DisableDialog(LPCSTR IDDialog)
 }
 void UI::EnableDialog(LPCSTR IDDialog)
 {
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			Dialogs.at(i)->setVisible(true);
@@ -1360,7 +1360,7 @@ shared_ptr<dialogs> UI::getDialog(LPCSTR IDDialog)
 		return nullptr;
 	}
 
-	for (int i = 0; i < Dialogs.size(); i++)
+	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			return Dialogs.at(i);
@@ -1432,20 +1432,20 @@ void UI::Gamepads()
 	if (g_HasGamepad)
 	{
 		io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-		io.NavInputs[ImGuiNavInput_Activate] = Application->getTracherGamepad().a;
-		io.NavInputs[ImGuiNavInput_Cancel] = Application->getTracherGamepad().b;
-		io.NavInputs[ImGuiNavInput_Menu] = Application->getTracherGamepad().x;
-		io.NavInputs[ImGuiNavInput_Input] = Application->getTracherGamepad().y;
+		io.NavInputs[ImGuiNavInput_Activate] = (float)Application->getTracherGamepad().a;
+		io.NavInputs[ImGuiNavInput_Cancel] = (float)Application->getTracherGamepad().b;
+		io.NavInputs[ImGuiNavInput_Menu] = (float)Application->getTracherGamepad().x;
+		io.NavInputs[ImGuiNavInput_Input] = (float)Application->getTracherGamepad().y;
 
-		io.NavInputs[ImGuiNavInput_DpadLeft] = Application->getTracherGamepad().dpadLeft;
-		io.NavInputs[ImGuiNavInput_DpadRight] = Application->getTracherGamepad().dpadRight;
-		io.NavInputs[ImGuiNavInput_DpadUp] = Application->getTracherGamepad().dpadUp;
-		io.NavInputs[ImGuiNavInput_DpadDown] = Application->getTracherGamepad().dpadDown;
+		io.NavInputs[ImGuiNavInput_DpadLeft] = (float)Application->getTracherGamepad().dpadLeft;
+		io.NavInputs[ImGuiNavInput_DpadRight] = (float)Application->getTracherGamepad().dpadRight;
+		io.NavInputs[ImGuiNavInput_DpadUp] = (float)Application->getTracherGamepad().dpadUp;
+		io.NavInputs[ImGuiNavInput_DpadDown] = (float)Application->getTracherGamepad().dpadDown;
 
-		io.NavInputs[ImGuiNavInput_FocusPrev] = Application->getTracherGamepad().leftShoulder;
-		io.NavInputs[ImGuiNavInput_FocusNext] = Application->getTracherGamepad().rightShoulder;
-		io.NavInputs[ImGuiNavInput_TweakSlow] = Application->getTracherGamepad().leftShoulder;
-		io.NavInputs[ImGuiNavInput_TweakFast] = Application->getTracherGamepad().rightShoulder;
+		io.NavInputs[ImGuiNavInput_FocusPrev] = (float)Application->getTracherGamepad().leftShoulder;
+		io.NavInputs[ImGuiNavInput_FocusNext] = (float)Application->getTracherGamepad().rightShoulder;
+		io.NavInputs[ImGuiNavInput_TweakSlow] = (float)Application->getTracherGamepad().leftShoulder;
+		io.NavInputs[ImGuiNavInput_TweakFast] = (float)Application->getTracherGamepad().rightShoulder;
 
 		//MAP_ANALOG(ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
 		//MAP_ANALOG(ImGuiNavInput_LStickRight, gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
@@ -1548,55 +1548,55 @@ void CollapsingHeaders::Render()
 
 		while (Count != now)
 		{
-			for (int i = 0; i < Label.size(); i++)
+			for (size_t i = 0; i < Label.size(); i++)
 			{
 				if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
 					Label.at(i)->Render();
 			}
 
-			for (int i = 0; i < Btn.size(); i++)
+			for (size_t i = 0; i < Btn.size(); i++)
 			{
 				if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
 					Btn.at(i)->Render();
 			}
 
-			for (int i = 0; i < Itextmul.size(); i++)
+			for (size_t i = 0; i < Itextmul.size(); i++)
 			{
 				if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
 					Itextmul.at(i)->Render();
 			}
 
-			for (int i = 0; i < Itext.size(); i++)
+			for (size_t i = 0; i < Itext.size(); i++)
 			{
 				if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
 					Itext.at(i)->Render();
 			}
 
-			for (int i = 0; i < separators.size(); i++)
+			for (size_t i = 0; i < separators.size(); i++)
 			{
 				if (separators.at(i)->getRenderOrder() == now)
 					separators.at(i)->Render();
 			}
 
-			for (int i = 0; i < childs.size(); i++)
+			for (size_t i = 0; i < childs.size(); i++)
 			{
 				if (childs.at(i)->getCountOrderRenderInDial() == now)
 					childs.at(i)->Render();
 			}
 
-			for (int i = 0; i < CollpsHeader.size(); i++)
+			for (size_t i = 0; i < CollpsHeader.size(); i++)
 			{
 				if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
 					CollpsHeader.at(i)->Render();
 			}
 
-			for (int i = 0; i < UText.size(); i++)
+			for (size_t i = 0; i < UText.size(); i++)
 			{
 				if (UText.at(i)->getRenderOrder() == now)
 					UText.at(i)->Render();
 			}
 
-			for (int i = 0; i < TList.size(); i++)
+			for (size_t i = 0; i < TList.size(); i++)
 			{
 				if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
 					TList.at(i)->Render();
@@ -1648,55 +1648,55 @@ void dialogs::Render()
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
 
-			for (int i = 0; i < CollpsHeader.size(); i++)
+			for (size_t i = 0; i < CollpsHeader.size(); i++)
 			{
 				if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
 					CollpsHeader.at(i)->Render();
 			}
 
-			for (int i = 0; i < Label.size(); i++)
+			for (size_t i = 0; i < Label.size(); i++)
 			{
 				if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
 					Label.at(i)->Render();
 			}
 
-			for (int i = 0; i < Itext.size(); i++)
+			for (size_t i = 0; i < Itext.size(); i++)
 			{
 				if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
 					Itext.at(i)->Render();
 			}
 
-			for (int i = 0; i < separator.size(); i++)
+			for (size_t i = 0; i < separator.size(); i++)
 			{
 				if (separator.at(i)->getRenderOrder() == now)
 					separator.at(i)->Render();
 			}
 
-			for (int i = 0; i < Itextmul.size(); i++)
+			for (size_t i = 0; i < Itextmul.size(); i++)
 			{
 				if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
 					Itextmul.at(i)->Render();
 			}
 
-			for (int i = 0; i < Btn.size(); i++)
+			for (size_t i = 0; i < Btn.size(); i++)
 			{
 				if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
 					Btn.at(i)->Render();
 			}
 
-			for (int i = 0; i < child.size(); i++)
+			for (size_t i = 0; i < child.size(); i++)
 			{
 				if (child.at(i)->getCountOrderRenderInDial() == now)
 					child.at(i)->Render();
 			}
 
-			for (int i = 0; i < UText.size(); i++)
+			for (size_t i = 0; i < UText.size(); i++)
 			{
 				if (UText.at(i)->getRenderOrder() == now)
 					UText.at(i)->Render();
 			}
 
-			for (int i = 0; i < TList.size(); i++)
+			for (size_t i = 0; i < TList.size(); i++)
 			{
 				if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
 					TList.at(i)->Render();

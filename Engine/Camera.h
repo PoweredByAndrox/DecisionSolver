@@ -65,8 +65,11 @@ protected:
 	void UpdateVelocity(float fElapsedTime);
 	void GetInput(bool bGetKeyboardInput, bool bGetGamepadInput);
 
+	Vector3 vWorldUp, vWorldAhead;
+
 	Matrix m_mView = {},                    // View matrix 
-		m_mProj = {};                    // Projection matrix
+		m_mProj = {},						// Projection matrix
+		mCameraRot = {};
 
 	Vector3 m_vGamePadLeftThumb = { 0.f, 0.f, 0.f },
 		m_vGamePadRightThumb = { 0.f, 0.f, 0.f };
@@ -95,8 +98,8 @@ protected:
 		m_fNearPlane = 0.f,                     // Near plane
 		m_fFarPlane = 1.0f,						// Far plane
 
-		m_fRotationScaler = 0.01f,                // Scaler for rotation
-		m_fMoveScaler = 5.f;                    // Scaler for movement
+		m_fRotationScaler = 0.f,                // Scaler for rotation
+		m_fMoveScaler = 0.f;                    // Scaler for movement
 
 	bool m_bMovementDrag = false,                   // If true, then camera movement will slow to a stop otherwise movement is instant
 		m_bInvertPitch = false,                    // Invert the pitch axis
@@ -117,8 +120,8 @@ public:
 	Matrix GetWorldMatrix() const { return DirectX::XMLoadFloat4x4(&m_mCameraWorld); }
 
 	Vector3 GetWorldRight() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._11)); }
-	Vector3 GetWorldUp() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._21)); }
-	Vector3 GetWorldAhead() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._31)); }
+	Vector3 GetWorldUp() const { return vWorldUp; }
+	Vector3 GetWorldAhead() const { return vWorldAhead; }
 	Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
 
 	void setPosCam(Vector3 Pos)

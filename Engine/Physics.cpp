@@ -82,7 +82,7 @@ HRESULT Physics::Init()
 		}
 
 			//static friction, dynamic friction, restitution
-		gMaterial = gPhysics->createMaterial(0.5, 0.5, 0.6);
+		gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 		if (!gMaterial)
 		{
 			DebugTrace("Physics: gMaterial failed.\n");
@@ -130,13 +130,13 @@ HRESULT Physics::Init()
 
 void Physics::Simulation(float Timestep)
 {
-	for (int i = 0; i < Cobes.size(); i++)
+	for (size_t i = 0; i < Cobes.size(); i++)
 	{
 		vector<PxQuat> aq;
 		vector<PxVec3> pos;
 		auto PhysObj = DynamicObjects;
 
-		for (int i1 = 0; i1 < PhysObj.size(); i1++)
+		for (size_t i1 = 0; i1 < PhysObj.size(); i1++)
 		{
 			aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
 			pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
@@ -163,14 +163,14 @@ void Physics::_createTriMesh(Models *Model, bool stat_dyn)
 	vector<PxVec3> verts;
 	vector<PxU32> tris;
 
-	for (int i = 0; i < Meshes.size(); i++)
+	for (size_t i = 0; i < Meshes.size(); i++)
 	{
 		auto Obj = Meshes.at(i).vertices;
-		for (int i1 = 0; i1 < Obj.size(); i1++)
+		for (size_t i1 = 0; i1 < Obj.size(); i1++)
 			verts.push_back(ToPxVec3(Obj.at(i1).Position));
 
 		auto Obj1 = Meshes.at(i).indices;
-		for (int i1 = 0; i1 < Obj1.size(); i1++)
+		for (size_t i1 = 0; i1 < Obj1.size(); i1++)
 			tris.push_back(Obj1.at(i1));
 	}
 

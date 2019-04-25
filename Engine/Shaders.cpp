@@ -78,7 +78,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 	if ((FileName.size() == 3) & (FunctionName.size() == 3) & (VersionShader.size() == 3)
 		|| (FileName.size() == 2) & (FunctionName.size() == 2) & (VersionShader.size() == 2))
 	{
-		for (int i = 0; i < FileName.size(); i++)
+		for (size_t i = 0; i < FileName.size(); i++)
 		{
 			HRESULT hr = S_OK;
 			if (FAILED(D3DX11CompileFromFileW(FileName.at(i).c_str(), nullptr, nullptr, FunctionName.at(i).c_str(), VersionShader.at(i).c_str(),

@@ -22,12 +22,12 @@ public:
 
 	void ChangeHealth(float Value, char Char)
 	{
-		if (Char == 'G' & !IsGod)
+		if (Char == 'G' && !IsGod)
 		{
 			IsGod = true;
 			return;
 		}
-		else if (Char == 'G' & IsGod)
+		else if (Char == 'G' && IsGod)
 		{
 			IsGod = false;
 			return;

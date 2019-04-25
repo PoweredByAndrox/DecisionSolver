@@ -53,7 +53,7 @@ public:
 
 	bool FindInItems(string Item)
 	{
-		for (int i = 0; i < Items.size(); i++)
+		for (size_t i = 0; i < Items.size(); i++)
 		{
 			if (strcmp(Items.at(i).c_str(), Item.c_str()) == 0)
 				return true;
@@ -75,7 +75,7 @@ public:
 	//	Get Current Selected Index String
 	string getSelectedIndxString(int Index)
 	{
-		if (Items.empty() || (Index < 0 || Index >= Items.size()))
+		if (Items.empty() || (Index < 0 || Index >= (int)Items.size()))
 			return string("");
 			
 		return Items.at(Index);
@@ -150,7 +150,7 @@ public:
 	void AddCLText(Type type, string str)
 	{
 			// Check if we typed the same string
-		for (int i = 0; i < clText.size(); i++)
+		for (size_t i = 0; i < clText.size(); i++)
 		{
 			if (clText.at(i)->getText() == str)
 			{
@@ -166,7 +166,7 @@ public:
 
 	shared_ptr<ColorText> getString(string Text)
 	{
-		for (int i = 0; i < clText.size(); i++)
+		for (size_t i = 0; i < clText.size(); i++)
 		{
 			if ((clText.at(i)->getText() + string("\n")) == Text)
 				return clText.at(i);
@@ -189,7 +189,7 @@ public:
 
 	void Render()
 	{
-		for (int i = 0; i < Buffer.size(); i++)
+		for (size_t i = 0; i < Buffer.size(); i++)
 		{
 			auto Obj = getString(Buffer.at(i));
 			if (Obj && Obj->getType() == Type::Normal)
@@ -310,7 +310,7 @@ public:
 		if (clText.empty())
 			clText.push_back(ColorText(type, str));
 
-		for (int i = 0; i < clText.size(); i++)
+		for (size_t i = 0; i < clText.size(); i++)
 		{
 			if (clText.at(i).type == type && clText.at(i).str == str)
 				return;
@@ -353,7 +353,7 @@ public:
 			ImGui::InputTextMultiline(IDTitle.c_str(), &Text, ImVec2(0, 0), Flags);
 		else
 		{
-			for (int i = 0; i < clText.size(); i++)
+			for (size_t i = 0; i < clText.size(); i++)
 			{
 				if (clText.at(i).type == Type::Normal)
 					ImGui::InputTextMultiline(IDTitle.c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
@@ -623,55 +623,55 @@ public:
 
 			while (Count != now)
 			{
-				for (int i = 0; i < Label.size(); i++)
+				for (size_t i = 0; i < Label.size(); i++)
 				{
 					if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
 						Label.at(i)->Render();
 				}
 
-				for (int i = 0; i < Btn.size(); i++)
+				for (size_t i = 0; i < Btn.size(); i++)
 				{
 					if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
 						Btn.at(i)->Render();
 				}
 
-				for (int i = 0; i < Itextmul.size(); i++)
+				for (size_t i = 0; i < Itextmul.size(); i++)
 				{
 					if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
 						Itextmul.at(i)->Render();
 				}
 
-				for (int i = 0; i < Itext.size(); i++)
+				for (size_t i = 0; i < Itext.size(); i++)
 				{
 					if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
 						Itext.at(i)->Render();
 				}
 
-				for (int i = 0; i < seporators.size(); i++)
+				for (size_t i = 0; i < seporators.size(); i++)
 				{
 					if (seporators.at(i)->getRenderOrder() == now)
 						seporators.at(i)->Render();
 				}
 
-				for (int i = 0; i < CollpsHeader.size(); i++)
+				for (size_t i = 0; i < CollpsHeader.size(); i++)
 				{
 					if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
 						CollpsHeader.at(i)->Render();
 				}
 
-				for (int i = 0; i < childs.size(); i++)
+				for (size_t i = 0; i < childs.size(); i++)
 				{
 					if (childs.at(i)->getCountOrderRenderInDial() == now)
 						childs.at(i)->Render();
 				}
 
-				for (int i = 0; i < UText.size(); i++)
+				for (size_t i = 0; i < UText.size(); i++)
 				{
 					if (UText.at(i)->getRenderOrder() == now)
 						UText.at(i)->Render();
 				}
 
-				for (int i = 0; i < TList.size(); i++)
+				for (size_t i = 0; i < TList.size(); i++)
 				{
 					if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
 						TList.at(i)->Render();

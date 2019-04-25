@@ -256,26 +256,26 @@ void Engine::Run()
 
 	PhysX->Simulation(frameTime);
 
-	ui->Begin();
+	//ui->Begin();
 
-	ui->Render();
+	//ui->Render();
 
-	ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
-		string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n"))
-		% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame % !PauseSimulation).str()));
+	//ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
+	//	string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n"))
+	//	% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame % !PauseSimulation).str()));
 
-	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().front()->IsClicked())
-		Sound->doPlay();
+	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().front()->IsClicked())
+	//	Sound->doPlay();
 
-	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
-		Sound->doStop();
+	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
+	//	Sound->doStop();
 
-	if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().back()->IsClicked())
-		Sound->doPause();
+	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().back()->IsClicked())
+	//	Sound->doPause();
 
-	console->Render();
+	//console->Render();
 
-	ui->FrameEnd();
+	//ui->FrameEnd();
 
 	SwapChain->Present(0, 0);
 

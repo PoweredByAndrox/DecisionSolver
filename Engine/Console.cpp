@@ -53,7 +53,7 @@ void Console::Render()
 	if (!IText->isActive() && !History.empty() && (IText->isPressUp() || IText->isPressDown()))
 	{
 		int PosHistory = ProcessCommand->getPosHistory();
-		if (PosHistory == -1 || PosHistory >= History.size())
+		if (PosHistory == -1 || PosHistory >= (int)History.size())
 		{
 			ProcessCommand->changePosHistory(-1);
 			PosHistory = ProcessCommand->getPosHistory();
@@ -81,7 +81,7 @@ void Console::Render()
 
 	if (!text.empty())
 	{
-		for (int i = 0; i < ProcessCommand->getAllCommands().size(); i++)
+		for (size_t i = 0; i < ProcessCommand->getAllCommands().size(); i++)
 		{
 			auto cmd = ProcessCommand->FindPieceCommand(Dialog, text);
 			if (cmd.operator bool() && !cmd->CommandStr.empty())

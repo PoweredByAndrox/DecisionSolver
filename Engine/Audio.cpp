@@ -10,6 +10,27 @@ extern shared_ptr<Engine> Application;
 #include "Camera.h"
 #include "Console.h"
 
+X3DAUDIO_VECTOR ToXV(Vector3 Some)
+{
+	X3DAUDIO_VECTOR Vec;
+	Vec.x = Some.x;
+	Vec.y = Some.y;
+	Vec.z = Some.z;
+
+	return Vec;
+}
+
+Vector3 ToVec(X3DAUDIO_VECTOR Some)
+{
+	Vector3 Vec;
+	Vec.x = Some.x;
+	Vec.y = Some.y;
+	Vec.z = Some.z;
+
+	return Vec;
+}
+
+
 void Audio::Init()
 {
 	eflags = AudioEngine_Default;
@@ -45,11 +66,16 @@ void Audio::Init()
 
 	Listener = make_unique<AudioListener>();
 	Emitter = make_unique<AudioEmitter>();
-	
-	Listener->SetOrientation(Vector3::Forward, Vector3::Up);
-	Emitter->SetOrientation(Vector3::Forward, Vector3::Up);
 
-	Emitter->InnerRadius = 10.f;
+	Listener->OrientFront = ToXV(Application->getCamera()->GetWorldAhead());
+	Listener->OrientTop = ToXV(Application->getCamera()->GetWorldUp());
+	Listener->Position = ToXV(Application->getCamera()->GetEyePt());
+
+	Emitter->OrientFront = ToXV(Application->getCamera()->GetWorldAhead());
+	Emitter->OrientTop = ToXV(Application->getCamera()->GetWorldUp());
+	Emitter->Position = ToXV(Vector3::Zero);
+	//Emitter->InnerRadius = 10.f;
+	//Emitter->CurveDistanceScaler = FLT_MIN;
 
 	InitSoundSystem = true;
 }
@@ -57,7 +83,7 @@ void Audio::Init()
 void Audio::AddNewSound()
 {
 	auto ListSoundsFile = Application->getFS()->GetFileByType(_TypeOfFile::SOUNDS);
-	for (int i = 0; i < ListSoundsFile.size(); i++)
+	for (size_t i = 0; i < ListSoundsFile.size(); i++)
 	{
 		soundEffect.push_back(make_unique<SoundEffect>(audEngine.get(), ListSoundsFile.at(i)->PathW.c_str()));
 
@@ -69,28 +95,16 @@ void Audio::AddNewSound()
 		}
 	}
 
-	Emitter->ChannelCount = sound.size();
+	//Emitter->ChannelCount = sound.size();
 }
 
 void Audio::Update()
 {
-	enumList = AudioEngine::GetRendererDetails();
-	if (enumList.empty())
+	if (AudioEngine::GetRendererDetails().empty())
 	{
 		Console::LogError("Audio: No Sound Devices Found!");
 		return;
 	}
-
-	Listener->Update(Application->getCamera()->GetEyePt(), Vector3::Up, 10.f);
-
-	for (int i = 0; i < sound.size(); i++)
-	{
-		sound.at(i)->Apply3D(*Listener, *Emitter, false);
-	}
-
-	if (!Application->getPhysics()->GetPhysDynamicObject().empty())
-		//Emitter->SetPosition(ToVec3(Application->getPhysics()->GetPhysDynamicObject().at(0)->getGlobalPose().p));
-		Emitter->Update(ToVec3(Application->getPhysics()->GetPhysDynamicObject().at(0)->getGlobalPose().p), Vector3::Up, 10.f);
 
 	if (!audEngine->Update())
 	{
@@ -100,40 +114,54 @@ void Audio::Update()
 			throw exception("audEngine: has critical errors with audio!");
 		}
 	}
+
+	//Listener->Position = ToXV(Application->getCamera()->GetEyePt());
+	Listener->Update(Application->getCamera()->GetEyePt(), Application->getCamera()->GetWorldAhead(), Application->getframeTime());
+
+	if (!Application->getPhysics()->GetPhysDynamicObject().empty())
+	{
+		Emitter->Update(ToVec3(Application->getPhysics()->GetPhysDynamicObject().at(0)->getGlobalPose().p),
+			Application->getCamera()->GetWorldUp(), Application->getframeTime());
+	}
+
+	for (size_t i = 0; i < sound.size(); i++)
+	{
+		sound.at(i)->Apply3D(*Listener, *Emitter, false);
+	}
 }
 
 void Audio::doPlay()
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->Play(true);
 }
 
 void Audio::changeSoundVol(float Vol)
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->SetVolume(Vol);
 }
 
 void Audio::changeSoundPan(float Pan)
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->SetPan(Pan);
 }
 
 void Audio::doPause()
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->Pause();
 }
 
 void Audio::doResume()
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->Resume();
 }
 
 void Audio::doStop()
 {
-	for (int i = 0; i < sound.size(); i++)
+	for (size_t i = 0; i < sound.size(); i++)
 		sound.at(i)->Stop();
 }

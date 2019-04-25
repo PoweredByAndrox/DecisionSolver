@@ -314,7 +314,7 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float Dis
 
 	m_batch_Grid->Begin();
 
-	size_t divisions = max<float>(1, DisCells);
+	size_t divisions = (size_t)max<float>(1, DisCells);
 
 	for (size_t i = 0; i <= divisions; ++i)
 	{

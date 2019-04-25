@@ -172,7 +172,7 @@ void deleteWord(string &context, string const &what, bool OneTime, bool FindInEn
 
 void deleteWord(string &context, char const what, char const OnWhat)
 {
-	for (int i = 0; i < context.length(); i++)
+	for (size_t i = 0; i < context.length(); i++)
 	{
 		if (context.at(i) == what)
 			context[i] = OnWhat;

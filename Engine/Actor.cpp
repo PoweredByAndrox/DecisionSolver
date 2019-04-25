@@ -4,7 +4,7 @@
 
 void Actor::Update(float Time)
 {
-	if (Health == 0.0f & !IsGod)
+	if (Health == 0.0f && !IsGod)
 		IsDead = true;
 	else if (IsGod)
 		Health = 999999.9999f;
