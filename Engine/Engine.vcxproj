@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{E3B9711D-5F12-4BCD-B7F2-5AEC1A1890EC}</ProjectGuid>
     <RootNamespace>Engine</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -75,11 +75,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <WarningLevel>Level3</WarningLevel>
     </ClCompile>
     <Link />
     <FxCompile>
@@ -93,8 +96,9 @@
       <ShaderType>Effect</ShaderType>
     </FxCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Debug-DLL\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Debug\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -102,69 +106,49 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>DEBUG;_WINDOWS;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\x64-Debug-DLL\</AdditionalLibraryDirectories>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>
+      </AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <IntrinsicFunctions>false</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>false</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;UNICODE</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Release\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Release-DLL\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
-      <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\submodules\imgui\imgui.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\submodules\imgui\imgui_demo.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\submodules\imgui\imgui_draw.cpp">
@@ -179,10 +163,16 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="Audio.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CCommands.cpp" />
-    <ClCompile Include="CLua.cpp" />
+    <ClCompile Include="CLua.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Dialogs.cpp">
@@ -221,10 +211,16 @@
     <ClCompile Include="UI.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Audio.h" />
+    <ClInclude Include="Audio.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CCommands.h" />
-    <ClInclude Include="CLua.h" />
+    <ClInclude Include="CLua.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Console.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Dialogs.h">

@@ -133,10 +133,10 @@ void Console::LogError(string Msg)
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error, Msg);
+	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error, Msg);
 }
 
 void Console::LogInfo(string Msg)
@@ -144,10 +144,10 @@ void Console::LogInfo(string Msg)
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information, Msg);
+	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Information, Msg);
 }
 
 void Console::LogNormal(string Msg)
@@ -155,10 +155,10 @@ void Console::LogNormal(string Msg)
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().empty())
+		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Normal, Msg);
+	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Normal, Msg);
 }
 
 /*

@@ -28,7 +28,7 @@ class Engine
 private:
 	static HWND hwnd;
 	bool WireFrame = false,
-		PauseSimulation = false;
+		IsSimulation = false;
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
 	XMVECTORF32 _Color[9] =
 	{
@@ -79,8 +79,6 @@ private:
 	ID3D11Debug *debug = nullptr;
 #endif
 
-	//#define Never_MainMenu
-
 	shared_ptr<File_system> FS;
 	shared_ptr<Models> model;
 	shared_ptr<Audio> Sound;
@@ -95,9 +93,9 @@ private:
 	//shared_ptr<Levels> Level;
 	shared_ptr<Camera> camera;
 	shared_ptr<Shaders> shader;
-	shared_ptr<Mouse> mouse = make_unique<Mouse>();
-	shared_ptr<Keyboard> keyboard = make_unique<Keyboard>();
-	shared_ptr<GamePad> gamepad = make_unique<GamePad>();
+	shared_ptr<Mouse> mouse = make_shared<Mouse>();
+	shared_ptr<Keyboard> keyboard = make_shared<Keyboard>();
+	shared_ptr<GamePad> gamepad = make_shared<GamePad>();
 
 	shared_ptr<DebugDraw> dDraw;
 
@@ -107,8 +105,6 @@ private:
 
 public:
 	HRESULT Init(wstring NameWnd, HINSTANCE hInstance);
-
-	void Run();
 
 	void Render();
 	void Destroy(HINSTANCE hInstance);
@@ -282,14 +278,14 @@ public:
 	bool IsWireFrame() { return WireFrame; }
 	void SetWireFrame(bool WF) { WireFrame = WF; }
 
-	bool PausePhysics() { return PauseSimulation; }
-	void SetPausePhysics(bool Pause) { PauseSimulation = Pause; }
+	bool IsSimulatePhysics() { return IsSimulation; }
+	void SetPausePhysics(bool Pause) { IsSimulation = Pause; }
 
 	float getFPS() { return fps; }
 	static POINT getWorkAreaSize(HWND hwnd)
 	{
-		RECT rc;
-		POINT Rect;
+		RECT rc = { 0, 0, 0, 0 };
+		POINT Rect = { 0, 0 };
 		GetClientRect(hwnd, &rc);
 		Rect.x = rc.right - rc.left; // Width
 		Rect.y = rc.bottom - rc.top; // Height
@@ -301,6 +297,14 @@ public:
 #if defined(Never_MainMenu)
 	shared_ptr<MainMenu> getMainMenu() { return Menu; }
 #endif
+
+	static void StackTrace(const char *Error)
+	{
+		DebugTrace("***********ERROR IN XML FILE***********\n");
+		DebugTrace("Check info below:\n");
+		DebugTrace(string(string("... ") + string(Error) + string(" ...")).c_str());
+		DebugTrace("***********ERROR IN XML FILE***********\n");
+	}
 
 	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
 	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
@@ -336,6 +340,18 @@ private:
 			tickCount = 0;
 
 		return float(tickCount) / countsPerSecond;
+	}
+	void CountFPS()
+	{
+		frameCount++;
+		if (GetTime() > 1.0f)
+		{
+			fps = frameCount;
+			frameCount = 0;
+			StartTimer();
+		}
+
+		frameTime = GetFrameTime();
 	}
 
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

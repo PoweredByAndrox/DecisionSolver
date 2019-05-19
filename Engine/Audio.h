@@ -9,7 +9,7 @@
 class Audio
 {
 public:
-	void Init();
+	HRESULT Init();
 	void AddNewSound();
 	void Update();
 

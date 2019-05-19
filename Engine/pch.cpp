@@ -179,30 +179,40 @@ void deleteWord(string &context, char const what, char const OnWhat)
 	}
 }
 
-void deleteWord(string &context, string const start, string const end, bool OneTime, bool FindInEnd, bool AlsoDeleteSpace)
+void deleteWord(string &context, string const start, string const end, bool OneTime, bool AlsoDeleteSpace)
 {
-	size_t One = 0, Two = 0;
-	string str = context;
-
-	if (AlsoDeleteSpace)
-		str.erase(remove(str.begin(), str.end(), '	'), str.end());
-
 	if (OneTime)
 	{
-		if (FindInEnd ? str.rfind(start) : str.find(start) != string::npos && FindInEnd ? str.rfind(end) : str.find(end) != string::npos)
+		size_t pos1 = 0, pos2 = string::npos;
+		if ((pos1 = context.find(start, pos1)) != string::npos)
 		{
-			str.erase(FindInEnd ? str.find(start) : str.rfind(start), (FindInEnd ? str.rfind(end) : str.find(end) + end.size()) +
-				1 - FindInEnd ? str.rfind(start) : str.find(start));
+			if ((pos2 = context.find(end, pos1)) != string::npos)
+			{
+				pos2 += end.length();
+				context.erase(pos1, pos2 - pos1);
+			}
 		}
 	}
 	else
 	{
-		while (FindInEnd ? str.rfind(start) : str.find(start) != string::npos && FindInEnd ? str.rfind(end) : str.find(end) != string::npos)
+		size_t pos1 = 0, pos2 = string::npos;
+		while (true)
 		{
-			str.erase(FindInEnd ? str.find(start) : str.rfind(start), (FindInEnd ? str.rfind(end) : str.find(end) + end.size()) +
-				1 - FindInEnd ? str.rfind(start) : str.find(start));
+			if ((pos1 = context.find(start, pos1)) != string::npos)
+			{
+				if ((pos2 = context.find(end, pos1)) != string::npos)
+				{
+					pos2 += end.length();
+					context.erase(pos1, pos2 - pos1);
+				}
+				else break;
+			}
+			else break;
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
 
 void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd, bool AlsoDeleteSpace)

@@ -68,7 +68,7 @@ public:
 	void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
 //	void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
 //	{
-//#if defined(DEBUG) || defined(_DEBUG)
+//#if defined(DEBUG)
 //		PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
 //		distanceJoint->setProjectionLinearTolerance(0.5f);
 //#endif

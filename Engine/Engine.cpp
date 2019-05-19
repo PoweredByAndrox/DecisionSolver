@@ -7,7 +7,7 @@
 #include "Audio.h"
 #include "Console.h"
 #include "Physics.h"
-#include "CLua.h"
+//#include "CLua.h"
 //#include "Picking.h"
 #include "DebugDraw.h"
 
@@ -41,8 +41,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		wnd.hIcon = LoadIconW(hInstance, IDI_WINLOGO);
 		wnd.hIconSm = wnd.hIcon;
 		wnd.hCursor = LoadCursorW(hInstance, IDC_ARROW);
-		wnd.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-		wnd.lpszMenuName = NULL;
+		wnd.hbrBackground = (HBRUSH)nullptr;
+		wnd.lpszMenuName = L"";
 		wnd.lpszClassName = L"WND_ENGINE";
 		wnd.cbSize = sizeof(WNDCLASSEXW);
 
@@ -53,8 +53,13 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			return E_FAIL;
 		}
 
-		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_CLIPSIBLINGS | WS_VISIBLE | WS_SIZEBOX | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
-			WS_SYSMENU | WS_CAPTION, 392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
+#if defined(DEBUG)
+		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 392 /*1024/2-120*/, 160 /*768-608*/,
+			1024, 768, NULL, NULL, hInstance, NULL)))
+#else
+		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 0, 0, 1024, 768,
+			NULL, NULL, hInstance, NULL)))
+#endif
 		{
 			DebugTrace("Engine::Init()->CreateWindow() is failed");
 			throw exception("Init is failed!!!");
@@ -65,7 +70,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		ClassWND = wnd.lpszClassName;
 
 		UINT createDeviceFlags = 0;
-#if defined(_DEBUG) || defined(DEBUG)
+#if defined(DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -246,59 +251,14 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 	}
 }
 
-void Engine::Run()
-{
-	ClearRenderTarget();
-
-	Render();
-
-	mainActor->Render(frameTime);
-
-	PhysX->Simulation(frameTime);
-
-	//ui->Begin();
-
-	//ui->Render();
-
-	//ui->getDialogs().front()->getLabels().front()->ChangeText(string((boost::format(
-	//	string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n"))
-	//	% fps % mainActor->getPosition().x % mainActor->getPosition().y % mainActor->getPosition().z % WireFrame % !PauseSimulation).str()));
-
-	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().front()->IsClicked())
-	//	Sound->doPlay();
-
-	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().at(1)->IsClicked())
-	//	Sound->doStop();
-
-	//if (ui->getDialogs().front()->getCollapsHeaders().back()->getButtons().back()->IsClicked())
-	//	Sound->doPause();
-
-	//console->Render();
-
-	//ui->FrameEnd();
-
-	SwapChain->Present(0, 0);
-
-	Sound->Update();
-
-	lua->Update();
-}
-
 void Engine::Render()
 {
-	if (!DeviceContext)
+	if (!DeviceContext || !Device)
 		return;
 
-	frameCount++;
-	if (GetTime() > 1.0f)
-	{
-		fps = frameCount;
-		frameCount = 0;
-		StartTimer();
-	}
+	CountFPS();
 
-	frameTime = GetFrameTime();
-
+	bool Off = true;
 	if (keyboard->IsConnected())
 	{
 		auto state = keyboard->GetState();
@@ -314,13 +274,25 @@ void Engine::Render()
 				WireFrame = true;
 
 		if (TrackerKeyboard.pressed.F3)
-			if (PauseSimulation)
-				PauseSimulation = false;
+			if (IsSimulation)
+				IsSimulation = false;
 			else
-				PauseSimulation = true;
+				IsSimulation = true;
+
+		if (TrackerKeyboard.pressed.F5)
+			PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 100);
 
 		if (TrackerKeyboard.pressed.OemTilde && console.operator bool())
 			console->OpenConsole();
+
+		if (TrackerKeyboard.pressed.Escape)
+			Quit();
+
+		if (keyboard->GetState().F6)
+			if (Off)
+				Off = false;
+			else
+				Off = true;
 	}
 	if (gamepad->GetState(0).IsConnected())
 	{
@@ -328,39 +300,66 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
-	/*
-	Pick->tick();
-	if (mouse->GetState().leftButton)
-	{
-		if (!Pick->isPicked())
-			Pick->UpdatePick();
-		else
-			Pick->ReleasePick();
-	}
-	*/
-
-#if defined(VISUALIZE_PICKING_RAYS)
-	if (mPicking)
-	{
-		const vector<Picking::Ray> &rays = Pick->getRays();
-		PxU32 nbRays = rays.size();
-		const RendererColor color(255, 0, 0);
-		for (PxU32 i = 0; i < nbRays; i++)
-		{
-			dDraw->DrawRay(m_batch.get(), rays[i].origin, rays[i].origin + rays[i].dir * 1000.0f, color);
-		}
-	}
+#if defined(NEVER)
+	if (Sound.operator bool())
+		Sound->Update();
 #endif
 
-	//model->setPosition(Vector3::One);
-	//model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
+	//lua->Update();
 
-	dDraw->DrawGrid(Vector3(800.f, 0.f, 0.f), Vector3(0.f, 0.f, 800.f), Vector3(0.f, 0.7f, 0.f), 250, (Vector4)Colors::OldLace);
+	ClearRenderTarget();
+
+	mainActor->Render(frameTime);
+
+	if (Off)
+		dDraw->DrawGrid(Vector3(800.f, 0.f, 0.f), Vector3(0.f, 0.f, 800.f), Vector3(0.f, 0.7f, 0.f),
+			250, (Vector4)Colors::OldLace);
+
+	PhysX->Simulation(frameTime);
+
+#if defined(_DEBUG)
+	ui->Begin();
+
+	auto Obj = ui->getDialog("Main");
+	if (!Obj->GetTitle().empty())
+	{
+		Obj->getLabels().front()->ChangeText(string((boost::format(
+			string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n") +
+			string("Resolution Window: W:%f, H:%f")) % fps % mainActor->getPosition().x % mainActor->getPosition().y %
+			mainActor->getPosition().z % WireFrame % !IsSimulation % getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
+#if defined(NEVER)
+		if (Sound.operator bool())
+		{
+			if (Obj->getCollapsHeaders().back()->getComponent()->Btn.front()->IsClicked())
+				Sound->doPlay();
+			if (Obj->getCollapsHeaders().back()->getComponent()->Btn.at(1)->IsClicked())
+				Sound->doStop();
+			if (Obj->getCollapsHeaders().back()->getComponent()->Btn.back()->IsClicked())
+				Sound->doPause();
+		}
+#endif
+		Obj->Render();
+	}
+	ui->getDialog("Game Objects")->Render();
+
+	if (!ui->getDialog("Console")->GetTitle().empty())
+		console->Render();
+
+	ui->FrameEnd();
+#endif
+
+	if (model.operator bool())
+	{
+		model->setPosition(Vector3::One);
+		model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
+	}
 
 #if defined(NEEDED_DEBUG_INFO)
 	Device->QueryInterface(IID_ID3D11Debug, (void **) &debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
+
+	SwapChain->Present(0, 0);
 }
 
 void Engine::Destroy(HINSTANCE hInstance)
@@ -377,6 +376,8 @@ void Engine::Destroy(HINSTANCE hInstance)
 	SAFE_RELEASE(Device1);
 	SAFE_RELEASE(dxgiFactory);
 	SAFE_RELEASE(dxgiFactory2);
+
+	::CoUninitialize();
 }
 
 void Engine::ResizeWindow(WPARAM wParam)

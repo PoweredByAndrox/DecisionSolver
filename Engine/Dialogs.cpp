@@ -24,7 +24,7 @@ HRESULT Dialogs::LoadFile(string *FileName)
 	doc->LoadFile(Application->getFS()->GetFile(*FileName)->PathA.c_str());
 	if (doc->ErrorID() > 0)
 	{
-		StackTrace(doc->ErrorStr());
+		Engine::StackTrace(doc->ErrorStr());
 		throw exception(string(string("Dialogs->LoadFile()::doc->LoadFile:\n") + string(doc->ErrorStr())).c_str());
 		return E_FAIL;
 	}
@@ -46,7 +46,7 @@ void Dialogs::getReplices()
 		throw exception("Dialogs->getReplices()::doc->RootElement() == nullptr!!!");
 		return;
 	}
-	for (int i = 1; i < INT16_MAX; i++)
+	for (;;)
 	{
 		if (Replices.empty())
 		{

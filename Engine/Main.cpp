@@ -27,7 +27,7 @@ shared_ptr<Engine> Application;
 shared_ptr<Actor> mActor;
 #include "Shaders.h"
 
-#include "CLua.h"
+//#include "CLua.h"
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -45,24 +45,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		{
 			DebugTrace("wWinMain::engine->Init() is failed.");
 			throw exception("wWinMain is failed!!!");
-			return E_FAIL;
+			return 5;
 		}
 
 		if (FAILED(CoInitializeEx(NULL, COINIT_MULTITHREADED)))
 		{
 			DebugTrace("wWinMain::CoInitializeEx() is failed.");
 			throw exception("wWinMain is failed!!!");
-			return E_FAIL;
+			return 3;
 		}
 
 		// ***********
 		// INITIALIZATION ALL THE CLASSES
 
-		Application->setCLua(make_shared<CLua>());
+		//Application->setCLua(make_shared<CLua>());
 
 		//	// GUI!!!
 		Application->setUI(make_shared<UI>());
-		Application->getUI()->Init();
+		if (FAILED(Application->getUI()->Init()))
+		{
+			DebugTrace("wWinMain::getUI()->Init() is failed.");
+			throw exception("getUI()->Init() is failed!!!");
+			return 5;
+		}
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
 		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y - 10.f,
 			ImVec2(0.f, 1.f));
@@ -79,23 +84,44 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		//	// Camera Class
 		Application->setCamera(make_shared<Camera>());
-		Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x, Application->getWorkAreaSize(Application->GetHWND()).y);
+		if (FAILED(Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x,
+			Application->getWorkAreaSize(Application->GetHWND()).y)))
+		{
+			DebugTrace("wWinMain::getCamera()->Init() is failed.");
+			throw exception("getCamera()->Init() is failed!!!");
+			return 5;
+		}
 
 		//	// Main Actor Class!!!
 		Application->setActor(make_shared<Actor>());
-		Application->getActor()->Init();
+		if (FAILED(Application->getActor()->Init()))
+		{
+			DebugTrace("wWinMain::getActor()->Init() is failed.");
+			throw exception("getActor()->Init() is failed!!!");
+			return 5;
+		}
 
 		//	// Audio (Sound) Class!!!
-		Application->setSound(make_shared<Audio>());
-		Application->getSound()->Init();
-		Application->getSound()->AddNewSound();
-		Application->getSound()->changeSoundVol(0.4f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
+		//Application->setSound(make_shared<Audio>());
+		//if (FAILED(Application->getSound()->Init()))
+		//{
+		//	DebugTrace("wWinMain::getSound()->Init() is failed.");
+		//	throw exception("getSound()->Init() is failed!!!");
+		//	return 5;
+		//}
+		//Application->getSound()->AddNewSound();
+		//Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
 		Application->setPhysics(make_shared<Physics>());
-		Application->getPhysics()->Init();
+		if (FAILED(Application->getPhysics()->Init()))
+		{
+			DebugTrace("wWinMain::getPhysics()->Init() is failed.");
+			throw exception("getPhysics()->Init() is failed!!!");
+			return 5;
+		}
 		Application->getPhysics()->AddNewActor(Vector3::One, Vector3(2.5f, 2.5f, 2.5f), 100.0f);
 
-		Application->getCLua()->Init();
+		//Application->getCLua()->Init();
 
 		//	// Debug Draw!!!
 		Application->setDebugDraw(make_shared<DebugDraw>());
@@ -113,17 +139,20 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 				::DispatchMessage(&msg);
 				continue;
 			}
-			Application->Run();
+			else
+				Application->Render();
 		}
 
+#if defined(DEBUG)
 		Application->getUI()->Destroy();
+#endif
 		//Application->getRender_Buffer()->Release();
 		Application->Destroy(hInstance);
 	}
 	catch (const exception &Catch)
 	{
-		MessageBoxA(Application->GetHWND(), string(string("The engine was crashed with this error message: ") + string(Catch.what()) + 
-			string("\nAnd also error code: ") + to_string(0)).c_str(), "Error!!!", MB_OK);
+		MessageBoxA(Application->GetHWND(), string(string("The engine was crashed with this error message:\n") + string(Catch.what()) + 
+			string("\nAnd also error code: ") + to_string(GetLastError())).c_str(), Application->getNameWndA().c_str(), MB_OK | MB_ICONERROR);
 	}
 
 	return 0;

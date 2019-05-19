@@ -13,7 +13,7 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 	DWORD dwShaderFlags = D3DXFX_NOT_CLONEABLE;
 	dwShaderFlags |= D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 	dwShaderFlags |= D3DXSHADER_DEBUG;
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
@@ -24,11 +24,11 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 	{
 		if (pErrorBlob)
 		{
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 			OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
 			throw exception(string(string((char *)"Shaders->CompileShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ") +
 				string((char *)pErrorBlob->GetBufferPointer())).c_str());
-#elif !defined(DEBUG) || !defined(_DEBUG)
+#elif !defined(DEBUG)
 			MessageBoxA(Application->GetHWND(),
 				string(string("Shader compiller is failed with text:\n") +
 					string((char *)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);
@@ -66,7 +66,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
@@ -86,11 +86,11 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 			{
 				if (pErrorBlob)
 				{
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 					OutputDebugStringA((char *)pErrorBlob->GetBufferPointer());
 					throw exception(string(string((char *)"Shaders->CreateShaderFromFile: D3DX11CompileFromFileW == E_FAILED!\n return: ")+
 						string((char *)pErrorBlob->GetBufferPointer())).c_str());
-#elif !defined(DEBUG)|| !defined(_DEBUG)
+#elif !defined(DEBUG)
 					MessageBoxA(Application->GetHWND(),
 						string(string("Shader compiller is failed with text:\n") +
 							string((char *)pErrorBlob->GetBufferPointer())).c_str(), "Error log", MB_OK);

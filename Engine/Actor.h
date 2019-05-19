@@ -82,5 +82,10 @@ private:
 
 	//**********
 //unique_ptr<Dialogs> DLG = make_unique<Dialogs>();
+
+	// Consts for the camera!
+	const float Fov = XM_PI / 3.2f,
+		Z_Near = 0.000001f,
+		Z_Far = 1000.f;
 };
 #endif // !__ACTOR_H__

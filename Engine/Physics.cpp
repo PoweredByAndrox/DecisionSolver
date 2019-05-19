@@ -148,7 +148,7 @@ void Physics::Simulation(float Timestep)
 		}
 	}
 
-	if (!Application->PausePhysics())
+	if (!Application->IsSimulatePhysics())
 	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);

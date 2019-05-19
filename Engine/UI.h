@@ -8,7 +8,6 @@
 #include "tinyxml2.h"
 
 using namespace tinyxml2;
-using namespace ImGui;
 
 class Engine;
 extern shared_ptr<Engine> Application;
@@ -22,13 +21,100 @@ ToDo("Need To Do Support Cyrillic Chars!");
 
 static auto vector_getter = [](void *vec, int idx, const char **out_text)
 {
-	std::vector<string> &vector = *static_cast<std::vector<string> *>(vec);
-	if (idx < 0 || idx >= static_cast<int>(vector.size()))
+	vector<string> &Vector = *static_cast<vector<string> *>(vec);
+	if (idx < 0 || idx >= static_cast<int>(Vector.size()))
 		return false;
-	*out_text = vector.at(idx).c_str();
+	*out_text = Vector.at(idx).c_str();
 	return true;
 };
 
+class Buttons;
+class Labels;
+class ITextMulti;
+class IText;
+class _Separator;
+class CollapsingHeaders;
+class Child;
+class UnformatedText;
+class TextList;
+class TreeNode;
+class Tab;
+struct AllTheComponent
+{
+	vector<shared_ptr<Buttons>> Btn;
+	vector<shared_ptr<Labels>> Label;
+	vector<shared_ptr<ITextMulti>> Itextmul;
+	vector<shared_ptr<IText>> Itext;
+	vector<shared_ptr<_Separator>> separators;
+	vector<shared_ptr<CollapsingHeaders>> CollpsHeader;
+	vector<shared_ptr<Child>> childs;
+	vector<shared_ptr<UnformatedText>> UText;
+	vector<shared_ptr<TextList>> TList;
+	vector<shared_ptr<TreeNode>> TNode;
+	vector<shared_ptr<Tab>> Tabs;
+};
+
+class Tab
+{
+public:
+	void ChangeText(string Text) { IDTitle = Text; }
+	LPCSTR GetText() { return IDTitle.c_str(); }
+	void ChangeOrder(int num) { OrderlyRender = num; }
+	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
+
+	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
+	void setCloseMidMouse(bool CloseMidMouse) { this->CloseMidMouse = CloseMidMouse; }
+	void setASelectNewTab(bool ASelectNewTab) { this->ASelectNewTab = ASelectNewTab; }
+
+	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+
+	shared_ptr<AllTheComponent> getComponent() { return Component; }
+
+	Tab() {}
+	~Tab() {}
+
+	Tab(LPCSTR IDTitle, bool DragTabs, bool ASelectNewTab, bool CloseMidMouse):
+		IDTitle(IDTitle), DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse) {}
+
+	void Render();
+private:
+	int OrderlyRender = 0, OrderlyRenderInDial = 0;
+	string IDTitle = "";
+	bool DragTabs = false, ASelectNewTab = false, CloseMidMouse = false;
+	ImVec2 size = { 0.f, 0.f };
+
+	ImGuiTabBarFlags Flags = 0;
+
+	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
+};
+class TreeNode
+{
+public:
+	void ChangeText(string Text) { IDTitle = Text; }
+	LPCSTR GetText() { return IDTitle.c_str(); }
+	void ChangeOrder(int num) { OrderlyRender = num; }
+	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
+
+	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+	int getRenderOrder() { return OrderlyRender; }
+
+	shared_ptr<AllTheComponent> getComponent() { return Component; }
+
+	TreeNode() {}
+	~TreeNode() {}
+
+	TreeNode(LPCSTR IDTitle, bool HasFlag = false): IDTitle(IDTitle), HasFlags(HasFlag) {}
+
+	void Render();
+private:
+	int OrderlyRender = 0, OrderlyRenderInDial = 0;
+	string IDTitle = "";
+	bool HasFlags = false;
+
+	ImGuiTreeNodeFlags Flags = 0;
+
+	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
+};
 class TextList
 {
 private:
@@ -160,7 +246,7 @@ public:
 		}
 
 			// Else add him our color text buffer and type the string in log
-		clText.push_back(make_unique<ColorText>(type, str));
+		clText.push_back(make_shared<ColorText>(type, str));
 		addTextToBuffer(str);
 	}
 
@@ -172,7 +258,7 @@ public:
 				return clText.at(i);
 		}
 	
-		return make_unique<ColorText>();
+		return make_shared<ColorText>();
 	}
 
 	void ChangeOrder(int num) { OrderlyRender = num; }
@@ -187,27 +273,7 @@ public:
 	UnformatedText() {}
 	~UnformatedText() {}
 
-	void Render()
-	{
-		for (size_t i = 0; i < Buffer.size(); i++)
-		{
-			auto Obj = getString(Buffer.at(i));
-			if (Obj && Obj->getType() == Type::Normal)
-				ImGui::TextUnformatted(Buffer.at(i).c_str());
-			else if (Obj && Obj->getType() == Type::Information)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.6f, 1.0f));
-				ImGui::TextUnformatted(Buffer.at(i).c_str());
-				ImGui::PopStyleColor();
-			}
-			else if (Obj && Obj->getType() == Type::Error)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
-				ImGui::TextUnformatted(Buffer.at(i).c_str());
-				ImGui::PopStyleColor();
-			}
-		}
-	}
+	void Render();
 private:
 	int OrderlyRender = 0;
 	vector<string> Buffer;
@@ -245,36 +311,12 @@ public:
 	IText() {}
 	~IText() {}
 
-	IText(LPCSTR IDTitle, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, bool EnterReturnsTrue = true, bool IsNeedHint = false):
-		IDTitle(IDTitle), IsVisible(IsVisible), IsNeedHistory(IsNeedHistory), NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
-	{}
+	IText(LPCSTR IDTitle, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
+		bool EnterReturnsTrue = true, bool IsNeedHint = false):
+		IDTitle(IDTitle), IsVisible(IsVisible), IsNeedHistory(IsNeedHistory),
+		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue) {}
 
-	void Render()
-	{
-		Flags = 0;
-
-		if (IsNeedHistory)
-			Flags |= ImGuiInputTextFlags_CallbackHistory;
-
-		if (EnterReturnsTrue)
-			Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
-
-		if (NeedToUseTAB)
-			Flags |= ImGuiInputTextFlags_CallbackCompletion;
-
-		if (IsNeedHint)
-			if (ImGui::InputTextWithHint(IDTitle.c_str(), TextHint.c_str(), &Text, Flags))
-				IsTextChange = true;
-			else
-				IsTextChange = false;
-		else
-			if (ImGui::InputText(IDTitle.c_str(), &Text, Flags))
-				IsTextChange = true;
-			else
-				IsTextChange = false;
-		Active = ImGui::IsItemActive();
-	}
-
+	void Render();
 private:
 	string IDTitle = "", Text = "", TextHint = "";
 
@@ -337,41 +379,7 @@ public:
 		IDTitle(IDTitle), IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
 	{}
 
-	void Render()
-	{
-		Flags = 0;
-		Flags = ImGuiInputTextFlags_AllowTabInput;
-
-		if (ReadOnly)
-			Flags |= ImGuiInputTextFlags_ReadOnly;
-
-		if (IsCtrlNewLine)
-			Flags |= ImGuiInputTextFlags_CtrlEnterForNewLine;
-	//	Flags |= ImGuiInputTextFlags_CallbackResize;
-
-		if (clText.empty())
-			ImGui::InputTextMultiline(IDTitle.c_str(), &Text, ImVec2(0, 0), Flags);
-		else
-		{
-			for (size_t i = 0; i < clText.size(); i++)
-			{
-				if (clText.at(i).type == Type::Normal)
-					ImGui::InputTextMultiline(IDTitle.c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-				else if (clText.at(i).type == Type::Information)
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.6f, 1.0f));
-					ImGui::InputTextMultiline(IDTitle.c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-					ImGui::PopStyleColor();
-				}
-				else if (clText.at(i).type == Type::Error)
-				{
-					ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
-					ImGui::InputTextMultiline(IDTitle.c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-					ImGui::PopStyleColor();
-				}
-			}
-		}
-	}
+	void Render();
 private:
 	string IDTitle = "", Text = "";
 	bool IsVisible = false, ReadOnly = false, IsCtrlNewLine = false;
@@ -411,12 +419,12 @@ public:
 	Labels() {}
 	~Labels() {}
 
-	Labels(LPCSTR IDTitle, bool IsVisible) : IDTitle(IDTitle), IsVisible(IsVisible) {}
+	Labels(LPCSTR IDTitle, bool IsVisible): IDTitle(IDTitle), IsVisible(IsVisible) {}
 
 	void Render()
 	{
 		if (NeedToChangeColor)
-			ImGui::PushStyleColor(ImGuiCol_Text, Color);//ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+			ImGui::PushStyleColor(ImGuiCol_Text, Color);
 			
 		ImGui::Text(IDTitle.c_str());
 
@@ -461,7 +469,6 @@ private:
 	bool IsVisible = false, clicked = false;
 	int OrderlyRender = 0;
 };
-class Child;
 class CollapsingHeaders
 {
 public:
@@ -474,54 +481,11 @@ public:
 	void setSelDefault(bool SelDef) { this->SelDef = SelDef; }
 
 	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+	int getRenderOrder() { return OrderlyRender; }
+
+	shared_ptr<AllTheComponent> getComponent() { return Component; }
 
 	bool Collapse() { return IsCollapse; }
-
-	vector<shared_ptr<Labels>> getLabels() { return Label; }
-	vector<shared_ptr<Buttons>> getButtons() { return Btn; }
-	vector<shared_ptr<IText>> getITexts() { return Itext; }
-	vector<shared_ptr<ITextMulti>> getITextMultis() { return Itextmul; }
-	vector<shared_ptr<_Separator>> getSeparators() { return separators; }
-	vector<shared_ptr<Child>> getChilds() { return childs; }
-	vector<shared_ptr<UnformatedText>> getUTexts() { return UText; }
-	vector<shared_ptr<TextList>> getTextLists() { return TList; }
-
-	void setComponent(shared_ptr<Buttons> Btn)
-	{
-		this->Btn.push_back(Btn);
-	}
-	void setComponent(shared_ptr<Labels> Label)
-	{
-		this->Label.push_back(Label);
-	}
-	void setComponent(shared_ptr<IText> Itext)
-	{
-		this->Itext.push_back(Itext);
-	}
-	void setComponent(shared_ptr<ITextMulti> Itextmul)
-	{
-		this->Itextmul.push_back(Itextmul);
-	}
-	void setComponent(shared_ptr<_Separator> separator)
-	{
-		this->separators.push_back(separator);
-	}
-	void setComponent(shared_ptr<Child> child)
-	{
-		this->childs.push_back(child);
-	}
-	void setComponent(shared_ptr<CollapsingHeaders> CHeader)
-	{
-		this->CollpsHeader.push_back(CHeader);
-	}
-	void setComponent(shared_ptr<UnformatedText> UText)
-	{
-		this->UText.push_back(UText);
-	}
-	void setComponent(shared_ptr< TextList> TList)
-	{
-		this->TList.push_back(TList);
-	}
 	
 	CollapsingHeaders() {}
 	~CollapsingHeaders() {}
@@ -534,15 +498,8 @@ private:
 	string IDTitle = "";
 	bool SelDef = false, IsCollapse = true;
 	ImGuiTreeNodeFlags Flags = 0;
-	vector<shared_ptr<Buttons>> Btn;
-	vector<shared_ptr<Labels>> Label;
-	vector<shared_ptr<ITextMulti>> Itextmul;
-	vector<shared_ptr<IText>> Itext;
-	vector<shared_ptr<_Separator>> separators;
-	vector<shared_ptr<Child>> childs;
-	vector<shared_ptr<CollapsingHeaders>> CollpsHeader;
-	vector<shared_ptr<UnformatedText>> UText;
-	vector<shared_ptr<TextList>> TList;
+
+	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
 class Child
 {
@@ -558,51 +515,7 @@ public:
 
 	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
 
-	vector<shared_ptr<Labels>> getLabels() { return Label; }
-	vector<shared_ptr<Buttons>> getButtons() { return Btn; }
-	vector<shared_ptr<IText>> getITexts() { return Itext; }
-	vector<shared_ptr<ITextMulti>> getITextMultis() { return Itextmul; }
-	vector<shared_ptr<Child>> getChilds() { return childs; }
-	vector<shared_ptr<CollapsingHeaders>> getCHeaders() { return CollpsHeader; }
-	vector<shared_ptr<UnformatedText>> getUTexts() { return UText; }
-	vector<shared_ptr<TextList>> getTLists() { return TList; }
-
-	void setComponent(shared_ptr<Buttons> Btn)
-	{
-		this->Btn.push_back(Btn);
-	}
-	void setComponent(shared_ptr<Labels> Label)
-	{
-		this->Label.push_back(Label);
-	}
-	void setComponent(shared_ptr<IText> Itext)
-	{
-		this->Itext.push_back(Itext);
-	}
-	void setComponent(shared_ptr<ITextMulti> Itextmul)
-	{
-		this->Itextmul.push_back(Itextmul);
-	}
-	void setComponent(shared_ptr<_Separator> seporator)
-	{
-		this->seporators.push_back(seporator);
-	}
-	void setComponent(shared_ptr<CollapsingHeaders> CollapsingHeaders)
-	{
-		this->CollpsHeader.push_back(CollapsingHeaders);
-	}
-	void setComponent(shared_ptr<Child> child)
-	{
-		this->childs.push_back(child);
-	}
-	void setComponent(shared_ptr<UnformatedText> UText)
-	{
-		this->UText.push_back(UText);
-	}
-	void setComponent(shared_ptr<TextList> TList)
-	{
-		this->TList.push_back(TList);
-	}
+	shared_ptr<AllTheComponent> getComponent() { return Component; }
 
 	Child() {}
 	~Child() {}
@@ -610,79 +523,7 @@ public:
 	Child(LPCSTR IDTitle, ImVec2 size, bool IsHScroll = false, bool IsBorder = false) :
 		IDTitle(IDTitle), IsHScroll(IsHScroll), IsBorder(IsBorder), size(size) {}
 
-	void Render()
-	{
-		Flags = 0;
-
-		if (IsHScroll)
-			Flags = ImGuiWindowFlags_HorizontalScrollbar;
-
-		if (ImGui::BeginChild(IDTitle.c_str(), size, IsBorder, Flags))
-		{
-			int Count = OrderlyRender, now = 0;
-
-			while (Count != now)
-			{
-				for (size_t i = 0; i < Label.size(); i++)
-				{
-					if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
-						Label.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < Btn.size(); i++)
-				{
-					if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
-						Btn.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < Itextmul.size(); i++)
-				{
-					if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
-						Itextmul.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < Itext.size(); i++)
-				{
-					if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
-						Itext.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < seporators.size(); i++)
-				{
-					if (seporators.at(i)->getRenderOrder() == now)
-						seporators.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < CollpsHeader.size(); i++)
-				{
-					if (CollpsHeader.at(i)->Collapse() && CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-						CollpsHeader.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < childs.size(); i++)
-				{
-					if (childs.at(i)->getCountOrderRenderInDial() == now)
-						childs.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < UText.size(); i++)
-				{
-					if (UText.at(i)->getRenderOrder() == now)
-						UText.at(i)->Render();
-				}
-
-				for (size_t i = 0; i < TList.size(); i++)
-				{
-					if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
-						TList.at(i)->Render();
-				}
-
-				now++;
-			}
-		}
-
-		ImGui::EndChild();
-	}
+	void Render();
 private:
 	int OrderlyRender = 0, OrderlyRenderInDial = 0;
 	string IDTitle = "";
@@ -690,15 +531,8 @@ private:
 	ImVec2 size = { 0.f, 0.f };
 
 	ImGuiTreeNodeFlags Flags = 0;
-	vector<shared_ptr<Buttons>> Btn;
-	vector<shared_ptr<Labels>> Label;
-	vector<shared_ptr<ITextMulti>> Itextmul;
-	vector<shared_ptr<IText>> Itext;
-	vector<shared_ptr<_Separator>> seporators;
-	vector<shared_ptr<CollapsingHeaders>> CollpsHeader;
-	vector<shared_ptr<Child>> childs;
-	vector<shared_ptr<UnformatedText>> UText;
-	vector<shared_ptr<TextList>> TList;
+
+	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
 class dialogs
 {
@@ -739,6 +573,8 @@ public:
 	vector<shared_ptr<UnformatedText>> getUTexts() { return UText; }
 	vector<shared_ptr<TextList>> getTLists() { return TList; }
 	vector<shared_ptr<TextList>> getTextLists() { return TList; }
+	vector<shared_ptr<TreeNode>> getTNodes() { return TNode; }
+	vector<shared_ptr<Tab>> getTabs() { return Tabs; }
 
 	void setComponent(shared_ptr<Buttons> Btn)
 	{
@@ -772,9 +608,17 @@ public:
 	{
 		this->UText.push_back(UText);
 	}
-	void setComponent(shared_ptr< TextList> TList)
+	void setComponent(shared_ptr<TextList> TList)
 	{
 		this->TList.push_back(TList);
+	}
+	void setComponent(shared_ptr<TreeNode> TNode)
+	{
+		this->TNode.push_back(TNode);
+	}
+	void setComponent(shared_ptr<Tab> Tabs)
+	{
+		this->Tabs.push_back(Tabs);
 	}
 
 	auto GetCurrentWindow() { return ImGui::GetCurrentWindow(); }
@@ -788,18 +632,11 @@ public:
 		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), style(style), IsMoveble(IsMoveble), IsResizeble(IsResizeble),
 		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont), SizeW(SizeW), SizeH(SizeH)
 	{
-		ImGuiIO &io = GetIO();
+		ImGuiIO &io = ImGui::GetIO();
 		if (IsKeyboardSupport)
 			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
-		//if (no_scrollbar)       window_flags |= ImGuiWindowFlags_NoScrollbar;
-		//if (!no_menu)           window_flags |= ImGuiWindowFlags_MenuBar;
-
-		//if (no_nav)             window_flags |= ImGuiWindowFlags_NoNav;
-		//if (no_background)      window_flags |= ImGuiWindowFlags_NoBackground;
-		//if (no_bring_to_front)  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
-
-		StyleColorsClassic();
+		ImGui::StyleColorsClassic();
 	}
 
 	void Render();
@@ -824,6 +661,8 @@ private:
 	vector<shared_ptr<Child>> child;
 	vector<shared_ptr<UnformatedText>> UText;
 	vector<shared_ptr<TextList>> TList;
+	vector<shared_ptr<TreeNode>> TNode;
+	vector<shared_ptr<Tab>> Tabs;
 
 	int style = 1, // <-- This is a test variable.
 		OrderlyRender = 0;
@@ -838,7 +677,6 @@ public:
 	HRESULT Init();
 
 	void Begin();
-	void Render();
 	void FrameEnd();
 
 	void Destroy();
@@ -883,17 +721,16 @@ protected:
 	vector<shared_ptr<dialogs>> Dialogs;
 
 	// **********
-	bool InitUI = false, Reload = false;
-
-	// **********
-	int iY = 10;
+	bool InitUI = false;
 
 	// **********
 	shared_ptr<tinyxml2::XMLDocument> doc;
-	//unique_ptr<Render_Buffer> Buf = make_unique<Render_Buffer>();
 
-	struct collpheader
+	struct XMLComponents
 	{
+		XMLComponents() {}
+		~XMLComponents() {}
+
 		vector<XMLNode *> buttons;
 		vector<int> IDbuttons;
 
@@ -906,12 +743,6 @@ protected:
 		vector<XMLNode *> textmuls;
 		vector<int> IDtextmuls;
 
-		vector<XMLNode *> collpheaders;
-		vector<int> IDcollpheaders;
-
-		vector<XMLNode *> childs;
-		vector<int> IDchilds;
-
 		vector<XMLNode *> separators;
 		vector<int> IDseparators;
 
@@ -921,184 +752,38 @@ protected:
 		vector<XMLNode *> tlist;
 		vector<int> IDtlist;
 
-		XMLNode *CollpsHead = nullptr;
+		vector<shared_ptr<XMLComponents>> CpsHead;
+		vector<XMLNode *> XMLCHead;
+		vector<shared_ptr<XMLComponents>> DialChild;
+		vector<XMLNode *> XMLDChild;
+		vector<shared_ptr<XMLComponents>> _Tab;
+		vector<XMLNode *> XML_Tab;
+		vector<shared_ptr<XMLComponents>> _TreeNode;
+		vector<XMLNode *> XML_TreeNode;
+
+		//shared_ptr<XMLComponents> CpsHead;
+		//shared_ptr<XMLComponents> DialChild;
+		//shared_ptr<XMLComponents> _Tab;
+		//shared_ptr<XMLComponents> _TreeNode;
 
 		int OrderlyRender = 0;
 		int getCountOrder() { return OrderlyRender; }
-
-		collpheader(XMLNode *Component, bool Main = false)
-		{
-			setComponentCHeader(Component, Main);
-		}
-
-		void setComponentCHeader(XMLNode *Component, bool Main = false)
-		{
-			if (strcmp(Component->Value(), "Button") == 0)
-				buttons.push_back(Component);
-			else if (strcmp(Component->Value(), "Label") == 0)
-				labels.push_back(Component);
-			else if (strcmp(Component->Value(), "InputText") == 0)
-				texts.push_back(Component);
-			else if (strcmp(Component->Value(), "InputTextMultiline") == 0)
-				textmuls.push_back(Component);
-			else if (strcmp(Component->Value(), "ChildDialog") == 0)
-				childs.push_back(Component);
-			else if (strcmp(Component->Value(), "Separator") == 0)
-				separators.push_back(Component);
-			else if (strcmp(Component->Value(), "Collapse") == 0)
-			{
-				if (Main)
-				{
-					if (!CollpsHead)
-						CollpsHead = Component;
-					return;
-				}
-
-				collpheaders.push_back(Component);
-			}
-			else if (strcmp(Component->Value(), "UnformatedText") == 0)
-				utext.push_back(Component);
-		}
-	};
-	struct child
-	{
-		vector<XMLNode *> buttons;
-		vector<int> IDbuttons;
-
-		vector<XMLNode *> labels;
-		vector<int> IDlabels;
-
-		vector<XMLNode *> texts;
-		vector<int> IDtexts;
-
-		vector<XMLNode *> textmuls;
-		vector<int> IDtextmuls;
-
-		vector<XMLNode *> collpheaders;
-		vector<int> IDcollpheaders;
-
-		vector<XMLNode *> childs;
-		vector<int> IDchilds;
-
-		vector<XMLNode *> separators;
-		vector<int> IDseparators;
-
-		vector<XMLNode *> utext;
-		vector<int> IDutext;
-
-		vector<XMLNode *> tlist;
-		vector<int> IDtlist;
-
-		XMLNode *_Child = nullptr;
-
-		int OrderlyRender = 0;
-		int getCountOrder() { return OrderlyRender; }
-
-		child(XMLNode *Component, bool Main = false)
-		{
-			setComponentChild(Component, Main);
-		}
-
-		void setComponentChild(XMLNode *Component, bool Main = false)
-		{
-			if (strcmp(Component->Value(), "Button") == 0)
-				buttons.push_back(Component);
-			else if (strcmp(Component->Value(), "Label") == 0)
-				labels.push_back(Component);
-			else if (strcmp(Component->Value(), "InputText") == 0)
-				texts.push_back(Component);
-			else if (strcmp(Component->Value(), "InputTextMultiline") == 0)
-				textmuls.push_back(Component);
-			else if (strcmp(Component->Value(), "Separator") == 0)
-				separators.push_back(Component);
-			else if (strcmp(Component->Value(), "Collapse") == 0)
-				collpheaders.push_back(Component);
-			else if (strcmp(Component->Value(), "ChildDialog") == 0)
-			{
-				if (Main)
-				{
-					if (!_Child)
-						_Child = Component;
-					return;
-				}
-					childs.push_back(Component);
-			}
-			else if (strcmp(Component->Value(), "UnformatedText") == 0)
-				utext.push_back(Component);
-			else if (strcmp(Component->Value(), "ListBox") == 0)
-				tlist.push_back(Component);
-		}
 	};
 
-	// **********
 	struct dial
 	{
-		vector<XMLNode *> buttons;
-		vector<int> IDbuttons;
-
-		vector<XMLNode *> labels;
-		vector<int> IDlabels;
-
-		vector<XMLNode *> texts;
-		vector<int> IDtexts;
-
-		vector<XMLNode *> textmuls;
-		vector<int> IDtextmuls;
-
-		vector<shared_ptr<collpheader>> collpheaders;
-		vector<int> IDcollpheaders;
-
-		vector<shared_ptr<child>> childs;
-		vector<int> IDchilds;
-
-		vector<XMLNode *> separators;
-		vector<int> IDseparators;
-
-		vector<XMLNode *> utext;
-		vector<int> IDutext;
-
-		vector<XMLNode *> tlist;
-		vector<int> IDtlist;
-
 		XMLNode *Dial = nullptr;
+
+		shared_ptr<XMLComponents> Components = make_shared<XMLComponents>();
 
 		int OrderlyRender = 0;
 		int getCountOrder() { return OrderlyRender; }
 
 		dial(XMLNode *dial): Dial(dial) {}
-
-		void setComponentChild(XMLNode *Component)
-		{
-			if (strcmp(Component->Value(), "Button") == 0)
-				buttons.push_back(Component);
-			else if (strcmp(Component->Value(), "Label") == 0)
-				labels.push_back(Component);
-			else if (strcmp(Component->Value(), "InputText") == 0)
-				texts.push_back(Component);
-			else if (strcmp(Component->Value(), "InputTextMultiline") == 0)
-				textmuls.push_back(Component);
-			else if (strcmp(Component->Value(), "ChildDialog") == 0)
-				childs.push_back(make_unique<child>(Component));
-			else if (strcmp(Component->Value(), "Separator") == 0)
-				separators.push_back(Component);
-			else if (strcmp(Component->Value(), "Collapse") == 0)
-				collpheaders.push_back(make_unique<collpheader>(Component));
-			else if (strcmp(Component->Value(), "UnformatedText") == 0)
-				utext.push_back(Component);
-			else if (strcmp(Component->Value(), "ListBox") == 0)
-				tlist.push_back(Component);
-		}
 	};
 
 	vector<shared_ptr<dial>> XMLDialogs;
 
-	void StackTrace(const char *Error)
-	{
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-		DebugTrace("===Check info below:\n");
-		DebugTrace(string(string("... ") + string(Error) + string(" ...")).c_str());
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-	}
 	INT64 g_Time = 0, g_TicksPerSecond = 0;
 	ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
 	bool g_HasGamepad = false, g_WantUpdateHasGamepad = true;
@@ -1106,29 +791,130 @@ protected:
 	static bool UpdateMouseCursor();
 	void UpdateMousePos();
 
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<collpheader> XMLCHeader, shared_ptr<CollapsingHeaders> &CHeader,
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Buttons> &btn,
 		int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder);
-	void WorkOnComponents(shared_ptr<dialogs> &dialog, shared_ptr<child> XMLchild, shared_ptr<Child> &child, int &CountOrder);
-
-	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder);
-	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder);
-	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder);
-	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder);
-	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder);
-
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder);
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder);
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder);
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<ITextMulti> &ItextMul, int &CountOrder);
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<TextList> &TList, int &CountOrder);
-
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, shared_ptr<child> XMLchild, shared_ptr<Child> &child, int &CountOrder);
-	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, shared_ptr<collpheader> XMLCHeader, shared_ptr<CollapsingHeaders> &CHeader,
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Labels> &Label,
 		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<IText> &Itext,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<TextList> &TList,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
+		shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
+		shared_ptr<Child> &child,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
+		shared_ptr<TreeNode> &TNode,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab, shared_ptr<Tab> &tab,
+		int &CountOrder);
+
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Buttons> &btn,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Labels> &Label,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<IText> &Itext,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<TextList> &TList,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
+		shared_ptr<TreeNode> &TNode,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab, shared_ptr<Tab> &tab,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
+		shared_ptr<Child> &child,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
+		shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder);
+
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Buttons> &btn,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Labels> &Label,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<IText> &Itext,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<TextList> &TList,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
+		shared_ptr<TreeNode> &TNode, int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
+		shared_ptr<Tab> &tab, int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
+		shared_ptr<Child> &child, int &CountOrder);
+	void WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
+		shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder);
+
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<Buttons> &btn, int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<Labels> &Label, int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<IText> &Itext, int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<TextList> &TList,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
+		shared_ptr<Tab> &tab, int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
+		shared_ptr<TreeNode> &TNode,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
+		shared_ptr<Child> &child,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
+		shared_ptr<CollapsingHeaders> &CHeader,
+		int &CountOrder);
+
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<Buttons> &btn,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<Labels> &Label,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<IText> &Itext,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<TextList> &TList,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
+		shared_ptr<TreeNode> &TNode,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
+		shared_ptr<Tab> &tab,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
+		shared_ptr<Child> &child,
+		int &CountOrder);
+	void WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
+		shared_ptr<CollapsingHeaders> &CHeader,
+		int &CountOrder);
+
+	void XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator everything, int &countComp);
+	void XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterator everything, int &countComp);
+	void XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterator everything, int &countComp);
+	void XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterator everything, int &countComp);
+	void XMLPreparingTab(shared_ptr<dial> &InTab, vector<XMLNode *>::iterator everything, int &countComp);
+
+	void GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode);
+	void GetParam(XMLNode *Nods, shared_ptr<Tab> &InTab);
+	void GetParam(XMLNode *Nods, shared_ptr<CollapsingHeaders> &InCollaps);
+	void GetParam(XMLNode *Nods, shared_ptr<Child> &InChild);
+
+	void GetParam(XMLElement *Nods, shared_ptr<Buttons>& btn);
+	void GetParam(XMLElement *Nods, shared_ptr<TextList> &TList);
+	void GetParam(XMLElement *Nods, shared_ptr<Labels> &Label);
+	void GetParam(XMLElement *Nods, shared_ptr<IText> &Itext);
+	void GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul);
+
+	void GetForRecursion(vector<XMLNode *> SomeComponents, int &countComponents, shared_ptr<XMLComponents> &SomeComponent);
+	void GetForRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
+		shared_ptr<XMLComponents> &SomeComponent);
+
+	void XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, vector<XMLNode *>::iterator everything, int &countComp);
 };
 #endif // !__UI_H__

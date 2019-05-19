@@ -30,14 +30,6 @@ protected:
 	//********
 	vector<string> Replices; // Only Text
 	vector<XMLNode *> Nodes; // Only Identifier
-
-	void StackTrace(const char *Error)
-	{
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-		DebugTrace("===Check info below:\n");
-		DebugTrace(string(string("... ") + string(Error) + string(" ...")).c_str());
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-	}
 };
 #endif // !__DIALOGS_H__
 

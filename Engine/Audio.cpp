@@ -30,12 +30,11 @@ Vector3 ToVec(X3DAUDIO_VECTOR Some)
 	return Vec;
 }
 
-
-void Audio::Init()
+HRESULT Audio::Init()
 {
 	eflags = AudioEngine_Default;
 
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 	eflags = eflags | AudioEngine_Debug;
 #endif
 
@@ -45,6 +44,7 @@ void Audio::Init()
 		DebugTrace("Sound_system: Error audEngine = make_unique.\n");
 		throw exception("audEngine == nullptr!!!");
 		InitSoundSystem = false;
+		return E_FAIL;
 	}
 	USES_CONVERSION;
 
@@ -78,6 +78,7 @@ void Audio::Init()
 	//Emitter->CurveDistanceScaler = FLT_MIN;
 
 	InitSoundSystem = true;
+	return S_OK;
 }
 
 void Audio::AddNewSound()
@@ -124,10 +125,10 @@ void Audio::Update()
 			Application->getCamera()->GetWorldUp(), Application->getframeTime());
 	}
 
-	for (size_t i = 0; i < sound.size(); i++)
-	{
-		sound.at(i)->Apply3D(*Listener, *Emitter, false);
-	}
+	//for (size_t i = 0; i < sound.size(); i++)
+	//{
+	//	sound.at(i)->Apply3D(*Listener, *Emitter, false);
+	//}
 }
 
 void Audio::doPlay()

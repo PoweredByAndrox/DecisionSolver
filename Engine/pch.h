@@ -17,19 +17,19 @@
 	// Included for use USES_CONVERSION (for A2W, W2A)
 #include <AtlConv.h>
 
-#pragma warning(disable: 4995)
+#pragma warning(disable:4995)
 #include <fstream>
 #include <sstream>
 
 #include <windows.h>
 
 // *********
-		/// DXTK
-	#include "GeometricPrimitive.h"
-	#include <DirectXMath.h>
+	/// DXTK
+#include "GeometricPrimitive.h"
+#include <DirectXMath.h>
 
-		/// For ThrowIfFailed
-	#include "../Src/PlatformHelpers.h"
+	/// For ThrowIfFailed
+#include "../Src/PlatformHelpers.h"
 // *********
 
 using namespace DirectX;
@@ -45,19 +45,16 @@ using namespace tinyxml2;
 
 #include "d3dx11effect.h"
 
-#if defined(DEBUG) || defined(_DEBUG)
-#include <d3d11sdklayers.h>
-#endif
-
-#if defined(DEBUG) || defined(_DEBUG)
-#pragma comment(lib, "Effects11d.lib")
+#if defined(DEBUG)
+	#include <d3d11sdklayers.h>
+	#pragma comment(lib, "Effects11d.lib")
+	#pragma comment (lib, "assimp-vc141-mtd.lib")
+	#pragma comment (lib, "tinyxml2d.lib")
 #else
-#pragma comment(lib, "Effects11.lib")
+	#pragma comment(lib, "Effects11.lib")
+	#pragma comment (lib, "assimp-vc141-mt.lib")
+	#pragma comment (lib, "tinyxml2.lib")
 #endif
-
-#pragma comment (lib, "d3d9.lib")
-#pragma comment (lib, "d3dx9.lib")
-#pragma comment (lib, "d3dx9d.lib")
 
 #pragma comment (lib, "d3d11.lib")
 #pragma comment (lib, "d3dx11.lib")
@@ -67,11 +64,7 @@ using namespace tinyxml2;
 #pragma comment (lib, "dxguid.lib")
 #pragma comment (lib, "D3DCompiler.lib")
 #pragma comment (lib, "D3DCSX.lib")
-
-#pragma comment (lib, "assimp-vc140-mt.lib")
-
 #pragma comment (lib, "DirectXTK.lib")
-#pragma comment (lib, "DirectXTKAudioDX.lib")
 
 	// For Debug!!!
 #define MacroStr(x) #x
@@ -79,30 +72,30 @@ using namespace tinyxml2;
 #define ToDo(desc) __pragma(message(__FILE__ "(" MacroStr2(__LINE__) "): " #desc))
 
 #if !defined(SAFE_DELETE)
-#define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }
+	#define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }
 #endif
 #if !defined(SAFE_DELETE_ARRAY)
-#define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p);   (p) = nullptr; } }
+	#define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p); (p) = nullptr; } }
 #endif
 #if !defined(SAFE_RELEASE)
-#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p) = nullptr; } }
-#define SAFE_release(p) { if (p) { (p)->release(); (p) = nullptr; } }
+	#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p) = nullptr; } }
+	#define SAFE_release(p) { if (p) { (p)->release(); (p) = nullptr; } }
 #endif
 
-#if defined(DEBUG) || defined(_DEBUG)
-#if !defined(EngineTrace)
-#define EngineTrace(x) { hr = (x); if (FAILED(hr)) { DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
-#endif
-#if !defined(V_RETURN)
-#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
-#endif
+#if defined(DEBUG)
+	#if !defined(EngineTrace)
+		#define EngineTrace(x) { hr = (x); if (FAILED(hr)) { DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
+	#endif
+	#if !defined(V_RETURN)
+		#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return DXUTTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); } }
+	#endif
 #else
-#if !defined(EngineTrace)
-#define EngineTrace(x) { hr = (x); }
-#endif
-#if !defined(V_RETURN)
-#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return hr; } }
-#endif
+	#if !defined(EngineTrace)
+		#define EngineTrace(x) { hr = (x); }
+	#endif
+	#if !defined(V_RETURN)
+		#define V_RETURN(x) { hr = (x); if (FAILED(hr)) { return hr; } }
+	#endif
 #endif
 
 bool FindSubStr(wstring context, wstring const from);
@@ -116,7 +109,7 @@ void replaceAll(string &context, string const &from, string const &to, string co
 
 void deleteWord(string &context, string const &what, bool OneTime = false, bool FindInEnd = false);
 void deleteWord(string &context, char const what, char const OnWhat);
-void deleteWord(string &context, string const start, string const end, bool OneTime = false, bool FindInEnd = false, bool AlsoDeleteSpace = true);
+void deleteWord(string &context, string const start, string const end, bool OneTime = false, bool AlsoDeleteSpace = true);
 
 enum ModeProcessString { UntilTheBegin = 0, UntilTheEnd };
 void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd = false, bool AlsoDeleteSpace = true);

@@ -47,7 +47,6 @@ HRESULT Render_Buffer::InitSimpleBuffer(UINT VertexSize, void *Vertix, UINT Indi
 	//samplerDesc.BorderColor[3] = 0;
 	//samplerDesc.MinLOD = 0;
 	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
 	//if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
 	//{
 	//	DebugTrace("Render_Buffer::InitModels()->CreateSamplerState() is failed");
@@ -96,7 +95,7 @@ ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithC
 		const D3D11_INPUT_ELEMENT_DESC L_Element_Model[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 		};
 		numElements = sizeof(L_Element_Model) / sizeof(L_Element_Model[0]);
 
@@ -119,7 +118,7 @@ ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_US
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
 		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
@@ -157,7 +156,7 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_US
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
-#if defined(DEBUG) || defined(_DEBUG)
+#if defined(DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
 		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
@@ -409,7 +408,7 @@ void Render_Buffer::Release()
 
 HRESULT Render_Buffer::InitUI()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 	io.BackendRendererName = "EngineUI";
 
 	if (g_pFontSampler)
@@ -453,7 +452,8 @@ HRESULT Render_Buffer::InitUI()
 	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
 	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
 
-	if (Application->getDevice()->CreateInputLayout(local_layout, 3, Buffer_blob[0]->GetBufferPointer(), Buffer_blob[0]->GetBufferSize(), &m_layout) != S_OK)
+	if (Application->getDevice()->CreateInputLayout(local_layout, 3, Buffer_blob[0]->GetBufferPointer(),
+		Buffer_blob[0]->GetBufferSize(), &m_layout) != S_OK)
 		return false;
 
 	m_pConstBuffer = CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);

@@ -1,11 +1,13 @@
 #include "pch.h"
 
 #include "CCommands.h"
-#include "CLua.h"
+//#include "CLua.h"
 #include "UI.h"
 #include "Physics.h"
 #include "Camera.h"
 
+ToDo("CLua: LUA Is Disabled Now In Engine!");
+ToDo("Check List Box!")
 static const vector<string> ListCommands =
 {
 	string("help"), string("testmsg"),
@@ -15,7 +17,7 @@ static const vector<string> ListCommands =
 static const vector<string> ListCommandsWithParams =
 {
 	string("changesize #float W, #float H"), string("addphysbox #float MassObj, #float SizeModel"),
-	string("exec_lua #PathToFile.function(param)")
+	//string("exec_lua #PathToFile.function(param)")
 };
 
 void Commands::Work(shared_ptr<dialogs> &Console, string Text)
@@ -29,7 +31,7 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 			ExecCommand(Console, cmd);
 		}
 		else
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+			Console->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
 				string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
 	}
 }
@@ -62,7 +64,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	{
 		if (cmd->CommandUnprocessed.empty())
 		{
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+			Console->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
 				string(cmd->CommandStr + string(": No parameters found! You must add several parameters, such like: ") + cmd->CommandNeededParams));
 			return;
 		}
@@ -83,13 +85,13 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 				all.append(string(string("\n") + ListCommands.at(i)));
 			}
 
-			Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
-				string("#list of available command: ") + all);
+			Console->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Information,
+				string("#list of available commands: ") + all);
 		}
 		else if (contains(CMD, "quit"))
 			Application->Quit();
 		else if (contains(CMD, "clear"))
-			Console->getChilds().back()->getUTexts().back()->ClearText();
+			Console->getChilds().back()->getComponent()->UText.back()->ClearText();
 		else if (contains(CMD, "dotorque"))
 		{
 			auto ObjPhys = Application->getPhysics()->GetPhysDynamicObject();
@@ -102,7 +104,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 						Application->getCamera()->GetEyePt().z + 10), PxForceMode::eFORCE);
 			}
 			else
-				Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Error,
+				Console->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
 					string(CMD + string(": GetPhysDynamicObject() return NULL!!!")));
 		}
 		else if (contains(CMD, "cleanphysbox"))
@@ -110,8 +112,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	}
 	if (cmd->type == Command::TypeOfCommand::Lua)
 	{
-		if (contains(CMD, "exec_lua"))
-			Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
+		//if (contains(CMD, "exec_lua"))
+		//	Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
 	}
 	if (cmd->type == Command::TypeOfCommand::WithParam)
 	{
@@ -127,7 +129,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		}
 	}
 
-	Console->getChilds().back()->getUTexts().back()->AddCLText(UnformatedText::Type::Information,
+	Console->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Normal,
 		string(cmd->CommandStr + string(" #Apply")));
 
 	for (size_t i = 0; i < History.size(); i++)

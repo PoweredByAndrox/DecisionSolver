@@ -8,13 +8,13 @@ class Camera
 public:
 	Camera() {}
 
-	HRESULT Init(float W, float H)
+	HRESULT Init(float W, float H, float FOV = 1.0f)
 	{
 		// Setup the view matrix
-		SetViewParams(Vector3(0, 0, 0), Vector3(1.0f, 0.0f, 0.0f));
+		SetViewParams(Vector3(0, 5, 0), Vector3(1.0f, 0.0f, 0.0f));
 
 		// Setup the projection matrix
-		SetProjParams(XM_PIDIV2, W / H, 1.0f, 1000.0f);
+		SetProjParams(FOV, W / H, 1.0f, 1000.0f);
 		return S_OK;
 	}
 
@@ -45,6 +45,8 @@ public:
 	}
 	void SetNumberOfFramesToSmoothMouseData(int nFrames) { if (nFrames > 0) m_fFramesToSmoothMouseData = (float)nFrames; }
 	void SetResetCursorAfterMove(bool bResetCursorAfterMove) { m_bResetCursorAfterMove = bResetCursorAfterMove; }
+
+	void setDrawCursor(bool IsDraw) { ShowCursor(IsDraw); }
 
 	// Functions to get state
 	Matrix GetViewMatrix() const { return DirectX::XMLoadFloat4x4(&m_mView); }

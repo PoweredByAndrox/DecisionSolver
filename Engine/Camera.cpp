@@ -128,8 +128,8 @@ void Camera::UpdateMouseDelta()
 	{
 		POINT ptCenter = Application->getWorkAreaSize(Application->GetHWND());
 
-		ptCenter.x = ptCenter.x / 2;
-		ptCenter.y = ptCenter.x / 2;
+		ptCenter.x /= 2;
+		ptCenter.y /= 2;
 		SetCursorPos(ptCenter.x, ptCenter.y);
 		m_ptLastMousePosition = ptCenter;
 	}
@@ -204,10 +204,8 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	else
 		SetScalers(0.010f, 6.0f);
 
-#if defined(DEBUG) || defined(_DEBUG)
 	if (Application->getTrackerKeyboard().IsKeyPressed(DirectX::Keyboard::Keys::Home))
 		Reset();
-#endif
 
 	// Get keyboard/mouse/gamepad input
 	GetInput(m_bEnablePositionMovement, true);

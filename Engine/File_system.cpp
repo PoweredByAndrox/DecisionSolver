@@ -813,10 +813,10 @@ string File_system::getDataFromFile(string File, bool LineByline, string start, 
 
 	string Returned_val;
 	std::ifstream streamObj = std::ifstream(File.c_str());
-	streamObj >> std::noskipws;
+	streamObj >> noskipws;
 	if (streamObj.is_open())
 	{
-		std::copy(std::istream_iterator<char>(streamObj), std::istream_iterator<char>(), std::back_inserter(Returned_val));
+		copy(istream_iterator<char>(streamObj), istream_iterator<char>(), back_inserter(Returned_val));
 
 		if (!Returned_val.empty())
 			if (!start.empty() & !end.empty())

@@ -2,18 +2,16 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertyOfEngine" />
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup>
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\inc;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;$(SolutionDir)Include\PhysX;$(SolutionDir)..\submodules\LuaJIT\include;$(SolutionDir)..\submodules\SOL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;tinyxml2.lib;lua51.lib;luaJIT.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
     </Link>
   </ItemDefinitionGroup>

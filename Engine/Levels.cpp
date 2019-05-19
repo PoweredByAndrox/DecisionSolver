@@ -41,7 +41,7 @@ void Levels::ProcessXML()
 	{
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
 
-		for (int i = 1; i < INT16_MAX; i++)
+		for (;;)
 		{
 			g_Obj.at(i - 1).ID = i;
 			XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
@@ -119,7 +119,7 @@ void Levels::ProcessXML()
 	{
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
 
-		for (int i = 1; i < INT16_MAX; i++)
+		for (;;)
 		{
 			NPC.at(i - 1).ID = i;
 			XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());

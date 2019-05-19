@@ -172,9 +172,7 @@ void Models::Render(Matrix View, Matrix Proj)
 	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	Application->getDeviceContext()->VSSetShader(pVS, 0, 0);
-	//devcon->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
-	//devcon->PSSetSamplers(0, 1, &TexSamplerState);
 
 	for (size_t i = 0; i < meshes.size(); i++)
 	{
@@ -357,6 +355,7 @@ void Models::setPosition(Vector3 Pos)
 {
 	position = Matrix::CreateTranslation(Pos);
 }
+
 HRESULT m_compileshaderfromfile(LPCWSTR FileName, LPCSTR EntryPoint, LPCSTR ShaderModel, ID3DBlob** ppBlobOut)
 {
 	HRESULT hr = S_OK;
@@ -417,5 +416,4 @@ void Models::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].texture);
 
 	Application->getDeviceContext()->DrawIndexed(indices.size(), 0, 0);
-
 }
