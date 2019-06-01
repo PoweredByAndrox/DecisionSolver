@@ -13,8 +13,8 @@ void Actor::Update(float Time)
 
 	Application->getCamera()->FrameMove(Time);
 
-	Application->getCamera()->SetProjParams(Fov, ((float)Application->getWorkAreaSize(Application->GetHWND()).x /
-		(float)Application->getWorkAreaSize(Application->GetHWND()).y), Z_Near, Z_Far);
+	Application->getCamera()->SetProjParams(XM_PI / 3.2f, ((float)Application->getWorkAreaSize(Application->GetHWND()).x /
+		(float)Application->getWorkAreaSize(Application->GetHWND()).y), 0.1f, 1000.f);
 }
 
 void Actor::Render(float Time)
@@ -31,7 +31,7 @@ HRESULT Actor::Init()
 
 	Application->getCamera()->SetScalers(0.010f, 6.0f);
 	Application->getCamera()->setCameraControlButtons(false, true, false);
-	//Application->getCamera()->SetResetCursorAfterMove(true);
+	Application->getCamera()->SetResetCursorAfterMove(true);
 	Application->getCamera()->SetEnableYAxisMovement(true);
 
 	InitClass = true;

@@ -112,7 +112,7 @@ protected:
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
-	POINT m_ptLastMousePosition = { 0, 0 },            // Last absolute position of mouse cursor
+	Vector2 m_ptLastMousePosition = { 0, 0 },     // Last absolute position of mouse cursor
 		ptCurMousePos = { 0, 0 },
 		ptCurMouseDelta = { 0, 0 };
 

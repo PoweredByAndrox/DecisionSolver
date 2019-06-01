@@ -9,7 +9,7 @@
 using namespace std;
 using namespace boost::filesystem;
 
-enum _TypeOfFile { MODELS = 1, TEXTURES, LEVELS, DIALOGS, SOUNDS, SHADERS, UIS, SCRIPTS, NONE };
+enum _TypeOfFile { MODELS = 1, TEXTURES, LEVELS, DIALOGS, SOUNDS, SHADERS, UIS, SCRIPTS, FONTS, NONE };
 
 class File_system
 {
@@ -32,15 +32,17 @@ private:
 
 			_TypeOfFile TypeOfFile;
 		};
-		vector<shared_ptr<File>> Models;
-		vector<shared_ptr<File>> Textures;
-		vector<shared_ptr<File>> Levels;
-		vector<shared_ptr<File>> Dialogs;
-		vector<shared_ptr<File>> Sounds;
-		vector<shared_ptr<File>> Shaders;
-		vector<shared_ptr<File>> Uis;
-		vector<shared_ptr<File>> Scripts;
-		vector<shared_ptr<File>> None;
+		vector<shared_ptr<File>>
+		Models,
+		Textures,
+		Levels,
+		Dialogs,
+		Sounds,
+		Shaders,
+		Uis,
+		Scripts,
+		Fonts,
+		None;
 
 		AllFile() {}
 	};

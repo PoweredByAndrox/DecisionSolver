@@ -40,15 +40,20 @@ void Console::Render()
 		return;
 
 	Dialog = Application->getUI()->getDialog("Console");
-	if (!Dialog.operator bool())
+	if (!Dialog.operator bool() || Dialog->GetTitle().empty())
 		return;
 
 	Dialog->Render();
 
-	auto IText = Dialog->getITexts().back();
+	auto IText = Dialog->getComponents()->Itext.back();
 	auto text = IText->GetText();
 	auto History = ProcessCommand->getHistoryCommands();
-	auto TextList = Dialog->getTextLists().back();
+	auto TextList = Dialog->getComponents()->TList.back();
+	if (text.empty() && !(IText->isPressUp() || IText->isPressDown()))
+	{
+		TextList->clearItems();
+		return;
+	}
 
 	if (!IText->isActive() && !History.empty() && (IText->isPressUp() || IText->isPressDown()))
 	{
@@ -97,12 +102,10 @@ void Console::Render()
 			}
 		}
 	}
-	else
-		TextList->clearItems();
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
-	if (!Dialog->getChilds().empty())
-		Dialog->getChilds().back()->setSize(ImVec2(0, -footer_height_to_reserve));
+	if (!Dialog->getComponents()->childs.empty())
+		Dialog->getComponents()->childs.back()->setSize(ImVec2(0, -footer_height_to_reserve));
 }
 
 void Console::OpenConsole()
@@ -132,37 +135,41 @@ void Console::LogError(string Msg)
 {
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
-		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error, Msg);
+	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
+		UnformatedText::Type::Error, Msg);
 }
 
 void Console::LogInfo(string Msg)
 {
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
-		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Information, Msg);
+	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
+		UnformatedText::Type::Information, Msg);
 }
 
 void Console::LogNormal(string Msg)
 {
 	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
-		|| Application->getUI()->getDialog("Console")->getChilds().empty()
-		|| Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.empty())
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
+		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
 		return;
 
-	Application->getUI()->getDialog("Console")->getChilds().back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Normal, Msg);
+	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
+		UnformatedText::Type::Normal, Msg);
 }
 
 /*
-void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl, vector<void *> pUserContext)
+void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *pControl,
+vector<void *> pUserContext)
 {
 	USES_CONVERSION;
 
@@ -206,15 +213,18 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
 
-					Chat->AddItem(wstring(wstring(L"Size of Dynamic PhysX Objects is: ") + wstring(to_wstring(Cache_UI->Phys->GetPhysDynamicObject().size()))).c_str(), All);
-					Chat->AddItem(wstring(wstring(L"Size of Static PhysX Objects is: ") + wstring(to_wstring(Cache_UI->Phys->GetPhysStaticObject().size()))).c_str(), All);
+					Chat->AddItem(wstring(wstring(L"Size of Dynamic PhysX Objects is: ") +
+					wstring(to_wstring(Cache_UI->Phys->GetPhysDynamicObject().size()))).c_str(), All);
+					Chat->AddItem(wstring(wstring(L"Size of Static PhysX Objects is: ") +
+					wstring(to_wstring(Cache_UI->Phys->GetPhysStaticObject().size()))).c_str(), All);
 				}
 				else if (wcsstr(Cache_Edit->GetText(), L"Get_size_model"))
 				{
 					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText())).c_str(), All);
 					Console *Cache_UI = (Console *)pUserContext.at(0);
 
-					Chat->AddItem(wstring(wstring(L"Size of Models is: ") + wstring(to_wstring(Cache_UI->level->getObjects().size()))).c_str(), All);
+					Chat->AddItem(wstring(wstring(L"Size of Models is: ") +
+					wstring(to_wstring(Cache_UI->level->getObjects().size()))).c_str(), All);
 				}
 				else if (wcsstr(Cache_Edit->GetText(), L"Set_phys_obj_pos"))
 				{
@@ -331,18 +341,23 @@ void CALLBACK Engine::Console::OnGUIEvent(UINT nEvent, int nControlID, Control *
 					for (int i = 0; i < Cache_UI->level->getObjects().size(); i++)
 					{
 						auto Cache = Cache_UI->level->getObjects().at(i).model;
-						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x, Cache->getPosition().y, Cache->getPosition().z);
-						Chat->AddItem(wstring(wstring(L"[")+wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ")+wstring(A2W(Cache_UI->level->getObjects().at(i).ID_TEXT))+wstring(L"] is: ") + buff).c_str(), All);
+						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x,
+						Cache->getPosition().y, Cache->getPosition().z);
+						Chat->AddItem(wstring(wstring(L"[")+wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ") +
+						wstring(A2W(Cache_UI->level->getObjects().at(i).ID_TEXT))+wstring(L"] is: ") + buff).c_str(), All);
 					}
 					for (int i = 0; i < Cache_UI->level->getNPC().size(); i++)
 					{
 						auto Cache = Cache_UI->level->getNPC().at(i).model;
-						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x, Cache->getPosition().y, Cache->getPosition().z);
-						Chat->AddItem(wstring(wstring(L"[") + wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ") + wstring(A2W(Cache_UI->level->getNPC().at(i).ID_TEXT)) + wstring(L"] is: ") + buff).c_str(), All);
+						wstring buff = formatstr("X: %f, Y: %f, Z: %f", Cache->getPosition().x,
+						Cache->getPosition().y, Cache->getPosition().z);
+						Chat->AddItem(wstring(wstring(L"[") + wstring(to_wstring(i)) + wstring(L"] Position of Model[ID: ") +
+						wstring(A2W(Cache_UI->level->getNPC().at(i).ID_TEXT)) + wstring(L"] is: ") + buff).c_str(), All);
 					}
 				}
 				else
-					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText()) + wstring(L" -> Nothing Happens")).c_str(), All);
+					Chat->AddItem(wstring(wstring(L"You're typed: ") + wstring(Cache_Edit->GetText()) +
+					wstring(L" -> Nothing Happens")).c_str(), All);
 			}
 		}
 	}

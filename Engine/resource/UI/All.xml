@@ -1,6 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="Main" width="420" height="185" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="false" bring_to_font="false">
+<gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
+show_title="true" moveble="true" collapsible="false" bring_to_font="false"
+font="rodc" sizefont="14" brightness="0.8">
+	<Tab text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
+	no_close_midle_mouse="false">
+		<TabItem text="Sounds">
+			<TreeNode text="Sound Objects">
+				<Button text="Play" visible="true"/>
+				<Button text="Pause" visible="true"/>
+				<Label text="Path to File:" visible="true"/>
+				<!-- <Column count="2"> -->
+					<Label text="3D Pos:" visible="true"/>
+					<Label text="Dis (ToCam):" visible="true"/>
+					<Label text="Volume Sound:" visible="true"/>
+				<!-- </Column> -->
+			</TreeNode>
+		</TabItem>
+		<TabItem text="Physics">
+			<TreeNode text="Physic Objects">
+				<Button text="Start Simulate" visible="true"/>
+				<Button text="Pause Simulate" visible="true"/>
+				<Label text="Direction:" visible="true"/>
+				<!-- <Column count="2"> -->
+					<Label text="3D Pos:" visible="true"/>
+					<Label text="Distantion(ToCam):" visible="true"/>
+				<!-- </Column> -->
+			</TreeNode>
+		</TabItem>
+	</Tab>
+</gui>
+
+<gui id="Main" width="435" height="195" open="true" resize="true" 
+show_title="true" moveble="true" collapsible="false" bring_to_font="false"
+font="capture-it_[allfont.ru]" sizefont="24" brightness="0.8">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>
 		<Button text="Stop!" visible="true"/>
@@ -10,25 +42,12 @@ show_title="true" moveble="true" collapsible="false" bring_to_font="false">
 </gui>
 
 <gui id="Console" width="400" height="250" open="true" resize="false" 
-show_title="true" moveble="false" collapsible="true" bring_to_font="true">
+show_title="true" moveble="false" collapsible="true" bring_to_font="true"
+font="HarryPotterNORG" sizefont="22" brightness="0.8">
 	<InputText text="Input" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>
 	<ListBox label="##ForHintCmd" visible="true"/>
 	<ChildDialog id="ConsoleText" border="true" horizontal_scroll="true">
 		<UnformatedText/>
 	</ChildDialog>
-</gui>
-
-<gui id="Game Objects" width="420" height="185" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="false" bring_to_font="false">
-	<Collapse text="Sound" seldefault="true" collapsible="true">
-		<TreeNode text="Sounds">
-			<Button text="Play" visible="true"/>
-			<Button text="Pause" visible="true"/>
-			<Label text="Path:" visible="true"/>
-			<Label text="3D Pos:" visible="true"/>
-			<Label text="Distantion(ToCam):" visible="true"/>
-			<Label text="Sound Volume:" visible="true"/>
-		</TreeNode>
-	</Collapse>
 </gui>

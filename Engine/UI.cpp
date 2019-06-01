@@ -14,9 +14,9 @@ HRESULT UI::Init()
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 
-		ImGuiIO &io = Get_IO();
-		io.IniFilename = NULL;
-		io.LogFilename = NULL;
+		ImGuiIO &IO = ImGui::GetIO();
+		IO.IniFilename = NULL;
+		IO.LogFilename = NULL;
 
 		vector<wstring> FileShaders;
 		vector<string> Functions, Version;
@@ -37,32 +37,32 @@ HRESULT UI::Init()
 		if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
 			return false;
 
-		io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-		io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-		io.BackendPlatformName = "DecisionSolver";
-		io.ImeWindowHandle = Application->GetHWND();
+		IO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
+		IO.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+		IO.BackendPlatformName = "DecisionSolver";
+		IO.ImeWindowHandle = Application->GetHWND();
 
-		io.KeyMap[ImGuiKey_Tab] = VK_TAB;
-		io.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-		io.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-		io.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-		io.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-		io.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
-		io.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
-		io.KeyMap[ImGuiKey_Home] = VK_HOME;
-		io.KeyMap[ImGuiKey_End] = VK_END;
-		io.KeyMap[ImGuiKey_Insert] = VK_INSERT;
-		io.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-		io.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-		io.KeyMap[ImGuiKey_Space] = VK_SPACE;
-		io.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-		io.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
-		io.KeyMap[ImGuiKey_A] = 'A';
-		io.KeyMap[ImGuiKey_C] = 'C';
-		io.KeyMap[ImGuiKey_V] = 'V';
-		io.KeyMap[ImGuiKey_X] = 'X';
-		io.KeyMap[ImGuiKey_Y] = 'Y';
-		io.KeyMap[ImGuiKey_Z] = 'Z';
+		IO.KeyMap[ImGuiKey_Tab] = VK_TAB;
+		IO.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+		IO.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+		IO.KeyMap[ImGuiKey_UpArrow] = VK_UP;
+		IO.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+		IO.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
+		IO.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
+		IO.KeyMap[ImGuiKey_Home] = VK_HOME;
+		IO.KeyMap[ImGuiKey_End] = VK_END;
+		IO.KeyMap[ImGuiKey_Insert] = VK_INSERT;
+		IO.KeyMap[ImGuiKey_Delete] = VK_DELETE;
+		IO.KeyMap[ImGuiKey_Backspace] = VK_BACK;
+		IO.KeyMap[ImGuiKey_Space] = VK_SPACE;
+		IO.KeyMap[ImGuiKey_Enter] = VK_RETURN;
+		IO.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+		IO.KeyMap[ImGuiKey_A] = 'A';
+		IO.KeyMap[ImGuiKey_C] = 'C';
+		IO.KeyMap[ImGuiKey_V] = 'V';
+		IO.KeyMap[ImGuiKey_X] = 'X';
+		IO.KeyMap[ImGuiKey_Y] = 'Y';
+		IO.KeyMap[ImGuiKey_Z] = 'Z';
 
 		InitUI = true;
 		return S_OK;
@@ -76,6 +76,18 @@ HRESULT UI::Init()
 	}
 	return S_OK;
 }
+void dialogs::ChangeFont(string FontName, float SizePixel, float Brighten)
+{
+	ImGuiIO &IO = ImGui::GetIO();
+	shared_ptr<ImFontConfig> font_config = make_shared<ImFontConfig>();
+	font_config->RasterizerMultiply = Brighten;
+	font_config->OversampleH = 3;
+	font_config->OversampleV = 1;
+	font_config->PixelSnapH = true;
+
+	Font = IO.Fonts->AddFontFromFileTTF(FontName.c_str(), SizePixel, font_config.get(),
+		IO.Fonts->GetGlyphRangesCyrillic());
+}
 
 void UI::ResizeWnd()
 {
@@ -85,10 +97,11 @@ void UI::ResizeWnd()
 	ToDo("Change This!!!");
 	if (!Application->getUI()->getDialogs().empty())
 	{
-		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y - 10.f,
-			ImVec2(0.f, 1.f));
+		Application->getUI()->getDialog("Main")->ChangePosition(10.f,
+			Application->getWorkAreaSize(Application->GetHWND()).y - 10.f, ImVec2(0.f, 1.f));
 		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
-		Application->getUI()->getDialog("Console")->ChangeSize(Application->getWorkAreaSize(Application->GetHWND()).x,
+		Application->getUI()->getDialog("Console")->ChangeSize(
+			Application->getWorkAreaSize(Application->GetHWND()).x,
 			Application->getWorkAreaSize(Application->GetHWND()).y / 3);
 	}
 }
@@ -161,1628 +174,140 @@ HRESULT UI::LoadXmlUI(string File)
 	return S_OK;
 }
 
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Buttons> &btn,
+void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllTheComponent> &DoneComponent,
 	int &CountOrder)
 {
-	GetParam(element, btn);
-	btn->ChangeOrder(CountOrder);
-	dialog->setComponent(btn);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<Labels> &Label,
-	int &CountOrder)
-{
-	GetParam(element, Label);
-	Label->ChangeOrder(CountOrder);
-	dialog->setComponent(Label);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<IText> &Itext,
-	int &CountOrder)
-{
-	GetParam(element, Itext);
-	Itext->ChangeOrder(CountOrder);
-	dialog->setComponent(Itext);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
-	int &CountOrder)
-{
-	GetParam(element, ItextMul);
-	ItextMul->ChangeOrder(CountOrder);
-	dialog->setComponent(ItextMul);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLElement *element, shared_ptr<TextList> &TList,
-	int &CountOrder)
-{
-	GetParam(element, TList);
-	TList->ChangeOrder(CountOrder);
-	dialog->setComponent(TList);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
-	shared_ptr<Tab> &tab, int &CountOrder)
-{
-	GetParam(Nods, tab);
-
 	//	Button
-	for (size_t i = 0; i < XMLTab->buttons.size(); i++)
+	for (size_t i = 0; i < Component->IDbuttons.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(tab, XMLTab->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
+		auto button = make_shared<Buttons>();
+		GetParam(Component->buttons.at(i)->ToElement(), button);
+		button->ChangeOrder(CountOrder);
+		DoneComponent->Btn.push_back(button);
 	}
 	//	InputText
-	for (size_t i = 0; i < XMLTab->texts.size(); i++)
+	for (size_t i = 0; i < Component->IDtexts.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(tab, XMLTab->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
+		auto itext = make_shared<IText>();
+		GetParam(Component->texts.at(i)->ToElement(), itext);
+		itext->ChangeOrder(CountOrder);
+		DoneComponent->Itext.push_back(itext);
 	}
 	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTab->textmuls.size(); i++)
+	for (size_t i = 0; i < Component->IDtextmuls.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(tab, XMLTab->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTab->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLCHead.at(i), XMLTab, make_shared<CollapsingHeaders>(), CountOrder);
+		auto itextmul = make_shared<ITextMulti>();
+		GetParam(Component->textmuls.at(i)->ToElement(), itextmul);
+		itextmul->ChangeOrder(CountOrder);
+		DoneComponent->Itextmul.push_back(itextmul);
 	}
 	//	Label
-	for (size_t i = 0; i < XMLTab->labels.size(); i++)
+	for (size_t i = 0; i < Component->IDlabels.size(); i++)
 	{
 		CountOrder++;
-		shared_ptr<Labels> label = make_shared<Labels>();
-		WorkOnComponents(tab, XMLTab->labels.at(i)->ToElement(), label, CountOrder);
+		auto label = make_shared<Labels>();
+		GetParam(Component->labels.at(i)->ToElement(), label);
+		label->ChangeOrder(CountOrder);
+		DoneComponent->Label.push_back(label);
 	}
 	//	Separator
-	for (size_t i = 0; i < XMLTab->separators.size(); i++)
+	for (size_t i = 0; i < Component->IDseparators.size(); i++)
 	{
 		CountOrder++;
 		shared_ptr<_Separator> separator = make_shared<_Separator>();
 		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTab->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLDChild.at(i), XMLTab, make_shared<Child>(), CountOrder);
+		DoneComponent->separators.push_back(separator);
 	}
 	//	UnformatedText
-	for (size_t i = 0; i < XMLTab->utext.size(); i++)
+	for (size_t i = 0; i < Component->IDutext.size(); i++)
 	{
 		CountOrder++;
 		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
 		UText->ChangeOrder(CountOrder);
-		tab->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTab->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_Tab.at(i), XMLTab, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTab->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_TreeNode.at(i), XMLTab, make_shared<TreeNode>(), CountOrder);
-	}
-
-	tab->ChangeOrder(CountOrder);
-	dialog->setComponent(tab);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
-	shared_ptr<TreeNode> &TNode, int &CountOrder)
-{
-	GetParam(Nods, TNode);
-
-	//	Button
-	for (size_t i = 0; i < XMLTNode->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTNode->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTNode->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
+		DoneComponent->UText.push_back(UText);
 	}
 	//	Collapse
-	for (size_t i = 0; i < XMLTNode->XMLCHead.size(); i++)
+	for (size_t i = 0; i < Component->XMLCHead.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTNode->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTNode->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
+		int Count = 0;
+		auto cheader = make_shared<CollapsingHeaders>();
+		shared_ptr<AllTheComponent> CHeader = make_shared<AllTheComponent>();
+
+		WorkOnComponents(Component->CpsHead.at(i), CHeader, Count);
+		GetParam(Component->XMLCHead.at(i)->ToElement(), cheader);
+
+		cheader->ChangeOrder(CountOrder);
+		cheader->setComponents(CHeader);
+		DoneComponent->CollpsHeader.push_back(cheader);
 	}
 	//	ChildDialog
-	for (size_t i = 0; i < XMLTNode->XMLDChild.size(); i++)
+	for (size_t i = 0; i < Component->XMLDChild.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLDChild.at(i), XMLTNode, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTNode->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		TNode->getComponent()->UText.push_back(UText);
+		int Count = 0;
+		auto child = make_shared<Child>();
+		shared_ptr<AllTheComponent> Childs = make_shared<AllTheComponent>();
+
+		WorkOnComponents(Component->DialChild.at(i), Childs, Count);
+		GetParam(Component->XMLDChild.at(i)->ToElement(), child);
+
+		child->ChangeOrder(CountOrder);
+		child->setComponents(Childs);
+		DoneComponent->childs.push_back(child);
 	}
 	//	Tab
-	for (size_t i = 0; i < XMLTNode->XML_Tab.size(); i++)
+	for (size_t i = 0; i < Component->XML_Tab.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_Tab.at(i), XMLTNode, make_shared<Tab>(), CountOrder);
+		int Count = 0;
+		auto tab = make_shared<Tab>();
+		shared_ptr<AllTheComponent> Tabs = make_shared<AllTheComponent>();
+
+		WorkOnComponents(Component->_Tab.at(i)->Component.back(), Tabs, Count);
+		GetParam(Component->XML_Tab.at(i)->ToElement(), tab);
+
+		tab->ChangeOrder(CountOrder);
+		tab->getComponent().back()->TabItemComp.push_back(Tabs);
+		DoneComponent->Tabs.push_back(tab);
 	}
 	//	TreeNode
-	for (size_t i = 0; i < XMLTNode->XML_TreeNode.size(); i++)
+	for (size_t i = 0; i < Component->XML_TreeNode.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_TreeNode.at(i), XMLTNode, make_shared<TreeNode>(), CountOrder);
-	}
+		int Count = 0;
+		auto TNode = make_shared<TreeNode>();
+		shared_ptr<AllTheComponent> tnode = make_shared<AllTheComponent>();
 
-	TNode->ChangeOrder(CountOrder);
-	dialog->setComponent(TNode);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
-	shared_ptr<Child> &child, int &CountOrder)
-{
-	GetParam(Nods, child);
+		WorkOnComponents(Component->_TreeNode.at(i), tnode, Count);
+		GetParam(Component->XML_TreeNode.at(i)->ToElement(), TNode);
 
-	//	Button
-	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
+		TNode->ChangeOrder(CountOrder);
+		TNode->setComponents(tnode);
+		DoneComponent->TNode.push_back(TNode);
+	}
+	//	Column
+	for (size_t i = 0; i < Component->XMLColumn.size(); i++)
 	{
 		CountOrder++;
-		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLchild->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLchild->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLCHead.at(i), XMLchild, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLchild->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLchild->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLchild->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLDChild.at(i), XMLchild, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLchild->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		child->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLchild->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_Tab.at(i), XMLchild, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLchild->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_TreeNode.at(i), XMLchild, make_shared<TreeNode>(), CountOrder);
-	}
+		int Count = 0;
+		auto column = make_shared<Column>();
+		shared_ptr<AllTheComponent> Columns = make_shared<AllTheComponent>();
 
-	child->ChangeOrder(CountOrder);
-	dialog->setComponent(child);
-}
-void UI::WorkOnComponents(shared_ptr<dialogs> &dialog, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
-	shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
-{
-	GetParam(Nods, CHeader);
+		WorkOnComponents(Component->_Column.back(), Columns, Count);
+		GetParam(Component->XMLColumn.at(i)->ToElement(), column);
 
-	//	Button
-	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
+		column->ChangeOrder(CountOrder);
+		column->setComponents(Columns);
+		DoneComponent->column.push_back(column);
 	}
-	//	InputText
-	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLCHeader->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLDChild.at(i), XMLCHeader, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		CHeader->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLCHeader->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_Tab.at(i), XMLCHeader, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLCHeader->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_TreeNode.at(i), XMLCHeader, make_shared<TreeNode>(), CountOrder);
-	}
-
-	CHeader->ChangeOrder(CountOrder);
-	dialog->setComponent(CHeader);
 }
 
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Buttons> &btn,
-	int &CountOrder)
-{
-	GetParam(element, btn);
-	btn->ChangeOrder(CountOrder);
-	InChild->getComponent()->Btn.push_back(btn);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<Labels> &Label,
-	int &CountOrder)
-{
-	GetParam(element, Label);
-	Label->ChangeOrder(CountOrder);
-	InChild->getComponent()->Label.push_back(Label);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<IText> &Itext,
-	int &CountOrder)
-{
-	GetParam(element, Itext);
-	Itext->ChangeOrder(CountOrder);
-	InChild->getComponent()->Itext.push_back(Itext);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
-	int &CountOrder)
-{
-	GetParam(element, ItextMul);
-	ItextMul->ChangeOrder(CountOrder);
-	InChild->getComponent()->Itextmul.push_back(ItextMul);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLElement *element, shared_ptr<TextList> &TList,
-	int &CountOrder)
-{
-	GetParam(element, TList);
-	TList->ChangeOrder(CountOrder);
-	InChild->getComponent()->TList.push_back(TList);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
-	shared_ptr<Tab> &tab, int &CountOrder)
-{
-	GetParam(Nods, tab);
-
-	//	Button
-	for (size_t i = 0; i < XMLTab->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTab->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTab->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTab->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLCHead.at(i), XMLTab, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTab->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTab->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTab->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLDChild.at(i), XMLTab, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTab->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		tab->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTab->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_Tab.at(i), XMLTab, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTab->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_TreeNode.at(i), XMLTab, make_shared<TreeNode>(), CountOrder);
-	}
-
-	tab->ChangeOrder(CountOrder);
-	InChild->getComponent()->Tabs.push_back(tab);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
-	shared_ptr<TreeNode> &TNode, int &CountOrder)
-{
-	GetParam(Nods, TNode);
-
-	//	Button
-	for (size_t i = 0; i < XMLTNode->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTNode->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTNode->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTNode->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTNode->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTNode->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTNode->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLDChild.at(i), XMLTNode, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTNode->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		TNode->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTNode->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_Tab.at(i), XMLTNode, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTNode->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_TreeNode.at(i), XMLTNode, make_shared<TreeNode>(), CountOrder);
-	}
-
-	TNode->ChangeOrder(CountOrder);
-	InChild->getComponent()->TNode.push_back(TNode);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
-	shared_ptr<Child> &child, int &CountOrder)
-{
-	GetParam(Nods, child);
-
-	//	Button
-	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLchild->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLchild->XMLCHead.size(); i++)
-	{
-		WorkOnComponents(child, XMLchild->XMLCHead.at(i), XMLchild, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLchild->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLchild->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLchild->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLDChild.at(i), XMLchild, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLchild->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		child->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLchild->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_Tab.at(i), XMLchild, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLchild->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_TreeNode.at(i), XMLchild, make_shared<TreeNode>(), CountOrder);
-	}
-
-	child->ChangeOrder(CountOrder);
-	InChild->getComponent()->childs.push_back(child);
-}
-void UI::WorkOnComponents(shared_ptr<Child> &InChild, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
-	shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
-{
-	GetParam(Nods, CHeader);
-
-	//	Button
-	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLCHeader->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLDChild.at(i), XMLCHeader, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		CHeader->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLCHeader->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_Tab.at(i), XMLCHeader, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLCHeader->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_TreeNode.at(i), XMLCHeader, make_shared<TreeNode>(), CountOrder);
-	}
-
-	CHeader->ChangeOrder(CountOrder);
-	InChild->getComponent()->CollpsHeader.push_back(CHeader);
-}
-
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Buttons> &btn,
-	int &CountOrder)
-{
-	GetParam(element, btn);
-	btn->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->Btn.push_back(btn);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<Labels> &Label,
-	int &CountOrder)
-{
-	GetParam(element, Label);
-	Label->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->Label.push_back(Label);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<IText> &Itext,
-	int &CountOrder)
-{
-	GetParam(element, Itext);
-	Itext->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->Itext.push_back(Itext);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element,
-	shared_ptr<ITextMulti> &ItextMul, int &CountOrder)
-{
-	GetParam(element, ItextMul);
-	ItextMul->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->Itextmul.push_back(ItextMul);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLElement *element, shared_ptr<TextList> &TList,
-	int &CountOrder)
-{
-	GetParam(element, TList);
-	TList->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->TList.push_back(TList);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
-	shared_ptr<Tab> &tab, int &CountOrder)
-{
-	GetParam(Nods, tab);
-
-	//	Button
-	for (size_t i = 0; i < XMLTab->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTab->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTab->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTab->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLCHead.at(i), XMLTab, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTab->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTab->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTab->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLDChild.at(i), XMLTab, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTab->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		tab->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTab->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_Tab.at(i), XMLTab, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTab->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_TreeNode.at(i), XMLTab, make_shared<TreeNode>(), CountOrder);
-	}
-
-	tab->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->Tabs.push_back(tab);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
-	shared_ptr<TreeNode> &TNode, int &CountOrder)
-{
-	GetParam(Nods, TNode);
-
-	//	Button
-	for (size_t i = 0; i < XMLTNode->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTNode->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTNode->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTNode->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTNode->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTNode->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTNode->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTNode->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		TNode->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTNode->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_Tab.at(i), XMLTNode, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTNode->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_TreeNode.at(i), XMLTNode, make_shared<TreeNode>(), CountOrder);
-	}
-
-	TNode->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->TNode.push_back(TNode);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
-	shared_ptr<Child> &child, int &CountOrder)
-{
-	GetParam(Nods, child);
-
-	//	Button
-	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLchild->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLchild->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLCHead.at(i), XMLchild, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLchild->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLchild->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLchild->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLDChild.at(i), XMLchild, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLchild->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		child->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLchild->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_Tab.at(i), XMLchild, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLchild->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_TreeNode.at(i), XMLchild, make_shared<TreeNode>(), CountOrder);
-	}
-
-	child->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->childs.push_back(child);
-}
-void UI::WorkOnComponents(shared_ptr<CollapsingHeaders> &InCollaps, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
-	shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
-{
-	GetParam(Nods, CHeader);
-
-	//	Button
-	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader->CpsHead.back(),
-			make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader->DialChild.back(), make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		CHeader->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLCHeader->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_Tab.at(i), XMLCHeader->_Tab.back(), make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLCHeader->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_TreeNode.at(i), XMLCHeader->_TreeNode.back(),
-			make_shared<TreeNode>(), CountOrder);
-	}
-
-	CHeader->ChangeOrder(CountOrder);
-	InCollaps->getComponent()->CollpsHeader.push_back(CHeader);
-}
-
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<Buttons> &btn,
-	int &CountOrder)
-{
-	GetParam(element, btn);
-	btn->ChangeOrder(CountOrder);
-	InTab->getComponent()->Btn.push_back(btn);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<Labels> &Label,
-	int &CountOrder)
-{
-	GetParam(element, Label);
-	Label->ChangeOrder(CountOrder);
-	InTab->getComponent()->Label.push_back(Label);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<IText> &Itext,
-	int &CountOrder)
-{
-	GetParam(element, Itext);
-	Itext->ChangeOrder(CountOrder);
-	InTab->getComponent()->Itext.push_back(Itext);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
-	int &CountOrder)
-{
-	GetParam(element, ItextMul);
-	ItextMul->ChangeOrder(CountOrder);
-	InTab->getComponent()->Itextmul.push_back(ItextMul);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLElement *element, shared_ptr<TextList> &TList,
-	int &CountOrder)
-{
-	GetParam(element, TList);
-	TList->ChangeOrder(CountOrder);
-	InTab->getComponent()->TList.push_back(TList);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
-	shared_ptr<Tab> &tab, int &CountOrder)
-{
-	GetParam(Nods, tab);
-
-	//	Button
-	for (size_t i = 0; i < XMLTab->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTab->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTab->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTab->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLCHead.at(i), XMLTab, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTab->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTab->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTab->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLDChild.at(i), XMLTab, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTab->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		tab->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTab->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_Tab.at(i), XMLTab, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTab->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_TreeNode.at(i), XMLTab, make_shared<TreeNode>(), CountOrder);
-	}
-
-	tab->ChangeOrder(CountOrder);
-	InTab->getComponent()->Tabs.push_back(tab);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
-	shared_ptr<TreeNode> &TNode, int &CountOrder)
-{
-	GetParam(Nods, TNode);
-
-	//	Button
-	for (size_t i = 0; i < XMLTNode->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTNode->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTNode->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTNode->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTNode->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTNode->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTNode->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLDChild.at(i), XMLTNode, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTNode->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		TNode->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTNode->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_Tab.at(i), XMLTNode, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTNode->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_TreeNode.at(i), XMLTNode, make_shared<TreeNode>(), CountOrder);
-	}
-
-	TNode->ChangeOrder(CountOrder);
-	InTab->getComponent()->TNode.push_back(TNode);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
-	shared_ptr<Child> &child, int &CountOrder)
-{
-	GetParam(Nods, child);
-
-	//	Button
-	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLchild->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLchild->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLCHead.at(i), XMLchild, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLchild->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLchild->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLchild->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLDChild.at(i), XMLchild, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLchild->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		child->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLchild->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_Tab.at(i), XMLchild, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLchild->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_TreeNode.at(i), XMLchild, make_shared<TreeNode>(), CountOrder);
-	}
-
-	child->ChangeOrder(CountOrder);
-	InTab->getComponent()->childs.push_back(child);
-}
-void UI::WorkOnComponents(shared_ptr<Tab> &InTab, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
-	shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
-{
-	GetParam(Nods, CHeader);
-
-	//	Button
-	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLCHeader->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLDChild.at(i), XMLCHeader, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		CHeader->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLCHeader->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_Tab.at(i), XMLCHeader, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLCHeader->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_TreeNode.at(i), XMLCHeader, make_shared<TreeNode>(), CountOrder);
-	}
-
-	CHeader->ChangeOrder(CountOrder);
-	InTab->getComponent()->CollpsHeader.push_back(CHeader);
-}
-
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<Buttons> &btn,
-	int &CountOrder)
-{
-	GetParam(element, btn);
-	btn->ChangeOrder(CountOrder);
-	InTNode->getComponent()->Btn.push_back(btn);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<Labels> &Label,
-	int &CountOrder)
-{
-	GetParam(element, Label);
-	Label->ChangeOrder(CountOrder);
-	InTNode->getComponent()->Label.push_back(Label);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<IText> &Itext,
-	int &CountOrder)
-{
-	GetParam(element, Itext);
-	Itext->ChangeOrder(CountOrder);
-	InTNode->getComponent()->Itext.push_back(Itext);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<ITextMulti> &ItextMul,
-	int &CountOrder)
-{
-	GetParam(element, ItextMul);
-	ItextMul->ChangeOrder(CountOrder);
-	InTNode->getComponent()->Itextmul.push_back(ItextMul);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLElement *element, shared_ptr<TextList> &TList,
-	int &CountOrder)
-{
-	GetParam(element, TList);
-	TList->ChangeOrder(CountOrder);
-	InTNode->getComponent()->TList.push_back(TList);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLTab,
-	shared_ptr<Tab> &tab, int &CountOrder)
-{
-	GetParam(Nods, tab);
-
-	//	Button
-	for (size_t i = 0; i < XMLTab->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTab->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTab->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTab->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLCHead.at(i), XMLTab, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTab->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTab->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTab->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XMLDChild.at(i), XMLTab, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTab->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		tab->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTab->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_Tab.at(i), XMLTab, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTab->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(tab, XMLTab->XML_TreeNode.at(i), XMLTab, make_shared<TreeNode>(), CountOrder);
-	}
-
-	tab->ChangeOrder(CountOrder);
-	InTNode->getComponent()->Tabs.push_back(tab);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLTNode,
-	shared_ptr<TreeNode> &TNode, int &CountOrder)
-{
-	GetParam(Nods, TNode);
-
-	//	Button
-	for (size_t i = 0; i < XMLTNode->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLTNode->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLTNode->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLTNode->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLCHead.at(i), XMLTNode, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLTNode->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLTNode->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLTNode->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XMLDChild.at(i), XMLTNode, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLTNode->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		TNode->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLTNode->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_Tab.at(i), XMLTNode, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLTNode->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(TNode, XMLTNode->XML_TreeNode.at(i), XMLTNode, make_shared<TreeNode>(), CountOrder);
-	}
-
-	TNode->ChangeOrder(CountOrder);
-	InTNode->getComponent()->TNode.push_back(TNode);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLchild,
-	shared_ptr<Child> &child, int &CountOrder)
-{
-	GetParam(Nods, child);
-
-	//	Button
-	for (size_t i = 0; i < XMLchild->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLchild->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLchild->textmuls.size(); i++)
-	{
-		WorkOnComponents(child, XMLchild->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLchild->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLCHead.at(i), XMLchild, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLchild->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLchild->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLchild->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XMLDChild.at(i), XMLchild, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLchild->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		child->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLchild->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_Tab.at(i), XMLchild, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLchild->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(child, XMLchild->XML_TreeNode.at(i), XMLchild, make_shared<TreeNode>(), CountOrder);
-	}
-
-	child->ChangeOrder(CountOrder);
-	InTNode->getComponent()->childs.push_back(child);
-}
-void UI::WorkOnComponents(shared_ptr<TreeNode> &InTNode, XMLNode *Nods, shared_ptr<XMLComponents> XMLCHeader,
-	shared_ptr<CollapsingHeaders> &CHeader, int &CountOrder)
-{
-	GetParam(Nods, CHeader);
-
-	//	Button
-	for (size_t i = 0; i < XMLCHeader->buttons.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->buttons.at(i)->ToElement(), make_shared<Buttons>(), CountOrder);
-	}
-	//	InputText
-	for (size_t i = 0; i < XMLCHeader->texts.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->texts.at(i)->ToElement(), make_shared<IText>(), CountOrder);
-	}
-	//	InputTextMultiline
-	for (size_t i = 0; i < XMLCHeader->textmuls.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->textmuls.at(i)->ToElement(), make_shared<ITextMulti>(), CountOrder);
-	}
-	//	Collapse
-	for (size_t i = 0; i < XMLCHeader->XMLCHead.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLCHead.at(i), XMLCHeader, make_shared<CollapsingHeaders>(), CountOrder);
-	}
-	//	Label
-	for (size_t i = 0; i < XMLCHeader->labels.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->labels.at(i)->ToElement(), make_shared<Labels>(), CountOrder);
-	}
-	//	Separator
-	for (size_t i = 0; i < XMLCHeader->separators.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
-	}
-	//	ChildDialog
-	for (size_t i = 0; i < XMLCHeader->XMLDChild.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XMLDChild.at(i), XMLCHeader, make_shared<Child>(), CountOrder);
-	}
-	//	UnformatedText
-	for (size_t i = 0; i < XMLCHeader->utext.size(); i++)
-	{
-		CountOrder++;
-		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
-		CHeader->getComponent()->UText.push_back(UText);
-	}
-	//	Tab
-	for (size_t i = 0; i < XMLCHeader->XML_Tab.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_Tab.at(i), XMLCHeader, make_shared<Tab>(), CountOrder);
-	}
-	//	TreeNode
-	for (size_t i = 0; i < XMLCHeader->XML_TreeNode.size(); i++)
-	{
-		CountOrder++;
-		WorkOnComponents(CHeader, XMLCHeader->XML_TreeNode.at(i), XMLCHeader, make_shared<TreeNode>(), CountOrder);
-	}
-
-	CHeader->ChangeOrder(CountOrder);
-	InTNode->getComponent()->CollpsHeader.push_back(CHeader);
-}
-
-void UI::XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator everything, int &countComp)
+void UI::XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator everything,
+	int &countComp)
 {
 	countComp++;
 
@@ -1849,7 +374,8 @@ void UI::XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator ever
 		return;
 	}
 }
-void UI::XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterator everything, int &countComp)
+void UI::XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterator everything,
+	int &countComp)
 {
 	if (InCHead->Components->CpsHead.empty())
 		InCHead->Components->CpsHead.push_back(make_shared<XMLComponents>());
@@ -1919,7 +445,8 @@ void UI::XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterat
 		return;
 	}
 }
-void UI::XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterator everything, int &countComp)
+void UI::XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterator everything,
+	int &countComp)
 {
 	if (InChild->Components->DialChild.empty())
 		InChild->Components->DialChild.push_back(make_shared<XMLComponents>());
@@ -1989,7 +516,8 @@ void UI::XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterato
 		return;
 	}
 }
-void UI::XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterator everything, int &countComp)
+void UI::XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterator everything,
+	int &countComp)
 {
 	if (InTNode->Components->_TreeNode.empty())
 		InTNode->Components->_TreeNode.push_back(make_shared<XMLComponents>());
@@ -2059,73 +587,74 @@ void UI::XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterato
 		return;
 	}
 }
-void UI::XMLPreparingTab(shared_ptr<dial> &InTab, vector<XMLNode *>::iterator everything, int &countComp)
+void UI::XMLPreparingTab(shared_ptr<dial> &InTab, vector<XMLNode *>::iterator everything,
+	int &countComp)
 {
 	if (InTab->Components->_Tab.empty())
-		InTab->Components->_Tab.push_back(make_shared<XMLComponents>());
+		InTab->Components->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
 
 	countComp++;
 
 	if (strcmp((*everything)->Value(), "Button") == 0)
 	{
-		InTab->Components->_Tab.back()->IDbuttons.push_back(countComp);
-		InTab->Components->_Tab.back()->buttons.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDbuttons.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->buttons.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "InputText") == 0)
 	{
-		InTab->Components->_Tab.back()->IDtexts.push_back(countComp);
-		InTab->Components->_Tab.back()->texts.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDtexts.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->texts.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
 	{
-		InTab->Components->_Tab.back()->IDtextmuls.push_back(countComp);
-		InTab->Components->_Tab.back()->textmuls.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDtextmuls.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->textmuls.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "Label") == 0)
 	{
-		InTab->Components->_Tab.back()->IDlabels.push_back(countComp);
-		InTab->Components->_Tab.back()->labels.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDlabels.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->labels.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "Separator") == 0)
 	{
-		InTab->Components->_Tab.back()->IDseparators.push_back(countComp);
-		InTab->Components->_Tab.back()->separators.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDseparators.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->separators.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
 	{
-		InTab->Components->_Tab.back()->IDutext.push_back(countComp);
-		InTab->Components->_Tab.back()->utext.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDutext.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->utext.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "TreeNode") == 0)
 	{
-		InTab->Components->_Tab.back()->XML_TreeNode.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XML_TreeNode.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "Tab") == 0)
 	{
-		InTab->Components->_Tab.back()->XML_Tab.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XML_Tab.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
 	{
-		InTab->Components->_Tab.back()->XMLDChild.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XMLDChild.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "Collapse") == 0)
 	{
-		InTab->Components->_Tab.back()->XMLCHead.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XMLCHead.push_back(*everything);
 		return;
 	}
 	if (strcmp((*everything)->Value(), "ListBox") == 0)
 	{
-		InTab->Components->_Tab.back()->IDtlist.push_back(countComp);
-		InTab->Components->_Tab.back()->tlist.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->IDtlist.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->tlist.push_back(*everything);
 		return;
 	}
 }
@@ -2312,6 +841,22 @@ void UI::GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode)
 		}
 	}
 }
+void UI::GetParam(XMLNode *Nods, shared_ptr<Column> &column)
+{
+	if (!Nods) return;
+
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Nods->ToElement()->FirstAttribute());
+	for (;;)
+	{
+		if (strcmp(FirstAttr->Name(), "count") == 0)
+		{
+			column->ChangeCountColumn(FirstAttr->IntValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+}
 
 void UI::GetParam(XMLElement *Nods, shared_ptr<Buttons>& btn)
 {
@@ -2415,7 +960,7 @@ void UI::GetParam(XMLElement *Nods, shared_ptr<IText> &Itext)
 			Itext->setHint(FirstAttr->BoolValue());
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
-				break;
+break;
 		}
 		if (strcmp(FirstAttr->Name(), "texthint") == 0)
 		{
@@ -2457,7 +1002,7 @@ void UI::GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul)
 	}
 }
 
-void UI::GetForRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
+void UI::GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 	shared_ptr<XMLComponents> &SomeComponent)
 {
 	for (auto Two = SomeComponents.begin(); Two != SomeComponents.end(); ++Two)
@@ -2465,101 +1010,158 @@ void UI::GetForRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 		int i = 0;
 		while (!(*Two)->NoChildren())
 		{
-			if (strcmp((*Two)->Value(), "Tab") == 0)
+			// Check Our TabItem First
+			if (((*Two)->Parent()) &&
+				(strcmp((*Two)->Parent()->Value(), "Tab") == 0) &&
+				(strcmp((*Two)->Value(), "TabItem") == 0))
 			{
-				SomeComponent->_Tab.push_back(make_shared<XMLComponents>());
-				SomeComponent->XML_Tab.push_back(*Two);
-
-				vector<XMLNode *> TheSecondComponent; // Look for The Components From Under-Component
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*Two)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = TheSecondComponent.begin(); Three != TheSecondComponent.end(); ++Three)
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
 				{
 					if (!(*Three)->NoChildren())
-						GetForRecursion(TheSecondComponent, SomeComponent->_Tab.back()->OrderlyRender,
-							SomeComponent->_Tab.back());
+						GetRecursion(SecondComponent, SomeComponent->OrderlyRender, SomeComponent);
 					else
-						XMLPreparingRecursion(SomeComponent->_Tab.back(), Three, SomeComponent->OrderlyRender);
+						XMLPreparingRecursion(SomeComponent, Three, SomeComponent->OrderlyRender);
+				}
+			}
+			else if (strcmp((*Two)->Value(), "Tab") == 0)
+			{
+				SomeComponent->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
+				SomeComponent->XML_Tab.push_back(*Two);
+				SomeComponent->OrderlyRender++;
+
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
+				for (;;)
+				{
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
+					else
+						break;
+				}
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				{
+					if (!(*Three)->NoChildren())
+						GetRecursion(SecondComponent,
+							SomeComponent->_Tab.back()->Component.back()->OrderlyRender,
+							SomeComponent->_Tab.back()->Component.back());
+					else
+						XMLPreparingRecursion(SomeComponent->_Tab.back()->Component.back(), Three,
+							SomeComponent->_Tab.back()->Component.back()->OrderlyRender);
+				}
+			}
+			else if (strcmp((*Two)->Value(), "Column") == 0)
+			{
+				SomeComponent->XMLColumn.push_back(*Two);
+				SomeComponent->_Column.push_back(make_shared<XMLComponents>());
+				SomeComponent->OrderlyRender++;
+
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
+				for (;;)
+				{
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
+					else
+						break;
+				}
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				{
+					if (!(*Three)->NoChildren())
+						GetRecursion(SecondComponent, SomeComponent->_Column.back()->OrderlyRender,
+							SomeComponent->_Column.back());
+					else
+						XMLPreparingRecursion(SomeComponent->_Column.back(), Three,
+							SomeComponent->_Column.back()->OrderlyRender);
 				}
 			}
 			else if (strcmp((*Two)->Value(), "TreeNode") == 0)
 			{
 				SomeComponent->_TreeNode.push_back(make_shared<XMLComponents>());
 				SomeComponent->XML_TreeNode.push_back(*Two);
+				SomeComponent->OrderlyRender++;
 
-				vector<XMLNode *> TheSecondComponent; // Look for The Components From Under-Component
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*Two)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = TheSecondComponent.begin(); Three != TheSecondComponent.end(); ++Three)
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
 				{
 					if (!(*Three)->NoChildren())
-						GetForRecursion(TheSecondComponent, SomeComponent->_TreeNode.back()->OrderlyRender,
+						GetRecursion(SecondComponent, SomeComponent->_TreeNode.back()->OrderlyRender,
 							SomeComponent->_TreeNode.back());
 					else
 						XMLPreparingRecursion(SomeComponent->_TreeNode.back(), Three,
-							SomeComponent->OrderlyRender);
+							SomeComponent->_TreeNode.back()->OrderlyRender);
 				}
 			}
 			else if (strcmp((*Two)->Value(), "Collapse") == 0)
 			{
 				SomeComponent->CpsHead.push_back(make_shared<XMLComponents>());
 				SomeComponent->XMLCHead.push_back(*Two);
+				SomeComponent->OrderlyRender++;
 
-				vector<XMLNode *> TheSecondComponent; // Look for The Components From Under-Component
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*Two)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = TheSecondComponent.begin(); Three != TheSecondComponent.end(); ++Three)
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
 				{
 					if (!(*Three)->NoChildren())
-						GetForRecursion(TheSecondComponent, SomeComponent->CpsHead.back()->OrderlyRender,
+						GetRecursion(SecondComponent, SomeComponent->CpsHead.back()->OrderlyRender,
 							SomeComponent->CpsHead.back());
 					else
-						XMLPreparingRecursion(SomeComponent->CpsHead.back(), Three, SomeComponent->OrderlyRender);
+						XMLPreparingRecursion(SomeComponent->CpsHead.back(), Three,
+							SomeComponent->CpsHead.back()->OrderlyRender);
 				}
 			}
 			else if (strcmp((*Two)->Value(), "ChildDialog") == 0)
 			{
 				SomeComponent->DialChild.push_back(make_shared<XMLComponents>());
 				SomeComponent->XMLDChild.push_back(*Two);
+				SomeComponent->OrderlyRender++;
 
-				vector<XMLNode *> TheSecondComponent; // Look for The Components From Under-Component
+				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*Two)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = TheSecondComponent.begin(); Three != TheSecondComponent.end(); ++Three)
+				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
 				{
 					if (!(*Three)->NoChildren())
-						GetForRecursion(TheSecondComponent, SomeComponent->DialChild.back()->OrderlyRender,
+						GetRecursion(SecondComponent, SomeComponent->DialChild.back()->OrderlyRender,
 							SomeComponent->DialChild.back());
 					else
-						XMLPreparingRecursion(SomeComponent->DialChild.back(), Three, SomeComponent->OrderlyRender);
+						XMLPreparingRecursion(SomeComponent->DialChild.back(), Three,
+							SomeComponent->DialChild.back()->OrderlyRender);
 				}
 			}
 
@@ -2568,260 +1170,154 @@ void UI::GetForRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 		}
 	}
 }
-void UI::GetForRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
+void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 	shared_ptr<XMLComponents> &SomeComponent)
 {
 	//	Collapse
 	for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
 	{
-		shared_ptr<CollapsingHeaders> CHeader = make_shared<CollapsingHeaders>();
+		auto CHeader = make_shared<CollapsingHeaders>();
 		// Get Params In New Component!
 		GetParam(SomeComponent->XMLCHead.at(i), CHeader);
+		CHeader->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->OrderlyRenderInDial);
+
+		GetRecursionAdd(SomeComponent->CpsHead.at(i), CHeader->getComponent(),
+			SomeComponent->CpsHead.at(i)->OrderlyRender);
 		CHeader->ChangeOrder(SomeComponent->CpsHead.at(i)->OrderlyRender);
-		CHeader->ChangeOrderInDial(SomeComponent->OrderlyRender);
 
-		if (!SomeComponent->CpsHead.back()->XMLDChild.empty())
-		{
-			int Count = 0;
-			shared_ptr<Child> child = make_shared<Child>();
-
-			WorkOnComponents(CHeader, SomeComponent->CpsHead.at(i)->XMLDChild.at(i),
-				SomeComponent->CpsHead.at(i)->DialChild.at(i), child, Count);
-
-			child->ChangeOrder(Count);
-			child->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->DialChild.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->CpsHead.back()->XML_Tab.empty())
-		{
-			int Count = 0;
-			shared_ptr<Tab> tab = make_shared<Tab>();
-
-			WorkOnComponents(CHeader, SomeComponent->CpsHead.at(i)->XML_Tab.at(i),
-				SomeComponent->CpsHead.at(i)->_Tab.at(i), tab, Count);
-
-			tab->ChangeOrder(Count);
-			tab->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->_Tab.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->CpsHead.back()->XML_TreeNode.empty())
-		{
-			int Count = 0;
-			shared_ptr<TreeNode> treenode = make_shared<TreeNode>();
-
-			WorkOnComponents(CHeader, SomeComponent->CpsHead.at(i)->XML_TreeNode.at(i),
-				SomeComponent->CpsHead.at(i)->_TreeNode.at(i), treenode, Count);
-
-			treenode->ChangeOrder(Count);
-			treenode->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->_TreeNode.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->CpsHead.back()->XMLCHead.empty())
-		{
-			int Count = 0;
-			shared_ptr<CollapsingHeaders> collps = make_shared<CollapsingHeaders>();
-
-			WorkOnComponents(CHeader, SomeComponent->CpsHead.at(i)->XMLCHead.at(i),
-				SomeComponent->CpsHead.at(i)->CpsHead.at(i), collps, Count);
-
-			collps->ChangeOrder(Count);
-			collps->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->CpsHead.at(i)->OrderlyRender);
-		}
-		else
-		{
-			int Cache = 0;
-			WorkOnComponents(RequiredComponent, SomeComponent->XMLCHead.at(i), SomeComponent->CpsHead.at(i),
-				CHeader, Cache);
-			continue;
-		}
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->setComponent(CHeader);
+		RequiredComponent->getComponents()->CollpsHeader.push_back(CHeader);
 	}
 	//	ChildDialog
 	for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
 	{
-		shared_ptr<Child> child = make_shared<Child>();
+		auto child = make_shared<Child>();
 		GetParam(SomeComponent->XMLDChild.at(i), child);
+		child->ChangeOrderInDial(SomeComponent->DialChild.at(i)->OrderlyRenderInDial);
+
+		GetRecursionAdd(SomeComponent->DialChild.at(i), child->getComponent(),
+			SomeComponent->DialChild.at(i)->OrderlyRender);
 		child->ChangeOrder(SomeComponent->DialChild.at(i)->OrderlyRender);
-		child->ChangeOrderInDial(SomeComponent->OrderlyRender);
 
-		if (!SomeComponent->DialChild.back()->XMLDChild.empty())
-		{
-			int Count = 0;
-			shared_ptr<Child> _Ñhild = make_shared<Child>();
-
-			WorkOnComponents(child, SomeComponent->DialChild.at(i)->XMLDChild.at(i),
-				SomeComponent->DialChild.at(i)->DialChild.at(i), _Ñhild, Count);
-
-			_Ñhild->ChangeOrder(Count);
-			_Ñhild->ChangeOrderInDial(SomeComponent->DialChild.at(i)->DialChild.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->DialChild.back()->XML_Tab.empty())
-		{
-			int Count = 0;
-			shared_ptr<Tab> tab = make_shared<Tab>();
-
-			WorkOnComponents(child, SomeComponent->DialChild.at(i)->XML_Tab.at(i),
-				SomeComponent->DialChild.at(i)->_Tab.at(i), tab, Count);
-
-			tab->ChangeOrder(Count);
-			tab->ChangeOrderInDial(SomeComponent->DialChild.at(i)->_Tab.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->DialChild.back()->XML_TreeNode.empty())
-		{
-			int Count = 0;
-			shared_ptr<TreeNode> treenode = make_shared<TreeNode>();
-
-			WorkOnComponents(child, SomeComponent->DialChild.at(i)->XML_TreeNode.at(i),
-				SomeComponent->DialChild.at(i)->_TreeNode.at(i), treenode, Count);
-
-			treenode->ChangeOrder(Count);
-			treenode->ChangeOrderInDial(SomeComponent->DialChild.at(i)->_TreeNode.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->DialChild.back()->XMLCHead.empty())
-		{
-			int Count = 0;
-			shared_ptr<CollapsingHeaders> collps = make_shared<CollapsingHeaders>();
-
-			WorkOnComponents(child, SomeComponent->DialChild.at(i)->XMLCHead.at(i),
-				SomeComponent->DialChild.at(i)->CpsHead.at(i), collps, Count);
-
-			collps->ChangeOrder(Count);
-			collps->ChangeOrderInDial(SomeComponent->DialChild.at(i)->CpsHead.at(i)->OrderlyRender);
-		}
-		else
-		{
-			int Cache = 0;
-			WorkOnComponents(RequiredComponent, SomeComponent->XMLDChild.at(i), SomeComponent->DialChild.at(i),
-				child, Cache);
-			continue;
-		}
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->setComponent(child);
+		RequiredComponent->getComponents()->childs.push_back(child);
 	}
 	// Tab
 	for (size_t i = 0; i < SomeComponent->XML_Tab.size(); i++)
 	{
-		shared_ptr<Tab> tab = make_shared<Tab>();
+		int CountComp = 0;
+		auto tab = make_shared<Tab>();
 		GetParam(SomeComponent->XML_Tab.at(i), tab);
-		tab->ChangeOrder(SomeComponent->_Tab.at(i)->OrderlyRender);
-		tab->ChangeOrderInDial(SomeComponent->OrderlyRender);
+		tab->ChangeOrderInDial(SomeComponent->_Tab.at(i)->OrderlyRenderInDial);
 
-		if (!SomeComponent->_Tab.back()->XMLDChild.empty())
+		for (size_t i1 = 0; i1 < SomeComponent->_Tab.at(i)->Component.size(); i1++)
 		{
-			int Count = 0;
-			shared_ptr<Child> child = make_shared<Child>();
+			tab->getComponent().back()->TabItemComp.push_back(make_shared<AllTheComponent>());
+			tab->getComponent().back()->Name.push_back(SomeComponent->_Tab.at(i)->TabItems.at(i1));
 
-			WorkOnComponents(tab, SomeComponent->_Tab.at(i)->XMLDChild.at(i),
-				SomeComponent->_Tab.at(i)->DialChild.at(i), child, Count);
-
-			child->ChangeOrder(Count);
-			child->ChangeOrderInDial(SomeComponent->_Tab.at(i)->DialChild.at(i)->OrderlyRender);
+			GetRecursionAdd(SomeComponent->_Tab.at(i)->Component.at(i1), tab->getComponent().back()->TabItemComp.back(), 
+				CountComp);
 		}
-		else if (!SomeComponent->_Tab.back()->XML_Tab.empty())
-		{
-			int Count = 0;
-			// C2* mean = Component To
-			shared_ptr<Tab> C2Tab = make_shared<Tab>();
+		tab->ChangeOrder(CountComp);
 
-			WorkOnComponents(tab, SomeComponent->_Tab.at(i)->XML_Tab.at(i),
-				SomeComponent->_Tab.at(i)->_Tab.at(i), C2Tab, Count);
-
-			C2Tab->ChangeOrder(Count);
-			C2Tab->ChangeOrderInDial(SomeComponent->_Tab.at(i)->_Tab.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->_Tab.back()->XML_TreeNode.empty())
-		{
-			int Count = 0;
-			shared_ptr<TreeNode> treenode = make_shared<TreeNode>();
-
-			WorkOnComponents(tab, SomeComponent->DialChild.at(i)->XML_TreeNode.at(i),
-				SomeComponent->DialChild.at(i)->_TreeNode.at(i), treenode, Count);
-
-			treenode->ChangeOrder(Count);
-			treenode->ChangeOrderInDial(SomeComponent->DialChild.at(i)->_TreeNode.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->_Tab.back()->XMLCHead.empty())
-		{
-			int Count = 0;
-			shared_ptr<CollapsingHeaders> collps = make_shared<CollapsingHeaders>();
-
-			WorkOnComponents(tab, SomeComponent->_Tab.at(i)->XMLCHead.at(i),
-				SomeComponent->_Tab.at(i)->CpsHead.at(i), collps, Count);
-
-			collps->ChangeOrder(Count);
-			collps->ChangeOrderInDial(SomeComponent->_Tab.at(i)->CpsHead.at(i)->OrderlyRender);
-		}
-		else
-		{
-			int Cache = 0;
-			WorkOnComponents(RequiredComponent, SomeComponent->XML_Tab.at(i), SomeComponent->_Tab.at(i),
-				tab, Cache);
-			continue;
-		}
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->setComponent(tab);
+		RequiredComponent->getComponents()->Tabs.push_back(tab);
 	}
 	// TreeNode
 	for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
 	{
 		shared_ptr<TreeNode> TNode = make_shared<TreeNode>();
 		GetParam(SomeComponent->XML_TreeNode.at(i), TNode);
+		TNode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->OrderlyRenderInDial);
+
+		GetRecursionAdd(SomeComponent->_TreeNode.at(i), TNode->getComponent(),
+			SomeComponent->_TreeNode.at(i)->OrderlyRender);
 		TNode->ChangeOrder(SomeComponent->_TreeNode.at(i)->OrderlyRender);
-		TNode->ChangeOrderInDial(SomeComponent->OrderlyRender);
 
-		if (!SomeComponent->_TreeNode.back()->XMLDChild.empty())
-		{
-			int Count = 0;
-			shared_ptr<Child> child = make_shared<Child>();
-
-			WorkOnComponents(TNode, SomeComponent->_Tab.at(i)->XMLDChild.at(i),
-				SomeComponent->_TreeNode.at(i)->DialChild.at(i), child, Count);
-
-			child->ChangeOrder(Count);
-			child->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->DialChild.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->_TreeNode.back()->XML_Tab.empty())
-		{
-			int Count = 0;
-			// C2* mean = Component To
-			shared_ptr<Tab> tab = make_shared<Tab>();
-
-			WorkOnComponents(TNode, SomeComponent->_TreeNode.at(i)->XML_Tab.at(i),
-				SomeComponent->_TreeNode.at(i)->_Tab.at(i), tab, Count);
-
-			tab->ChangeOrder(Count);
-			tab->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->_Tab.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->_TreeNode.back()->XML_TreeNode.empty())
-		{
-			int Count = 0;
-			shared_ptr<TreeNode> treenode = make_shared<TreeNode>();
-
-			WorkOnComponents(TNode, SomeComponent->_TreeNode.at(i)->XML_TreeNode.at(i),
-				SomeComponent->_TreeNode.at(i)->_TreeNode.at(i), treenode, Count);
-
-			treenode->ChangeOrder(Count);
-			treenode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->_TreeNode.at(i)->OrderlyRender);
-		}
-		else if (!SomeComponent->_TreeNode.back()->XMLCHead.empty())
-		{
-			int Count = 0;
-			shared_ptr<CollapsingHeaders> collps = make_shared<CollapsingHeaders>();
-
-			WorkOnComponents(TNode, SomeComponent->_TreeNode.at(i)->XMLCHead.at(i),
-				SomeComponent->_TreeNode.at(i)->CpsHead.at(i), collps, Count);
-
-			collps->ChangeOrder(Count);
-			collps->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->CpsHead.at(i)->OrderlyRender);
-		}
-		else
-		{
-			int Cache = 0;
-			WorkOnComponents(RequiredComponent, SomeComponent->XML_TreeNode.at(i), SomeComponent->_TreeNode.at(i),
-				TNode, Cache);
-			continue;
-		}
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->setComponent(TNode);
+		RequiredComponent->getComponents()->TNode.push_back(TNode);
 	}
+	// Column
+	for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
+	{
+		auto column = make_shared<Column>();
+		GetParam(SomeComponent->XMLColumn.at(i), column);
+		column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
+
+		GetRecursionAdd(SomeComponent->_Column.at(i), column->getComponent(),
+			SomeComponent->_Column.at(i)->OrderlyRender);
+		column->ChangeOrder(SomeComponent->_Column.at(i)->OrderlyRender);
+
+		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
+		RequiredComponent->getComponents()->column.push_back(column);
+	}
+}
+void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> &AllComponent,
+	int &Count)
+{
+	if (!SomeComponent->XMLDChild.empty())
+		for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
+		{
+			auto child = make_shared<Child>();
+			WorkOnComponents(SomeComponent->DialChild.at(i), child->getComponent(), Count);
+
+			GetParam(SomeComponent->XMLDChild.at(i)->ToElement(), child);
+			child->ChangeOrder(Count);
+			child->ChangeOrderInDial(SomeComponent->DialChild.at(i)->OrderlyRenderInDial);
+
+			AllComponent->childs.push_back(child);
+		}
+	else if (!SomeComponent->XML_Tab.empty())
+		for (size_t i = 0; i < SomeComponent->XML_Tab.size(); i++)
+		{
+			auto tab = make_shared<Tab>();
+			WorkOnComponents(SomeComponent->_Tab.at(i)->Component.back(),
+				tab->getComponent().back()->TabItemComp.back(), Count);
+
+			GetParam(SomeComponent->XML_Tab.at(i)->ToElement(), tab);
+			tab->ChangeOrder(Count);
+			tab->ChangeOrderInDial(SomeComponent->_Tab.at(i)->OrderlyRenderInDial);
+
+			AllComponent->Tabs.push_back(tab);
+		}
+	else if (!SomeComponent->XML_TreeNode.empty())
+		for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
+		{
+			auto treenode = make_shared<TreeNode>();
+			WorkOnComponents(SomeComponent->_TreeNode.at(i), treenode->getComponent(), Count);
+
+			GetParam(SomeComponent->XML_TreeNode.at(i)->ToElement(), treenode);
+			treenode->ChangeOrder(Count);
+			treenode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->OrderlyRenderInDial);
+
+			AllComponent->TNode.push_back(treenode);
+		}
+	else if (!SomeComponent->XMLCHead.empty())
+		for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
+		{
+			auto collps = make_shared<CollapsingHeaders>();
+			WorkOnComponents(SomeComponent->CpsHead.at(i), collps->getComponent(), Count);
+
+			GetParam(SomeComponent->XMLCHead.at(i)->ToElement(), collps);
+			collps->ChangeOrder(Count);
+			collps->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->OrderlyRenderInDial);
+
+			AllComponent->CollpsHeader.push_back(collps);
+		}
+	else if (!SomeComponent->XMLColumn.empty())
+		for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
+		{
+			auto column = make_shared<Column>();
+			WorkOnComponents(SomeComponent->_Column.at(i), column->getComponent(), Count);
+
+			GetParam(SomeComponent->XMLColumn.at(i)->ToElement(), column);
+			column->ChangeOrder(Count);
+			column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
+
+			AllComponent->column.push_back(column);
+		}
+	else
+		WorkOnComponents(SomeComponent, AllComponent, Count);
 }
 
 void UI::ProcessXML()
@@ -2849,41 +1345,42 @@ void UI::ProcessXML()
 	for (auto It = XMLDialogs.begin(); It != XMLDialogs.end(); ++It)
 	{
 			// Get The Last Element In This Dialog!
-		vector<XMLNode *> TheFirstComponent;
+		vector<XMLNode *> FirstComponent;
 		for (;;)
 		{
-			if (TheFirstComponent.empty())
-				TheFirstComponent.push_back((*It)->Dial->FirstChild());
-			else if (TheFirstComponent.back()->NextSibling())
-				TheFirstComponent.push_back(TheFirstComponent.back()->NextSibling());
+			if (FirstComponent.empty())
+				FirstComponent.push_back((*It)->Dial->FirstChild());
+			else if (FirstComponent.back()->NextSibling())
+				FirstComponent.push_back(FirstComponent.back()->NextSibling());
 			else
 				break;
 		}
 			// Work With All The XML Nodes!
-		for (auto First = TheFirstComponent.begin(); First != TheFirstComponent.end(); ++First)
+		int OrderlyRenderInDial = 0;
+		for (auto First = FirstComponent.begin(); First != FirstComponent.end(); ++First)
 		{
-			int InCps = 0, InCld = 0, InTab = 0, InTNode = 0;
+			OrderlyRenderInDial++;
 
 			if (strcmp((*First)->Value(), "Collapse") == 0)
 			{
-				InCps++;
 				XMLDialogs.at(i)->Components->CpsHead.push_back(make_shared<XMLComponents>());
 				XMLDialogs.at(i)->Components->XMLCHead.push_back(*First);
+				XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
-				vector<XMLNode *> TheSecondComponent;
+				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*First)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = TheSecondComponent.begin(); Two != TheSecondComponent.end(); ++Two)
+				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
 				{
 					if (!(*Two)->NoChildren()) // If We Need Recursion!
-						GetForRecursion(TheSecondComponent, XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRender,
+						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->CpsHead.back());
 					else
 						XMLPreparingCollps(XMLDialogs.at(i), Two,
@@ -2892,24 +1389,24 @@ void UI::ProcessXML()
 			}
 			else if (strcmp((*First)->Value(), "ChildDialog") == 0)
 			{
-				InCld++;
 				XMLDialogs.at(i)->Components->DialChild.push_back(make_shared<XMLComponents>());
 				XMLDialogs.at(i)->Components->XMLDChild.push_back(*First);
+				XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
-				vector<XMLNode *> TheSecondComponent;
+				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*First)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = TheSecondComponent.begin(); Two != TheSecondComponent.end(); ++Two)
+				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
 				{
 					if (!(*Two)->NoChildren())
-						GetForRecursion(TheFirstComponent, XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRender,
+						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->DialChild.back());
 					else
 						XMLPreparingChild(XMLDialogs.at(i), Two,
@@ -2918,24 +1415,24 @@ void UI::ProcessXML()
 			}
 			else if (strcmp((*First)->Value(), "TreeNode") == 0)
 			{
-				InTNode++;
 				XMLDialogs.at(i)->Components->_TreeNode.push_back(make_shared<XMLComponents>());
 				XMLDialogs.at(i)->Components->XML_TreeNode.push_back(*First);
+				XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
-				vector<XMLNode *> TheSecondComponent;
+				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*First)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = TheSecondComponent.begin(); Two != TheSecondComponent.end(); ++Two)
+				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
 				{
 					if (!(*Two)->NoChildren()) // If We Need Recursion!
-						GetForRecursion(TheFirstComponent, XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRender,
+						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->_TreeNode.back());
 					else
 						XMLPreparingTNode(XMLDialogs.at(i), Two,
@@ -2944,35 +1441,80 @@ void UI::ProcessXML()
 			}
 			else if (strcmp((*First)->Value(), "Tab") == 0)
 			{
-				InTNode++;
-				XMLDialogs.at(i)->Components->_Tab.push_back(make_shared<XMLComponents>());
+				XMLDialogs.at(i)->Components->_Tab.push_back(make_shared<TItem>());
 				XMLDialogs.at(i)->Components->XML_Tab.push_back(*First);
+				XMLDialogs.at(i)->Components->_Tab.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
-				vector<XMLNode *> TheSecondComponent;
+				vector<XMLNode *> SecondComponent, SpecialComp;
 				for (;;)
 				{
-					if (TheSecondComponent.empty())
-						TheSecondComponent.push_back((*First)->ToElement()->FirstChild());
-					else if (TheSecondComponent.back()->NextSibling())
-						TheSecondComponent.push_back(TheSecondComponent.back()->NextSibling());
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = TheSecondComponent.begin(); Two != TheSecondComponent.end(); ++Two)
+				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
 				{
-					if (!(*Two)->NoChildren())
-						GetForRecursion(TheFirstComponent, XMLDialogs.at(i)->Components->_Tab.back()->OrderlyRender,
-							XMLDialogs.at(i)->Components->_Tab.back());
-					else
+					SpecialComp.push_back(*Two);
+					if (!(*Two)->NoChildren()) // If we have a component and it also has a component
+					{
+						if (strcmp((*Two)->Value(), "TabItem") == 0)
+						{
+							auto Attr = (*Two)->ToElement()->FirstAttribute();
+							if (Attr && strcmp(Attr->Name(), "text") == 0)
+							{
+								XMLDialogs.at(i)->Components->_Tab.back()->TabItems.push_back(Attr->Value());
+								XMLDialogs.at(i)->Components->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
+
+								GetRecursion(SpecialComp, 
+									XMLDialogs.at(i)->Components->_Tab.back()->Component.back()->OrderlyRender,
+									XMLDialogs.at(i)->Components->_Tab.back()->Component.back());
+
+								SpecialComp.clear();
+							}
+						}
+					}
+					else // If we don't have any "sub-components" at all
 						XMLPreparingTab(XMLDialogs.at(i), Two,
-							XMLDialogs.at(i)->Components->_Tab.back()->OrderlyRender);
+							XMLDialogs.at(i)->Components->_Tab.back()->Component.back()->OrderlyRender);
+				}
+			}
+			else if (strcmp((*First)->Value(), "Column") == 0)
+			{
+				XMLDialogs.at(i)->Components->_Column.push_back(make_shared<XMLComponents>());
+				XMLDialogs.at(i)->Components->XMLColumn.push_back(*First);
+				XMLDialogs.at(i)->Components->_Column.back()->OrderlyRenderInDial = OrderlyRenderInDial;
+
+				vector<XMLNode *> SecondComponent;
+				for (;;)
+				{
+					if (SecondComponent.empty())
+						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+					else if (SecondComponent.back()->NextSibling())
+						SecondComponent.push_back(SecondComponent.back()->NextSibling());
+					else
+						break;
+				}
+				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				{
+					if (!(*Two)->NoChildren()) // If We Need Recursion!
+						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->_Column.back()->OrderlyRender,
+							XMLDialogs.at(i)->Components->_Column.back());
+					else
+						XMLPreparingTNode(XMLDialogs.at(i), Two,
+							XMLDialogs.at(i)->Components->_Column.back()->OrderlyRender);
 				}
 			}
 				// *******
 			else
+			{
 				XMLPreparing(XMLDialogs.at(i), First, XMLDialogs.at(i)->Components->OrderlyRender);
+				XMLDialogs.at(i)->Components->OrderlyRender--; // Return the value
+			}
 
-			XMLDialogs.at(i)->Components->OrderlyRender += (InCps + InCld + InTab + InTNode);
+			XMLDialogs.at(i)->Components->OrderlyRender++;
 		}
 			// ID (Count) of XMLDialogs
 		i++;
@@ -2985,6 +1527,7 @@ void UI::ProcessXML()
 		dialog.push_back(make_shared<dialogs>());
 		float W = 0.f, H = 0.f;
 		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
+		string nameFont = ""; float SizeFont = 0.f, Bright = 0.f;
 		for (;;)
 		{
 			if (strcmp(FirstAttr->Name(), "id") == 0)
@@ -3050,59 +1593,94 @@ void UI::ProcessXML()
 				if (!FirstAttr)
 					break;
 			}
+			if (strcmp(FirstAttr->Name(), "font") == 0)
+			{
+				nameFont = FirstAttr->Value();
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+			if (strcmp(FirstAttr->Name(), "sizefont") == 0)
+			{
+				SizeFont = FirstAttr->FloatValue();
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+			if (strcmp(FirstAttr->Name(), "brightness") == 0)
+			{
+				Bright = FirstAttr->FloatValue();
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
 		}
 
 		// ********
 			// Other
 
 		// Collapse, Child, Tab, TreeNode, etc
-		GetForRecursionForAddComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components);
+		GetRecursionForAddComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components);
 
 		//	Button
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDbuttons.size(); i++)
 		{
-			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components->buttons.at(i)->ToElement(),
-				make_shared<Buttons>(), XMLDialogs.at(IDDial)->Components->IDbuttons.at(i));
+			auto btn = make_shared<Buttons>();
+			GetParam(XMLDialogs.at(IDDial)->Components->buttons.at(i)->ToElement(), btn);
+			btn->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDbuttons.at(i));
+			dialog.at(IDDial)->getComponents()->Btn.push_back(btn);
 		}
 		//	InputText
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtexts.size(); i++)
 		{
-			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components->texts.at(i)->ToElement(),
-				make_shared<IText>(), XMLDialogs.at(IDDial)->Components->IDtexts.at(i));
+			auto text = make_shared<IText>();
+			GetParam(XMLDialogs.at(IDDial)->Components->texts.at(i)->ToElement(), text);
+			text->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtexts.at(i));
+			dialog.at(IDDial)->getComponents()->Itext.push_back(text);
 		}
 		//	InputTextMultiline
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtextmuls.size(); i++)
 		{
-			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components->textmuls.at(i)->ToElement(),
-				make_shared<ITextMulti>(), XMLDialogs.at(IDDial)->Components->IDtextmuls.at(i));
+			auto itextmul = make_shared<ITextMulti>();
+			GetParam(XMLDialogs.at(IDDial)->Components->textmuls.at(i)->ToElement(), itextmul);
+			itextmul->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtextmuls.at(i));
+			dialog.at(IDDial)->getComponents()->Itextmul.push_back(itextmul);
 		}
 		//	Label
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDlabels.size(); i++)
 		{
-			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components->labels.at(i)->ToElement(),
-				make_shared<Labels>(), XMLDialogs.at(IDDial)->Components->IDlabels.at(i));
+			auto label = make_shared<Labels>();
+			GetParam(XMLDialogs.at(IDDial)->Components->labels.at(i)->ToElement(), label);
+			label->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDlabels.at(i));
+			dialog.at(IDDial)->getComponents()->Label.push_back(label);
 		}
 		//	Separator
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDseparators.size(); i++)
 		{
 			shared_ptr<_Separator> separator = make_shared<_Separator>();
 			separator->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDseparators.at(i));
+			dialog.at(IDDial)->getComponents()->separators.push_back(separator);
 		}
 		//	UnformatedText
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDutext.size(); i++)
 		{
 			shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
 			UText->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDutext.at(i));
-			dialog.at(IDDial)->setComponent(UText);
+			dialog.at(IDDial)->getComponents()->UText.push_back(UText);
 		}
 		//	TextList
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtlist.size(); i++)
 		{
-			WorkOnComponents(dialog.at(IDDial), XMLDialogs.at(IDDial)->Components->tlist.at(i)->ToElement(),
-				make_shared<TextList>(), XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
+			auto tlist = make_shared<TextList>();
+			GetParam(XMLDialogs.at(IDDial)->Components->tlist.at(i)->ToElement(), tlist);
+			tlist->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
+			dialog.at(IDDial)->getComponents()->TList.push_back(tlist);
 		}
-		dialog.at(IDDial)->ChangeOrder(XMLDialogs.at(IDDial)->Components->OrderlyRender); // Count of all the components only in dialog!
+
+		// Count of all the components only in dialog!
+		dialog.at(IDDial)->ChangeOrder(XMLDialogs.at(IDDial)->Components->OrderlyRender);
 		dialog.at(IDDial)->ChangeSize(W, H);
+		dialog.at(IDDial)->ChangeFont(Application->getFS()->GetFile(nameFont + string(".ttf"))->PathA, SizeFont, Bright);
 	}
 	Dialogs = dialog;
 }
@@ -3116,185 +1694,6 @@ void UI::ReloadXML(LPCSTR File)
 	LoadXmlUI(File);
 
 	Buf->InitUI();
-}
-
-HRESULT UI::addDialog(LPCSTR IDName)
-{
-	Dialogs.push_back(make_shared<dialogs>(IDName, true, true, true, false, true, false, false, 0));
-	return S_OK;
-}
-HRESULT UI::addButton(LPCSTR IDName, LPCSTR IDDialog)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addButton()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addButton()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	if (!IDDialog)
-		Dialogs.back()->setComponent(make_shared<Buttons>(IDName, true));
-	else
-		for (size_t i = 0; i < Dialogs.size(); i++)
-		{
-			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-				Dialogs.at(i)->setComponent(make_shared<Buttons>(IDName, true));
-		}
-	return S_OK;
-}
-HRESULT UI::addLabel(LPCSTR IDName, LPCSTR IDDialog)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addLabel()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addLabel()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	if (!IDDialog)
-		Dialogs.back()->setComponent(make_shared<Labels>(IDName, true));
-	else
-		for (size_t i = 0; i < Dialogs.size(); i++)
-		{
-			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-				Dialogs.at(i)->setComponent(make_shared<Labels>(IDName, true));
-		}
-	return S_OK;
-}
-HRESULT UI::addCollapseHead(LPCSTR IDName, LPCSTR IDDialog, bool SelDef, bool Collapse)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	if (!IDDialog)
-		Dialogs.back()->setComponent(make_shared<CollapsingHeaders>(IDName, SelDef, Collapse));
-	else
-		for (size_t i = 0; i < Dialogs.size(); i++)
-		{
-			if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-				Dialogs.at(i)->setComponent(make_shared<CollapsingHeaders>(IDName, SelDef));
-		}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<Buttons> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-		{
-			if (Dialogs.at(i)->getCollapsHeaders().empty())
-				addCollapseHead(IDColpsHead);
-			Dialogs.at(i)->getCollapsHeaders().back()->getComponent()->Btn.push_back(Component);
-		}
-	}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<CollapsingHeaders> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-			Dialogs.at(i)->setComponent(Component);
-	}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<Labels> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-		{
-			if (Dialogs.at(i)->getCollapsHeaders().empty())
-				addCollapseHead(IDColpsHead);
-			Dialogs.at(i)->getCollapsHeaders().back()->getComponent()->Label.push_back(Component);
-		}
-	}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<IText> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-		{
-			if (Dialogs.at(i)->getCollapsHeaders().empty())
-				addCollapseHead(IDColpsHead);
-			Dialogs.at(i)->getCollapsHeaders().back()->getComponent()->Itext.push_back(Component);
-		}
-	}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<ITextMulti> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-		{
-			if (Dialogs.at(i)->getCollapsHeaders().empty())
-				addCollapseHead(IDColpsHead);
-			Dialogs.at(i)->getCollapsHeaders().back()->getComponent()->Itextmul.push_back(Component);
-		}
-	}
-	return S_OK;
-}
-HRESULT UI::addComponentToCollapseHead(LPCSTR IDColpsHead, LPCSTR IDDialog, shared_ptr<TextList> Component)
-{
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addCollapseHead()::Dialogs->empty() == empty!!!");
-		return E_FAIL;
-	}
-
-	for (size_t i = 0; i < Dialogs.size(); i++)
-	{
-		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
-		{
-			if (Dialogs.at(i)->getCollapsHeaders().empty())
-				addCollapseHead(IDColpsHead);
-			Dialogs.at(i)->getCollapsHeaders().back()->getComponent()->TList.push_back(Component);
-		}
-	}
-	return S_OK;
 }
 
 void UI::DisableDialog(LPCSTR IDDialog)
@@ -3511,64 +1910,21 @@ void CollapsingHeaders::Render()
 
 		while (Count >= now)
 		{
-			for (size_t i = 0; i < Component->Label.size(); i++)
-			{
-				if (Component->Label.at(i)->GetVisible() && Component->Label.at(i)->getRenderOrder() == now)
-					Component->Label.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Btn.size(); i++)
-			{
-				if (Component->Btn.at(i)->GetVisible() && Component->Btn.at(i)->getRenderOrder() == now)
-					Component->Btn.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itextmul.size(); i++)
-			{
-				if (Component->Itextmul.at(i)->GetVisible() && Component->Itextmul.at(i)->getRenderOrder() == now)
-					Component->Itextmul.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itext.size(); i++)
-			{
-				if (Component->Itext.at(i)->GetVisible() && Component->Itext.at(i)->getRenderOrder() == now)
-					Component->Itext.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->separators.size(); i++)
-			{
-				if (Component->separators.at(i)->getRenderOrder() == now)
-					Component->separators.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->childs.size(); i++)
-			{
-				if (Component->childs.at(i)->getCountOrderRenderInDial() == now)
-					Component->childs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->CollpsHeader.size(); i++)
-			{
-				if (Component->CollpsHeader.at(i)->Collapse() &&
-					Component->CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-					Component->CollpsHeader.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->UText.size(); i++)
-			{
-				if (Component->UText.at(i)->getRenderOrder() == now)
-					Component->UText.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TList.size(); i++)
-			{
-				if (Component->TList.at(i)->GetVisible() && Component->TList.at(i)->getRenderOrder() == now)
-					Component->TList.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Tabs.size(); i++)
-			{
-				if (Component->Tabs.at(i)->getCountOrderRenderInDial() == now)
-					Component->Tabs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TNode.size(); i++)
-			{
-				if (Component->TNode.at(i)->getCountOrderRenderInDial() == now)
-					Component->TNode.at(i)->Render();
-			}
-
-			now++;
+			if (!Component->column.empty())
+				for (size_t i = 0; i < Component->column.size(); i++)
+				{
+					ImGui::Columns(1);
+					auto Component_Column = Component->column.at(i)->getComponent();
+					if (Component_Column.operator bool() &&
+						Component->column.at(i)->getRenderOrder() == now)
+					{
+						Component_Column->RenderComponents(now);
+					}
+					else
+						Component->RenderComponents(now);
+				}
+			else
+				Component->RenderComponents(now);
 		}
 	}
 }
@@ -3609,75 +1965,33 @@ void dialogs::Render()
 			SizeH_Last = SizeH;
 		}
 
-		int Count = this->getOrderCount(), now = 0;
+		int Count = OrderlyRender, now = 0;
 
+		ImGui::PushFont(Font);
 		while (Count >= now)
 		{
 			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
+			if (!Component->column.empty())
+				for (size_t i = 0; i < Component->column.size(); i++)
+				{
+					auto Component_Column = Component->column.at(i);
+					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
+					{
+						ImGui::Columns(Component_Column->getCountColumn());
+						Component->RenderComponents(now);
+					}
+				}
+			else
+				Component->RenderComponents(now);
 
-			for (size_t i = 0; i < CollpsHeader.size(); i++)
-			{
-				if (CollpsHeader.at(i)->Collapse() &&
-					CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-					CollpsHeader.at(i)->Render();
-			}
-			for (size_t i = 0; i < Label.size(); i++)
-			{
-				if (Label.at(i)->GetVisible() && Label.at(i)->getRenderOrder() == now)
-					Label.at(i)->Render();
-			}
-			for (size_t i = 0; i < Itext.size(); i++)
-			{
-				if (Itext.at(i)->GetVisible() && Itext.at(i)->getRenderOrder() == now)
-					Itext.at(i)->Render();
-			}
-			for (size_t i = 0; i < separator.size(); i++)
-			{
-				if (separator.at(i)->getRenderOrder() == now)
-					separator.at(i)->Render();
-			}
-			for (size_t i = 0; i < Itextmul.size(); i++)
-			{
-				if (Itextmul.at(i)->GetVisible() && Itextmul.at(i)->getRenderOrder() == now)
-					Itextmul.at(i)->Render();
-			}
-			for (size_t i = 0; i < Btn.size(); i++)
-			{
-				if (Btn.at(i)->GetVisible() && Btn.at(i)->getRenderOrder() == now)
-					Btn.at(i)->Render();
-			}
-			for (size_t i = 0; i < child.size(); i++)
-			{
-				if (child.at(i)->getCountOrderRenderInDial() == now)
-					child.at(i)->Render();
-			}
-			for (size_t i = 0; i < UText.size(); i++)
-			{
-				if (UText.at(i)->getRenderOrder() == now)
-					UText.at(i)->Render();
-			}
-			for (size_t i = 0; i < TList.size(); i++)
-			{
-				if (TList.at(i)->GetVisible() && TList.at(i)->getRenderOrder() == now)
-					TList.at(i)->Render();
-			}
-			for (size_t i = 0; i < Tabs.size(); i++)
-			{
-				if (Tabs.at(i)->getCountOrderRenderInDial() == now)
-					Tabs.at(i)->Render();
-			}
-			for (size_t i = 0; i < TNode.size(); i++)
-			{
-				if (TNode.at(i)->getCountOrderRenderInDial() == now)
-					TNode.at(i)->Render();
-			}
-
-			now++;
 			ImGui::PopStyleVar();
 		}
 
-		ImGui::End();
+		ImGui::PopFont();
+		ImGui::Columns();
 	}
+
+	ImGui::End();
 }
 
 void Tab::Render()
@@ -3685,74 +1999,52 @@ void Tab::Render()
 	Flags = 0;
 
 	if (DragTabs)
-		Flags = ImGuiTabBarFlags_::ImGuiTabBarFlags_Reorderable;
+		Flags |= ImGuiTabBarFlags_::ImGuiTabBarFlags_Reorderable;
+
+	if (ASelectNewTab)
+		Flags |= ImGuiTabBarFlags_::ImGuiTabBarFlags_AutoSelectNewTabs;
+
+	if (!CloseMidMouse)
+		Flags |= ImGuiTabBarFlags_::ImGuiTabBarFlags_NoCloseWithMiddleMouseButton;
 
 	if (ImGui::BeginTabBar(IDTitle.c_str(), Flags))
 	{
-		int Count = OrderlyRender, now = 0;
+		UINT MainText = 0;
 
-		while (Count >= now)
+		for (size_t MainComponent = 0; MainComponent < Component.size(); MainComponent++)
 		{
-			if (ImGui::BeginTabItem("Sounds"))
-				ImGui::EndTabItem();
+			for (size_t MainSubComp = 0; MainSubComp < Component.at(MainComponent)->TabItemComp.size(); MainSubComp++)
+			{
+				if (ImGui::BeginTabItem(Component.at(MainComponent)->Name.at(MainText).c_str()))
+				{
+					int Count = OrderlyRender, now = 0;
 
-			for (size_t i = 0; i < Component->Label.size(); i++)
-			{
-				if (Component->Label.at(i)->GetVisible() && Component->Label.at(i)->getRenderOrder() == now)
-					Component->Label.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Btn.size(); i++)
-			{
-				if (Component->Btn.at(i)->GetVisible() && Component->Btn.at(i)->getRenderOrder() == now)
-					Component->Btn.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itextmul.size(); i++)
-			{
-				if (Component->Itextmul.at(i)->GetVisible() && Component->Itextmul.at(i)->getRenderOrder() == now)
-					Component->Itextmul.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itext.size(); i++)
-			{
-				if (Component->Itext.at(i)->GetVisible() && Component->Itext.at(i)->getRenderOrder() == now)
-					Component->Itext.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->separators.size(); i++)
-			{
-				if (Component->separators.at(i)->getRenderOrder() == now)
-					Component->separators.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->CollpsHeader.size(); i++)
-			{
-				if (Component->CollpsHeader.at(i)->Collapse() && Component->CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-					Component->CollpsHeader.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->childs.size(); i++)
-			{
-				if (Component->childs.at(i)->getCountOrderRenderInDial() == now)
-					Component->childs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->UText.size(); i++)
-			{
-				if (Component->UText.at(i)->getRenderOrder() == now)
-					Component->UText.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TList.size(); i++)
-			{
-				if (Component->TList.at(i)->GetVisible() && Component->TList.at(i)->getRenderOrder() == now)
-					Component->TList.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TNode.size(); i++)
-			{
-				if (Component->TNode.at(i)->getRenderOrder() == now)
-					Component->TNode.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Tabs.size(); i++)
-			{
-				if (Component->Tabs.at(i)->getCountOrderRenderInDial() == now)
-					Component->Tabs.at(i)->Render();
-			}
+					while (Count >= now)
+					{
+						auto SomeComponent = Component.at(MainComponent)->TabItemComp.at(MainSubComp);
+						if (!SomeComponent->column.empty())
+							for (size_t i = 0; i < SomeComponent->column.size(); i++)
+							{
+								auto Component_Column = SomeComponent->column.at(i);
+								if (Component_Column.operator bool())
+								{
+									ImGui::Columns(Component_Column->getCountColumn());
+									SomeComponent->RenderComponents(now);
+								}
+							}
+						else
+							SomeComponent->RenderComponents(now);
+					}
 
-			now++;
+					ImGui::Columns();
+					ImGui::EndTabItem();
+				}
+
+				if (MainText > Component.at(MainComponent)->Name.size())
+					MainText = 0;
+
+				MainText++;
+			}
 		}
 
 		ImGui::EndTabBar();
@@ -3772,71 +2064,21 @@ void TreeNode::Render()
 
 		while (Count >= now)
 		{
-			for (size_t i = 0; i < Component->Label.size(); i++)
-			{
-				if (Component->Label.at(i)->GetVisible() &&
-					Component->Label.at(i)->getRenderOrder() == now)
-					Component->Label.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Btn.size(); i++)
-			{
-				if (Component->Btn.at(i)->GetVisible() &&
-					Component->Btn.at(i)->getRenderOrder() == now)
-					Component->Btn.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itextmul.size(); i++)
-			{
-				if (Component->Itextmul.at(i)->GetVisible() &&
-					Component->Itextmul.at(i)->getRenderOrder() == now)
-					Component->Itextmul.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itext.size(); i++)
-			{
-				if (Component->Itext.at(i)->GetVisible() &&
-					Component->Itext.at(i)->getRenderOrder() == now)
-					Component->Itext.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->separators.size(); i++)
-			{
-				if (Component->separators.at(i)->getRenderOrder() == now)
-					Component->separators.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->CollpsHeader.size(); i++)
-			{
-				if (Component->CollpsHeader.at(i)->Collapse() &&
-					Component->CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-					Component->CollpsHeader.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->childs.size(); i++)
-			{
-				if (Component->childs.at(i)->getCountOrderRenderInDial() == now)
-					Component->childs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->UText.size(); i++)
-			{
-				if (Component->UText.at(i)->getRenderOrder() == now)
-					Component->UText.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TList.size(); i++)
-			{
-				if (Component->TList.at(i)->GetVisible() &&
-					Component->TList.at(i)->getRenderOrder() == now)
-					Component->TList.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Tabs.size(); i++)
-			{
-				if (Component->Tabs.at(i)->getCountOrderRenderInDial() == now)
-					Component->Tabs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TNode.size(); i++)
-			{
-				if (Component->TNode.at(i)->getCountOrderRenderInDial() == now)
-					Component->TNode.at(i)->Render();
-			}
-
-			now++;
+			if (!Component->column.empty())
+				for (size_t i = 0; i < Component->column.size(); i++)
+				{
+					auto Component_Column = Component->column.at(i);
+					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
+					{
+						ImGui::Columns(Component_Column->getCountColumn());
+						Component->RenderComponents(now);
+					}
+				}
+			else
+				Component->RenderComponents(now);
 		}
 
+		ImGui::Columns();
 		ImGui::TreePop();
 	}
 }
@@ -3854,65 +2096,21 @@ void Child::Render()
 
 		while (Count >= now)
 		{
-			for (size_t i = 0; i < Component->Label.size(); i++)
-			{
-				if (Component->Label.at(i)->GetVisible() && Component->Label.at(i)->getRenderOrder() == now)
-					Component->Label.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Btn.size(); i++)
-			{
-				if (Component->Btn.at(i)->GetVisible() && Component->Btn.at(i)->getRenderOrder() == now)
-					Component->Btn.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itextmul.size(); i++)
-			{
-				if (Component->Itextmul.at(i)->GetVisible() && Component->Itextmul.at(i)->getRenderOrder() == now)
-					Component->Itextmul.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Itext.size(); i++)
-			{
-				if (Component->Itext.at(i)->GetVisible() && Component->Itext.at(i)->getRenderOrder() == now)
-					Component->Itext.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->separators.size(); i++)
-			{
-				if (Component->separators.at(i)->getRenderOrder() == now)
-					Component->separators.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->CollpsHeader.size(); i++)
-			{
-				if (Component->CollpsHeader.at(i)->Collapse() &&
-					Component->CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
-					Component->CollpsHeader.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->childs.size(); i++)
-			{
-				if (Component->childs.at(i)->getCountOrderRenderInDial() == now)
-					Component->childs.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->UText.size(); i++)
-			{
-				if (Component->UText.at(i)->getRenderOrder() == now)
-					Component->UText.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TList.size(); i++)
-			{
-				if (Component->TList.at(i)->GetVisible() && Component->TList.at(i)->getRenderOrder() == now)
-					Component->TList.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->TNode.size(); i++)
-			{
-				if (Component->TNode.at(i)->getCountOrderRenderInDial() == now)
-					Component->TNode.at(i)->Render();
-			}
-			for (size_t i = 0; i < Component->Tabs.size(); i++)
-			{
-				if (Component->Tabs.at(i)->getCountOrderRenderInDial() == now)
-					Component->Tabs.at(i)->Render();
-			}
-
-			now++;
+			if (!Component->column.empty())
+				for (size_t i = 0; i < Component->column.size(); i++)
+				{
+					auto Component_Column = Component->column.at(i);
+					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
+					{
+						ImGui::Columns(Component_Column->getCountColumn());
+						Component->RenderComponents(now);
+					}
+				}
+			else
+				Component->RenderComponents(now);
 		}
+
+		ImGui::Columns();
 	}
 
 	ImGui::EndChild();
@@ -3999,4 +2197,79 @@ void UnformatedText::Render()
 			ImGui::PopStyleColor();
 		}
 	}
+}
+
+void AllTheComponent::RenderComponents(int &now)
+{
+	//ImGui::NextColumn();
+
+	for (size_t i = 0; i < Label.size(); i++)
+	{
+		if (Label.at(i)->GetVisible() &&
+			Label.at(i)->getRenderOrder() == now)
+			Label.at(i)->Render();
+	}
+	for (size_t i = 0; i < Btn.size(); i++)
+	{
+		if (Btn.at(i)->GetVisible() &&
+			Btn.at(i)->getRenderOrder() == now)
+			Btn.at(i)->Render();
+	}
+	for (size_t i = 0; i < Itextmul.size(); i++)
+	{
+		if (Itextmul.at(i)->GetVisible() &&
+			Itextmul.at(i)->getRenderOrder() == now)
+			Itextmul.at(i)->Render();
+	}
+	for (size_t i = 0; i < Itext.size(); i++)
+	{
+		if (Itext.at(i)->GetVisible() &&
+			Itext.at(i)->getRenderOrder() == now)
+			Itext.at(i)->Render();
+	}
+	for (size_t i = 0; i < separators.size(); i++)
+	{
+		if (separators.at(i)->getRenderOrder() == now)
+			separators.at(i)->Render();
+	}
+	for (size_t i = 0; i < CollpsHeader.size(); i++)
+	{
+		if (CollpsHeader.at(i)->Collapse() &&
+			CollpsHeader.at(i)->getCountOrderRenderInDial() == now)
+			CollpsHeader.at(i)->Render();
+	}
+	for (size_t i = 0; i < childs.size(); i++)
+	{
+		if (childs.at(i)->getCountOrderRenderInDial() == now)
+			childs.at(i)->Render();
+	}
+	for (size_t i = 0; i < UText.size(); i++)
+	{
+		if (UText.at(i)->getRenderOrder() == now)
+			UText.at(i)->Render();
+	}
+	for (size_t i = 0; i < TList.size(); i++)
+	{
+		if (TList.at(i)->GetVisible() &&
+			TList.at(i)->getRenderOrder() == now)
+			TList.at(i)->Render();
+	}
+	for (size_t i = 0; i < Tabs.size(); i++)
+	{
+		if (Tabs.at(i)->getCountOrderRenderInDial() == now)
+			Tabs.at(i)->Render();
+	}
+	for (size_t i = 0; i < TNode.size(); i++)
+	{
+		if (TNode.at(i)->getCountOrderRenderInDial() == now)
+			TNode.at(i)->Render();
+	}
+	for (size_t i = 0; i < column.size(); i++)
+	{
+		if (column.at(i)->getCountOrderRenderInDial() == now)
+			column.at(i)->getComponent()->RenderComponents(now);
+	}
+
+	ImGui::NextColumn();
+	now++;
 }

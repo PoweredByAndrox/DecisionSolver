@@ -146,7 +146,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #if defined(DEBUG)
 		Application->getUI()->Destroy();
 #endif
-		//Application->getRender_Buffer()->Release();
 		Application->Destroy(hInstance);
 	}
 	catch (const exception &Catch)

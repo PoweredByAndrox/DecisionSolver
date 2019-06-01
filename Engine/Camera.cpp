@@ -118,29 +118,26 @@ void Camera::UpdateMouseDelta()
 	ptCurMousePos.y = Application->getMouse()->GetState().y;
 
 		// Calc how far it's moved since last frame
-	ptCurMouseDelta.x = ptCurMousePos.x - m_ptLastMousePosition.x;
-	ptCurMouseDelta.y = ptCurMousePos.y - m_ptLastMousePosition.y;
+	ptCurMouseDelta = ptCurMousePos - m_ptLastMousePosition;
 
 		// Record current position for next time
 	m_ptLastMousePosition = ptCurMousePos;
 
 	if (m_bResetCursorAfterMove)
 	{
-		POINT ptCenter = Application->getWorkAreaSize(Application->GetHWND());
+		Vector2 ptCenter = Vector2(Application->getWorkAreaSize(Application->GetHWND()).x,
+			Application->getWorkAreaSize(Application->GetHWND()).y);
 
-		ptCenter.x /= 2;
-		ptCenter.y /= 2;
+		ptCenter /= 2;
 		SetCursorPos(ptCenter.x, ptCenter.y);
 		m_ptLastMousePosition = ptCenter;
 	}
 
 	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData,
 		  fPercentOfOld = 1.0f - fPercentOfNew;
-	m_vMouseDelta.x = m_vMouseDelta.x * fPercentOfOld + ptCurMouseDelta.x * fPercentOfNew;
-	m_vMouseDelta.y = m_vMouseDelta.y * fPercentOfOld + ptCurMouseDelta.y * fPercentOfNew;
+	m_vMouseDelta = m_vMouseDelta * fPercentOfOld + ptCurMouseDelta * fPercentOfNew;
 
-	m_vRotVelocity.x = m_vMouseDelta.x * m_fRotationScaler;
-	m_vRotVelocity.y = m_vMouseDelta.y * m_fRotationScaler;
+	m_vRotVelocity = m_vMouseDelta * m_fRotationScaler;
 }
 
 void Camera::UpdateVelocity(_In_ float fElapsedTime)

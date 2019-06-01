@@ -320,13 +320,14 @@ void Engine::Render()
 #if defined(_DEBUG)
 	ui->Begin();
 
-	auto Obj = ui->getDialog("Main");
-	if (!Obj->GetTitle().empty())
+	auto Dial1 = ui->getDialog("Main");
+	if (!Dial1->GetTitle().empty())
 	{
-		Obj->getLabels().front()->ChangeText(string((boost::format(
+		float CamPos[3] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
+		Dial1->getComponents()->Label.front()->ChangeText(string((boost::format(
 			string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n") +
-			string("Resolution Window: W:%f, H:%f")) % fps % mainActor->getPosition().x % mainActor->getPosition().y %
-			mainActor->getPosition().z % WireFrame % !IsSimulation % getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
+			string("Resolution Window: W:%f, H:%f")) % fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
+			getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
 #if defined(NEVER)
 		if (Sound.operator bool())
 		{
@@ -338,9 +339,11 @@ void Engine::Render()
 				Sound->doPause();
 		}
 #endif
-		Obj->Render();
+		Dial1->Render();
 	}
-	ui->getDialog("Game Objects")->Render();
+	auto Dial2 = ui->getDialog("List Of Game Objects");
+	if (!Dial2->GetTitle().empty())
+		Dial2->Render();
 
 	if (!ui->getDialog("Console")->GetTitle().empty())
 		console->Render();
