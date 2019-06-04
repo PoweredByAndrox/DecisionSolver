@@ -69,8 +69,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			return 5;
 		}
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
-		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y - 10.f,
-			ImVec2(0.f, 1.f));
+		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y -
+			10.f, ImVec2(0.f, 1.f));
 
 		//	// Console Class!!!
 		Application->setConsole(make_shared<Console>());
@@ -80,7 +80,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			Application->getWorkAreaSize(Application->GetHWND()).y/3);
 
 		//	// Models Class
-		//Application->setModel(make_shared<Models>(Application->getFS()->GetFile(string("cargo transport 3.obj"))->PathA));
+		//Application->setModel(make_shared<Models>(Application->getFS()->GetFile(string("Nanosuit.obj"))->PathA));
 
 		//	// Camera Class
 		Application->setCamera(make_shared<Camera>());

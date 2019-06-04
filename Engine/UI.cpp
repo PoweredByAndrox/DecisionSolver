@@ -183,7 +183,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		auto button = make_shared<Buttons>();
 		GetParam(Component->buttons.at(i)->ToElement(), button);
-		button->ChangeOrder(CountOrder);
+		button->ChangeOrder(Component->IDbuttons.at(i));
 		DoneComponent->Btn.push_back(button);
 	}
 	//	InputText
@@ -192,7 +192,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		auto itext = make_shared<IText>();
 		GetParam(Component->texts.at(i)->ToElement(), itext);
-		itext->ChangeOrder(CountOrder);
+		itext->ChangeOrder(Component->IDtexts.at(i));
 		DoneComponent->Itext.push_back(itext);
 	}
 	//	InputTextMultiline
@@ -201,7 +201,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		auto itextmul = make_shared<ITextMulti>();
 		GetParam(Component->textmuls.at(i)->ToElement(), itextmul);
-		itextmul->ChangeOrder(CountOrder);
+		itextmul->ChangeOrder(Component->IDtextmuls.at(i));
 		DoneComponent->Itextmul.push_back(itextmul);
 	}
 	//	Label
@@ -210,7 +210,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		auto label = make_shared<Labels>();
 		GetParam(Component->labels.at(i)->ToElement(), label);
-		label->ChangeOrder(CountOrder);
+		label->ChangeOrder(Component->IDlabels.at(i));
 		DoneComponent->Label.push_back(label);
 	}
 	//	Separator
@@ -218,7 +218,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 	{
 		CountOrder++;
 		shared_ptr<_Separator> separator = make_shared<_Separator>();
-		separator->ChangeOrder(CountOrder);
+		separator->ChangeOrder(Component->IDseparators.at(i));
 		DoneComponent->separators.push_back(separator);
 	}
 	//	UnformatedText
@@ -226,8 +226,17 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 	{
 		CountOrder++;
 		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
-		UText->ChangeOrder(CountOrder);
+		UText->ChangeOrder(Component->IDutext.at(i));
 		DoneComponent->UText.push_back(UText);
+	}
+	//	Selectable
+	for (size_t i = 0; i < Component->IDselect.size(); i++)
+	{
+		CountOrder++;
+		auto select = make_shared<Selectable>();
+		GetParam(Component->select.at(i)->ToElement(), select);
+		select->ChangeOrder(Component->IDselect.at(i));
+		DoneComponent->selectable.push_back(select);
 	}
 	//	Collapse
 	for (size_t i = 0; i < Component->XMLCHead.size(); i++)
@@ -240,7 +249,8 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		WorkOnComponents(Component->CpsHead.at(i), CHeader, Count);
 		GetParam(Component->XMLCHead.at(i)->ToElement(), cheader);
 
-		cheader->ChangeOrder(CountOrder);
+		cheader->ChangeOrderInDial(Component->CpsHead.back()->OrderlyRenderInDial);
+		cheader->ChangeOrder(Count);
 		cheader->setComponents(CHeader);
 		DoneComponent->CollpsHeader.push_back(cheader);
 	}
@@ -255,7 +265,8 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		WorkOnComponents(Component->DialChild.at(i), Childs, Count);
 		GetParam(Component->XMLDChild.at(i)->ToElement(), child);
 
-		child->ChangeOrder(CountOrder);
+		child->ChangeOrderInDial(Component->DialChild.back()->OrderlyRenderInDial);
+		child->ChangeOrder(Count);
 		child->setComponents(Childs);
 		DoneComponent->childs.push_back(child);
 	}
@@ -270,7 +281,8 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		WorkOnComponents(Component->_Tab.at(i)->Component.back(), Tabs, Count);
 		GetParam(Component->XML_Tab.at(i)->ToElement(), tab);
 
-		tab->ChangeOrder(CountOrder);
+		tab->ChangeOrderInDial(Component->_Tab.back()->OrderlyRenderInDial);
+		tab->ChangeOrder(Count);
 		tab->getComponent().back()->TabItemComp.push_back(Tabs);
 		DoneComponent->Tabs.push_back(tab);
 	}
@@ -285,7 +297,8 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		WorkOnComponents(Component->_TreeNode.at(i), tnode, Count);
 		GetParam(Component->XML_TreeNode.at(i)->ToElement(), TNode);
 
-		TNode->ChangeOrder(CountOrder);
+		TNode->ChangeOrderInDial(Component->_TreeNode.back()->OrderlyRenderInDial);
+		TNode->ChangeOrder(Count);
 		TNode->setComponents(tnode);
 		DoneComponent->TNode.push_back(TNode);
 	}
@@ -300,430 +313,461 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		WorkOnComponents(Component->_Column.back(), Columns, Count);
 		GetParam(Component->XMLColumn.at(i)->ToElement(), column);
 
-		column->ChangeOrder(CountOrder);
+		column->ChangeOrderInDial(Component->_Column.back()->OrderlyRenderInDial);
+		column->ChangeOrder(Count);
 		column->setComponents(Columns);
 		DoneComponent->column.push_back(column);
 	}
 }
 
-void UI::XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparing(shared_ptr<XMLDial> &InDial, XMLNode *everything, int &countComp)
 {
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InDial->Components->IDbuttons.push_back(countComp);
-		InDial->Components->buttons.push_back(*everything);
+		InDial->Components->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InDial->Components->IDtexts.push_back(countComp);
-		InDial->Components->texts.push_back(*everything);
+		InDial->Components->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InDial->Components->IDtextmuls.push_back(countComp);
-		InDial->Components->textmuls.push_back(*everything);
+		InDial->Components->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InDial->Components->IDlabels.push_back(countComp);
-		InDial->Components->labels.push_back(*everything);
+		InDial->Components->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InDial->Components->IDseparators.push_back(countComp);
-		InDial->Components->separators.push_back(*everything);
+		InDial->Components->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InDial->Components->IDselect.push_back(countComp);
+		InDial->Components->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InDial->Components->IDutext.push_back(countComp);
-		InDial->Components->utext.push_back(*everything);
+		InDial->Components->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InDial->Components->XML_TreeNode.push_back(*everything);
+		InDial->Components->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InDial->Components->XML_Tab.push_back(*everything);
+		InDial->Components->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InDial->Components->XMLDChild.push_back(*everything);
+		InDial->Components->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InDial->Components->XMLCHead.push_back(*everything);
+		InDial->Components->XMLCHead.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InDial->Components->IDtlist.push_back(countComp);
-		InDial->Components->tlist.push_back(*everything);
+		InDial->Components->tlist.push_back(everything);
 		return;
 	}
 }
-void UI::XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparingCollps(shared_ptr<XMLDial> &InCHead, XMLNode *everything, int &countComp)
 {
 	if (InCHead->Components->CpsHead.empty())
 		InCHead->Components->CpsHead.push_back(make_shared<XMLComponents>());
 
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDbuttons.push_back(countComp);
-		InCHead->Components->CpsHead.back()->buttons.push_back(*everything);
+		InCHead->Components->CpsHead.back()->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDtexts.push_back(countComp);
-		InCHead->Components->CpsHead.back()->texts.push_back(*everything);
+		InCHead->Components->CpsHead.back()->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDtextmuls.push_back(countComp);
-		InCHead->Components->CpsHead.back()->textmuls.push_back(*everything);
+		InCHead->Components->CpsHead.back()->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDlabels.push_back(countComp);
-		InCHead->Components->CpsHead.back()->labels.push_back(*everything);
+		InCHead->Components->CpsHead.back()->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDseparators.push_back(countComp);
-		InCHead->Components->CpsHead.back()->separators.push_back(*everything);
+		InCHead->Components->CpsHead.back()->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InCHead->Components->CpsHead.back()->IDselect.push_back(countComp);
+		InCHead->Components->CpsHead.back()->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDutext.push_back(countComp);
-		InCHead->Components->CpsHead.back()->utext.push_back(*everything);
+		InCHead->Components->CpsHead.back()->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InCHead->Components->CpsHead.back()->XML_TreeNode.push_back(*everything);
+		InCHead->Components->CpsHead.back()->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InCHead->Components->CpsHead.back()->XML_Tab.push_back(*everything);
+		InCHead->Components->CpsHead.back()->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InCHead->Components->CpsHead.back()->XMLDChild.push_back(*everything);
+		InCHead->Components->CpsHead.back()->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InCHead->Components->CpsHead.back()->XMLCHead.push_back(*everything);
+		InCHead->Components->CpsHead.back()->XMLCHead.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InCHead->Components->CpsHead.back()->IDtlist.push_back(countComp);
-		InCHead->Components->CpsHead.back()->tlist.push_back(*everything);
+		InCHead->Components->CpsHead.back()->tlist.push_back(everything);
 		return;
 	}
 }
-void UI::XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, int &countComp)
 {
 	if (InChild->Components->DialChild.empty())
 		InChild->Components->DialChild.push_back(make_shared<XMLComponents>());
 
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InChild->Components->DialChild.back()->IDbuttons.push_back(countComp);
-		InChild->Components->DialChild.back()->buttons.push_back(*everything);
+		InChild->Components->DialChild.back()->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InChild->Components->DialChild.back()->IDtexts.push_back(countComp);
-		InChild->Components->DialChild.back()->texts.push_back(*everything);
+		InChild->Components->DialChild.back()->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InChild->Components->DialChild.back()->IDtextmuls.push_back(countComp);
-		InChild->Components->DialChild.back()->textmuls.push_back(*everything);
+		InChild->Components->DialChild.back()->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InChild->Components->DialChild.back()->IDlabels.push_back(countComp);
-		InChild->Components->DialChild.back()->labels.push_back(*everything);
+		InChild->Components->DialChild.back()->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InChild->Components->DialChild.back()->IDseparators.push_back(countComp);
-		InChild->Components->DialChild.back()->separators.push_back(*everything);
+		InChild->Components->DialChild.back()->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InChild->Components->DialChild.back()->IDselect.push_back(countComp);
+		InChild->Components->DialChild.back()->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InChild->Components->DialChild.back()->IDutext.push_back(countComp);
-		InChild->Components->DialChild.back()->utext.push_back(*everything);
+		InChild->Components->DialChild.back()->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InChild->Components->DialChild.back()->IDtlist.push_back(countComp);
-		InChild->Components->DialChild.back()->tlist.push_back(*everything);
+		InChild->Components->DialChild.back()->tlist.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InChild->Components->DialChild.back()->XML_TreeNode.push_back(*everything);
+		InChild->Components->DialChild.back()->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InChild->Components->DialChild.back()->XML_Tab.push_back(*everything);
+		InChild->Components->DialChild.back()->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InChild->Components->DialChild.back()->XMLDChild.push_back(*everything);
+		InChild->Components->DialChild.back()->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InChild->Components->DialChild.back()->XMLCHead.push_back(*everything);
+		InChild->Components->DialChild.back()->XMLCHead.push_back(everything);
 		return;
 	}
 }
-void UI::XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparingTNode(shared_ptr<XMLDial> &InTNode, XMLNode *everything, int &countComp)
 {
 	if (InTNode->Components->_TreeNode.empty())
 		InTNode->Components->_TreeNode.push_back(make_shared<XMLComponents>());
 
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDbuttons.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->buttons.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDtexts.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->texts.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDtextmuls.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->textmuls.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDlabels.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->labels.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDseparators.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->separators.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InTNode->Components->_TreeNode.back()->IDselect.push_back(countComp);
+		InTNode->Components->_TreeNode.back()->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDutext.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->utext.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InTNode->Components->_TreeNode.back()->XML_TreeNode.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InTNode->Components->_TreeNode.back()->XML_Tab.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InTNode->Components->_TreeNode.back()->XMLDChild.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InTNode->Components->_TreeNode.back()->XMLCHead.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->XMLCHead.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InTNode->Components->_TreeNode.back()->IDtlist.push_back(countComp);
-		InTNode->Components->_TreeNode.back()->tlist.push_back(*everything);
+		InTNode->Components->_TreeNode.back()->tlist.push_back(everything);
 		return;
 	}
 }
-void UI::XMLPreparingTab(shared_ptr<dial> &InTab, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &countComp)
 {
 	if (InTab->Components->_Tab.empty())
 		InTab->Components->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
 
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDbuttons.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->buttons.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDtexts.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->texts.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDtextmuls.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->textmuls.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDlabels.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->labels.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDseparators.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->separators.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InTab->Components->_Tab.back()->Component.back()->IDselect.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDutext.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->utext.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InTab->Components->_Tab.back()->Component.back()->XML_TreeNode.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InTab->Components->_Tab.back()->Component.back()->XML_Tab.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InTab->Components->_Tab.back()->Component.back()->XMLDChild.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InTab->Components->_Tab.back()->Component.back()->XMLCHead.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->XMLCHead.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InTab->Components->_Tab.back()->Component.back()->IDtlist.push_back(countComp);
-		InTab->Components->_Tab.back()->Component.back()->tlist.push_back(*everything);
+		InTab->Components->_Tab.back()->Component.back()->tlist.push_back(everything);
 		return;
 	}
 }
 
-void UI::XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, vector<XMLNode *>::iterator everything,
-	int &countComp)
+void UI::XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *everything, int &countComp)
 {
 	countComp++;
 
-	if (strcmp((*everything)->Value(), "Button") == 0)
+	if (strcmp(everything->Value(), "Button") == 0)
 	{
 		InCHead->IDbuttons.push_back(countComp);
-		InCHead->buttons.push_back(*everything);
+		InCHead->buttons.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputText") == 0)
+	if (strcmp(everything->Value(), "InputText") == 0)
 	{
 		InCHead->IDtexts.push_back(countComp);
-		InCHead->texts.push_back(*everything);
+		InCHead->texts.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "InputTextMultiline") == 0)
+	if (strcmp(everything->Value(), "InputTextMultiline") == 0)
 	{
 		InCHead->IDtextmuls.push_back(countComp);
-		InCHead->textmuls.push_back(*everything);
+		InCHead->textmuls.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Label") == 0)
+	if (strcmp(everything->Value(), "Label") == 0)
 	{
 		InCHead->IDlabels.push_back(countComp);
-		InCHead->labels.push_back(*everything);
+		InCHead->labels.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Separator") == 0)
+	if (strcmp(everything->Value(), "Separator") == 0)
 	{
 		InCHead->IDseparators.push_back(countComp);
-		InCHead->separators.push_back(*everything);
+		InCHead->separators.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "UnformatedText") == 0)
+	if (strcmp(everything->Value(), "Selectable") == 0)
+	{
+		InCHead->IDselect.push_back(countComp);
+		InCHead->select.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "UnformatedText") == 0)
 	{
 		InCHead->IDutext.push_back(countComp);
-		InCHead->utext.push_back(*everything);
+		InCHead->utext.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "TreeNode") == 0)
+	if (strcmp(everything->Value(), "TreeNode") == 0)
 	{
-		InCHead->XML_TreeNode.push_back(*everything);
+		InCHead->XML_TreeNode.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Tab") == 0)
+	if (strcmp(everything->Value(), "Tab") == 0)
 	{
-		InCHead->XML_Tab.push_back(*everything);
+		InCHead->XML_Tab.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ChildDialog") == 0)
+	if (strcmp(everything->Value(), "ChildDialog") == 0)
 	{
-		InCHead->XMLDChild.push_back(*everything);
+		InCHead->XMLDChild.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "Collapse") == 0)
+	if (strcmp(everything->Value(), "Collapse") == 0)
 	{
-		InCHead->XMLCHead.push_back(*everything);
+		InCHead->XMLCHead.push_back(everything);
 		return;
 	}
-	if (strcmp((*everything)->Value(), "ListBox") == 0)
+	if (strcmp(everything->Value(), "ListBox") == 0)
 	{
 		InCHead->IDtlist.push_back(countComp);
-		InCHead->tlist.push_back(*everything);
+		InCHead->tlist.push_back(everything);
 		return;
 	}
 }
@@ -851,6 +895,36 @@ void UI::GetParam(XMLNode *Nods, shared_ptr<Column> &column)
 		if (strcmp(FirstAttr->Name(), "count") == 0)
 		{
 			column->ChangeCountColumn(FirstAttr->IntValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			column->ChangeID(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "border") == 0)
+		{
+			column->SetBorder(FirstAttr->BoolValue());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+}
+void UI::GetParam(XMLNode *Nods, shared_ptr<Selectable> &select)
+{
+	if (!Nods) return;
+
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Nods->ToElement()->FirstAttribute());
+	for (;;)
+	{
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			select->ChangeID(FirstAttr->Value());
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
@@ -1005,160 +1079,183 @@ void UI::GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul)
 void UI::GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 	shared_ptr<XMLComponents> &SomeComponent)
 {
-	for (auto Two = SomeComponents.begin(); Two != SomeComponents.end(); ++Two)
+	for (auto Two : SomeComponents)
 	{
 		int i = 0;
-		while (!(*Two)->NoChildren())
+		while (!Two->NoChildren())
 		{
 			// Check Our TabItem First
-			if (((*Two)->Parent()) &&
-				(strcmp((*Two)->Parent()->Value(), "Tab") == 0) &&
-				(strcmp((*Two)->Value(), "TabItem") == 0))
+			if ((Two->Parent()) &&
+				(strcmp(Two->Parent()->Value(), "Tab") == 0) &&
+				(strcmp(Two->Value(), "TabItem") == 0))
 			{
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent, SomeComponent->OrderlyRender, SomeComponent);
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four, SomeComponent->OrderlyRender, SomeComponent);
+					}
 					else
 						XMLPreparingRecursion(SomeComponent, Three, SomeComponent->OrderlyRender);
 				}
 			}
-			else if (strcmp((*Two)->Value(), "Tab") == 0)
+			else if (strcmp(Two->Value(), "Tab") == 0)
 			{
 				SomeComponent->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
-				SomeComponent->XML_Tab.push_back(*Two);
+				SomeComponent->XML_Tab.push_back(Two);
 				SomeComponent->OrderlyRender++;
+				SomeComponent->_Tab.back()->OrderlyRenderInDial = SomeComponent->OrderlyRender;
 
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent,
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four,
 							SomeComponent->_Tab.back()->Component.back()->OrderlyRender,
 							SomeComponent->_Tab.back()->Component.back());
+					}
 					else
 						XMLPreparingRecursion(SomeComponent->_Tab.back()->Component.back(), Three,
 							SomeComponent->_Tab.back()->Component.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*Two)->Value(), "Column") == 0)
+			else if (strcmp(Two->Value(), "Column") == 0)
 			{
-				SomeComponent->XMLColumn.push_back(*Two);
+				SomeComponent->XMLColumn.push_back(Two);
 				SomeComponent->_Column.push_back(make_shared<XMLComponents>());
 				SomeComponent->OrderlyRender++;
+				SomeComponent->_Column.back()->OrderlyRenderInDial = SomeComponent->OrderlyRender;
 
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent, SomeComponent->_Column.back()->OrderlyRender,
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four, SomeComponent->_Column.back()->OrderlyRender,
 							SomeComponent->_Column.back());
+					}
 					else
 						XMLPreparingRecursion(SomeComponent->_Column.back(), Three,
 							SomeComponent->_Column.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*Two)->Value(), "TreeNode") == 0)
+			else if (strcmp(Two->Value(), "TreeNode") == 0)
 			{
 				SomeComponent->_TreeNode.push_back(make_shared<XMLComponents>());
-				SomeComponent->XML_TreeNode.push_back(*Two);
+				SomeComponent->XML_TreeNode.push_back(Two);
 				SomeComponent->OrderlyRender++;
+				SomeComponent->_TreeNode.back()->OrderlyRenderInDial = SomeComponent->OrderlyRender;
 
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent, SomeComponent->_TreeNode.back()->OrderlyRender,
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four, SomeComponent->_TreeNode.back()->OrderlyRender,
 							SomeComponent->_TreeNode.back());
+					}
 					else
 						XMLPreparingRecursion(SomeComponent->_TreeNode.back(), Three,
 							SomeComponent->_TreeNode.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*Two)->Value(), "Collapse") == 0)
+			else if (strcmp(Two->Value(), "Collapse") == 0)
 			{
 				SomeComponent->CpsHead.push_back(make_shared<XMLComponents>());
-				SomeComponent->XMLCHead.push_back(*Two);
+				SomeComponent->XMLCHead.push_back(Two);
 				SomeComponent->OrderlyRender++;
+				SomeComponent->CpsHead.back()->OrderlyRenderInDial = SomeComponent->OrderlyRender;
 
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent, SomeComponent->CpsHead.back()->OrderlyRender,
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four, SomeComponent->CpsHead.back()->OrderlyRender,
 							SomeComponent->CpsHead.back());
+					}
 					else
 						XMLPreparingRecursion(SomeComponent->CpsHead.back(), Three,
 							SomeComponent->CpsHead.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*Two)->Value(), "ChildDialog") == 0)
+			else if (strcmp(Two->Value(), "ChildDialog") == 0)
 			{
 				SomeComponent->DialChild.push_back(make_shared<XMLComponents>());
-				SomeComponent->XMLDChild.push_back(*Two);
+				SomeComponent->XMLDChild.push_back(Two);
 				SomeComponent->OrderlyRender++;
+				SomeComponent->DialChild.back()->OrderlyRenderInDial = SomeComponent->OrderlyRender;
 
 				vector<XMLNode *> SecondComponent; // Look for The Components From Sub-Component
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*Two)->ToElement()->FirstChild());
+						SecondComponent.push_back(Two->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Three = SecondComponent.begin(); Three != SecondComponent.end(); ++Three)
+				for (auto Three : SecondComponent)
 				{
-					if (!(*Three)->NoChildren())
-						GetRecursion(SecondComponent, SomeComponent->DialChild.back()->OrderlyRender,
+					if (!Three->NoChildren())
+					{
+						vector<XMLNode *> Four = { Three };
+						GetRecursion(Four, SomeComponent->DialChild.back()->OrderlyRender,
 							SomeComponent->DialChild.back());
+					}
 					else
 						XMLPreparingRecursion(SomeComponent->DialChild.back(), Three,
 							SomeComponent->DialChild.back()->OrderlyRender);
@@ -1328,12 +1425,12 @@ void UI::ProcessXML()
 	for (;;)
 	{
 		if (XMLDialogs.empty())
-			XMLDialogs.push_back(make_shared<dial>(doc->RootElement()->Parent()->FirstChild()->NextSibling()));
+			XMLDialogs.push_back(make_shared<XMLDial>(doc->RootElement()->Parent()->FirstChild()->NextSibling()));
 
 		if (doc->RootElement()->Parent()->LastChild() != XMLDialogs.back()->Dial)
 		{
 			if (XMLDialogs.back()->Dial && XMLDialogs.back()->Dial->NextSibling())
-				XMLDialogs.push_back(make_shared<dial>(XMLDialogs.back()->Dial->NextSibling()));
+				XMLDialogs.push_back(make_shared<XMLDial>(XMLDialogs.back()->Dial->NextSibling()));
 			else
 				break;
 		}
@@ -1357,29 +1454,29 @@ void UI::ProcessXML()
 		}
 			// Work With All The XML Nodes!
 		int OrderlyRenderInDial = 0;
-		for (auto First = FirstComponent.begin(); First != FirstComponent.end(); ++First)
+		for (auto First : FirstComponent)
 		{
 			OrderlyRenderInDial++;
 
-			if (strcmp((*First)->Value(), "Collapse") == 0)
+			if (strcmp(First->Value(), "Collapse") == 0)
 			{
 				XMLDialogs.at(i)->Components->CpsHead.push_back(make_shared<XMLComponents>());
-				XMLDialogs.at(i)->Components->XMLCHead.push_back(*First);
+				XMLDialogs.at(i)->Components->XMLCHead.push_back(First);
 				XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
 				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+						SecondComponent.push_back(First->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				for (auto Two : SecondComponent)
 				{
-					if (!(*Two)->NoChildren()) // If We Need Recursion!
+					if (!Two->NoChildren()) // If We Need Recursion!
 						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->CpsHead.back());
 					else
@@ -1387,25 +1484,25 @@ void UI::ProcessXML()
 							XMLDialogs.at(i)->Components->CpsHead.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*First)->Value(), "ChildDialog") == 0)
+			else if (strcmp(First->Value(), "ChildDialog") == 0)
 			{
 				XMLDialogs.at(i)->Components->DialChild.push_back(make_shared<XMLComponents>());
-				XMLDialogs.at(i)->Components->XMLDChild.push_back(*First);
+				XMLDialogs.at(i)->Components->XMLDChild.push_back(First);
 				XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
 				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+						SecondComponent.push_back(First->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				for (auto Two : SecondComponent)
 				{
-					if (!(*Two)->NoChildren())
+					if (!Two->NoChildren())
 						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->DialChild.back());
 					else
@@ -1413,25 +1510,25 @@ void UI::ProcessXML()
 							XMLDialogs.at(i)->Components->DialChild.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*First)->Value(), "TreeNode") == 0)
+			else if (strcmp(First->Value(), "TreeNode") == 0)
 			{
 				XMLDialogs.at(i)->Components->_TreeNode.push_back(make_shared<XMLComponents>());
-				XMLDialogs.at(i)->Components->XML_TreeNode.push_back(*First);
+				XMLDialogs.at(i)->Components->XML_TreeNode.push_back(First);
 				XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
 				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+						SecondComponent.push_back(First->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				for (auto Two : SecondComponent)
 				{
-					if (!(*Two)->NoChildren()) // If We Need Recursion!
+					if (!Two->NoChildren()) // If We Need Recursion!
 						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->_TreeNode.back());
 					else
@@ -1439,30 +1536,30 @@ void UI::ProcessXML()
 							XMLDialogs.at(i)->Components->_TreeNode.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*First)->Value(), "Tab") == 0)
+			else if (strcmp(First->Value(), "Tab") == 0)
 			{
 				XMLDialogs.at(i)->Components->_Tab.push_back(make_shared<TItem>());
-				XMLDialogs.at(i)->Components->XML_Tab.push_back(*First);
+				XMLDialogs.at(i)->Components->XML_Tab.push_back(First);
 				XMLDialogs.at(i)->Components->_Tab.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
 				vector<XMLNode *> SecondComponent, SpecialComp;
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+						SecondComponent.push_back(First->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				for (auto Two : SecondComponent)
 				{
-					SpecialComp.push_back(*Two);
-					if (!(*Two)->NoChildren()) // If we have a component and it also has a component
+					SpecialComp.push_back(Two);
+					if (!Two->NoChildren()) // If we have a component and it also has a component
 					{
-						if (strcmp((*Two)->Value(), "TabItem") == 0)
+						if (strcmp(Two->Value(), "TabItem") == 0)
 						{
-							auto Attr = (*Two)->ToElement()->FirstAttribute();
+							auto Attr = Two->ToElement()->FirstAttribute();
 							if (Attr && strcmp(Attr->Name(), "text") == 0)
 							{
 								XMLDialogs.at(i)->Components->_Tab.back()->TabItems.push_back(Attr->Value());
@@ -1481,25 +1578,25 @@ void UI::ProcessXML()
 							XMLDialogs.at(i)->Components->_Tab.back()->Component.back()->OrderlyRender);
 				}
 			}
-			else if (strcmp((*First)->Value(), "Column") == 0)
+			else if (strcmp(First->Value(), "Column") == 0)
 			{
 				XMLDialogs.at(i)->Components->_Column.push_back(make_shared<XMLComponents>());
-				XMLDialogs.at(i)->Components->XMLColumn.push_back(*First);
+				XMLDialogs.at(i)->Components->XMLColumn.push_back(First);
 				XMLDialogs.at(i)->Components->_Column.back()->OrderlyRenderInDial = OrderlyRenderInDial;
 
 				vector<XMLNode *> SecondComponent;
 				for (;;)
 				{
 					if (SecondComponent.empty())
-						SecondComponent.push_back((*First)->ToElement()->FirstChild());
+						SecondComponent.push_back(First->ToElement()->FirstChild());
 					else if (SecondComponent.back()->NextSibling())
 						SecondComponent.push_back(SecondComponent.back()->NextSibling());
 					else
 						break;
 				}
-				for (auto Two = SecondComponent.begin(); Two != SecondComponent.end(); ++Two)
+				for (auto Two : SecondComponent)
 				{
-					if (!(*Two)->NoChildren()) // If We Need Recursion!
+					if (!Two->NoChildren()) // If We Need Recursion!
 						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->_Column.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->_Column.back());
 					else
@@ -1525,9 +1622,9 @@ void UI::ProcessXML()
 		// ********
 			// Dialog
 		dialog.push_back(make_shared<dialogs>());
-		float W = 0.f, H = 0.f;
+		float W = 0.f, H = 0.f, SizeFont = 0.f, Bright = 0.f;
+		string nameFont = "";
 		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
-		string nameFont = ""; float SizeFont = 0.f, Bright = 0.f;
 		for (;;)
 		{
 			if (strcmp(FirstAttr->Name(), "id") == 0)
@@ -1675,6 +1772,14 @@ void UI::ProcessXML()
 			GetParam(XMLDialogs.at(IDDial)->Components->tlist.at(i)->ToElement(), tlist);
 			tlist->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
 			dialog.at(IDDial)->getComponents()->TList.push_back(tlist);
+		}
+		//	Selectable
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDselect.size(); i++)
+		{
+			auto select = make_shared<Selectable>();
+			GetParam(XMLDialogs.at(IDDial)->Components->select.at(i)->ToElement(), select);
+			select->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
+			dialog.at(IDDial)->getComponents()->selectable.push_back(select);
 		}
 
 		// Count of all the components only in dialog!
@@ -1910,21 +2015,7 @@ void CollapsingHeaders::Render()
 
 		while (Count >= now)
 		{
-			if (!Component->column.empty())
-				for (size_t i = 0; i < Component->column.size(); i++)
-				{
-					ImGui::Columns(1);
-					auto Component_Column = Component->column.at(i)->getComponent();
-					if (Component_Column.operator bool() &&
-						Component->column.at(i)->getRenderOrder() == now)
-					{
-						Component_Column->RenderComponents(now);
-					}
-					else
-						Component->RenderComponents(now);
-				}
-			else
-				Component->RenderComponents(now);
+			Component->RenderComponents(now);
 		}
 	}
 }
@@ -1967,31 +2058,19 @@ void dialogs::Render()
 
 		int Count = OrderlyRender, now = 0;
 
+		ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, ImGui::GetFontSize() * 2);
 		ImGui::PushFont(Font);
+
 		while (Count >= now)
 		{
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 2));
-			if (!Component->column.empty())
-				for (size_t i = 0; i < Component->column.size(); i++)
-				{
-					auto Component_Column = Component->column.at(i);
-					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
-					{
-						ImGui::Columns(Component_Column->getCountColumn());
-						Component->RenderComponents(now);
-					}
-				}
-			else
-				Component->RenderComponents(now);
-
+			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 4));
+			Component->RenderComponents(now);
 			ImGui::PopStyleVar();
 		}
-
+		ImGui::PopStyleVar();
 		ImGui::PopFont();
-		ImGui::Columns();
+		ImGui::End();
 	}
-
-	ImGui::End();
 }
 
 void Tab::Render()
@@ -2021,22 +2100,9 @@ void Tab::Render()
 
 					while (Count >= now)
 					{
-						auto SomeComponent = Component.at(MainComponent)->TabItemComp.at(MainSubComp);
-						if (!SomeComponent->column.empty())
-							for (size_t i = 0; i < SomeComponent->column.size(); i++)
-							{
-								auto Component_Column = SomeComponent->column.at(i);
-								if (Component_Column.operator bool())
-								{
-									ImGui::Columns(Component_Column->getCountColumn());
-									SomeComponent->RenderComponents(now);
-								}
-							}
-						else
-							SomeComponent->RenderComponents(now);
+						Component.at(MainComponent)->TabItemComp.at(MainSubComp)->RenderComponents(now);
 					}
 
-					ImGui::Columns();
 					ImGui::EndTabItem();
 				}
 
@@ -2061,24 +2127,11 @@ void TreeNode::Render()
 	if (ImGui::TreeNodeEx(IDTitle.c_str(), Flags))
 	{
 		int Count = OrderlyRender, now = 0;
-
 		while (Count >= now)
 		{
-			if (!Component->column.empty())
-				for (size_t i = 0; i < Component->column.size(); i++)
-				{
-					auto Component_Column = Component->column.at(i);
-					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
-					{
-						ImGui::Columns(Component_Column->getCountColumn());
-						Component->RenderComponents(now);
-					}
-				}
-			else
-				Component->RenderComponents(now);
+			Component->RenderComponents(now);
 		}
 
-		ImGui::Columns();
 		ImGui::TreePop();
 	}
 }
@@ -2093,24 +2146,10 @@ void Child::Render()
 	if (ImGui::BeginChild(IDTitle.c_str(), size, IsBorder, Flags))
 	{
 		int Count = OrderlyRender, now = 0;
-
 		while (Count >= now)
 		{
-			if (!Component->column.empty())
-				for (size_t i = 0; i < Component->column.size(); i++)
-				{
-					auto Component_Column = Component->column.at(i);
-					if (Component_Column.operator bool() && Component->column.at(i)->getCountOrderRenderInDial() == now)
-					{
-						ImGui::Columns(Component_Column->getCountColumn());
-						Component->RenderComponents(now);
-					}
-				}
-			else
-				Component->RenderComponents(now);
+			Component->RenderComponents(now);
 		}
-
-		ImGui::Columns();
 	}
 
 	ImGui::EndChild();
@@ -2201,8 +2240,6 @@ void UnformatedText::Render()
 
 void AllTheComponent::RenderComponents(int &now)
 {
-	//ImGui::NextColumn();
-
 	for (size_t i = 0; i < Label.size(); i++)
 	{
 		if (Label.at(i)->GetVisible() &&
@@ -2231,6 +2268,11 @@ void AllTheComponent::RenderComponents(int &now)
 	{
 		if (separators.at(i)->getRenderOrder() == now)
 			separators.at(i)->Render();
+	}
+	for (size_t i = 0; i < selectable.size(); i++)
+	{
+		if (selectable.at(i)->getRenderOrder() == now)
+			selectable.at(i)->Render();
 	}
 	for (size_t i = 0; i < CollpsHeader.size(); i++)
 	{
@@ -2267,9 +2309,23 @@ void AllTheComponent::RenderComponents(int &now)
 	for (size_t i = 0; i < column.size(); i++)
 	{
 		if (column.at(i)->getCountOrderRenderInDial() == now)
-			column.at(i)->getComponent()->RenderComponents(now);
+			column.at(i)->getComponent()->RenderColumn(column.at(i)->getRenderOrder(),
+				column.at(i)->getCountColumn(), column.at(i)->GetID(), column.at(i)->GetBorder());
 	}
 
-	ImGui::NextColumn();
 	now++;
+}
+
+void AllTheComponent::RenderColumn(int OrderCount, int CountColumn, LPCSTR IDColumn, bool border)
+{
+	ImGui::Columns(CountColumn, IDColumn, border);
+	int now = 0;
+	while (OrderCount >= now)
+	{
+		ImGui::NextColumn();
+		RenderComponents(now);
+		ImGui::NextColumn();
+	}
+
+	ImGui::Columns();
 }

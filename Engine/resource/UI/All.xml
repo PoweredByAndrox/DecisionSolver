@@ -1,19 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
+<!-- <gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
-font="rodc" sizefont="14" brightness="0.8">
+font="capture-it_[allfont.ru]" sizefont="18" brightness="0.8">
 	<Tab text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
 	no_close_midle_mouse="false">
 		<TabItem text="Sounds">
 			<TreeNode text="Sound Objects">
-				<Button text="Play" visible="true"/>
-				<Button text="Pause" visible="true"/>
-				<Label text="Path to File:" visible="true"/>
-				<!-- <Column count="2"> -->
+				<Selectable id="Obj№1"/>
+				<Column count="2" id="ColumnSound" border="false">
+					<Button text="Play" visible="true"/>
+					<Button text="Pause" visible="true"/>
+					<Label text="Path to File:" visible="true"/>
 					<Label text="3D Pos:" visible="true"/>
 					<Label text="Dis (ToCam):" visible="true"/>
 					<Label text="Volume Sound:" visible="true"/>
-				<!-- </Column> -->
+				</Column>
 			</TreeNode>
 		</TabItem>
 		<TabItem text="Physics">
@@ -21,18 +22,18 @@ font="rodc" sizefont="14" brightness="0.8">
 				<Button text="Start Simulate" visible="true"/>
 				<Button text="Pause Simulate" visible="true"/>
 				<Label text="Direction:" visible="true"/>
-				<!-- <Column count="2"> -->
+				<Column count="2" id="ColumnPhysic" border="false">
 					<Label text="3D Pos:" visible="true"/>
 					<Label text="Distantion(ToCam):" visible="true"/>
-				<!-- </Column> -->
+				</Column>
 			</TreeNode>
 		</TabItem>
 	</Tab>
-</gui>
+</gui> -->
 
 <gui id="Main" width="435" height="195" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
-font="capture-it_[allfont.ru]" sizefont="24" brightness="0.8">
+font="capture-it_[allfont.ru]" sizefont="24" brightness="0.9">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>
 		<Button text="Stop!" visible="true"/>
@@ -42,8 +43,8 @@ font="capture-it_[allfont.ru]" sizefont="24" brightness="0.8">
 </gui>
 
 <gui id="Console" width="400" height="250" open="true" resize="false" 
-show_title="true" moveble="false" collapsible="true" bring_to_font="true"
-font="HarryPotterNORG" sizefont="22" brightness="0.8">
+show_title="false" moveble="false" collapsible="false" bring_to_font="true"
+font="HarryPotterNORG" sizefont="22" brightness="0.9">
 	<InputText text="Input" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>
 	<ListBox label="##ForHintCmd" visible="true"/>

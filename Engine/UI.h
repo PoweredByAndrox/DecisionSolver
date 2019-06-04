@@ -2,7 +2,6 @@
 #if !defined(__UI_H__)
 #define __UI_H__
 #include "pch.h"
-#pragma comment(lib, "xinput")
 
 #include "File_system.h"
 #include "tinyxml2.h"
@@ -38,6 +37,7 @@ class TextList;
 class TreeNode;
 class Tab;
 class Column;
+class Selectable;
 struct AllTheComponent
 {
 	vector<shared_ptr<Buttons>> Btn;
@@ -52,8 +52,91 @@ struct AllTheComponent
 	vector<shared_ptr<TextList>> TList;
 	vector<shared_ptr<TreeNode>> TNode;
 	vector<shared_ptr<Tab>> Tabs;
+	vector<shared_ptr<Selectable>> selectable;
 
 	void RenderComponents(int &now);
+	void RenderColumn(int OrderCount, int CountColumn, LPCSTR IDColumn = "", bool border = true);
+};
+struct XMLComponents;
+struct TItem
+{
+	vector<shared_ptr<XMLComponents>> Component;
+	int OrderlyRenderInDial = 0;
+	vector<string> TabItems;
+};
+struct XMLComponents
+{
+	vector<XMLNode *> buttons;
+	vector<int> IDbuttons;
+
+	vector<XMLNode *> labels;
+	vector<int> IDlabels;
+
+	vector<XMLNode *> texts;
+	vector<int> IDtexts;
+
+	vector<XMLNode *> textmuls;
+	vector<int> IDtextmuls;
+
+	vector<XMLNode *> separators;
+	vector<int> IDseparators;
+
+	vector<XMLNode *> utext;
+	vector<int> IDutext;
+
+	vector<XMLNode *> tlist;
+	vector<int> IDtlist;
+
+	vector<XMLNode *> select;
+	vector<int> IDselect;
+
+	vector<shared_ptr<XMLComponents>> CpsHead;
+	vector<XMLNode *> XMLCHead;
+	vector<shared_ptr<XMLComponents>> DialChild;
+	vector<XMLNode *> XMLDChild;
+	vector<shared_ptr<TItem>> _Tab;
+	vector<XMLNode *> XML_Tab;
+	vector<shared_ptr<XMLComponents>> _TreeNode;
+	vector<XMLNode *> XML_TreeNode;
+	vector<shared_ptr<XMLComponents>> _Column;
+	vector<XMLNode *> XMLColumn;
+
+	// It's only for render here!
+	int OrderlyRender = 0, OrderlyRenderInDial = 0;
+};
+struct XMLDial
+{
+	XMLNode *Dial = nullptr;
+
+	shared_ptr<XMLComponents> Components = make_shared<XMLComponents>();
+
+	int OrderlyRender = 0;
+	int getCountOrder() { return OrderlyRender; }
+
+	XMLDial(XMLNode *dial): Dial(dial) {}
+};
+
+class Selectable
+{
+public:
+	void ChangeOrder(int num) { OrderlyRender = num; }
+	int getRenderOrder() { return OrderlyRender; }
+	LPCSTR GetID() { return ID; }
+	bool GetSelect() { return selected; }
+
+	void ChangeID(LPCSTR ID) { this->ID = ID; }
+
+	Selectable() {}
+	~Selectable() {}
+
+	void Render()
+	{
+		ImGui::Selectable(ID, selected);
+	}
+private:
+	int OrderlyRender = 0;
+	LPCSTR ID = "";
+	bool selected = false;
 };
 struct TabItem
 {
@@ -66,6 +149,8 @@ public:
 	int getCountColumn() { return CountColumn; }
 	int getRenderOrder() { return OrderlyRender; }
 	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+	LPCSTR GetID() { return ID; }
+	bool GetBorder() { return Border; }
 
 	shared_ptr<AllTheComponent> getComponent() { return Component; }
 	void setComponents(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
@@ -73,6 +158,9 @@ public:
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
 	void ChangeCountColumn(int Count) { CountColumn = Count; }
+	void ChangeID(LPCSTR ID) { this->ID = ID; }
+
+	void SetBorder(bool Border) { this->Border = Border; }
 
 	Column(int CountColumn): CountColumn(CountColumn) {}
 
@@ -81,6 +169,8 @@ public:
 
 private:
 	int OrderlyRender = 0, OrderlyRenderInDial = 0, CountColumn = 0;
+	LPCSTR ID = "";
+	bool Border = false;
 	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
 class Tab
@@ -657,6 +747,8 @@ public:
 
 	shared_ptr<dialogs> getDialog(LPCSTR IDDialog);
 
+	auto GetIO() { return &ImGui::GetIO(); }
+
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -675,67 +767,7 @@ protected:
 	// **********
 	shared_ptr<tinyxml2::XMLDocument> doc;
 
-	struct XMLComponents;
-	struct TItem
-	{
-		vector<shared_ptr<XMLComponents>> Component;
-		int OrderlyRenderInDial = 0;
-		vector<string> TabItems;
-	};
-	struct XMLComponents
-	{
-		XMLComponents() {}
-		~XMLComponents() {}
-
-		vector<XMLNode *> buttons;
-		vector<int> IDbuttons;
-
-		vector<XMLNode *> labels;
-		vector<int> IDlabels;
-
-		vector<XMLNode *> texts;
-		vector<int> IDtexts;
-
-		vector<XMLNode *> textmuls;
-		vector<int> IDtextmuls;
-
-		vector<XMLNode *> separators;
-		vector<int> IDseparators;
-
-		vector<XMLNode *> utext;
-		vector<int> IDutext;
-
-		vector<XMLNode *> tlist;
-		vector<int> IDtlist;
-
-		vector<shared_ptr<XMLComponents>> CpsHead;
-		vector<XMLNode *> XMLCHead;
-		vector<shared_ptr<XMLComponents>> DialChild;
-		vector<XMLNode *> XMLDChild;
-		vector<shared_ptr<TItem>> _Tab;
-		vector<XMLNode *> XML_Tab;
-		vector<shared_ptr<XMLComponents>> _TreeNode;
-		vector<XMLNode *> XML_TreeNode;
-		vector<shared_ptr<XMLComponents>> _Column;
-		vector<XMLNode *> XMLColumn;
-
-		// It's only for render here!
-		int OrderlyRender = 0, OrderlyRenderInDial = 0;
-	};
-
-	struct dial
-	{
-		XMLNode *Dial = nullptr;
-
-		shared_ptr<XMLComponents> Components = make_shared<XMLComponents>();
-
-		int OrderlyRender = 0;
-		int getCountOrder() { return OrderlyRender; }
-
-		dial(XMLNode *dial): Dial(dial) {}
-	};
-
-	vector<shared_ptr<dial>> XMLDialogs;
+	vector<shared_ptr<XMLDial>> XMLDialogs;
 
 	INT64 g_Time = 0, g_TicksPerSecond = 0;
 	ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
@@ -746,17 +778,19 @@ protected:
 
 	void WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllTheComponent> &DoneComponent, int &CountOrder);
 
-	void XMLPreparing(shared_ptr<dial> &InDial, vector<XMLNode *>::iterator everything, int &countComp);
-	void XMLPreparingCollps(shared_ptr<dial> &InCHead, vector<XMLNode *>::iterator everything, int &countComp);
-	void XMLPreparingChild(shared_ptr<dial> &InChild, vector<XMLNode *>::iterator everything, int &countComp);
-	void XMLPreparingTNode(shared_ptr<dial> &InTNode, vector<XMLNode *>::iterator everything, int &countComp);
-	void XMLPreparingTab(shared_ptr<dial> &InTab, vector<XMLNode *>::iterator everything, int &countComp);
+	void XMLPreparing(shared_ptr<XMLDial> &InDial, XMLNode *everything, int &countComp);
+	void XMLPreparingCollps(shared_ptr<XMLDial> &InCHead, XMLNode *everything, int &countComp);
+	void XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, int &countComp);
+	void XMLPreparingTNode(shared_ptr<XMLDial> &InTNode, XMLNode *everything, int &countComp);
+	void XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &countComp);
+	void XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *everything, int &countComp);
 
 	void GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode);
 	void GetParam(XMLNode *Nods, shared_ptr<Tab> &InTab);
 	void GetParam(XMLNode *Nods, shared_ptr<CollapsingHeaders> &InCollaps);
 	void GetParam(XMLNode *Nods, shared_ptr<Child> &InChild);
-	void GetParam(XMLNode *Nods, shared_ptr<Column>& column);
+	void GetParam(XMLNode *Nods, shared_ptr<Column> &column);
+	void GetParam(XMLNode *Nods, shared_ptr<Selectable> &select);
 
 	void GetParam(XMLElement *Nods, shared_ptr<Buttons>& btn);
 	void GetParam(XMLElement *Nods, shared_ptr<TextList> &TList);
@@ -768,7 +802,5 @@ protected:
 	void GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent, shared_ptr<XMLComponents> &SomeComponent);
 	void GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> &AllComponent,
 		int &Count);
-
-	void XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, vector<XMLNode *>::iterator everything, int &countComp);
 };
 #endif // !__UI_H__

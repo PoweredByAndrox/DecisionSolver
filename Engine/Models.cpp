@@ -14,6 +14,9 @@ ID3D11RasterizerState *g_pRasWireFrame, *g_pRasStateSolid;
 ID3DBlob *VS, *PS;
 ID3D11VertexShader *pVS;
 ID3D11PixelShader *pPS;
+ID3D11Buffer *Matrices = nullptr;
+shared_ptr<Render_Buffer> RB = make_shared<Render_Buffer>();
+
 HRESULT	CompileShaderFromFile(LPCWSTR pFileName, const D3D_SHADER_MACRO* pDefines, LPCSTR pEntryPoint, LPCSTR pShaderModel, ID3DBlob** ppBytecodeBlob)
 {
 	UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
@@ -66,7 +69,7 @@ bool Models::LoadFromFile(string Filename)
 	};
 
 	Application->getDevice()->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), &pLayout);
-	Application->getDeviceContext()->IASetInputLayout(pLayout);
+	Matrices = RB->CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 
 	return true;
 }
@@ -98,7 +101,7 @@ bool Models::LoadFromFile(string Filename, UINT Flags, bool ConvertToLH)
 
 bool Models::LoadFromAllModels()
 {
-	auto Files = Application->getFS()->getFilesInFolder(".obj");
+	auto Files = Application->getFS()->getFilesInFolder("", _TypeOfFile::MODELS);
 	for (size_t i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
@@ -408,12 +411,29 @@ void Models::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 {
 	UINT stride = sizeof(Things);
 	UINT offset = 0;
+	D3D11_MAPPED_SUBRESOURCE mappedResource;
+
+	if (Matrices)
+		ThrowIfFailed(Application->getDeviceContext()->Map(Matrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
+
+	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
+
+	Matrix WVP = World * View * Proj;
+	dataPtr->mMVP = XMMatrixTranspose(WVP);
+
+	if (Matrices)
+	{
+		Application->getDeviceContext()->Unmap(Matrices, 0);
+		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &Matrices);
+	}
 
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
 	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	if (!textures.empty() && textures[0].texture)
 		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].texture);
+
+	Application->getDeviceContext()->IASetInputLayout(pLayout);
 
 	Application->getDeviceContext()->DrawIndexed(indices.size(), 0, 0);
 }
