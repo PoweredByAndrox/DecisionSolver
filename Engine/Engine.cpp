@@ -216,14 +216,14 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 
-		rasterDesc.AntialiasedLineEnable = false;
+		rasterDesc.AntialiasedLineEnable = true;
 		rasterDesc.CullMode = D3D11_CULL_BACK;
 		rasterDesc.DepthBias = 0;
 		rasterDesc.DepthBiasClamp = 0.0f;
 		rasterDesc.DepthClipEnable = true;
 		rasterDesc.FillMode = D3D11_FILL_SOLID;
 		rasterDesc.FrontCounterClockwise = false;
-		rasterDesc.MultisampleEnable = false;
+		rasterDesc.MultisampleEnable = true;
 		rasterDesc.ScissorEnable = false;
 		rasterDesc.SlopeScaledDepthBias = 0.0f;
 

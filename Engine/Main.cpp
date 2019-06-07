@@ -21,6 +21,8 @@
 #include "Physics.h"
 //#include "Picking.h"
 
+#include <iostream>
+
 shared_ptr<Engine> Application;
 #include "UI.h"
 

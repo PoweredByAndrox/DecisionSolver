@@ -264,9 +264,9 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 
 		break;
 	}
-	case NONE:
-		return make_shared<AllFile::File>();
 	}
+
+	return make_shared<AllFile::File>();
 }
 vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeOfFile T)
 {
@@ -481,6 +481,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 		throw exception("ResPath == empty!!!");
 	}
 
+	ToDo("Add Processing Errors!")
 	return make_shared<File_system::AllFile::File>();
 }
 

@@ -43,8 +43,6 @@ private:
 		Scripts,
 		Fonts,
 		None;
-
-		AllFile() {}
 	};
 public:
 

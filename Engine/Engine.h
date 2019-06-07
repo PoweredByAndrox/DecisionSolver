@@ -309,6 +309,8 @@ public:
 	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
 	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
 	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
+
+	auto getAllThreadGroup() { return ThreadGroups; }
 private:
 	// Work with Time!
 	void StartTimer()
@@ -359,5 +361,7 @@ private:
 	Mouse::ButtonStateTracker TrackerMouse;
 	Keyboard::KeyboardStateTracker TrackerKeyboard;
 	GamePad::ButtonStateTracker TrackerGamepad;
+
+	shared_ptr<boost::thread_group> ThreadGroups;
 };
 #endif // __ENGINE_H__

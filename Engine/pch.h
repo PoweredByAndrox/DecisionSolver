@@ -5,6 +5,9 @@
 #include <tchar.h>
 #include <memory>
 
+#include "boost/thread.hpp"
+#include "boost/thread/scoped_thread.hpp"
+
 #include <d3dcompiler.h>
 
 #include <d3dx11.h>
@@ -47,11 +50,11 @@ using namespace tinyxml2;
 
 #if defined(DEBUG)
 	#include <d3d11sdklayers.h>
-	#pragma comment(lib, "Effects11d.lib")
+	#pragma comment (lib, "Effects11d.lib")
 	#pragma comment (lib, "assimp-vc141-mtd.lib")
 	#pragma comment (lib, "tinyxml2d.lib")
 #else
-	#pragma comment(lib, "Effects11.lib")
+	#pragma comment (lib, "Effects11.lib")
 	#pragma comment (lib, "assimp-vc141-mt.lib")
 	#pragma comment (lib, "tinyxml2.lib")
 #endif

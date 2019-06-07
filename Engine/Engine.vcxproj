@@ -126,7 +126,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\Release\;$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -142,7 +143,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\PhysX\$(PlatformTarget);$(SolutionDir)Lib\PxShared\$(PlatformTarget);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Audio\Bin\Desktop_2017_DXSDK\$(PlatformName)\$(ConfigurationName)</AdditionalLibraryDirectories>
       <SubSystem>Windows</SubSystem>
-      <AdditionalDependencies>tinyxml2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

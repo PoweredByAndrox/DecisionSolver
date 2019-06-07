@@ -196,7 +196,7 @@ void deleteWord(string &context, string const start, string const end, bool OneT
 	else
 	{
 		size_t pos1 = 0, pos2 = string::npos;
-		while (true)
+		for (;;)
 		{
 			if ((pos1 = context.find(start, pos1)) != string::npos)
 			{
