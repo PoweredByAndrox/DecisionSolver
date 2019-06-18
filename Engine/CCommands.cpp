@@ -19,6 +19,7 @@ static const vector<string> ListCommandsWithParams =
 	//string("exec_lua #PathToFile.function(param)")
 };
 
+#include "File_system.h"
 void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 {
 	if (!Text.empty())
@@ -30,8 +31,10 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 			ExecCommand(Console, cmd);
 		}
 		else
-			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
+			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
 				string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
+
+		File_system::AddTextToLog(string("\n") + string("> ") + Text + string("\n"), Type::Normal);
 	}
 }
 
@@ -63,7 +66,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	{
 		if (cmd->CommandUnprocessed.empty())
 		{
-			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
+			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
 				string(cmd->CommandStr + string(": No parameters found! You must add several parameters, such like: ") +
 					cmd->CommandNeededParams));
 			return;
@@ -86,12 +89,16 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			}
 
 			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
-				UnformatedText::Type::Information, string("#list of available commands: ") + all);
+				Type::Information, string("#list of available commands: ") + all);
 		}
 		else if (contains(CMD, "quit"))
 			Application->Quit();
 		else if (contains(CMD, "clear"))
+		{
 			Console->getComponents()->childs.back()->getComponent()->UText.back()->ClearText();
+			File_system::ClearLogs();
+			return;
+		}
 		else if (contains(CMD, "dotorque"))
 		{
 			auto ObjPhys = Application->getPhysics()->GetPhysDynamicObject();
@@ -99,12 +106,12 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			{
 				Application->getPhysics()->AddTorque(ObjPhys.at((std::rand() % ObjPhys.size())),
 					PxVec3(
-						Application->getCamera()->GetEyePt().x + 10,
-						Application->getCamera()->GetEyePt().y + 5,
-						Application->getCamera()->GetEyePt().z + 10), PxForceMode::eFORCE);
+						Application->getCamera()->GetEyePt().x,
+						Application->getCamera()->GetEyePt().y,
+						Application->getCamera()->GetEyePt().z), PxForceMode::eFORCE);
 			}
 			else
-				Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Error,
+				Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
 					string(CMD + string(": GetPhysDynamicObject() return NULL!!!")));
 		}
 		else if (contains(CMD, "cleanphysbox"))
@@ -127,7 +134,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		}
 	}
 
-	Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(UnformatedText::Type::Normal,
+	Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Normal,
 		string(cmd->CommandStr + string(" #Apply")));
 
 	for (size_t i = 0; i < History.size(); i++)
@@ -142,6 +149,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			return;
 		}
 	}
+
 	History.push_back(cmd->TypedCmd);
 }
 

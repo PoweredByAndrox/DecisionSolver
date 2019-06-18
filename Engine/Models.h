@@ -9,12 +9,11 @@
 
 #include "Render_Buffer.h"
 
-#include <WICTextureLoader.h>
-#include <DDSTextureLoader.h>
+#include <Inc/WICTextureLoader.h>
+#include <Inc/DDSTextureLoader.h>
 
-#include <CommonStates.h>
+#include <Inc/CommonStates.h>
 #include <Effects.h>
-#include <Model.h>
 
 using namespace Assimp;
 
@@ -67,8 +66,8 @@ public:
 
 	void Render(Matrix View, Matrix Proj);
 
-	Models(void) {}
-	Models(string Filename) { if (!LoadFromFile(Filename)) throw exception("Models::load == false!!!"); }
+	Models() {}
+	Models(string Filename);
 
 	void Release()
 	{

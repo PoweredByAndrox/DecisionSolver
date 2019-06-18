@@ -20,10 +20,10 @@ private:
 		const string CommandNeededParams = "";
 		int CountOfParams = 0;
 		float One = 0.f, Two = 0.f, Three = 0.f;
-
 		bool Checked = false;
 
 		void CheckNeededParam();
+
 		Command() {}
 		Command(string CommandStr, string CommandNeededParams, TypeOfCommand type): CommandStr(CommandStr),
 			CommandNeededParams(CommandNeededParams), type(type) {}
@@ -41,8 +41,6 @@ public:
 
 	void changePosHistory(int num) { PosHistory = num; }
 
-	Commands() {}
-	~Commands() {}
 	void Work(shared_ptr<dialogs> &Console, string Text);
 	void ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cmd);
 

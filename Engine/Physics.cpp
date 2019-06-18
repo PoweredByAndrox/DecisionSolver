@@ -7,10 +7,9 @@ vector<shared_ptr<GeometricPrimitive>> Cobes;
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
-#include "CommonStates.h"
-#include "PrimitiveBatch.h"
-#include <Effects.h>
 #include "Camera.h"
+#include "Console.h"
+#include "DebugDraw.h"
 
 HRESULT Physics::Init()
 {
@@ -19,43 +18,75 @@ HRESULT Physics::Init()
 		gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
 		if (!gFoundation)
 		{
-			DebugTrace("Physics: PxCreateFoundation failed.\n");
-			throw exception("PxCreateFoundation == nullptr!!!");
-			return E_FAIL;
+
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->PxCreateFoundation Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->PxCreateFoundation Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Foundation!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
 
+#if defined (_DEBUG)
 		gPvd = PxCreatePvd(*gFoundation);
 		if (!gPvd)
 		{
-			DebugTrace("Physics: gPvd failed.\n");
-			throw exception("gPvd == nullptr!!!");
-			return E_FAIL;
+			DebugTrace("Physics::Init->PxCreatePvd() Was Triggered!");
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->PxCreatePvd() Was Triggered!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PVD!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
+#endif
 
+#if defined (_DEBUG)
 		transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 		//transport = PxDefaultPvdFileTransportCreate("sample.pxd2");
 		if (!transport)
 		{
-			DebugTrace("Physics: Transport failed.\n");
-			throw exception("Transport == nullptr!!!");
-			return E_FAIL;
+			DebugTrace("Physics::Init->PxDefaultPvdSocketTransportCreate Is Failed!");
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->PxDefaultPvdSocketTransportCreate Is Failed!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PVD Socket!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
 
 		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
-
-		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true, gPvd);
+#endif
+		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true,
+#if defined (_DEBUG)
+			gPvd
+#else
+			nullptr
+#endif 
+);
 		if (!gPhysics)
 		{
-			DebugTrace("Physics: gPhysics failed.\n");
-			throw exception("gPhysics == nullptr!!!");
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->gPhysics Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->gPhysics Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX!");
 			return E_FAIL;
 			IsInitPhysX = false;
 		}
 
-		PxInitExtensions(*gPhysics, gPvd);
+		PxInitExtensions(*gPhysics,
+#if defined (_DEBUG)
+			gPvd
+#else
+			nullptr
+#endif 
+);
 
 		PxSceneDesc sceneDesc(gPhysics->getTolerancesScale());
 		sceneDesc.gravity = PxVec3(0.0f, -9.8f, 0.0f);
@@ -67,10 +98,15 @@ HRESULT Physics::Init()
 		gScene = gPhysics->createScene(sceneDesc);
 		if (!gScene)
 		{
-			DebugTrace("Physics: gScene failed.\n");
-			throw exception("gScene == nullptr!!!");
-			return E_FAIL;
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->gScene Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->gScene Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Scene!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
 
 		pvdClient = gScene->getScenePvdClient();
@@ -80,23 +116,34 @@ HRESULT Physics::Init()
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
-
+		// Params (below)
 			//static friction, dynamic friction, restitution
 		gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 		if (!gMaterial)
 		{
-			DebugTrace("Physics: gMaterial failed.\n");
-			throw exception("gMaterial == nullptr!!!");
-			return E_FAIL;
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->gMaterial Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->gMaterial Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Material!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
 
 		PxTransform planePos = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
 		gPlane = gPhysics->createRigidStatic(planePos);
 		if (!gPlane)
 		{
-			DebugTrace("Physics: gPlane failed.\n");
-			throw exception("gPlane == nullptr!!!");
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->gPlane Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->gPlane Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Plane!");
+			IsInitPhysX = false;
 			return E_FAIL;
 		}
 
@@ -111,19 +158,32 @@ HRESULT Physics::Init()
 		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, params);
 		if (!gCooking)
 		{
-			DebugTrace("Physics: gCooking failed.\n");
-			throw exception("gCooking == nullptr!!!");
-			return E_FAIL;
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->gCooking Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->gCooking Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Cook!");
 			IsInitPhysX = false;
+			return E_FAIL;
 		}
 
 		IsInitPhysX = true;
 		return S_OK;
 	}
-	catch (const exception&)
+	catch (const exception &Catch)
 	{
-		DebugTrace("Physics: Init failed.\n");
-		throw exception("PhysX initialization error!!!");
+#if defined (_DEBUG)
+		DebugTrace(string(string("Physics::Init->catch() Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif 
+#if defined (ExceptionWhenEachError)
+		throw exception(string(string("Physics::Init->catch() Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif
+		Console::LogError(string(string("Physics: Something is wrong with Init Function!\nReturn Error Text:")
+			+ Catch.what()).c_str());
 		return E_FAIL;
 	}
 }
@@ -238,6 +298,7 @@ void Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera 
 
 void Physics::Destroy()
 {
+#if defined (_DEBUG)
 	if (gPvd)
 	{
 		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())
@@ -246,6 +307,7 @@ void Physics::Destroy()
 		gPvd->release();
 		transport->release();
 	}
+#endif
 	SAFE_release(gCooking);
 	SAFE_release(gScene);
 	SAFE_release(gPhysics);

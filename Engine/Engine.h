@@ -3,12 +3,14 @@
 #define __ENGINE_H__
 #include "pch.h"
 
-#include <Keyboard.h>
-#include <Mouse.h>
-#include <GamePad.h>
+#include <Inc/Keyboard.h>
+#include <Inc/Mouse.h>
+#include <Inc/GamePad.h>
 
 #define Never
 //#define NEEDED_DEBUG_INFO
+
+//#define ExceptionWhenEachError
 
 class DebugDraw;
 
@@ -107,7 +109,7 @@ public:
 	HRESULT Init(wstring NameWnd, HINSTANCE hInstance);
 
 	void Render();
-	void Destroy(HINSTANCE hInstance);
+	void Destroy();
 	void Quit() { ::PostQuitMessage(0); }
 
 	Engine() {}
@@ -215,50 +217,10 @@ public:
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }
 	shared_ptr<GamePad> getGamepad() { return gamepad; }
 
-	ID3D11Device *getDevice()
-	{
-		if (Device)
-			return Device;
-		else
-		{
-			DebugTrace("Engine::GetDevice() get is failed");
-			throw exception("Get is failed!!!");
-			return nullptr;
-		}
-	}
-	ID3D11DeviceContext *getDeviceContext()
-	{
-		if (DeviceContext)
-			return DeviceContext;
-		else
-		{
-			DebugTrace("Engine::GetDeviceContext() get is failed");
-			throw exception("Get is failed!!!");
-			return nullptr;
-		}
-	}
-	IDXGISwapChain *getSwapChain()
-	{
-		if (SwapChain)
-			return SwapChain;
-		else
-		{
-			DebugTrace("Engine::GetSwapChain() get is failed");
-			throw exception("Get is failed!!!");
-			return nullptr;
-		}
-	}
-	ID3D11RenderTargetView *getTargetView()
-	{
-		if (RenderTargetView)
-			return RenderTargetView;
-		else
-		{
-			DebugTrace("Engine::GetTargetView() get is failed");
-			throw exception("Get is failed!!!");
-			return nullptr;
-		}
-	}
+	ID3D11Device *getDevice();
+	ID3D11DeviceContext *getDeviceContext();
+	IDXGISwapChain *getSwapChain();
+	ID3D11RenderTargetView *getTargetView();
 
 	DXGI_SWAP_CHAIN_DESC getSwapChainDesc() { return SCD; }
 	DXGI_SWAP_CHAIN_DESC1 getSwapChainDesc1() { return SCD1; }
@@ -273,7 +235,7 @@ public:
 		DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
 		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0u);
 	}
-	static void ResizeWindow(WPARAM wParam);
+	static HRESULT ResizeWindow(WPARAM wParam);
 
 	bool IsWireFrame() { return WireFrame; }
 	void SetWireFrame(bool WF) { WireFrame = WF; }
@@ -298,13 +260,7 @@ public:
 	shared_ptr<MainMenu> getMainMenu() { return Menu; }
 #endif
 
-	static void StackTrace(const char *Error)
-	{
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-		DebugTrace("Check info below:\n");
-		DebugTrace(string(string("... ") + string(Error) + string(" ...")).c_str());
-		DebugTrace("***********ERROR IN XML FILE***********\n");
-	}
+	static void StackTrace(LPCSTR Error);
 
 	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
 	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
@@ -363,5 +319,6 @@ private:
 	GamePad::ButtonStateTracker TrackerGamepad;
 
 	shared_ptr<boost::thread_group> ThreadGroups;
+	HINSTANCE hInstance;
 };
 #endif // __ENGINE_H__

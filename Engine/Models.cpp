@@ -7,6 +7,7 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
 #include "Models.h"
+#include "Console.h"
 
 ID3D11InputLayout *pLayout;
 ID3D11SamplerState *TexSamplerState;
@@ -49,8 +50,13 @@ bool Models::LoadFromFile(string Filename)
 		aiProcess_ConvertToLeftHanded);
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
-		DebugTrace(string(string("Models: Error. Scene returned nullptr with text: ") + string(importer->GetErrorString())).c_str());
+#if defined (_DEBUG)
+		DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
 		throw exception("Models::pScene == nullptr!!!");
+#endif
+		Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
 		return false;
 	}
 
@@ -88,8 +94,13 @@ bool Models::LoadFromFile(string Filename, UINT Flags, bool ConvertToLH)
 
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
-		DebugTrace(string(string("Models: Error. Scene returned nullptr with text: ") + string(importer->GetErrorString())).c_str());
+#if defined (_DEBUG)
+		DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
 		throw exception("Models::pScene == nullptr!!!");
+#endif
+		Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
 		return false;
 	}
 
@@ -112,8 +123,13 @@ bool Models::LoadFromAllModels()
 		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
 		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 		{
-			DebugTrace(string(string("Models: Error. Scene return nullptr with text: ") + string(importer->GetErrorString())).c_str());
+#if defined (_DEBUG)
+			DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
 			throw exception("Models::pScene == nullptr!!!");
+#endif
+			Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
 			return false;
 		}
 
@@ -128,6 +144,7 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 {
 	int i1 = 0;
 
+		// Need To Check It!!!
 	auto Files = Application->getFS()->getFilesInFolder(".obj");
 	for (size_t i = 0; i < Files.size(); i++)
 	{
@@ -157,8 +174,13 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 
 		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 		{
-			DebugTrace(string(string("Models: Error. Scene return nullptr with text: ") + string(importer->GetErrorString())).c_str());
+#if defined (_DEBUG)
+			DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
 			throw exception("Models::pScene == nullptr!!!");
+#endif
+			Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
 			return false;
 		}
 
@@ -183,7 +205,34 @@ void Models::Render(Matrix View, Matrix Proj)
 	}
 }
 
-vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene)
+Models::Models(string Filename)
+{
+	if (Filename.empty())
+	{
+#if defined (ExceptionWhenEachError)
+		throw exception("Models: File Not Found!\n");
+#endif
+#if defined (_DEBUG)
+		DebugTrace(string(string("Model File: ") + Filename + string("not found And Can't Be Load!")).c_str());
+#endif
+		Console::LogError(string("Model File: ") + Filename + string("not found And Can't Be Load!"));
+
+		return;
+	}
+	if (!LoadFromFile(Filename))
+	{
+#if defined (ExceptionWhenEachError)
+		throw exception("Models::LoadFromFile == false!\n");
+#endif
+#if defined (_DEBUG)
+		DebugTrace(string(string("Model: ") + Filename + string(" Can't Be Load!")).c_str());
+#endif
+		Console::LogError(string("Model: ") + Filename + string(" Can't Be Load!"));
+	}
+}
+
+vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName,
+	const aiScene *Scene)
 {
 	vector<Texture> textures;
 	for (UINT i = 0; i < mat->GetTextureCount(type); i++)
@@ -207,22 +256,31 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 				texture.texture = getTextureFromModel(Scene, getTextureIndex(&str));
 			else
 			{
-				if (FindSubStr(Application->getFS()->GetFile(string(str.C_Str()))->ExtA, string(".dds")))
+				auto textr = Application->getFS()->GetFile(string(str.C_Str()));
+				if (FindSubStr(textr->ExtA, string(".dds")))
 				{
-					if (FAILED(CreateDDSTextureFromFile(Application->getDevice(),
-						Application->getFS()->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture)))
+					if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(), nullptr, &texture.texture)))
 					{
+#if defined (_DEBUG)
 						DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+#endif
+#if defined (ExceptionWhenEachError)
 						throw exception("Create failed!!!");
+#endif
+						Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
 					}
 				}
 				else
 				{
-					if (FAILED(CreateWICTextureFromFile(Application->getDevice(),
-						Application->getFS()->GetFile(string(str.C_Str()))->PathW.c_str(), nullptr, &texture.texture)))
+					if (FAILED(CreateWICTextureFromFile(Application->getDevice(), textr->PathW.c_str(), nullptr, &texture.texture)))
 					{
+#if defined (_DEBUG)
 						DebugTrace("Models::CreateWICTextureFromFile() create failed");
+#endif
+#if defined (ExceptionWhenEachError)
 						throw exception("Create failed!!!");
+#endif
+						Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
 					}
 				}
 			}
@@ -336,8 +394,14 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (FAILED(CreateWICTextureFromMemory(Application->getDevice(),
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
 	{
-		DebugTrace("Models::CreateWICTextureFromMemory() create failed");
+#if defined (_DEBUG)
+		DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+#endif
+#if defined (ExceptionWhenEachError)
 		throw exception("Create failed!!!");
+#endif
+		Console::LogInfo(string("Something is wrong with this texture: ") + Scene->mTextures[Textureindex]->mFilename.C_Str());
+
 		return nullptr;
 	}
 
@@ -357,24 +421,6 @@ void Models::setScale(Vector3 Scale)
 void Models::setPosition(Vector3 Pos)
 {
 	position = Matrix::CreateTranslation(Pos);
-}
-
-HRESULT m_compileshaderfromfile(LPCWSTR FileName, LPCSTR EntryPoint, LPCSTR ShaderModel, ID3DBlob** ppBlobOut)
-{
-	HRESULT hr = S_OK;
-
-	DWORD ShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
-#if defined( DEBUG ) || defined( _DEBUG )
-	ShaderFlags |= D3DCOMPILE_DEBUG;
-#endif
-
-	ID3DBlob* pErrorBlob;
-	hr = D3DX11CompileFromFileW(FileName, NULL, NULL, EntryPoint, ShaderModel, ShaderFlags, 0, NULL, ppBlobOut, &pErrorBlob, NULL);
-	if (FAILED(hr) && pErrorBlob != NULL)
-		OutputDebugStringA((char*)pErrorBlob->GetBufferPointer());
-
-	SAFE_RELEASE(pErrorBlob);
-	return hr;
 }
 
 void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)

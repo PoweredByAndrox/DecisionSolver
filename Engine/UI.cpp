@@ -1,10 +1,8 @@
 #include "pch.h"
 
 #include "UI.h"
+#include "Console.h"
 
-#include "Actor.h"
-#include "Models.h"
-#include "Audio.h"
 static shared_ptr<Render_Buffer> Buf = make_shared<Render_Buffer>();
 
 HRESULT UI::Init()
@@ -69,8 +67,16 @@ HRESULT UI::Init()
 	}
 	catch (const exception &Catch)
 	{
-		DebugTrace(string(string("UI: Init is failed. ") + string(Catch.what())).c_str());
-		throw exception("Init is failed!!!");
+#if defined (_DEBUG)
+		DebugTrace(string(string("UI::Init->catch Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception(string(string("UI::Init->catch Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif
+		Console::LogError(string(string("UI: Something is wrong with UI Init Function!\nReturn Error Text:")
+			+ Catch.what()).c_str());
 		InitUI = false;
 		return E_FAIL;
 	}
@@ -78,6 +84,8 @@ HRESULT UI::Init()
 }
 void dialogs::ChangeFont(string FontName, float SizePixel, float Brighten)
 {
+	SAFE_DELETE(Font);
+
 	ImGuiIO &IO = ImGui::GetIO();
 	shared_ptr<ImFontConfig> font_config = make_shared<ImFontConfig>();
 	font_config->RasterizerMultiply = Brighten;
@@ -159,13 +167,28 @@ HRESULT UI::LoadXmlUI(string File)
 	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() > 0)
 	{
+#if defined (_DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
-		throw exception((boost::format(("UI->LoatXmlUI()::doc->LoadFile() == %d!!!")) % doc->ErrorID()).str().c_str());
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception(string(string("UI::LoatXmlUI() ErrorID > 0!\nReturn Error Text:")
+			+ doc->ErrorID()).c_str());
+#endif
+		Console::LogError(string(string("UI: Something is wrong with load XML File!\nReturn Error Text:")
+			+ doc->ErrorStr() + "\nErrorID (see tinyXml doc): " + to_string(doc->ErrorID())).c_str());
 		return E_FAIL;
 	}
 	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"), string("-->")).c_str()) > 0)
 	{
-		throw exception(string(string("UI->LoatXmlUI()::doc->Parse:\n") + string(doc->ErrorStr())).c_str());
+#if defined (_DEBUG)
+		Engine::StackTrace(doc->ErrorStr());
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception(string(string("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error Text:")
+			+ doc->ErrorID()).c_str());
+#endif
+		Console::LogError(string(string("UI: Something is wrong with Parse XML File!\nReturn Error Text:")
+			+ doc->ErrorStr() + "\nErrorID (see tinyXml doc): " + to_string(doc->ErrorID())).c_str());
 		return E_FAIL;
 	}
 
@@ -1270,16 +1293,23 @@ void UI::GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 	shared_ptr<XMLComponents> &SomeComponent)
 {
+	shared_ptr<AllTheComponent> tmpComponent;
+
 	//	Collapse
 	for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
 	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
 		auto CHeader = make_shared<CollapsingHeaders>();
 		// Get Params In New Component!
 		GetParam(SomeComponent->XMLCHead.at(i), CHeader);
 		CHeader->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->OrderlyRenderInDial);
 
-		GetRecursionAdd(SomeComponent->CpsHead.at(i), CHeader->getComponent(),
-			SomeComponent->CpsHead.at(i)->OrderlyRender);
+		GetRecursionAdd(SomeComponent->CpsHead.at(i), tmpComponent, SomeComponent->CpsHead.at(i)->OrderlyRender);
+		CHeader->setComponents(tmpComponent);
+		tmpComponent.reset();
+
 		CHeader->ChangeOrder(SomeComponent->CpsHead.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
@@ -1288,12 +1318,17 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 	//	ChildDialog
 	for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
 	{
+		if(!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
 		auto child = make_shared<Child>();
 		GetParam(SomeComponent->XMLDChild.at(i), child);
 		child->ChangeOrderInDial(SomeComponent->DialChild.at(i)->OrderlyRenderInDial);
 
-		GetRecursionAdd(SomeComponent->DialChild.at(i), child->getComponent(),
-			SomeComponent->DialChild.at(i)->OrderlyRender);
+		GetRecursionAdd(SomeComponent->DialChild.at(i), tmpComponent, SomeComponent->DialChild.at(i)->OrderlyRender);
+		child->setComponents(tmpComponent);
+		tmpComponent.reset();
+
 		child->ChangeOrder(SomeComponent->DialChild.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
@@ -1323,12 +1358,17 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 	// TreeNode
 	for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
 	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
 		shared_ptr<TreeNode> TNode = make_shared<TreeNode>();
 		GetParam(SomeComponent->XML_TreeNode.at(i), TNode);
 		TNode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->OrderlyRenderInDial);
 
-		GetRecursionAdd(SomeComponent->_TreeNode.at(i), TNode->getComponent(),
-			SomeComponent->_TreeNode.at(i)->OrderlyRender);
+		GetRecursionAdd(SomeComponent->_TreeNode.at(i), tmpComponent, SomeComponent->_TreeNode.at(i)->OrderlyRender);
+		TNode->setComponents(tmpComponent);
+		tmpComponent.reset();
+
 		TNode->ChangeOrder(SomeComponent->_TreeNode.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
@@ -1337,12 +1377,17 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 	// Column
 	for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
 	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
 		auto column = make_shared<Column>();
 		GetParam(SomeComponent->XMLColumn.at(i), column);
 		column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
 
-		GetRecursionAdd(SomeComponent->_Column.at(i), column->getComponent(),
-			SomeComponent->_Column.at(i)->OrderlyRender);
+		GetRecursionAdd(SomeComponent->_Column.at(i), tmpComponent, SomeComponent->_Column.at(i)->OrderlyRender);
+		column->setComponents(tmpComponent);
+		tmpComponent.reset();
+
 		column->ChangeOrder(SomeComponent->_Column.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
@@ -1352,11 +1397,18 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> &AllComponent,
 	int &Count)
 {
+	shared_ptr<AllTheComponent> tmpComponent;
+
 	if (!SomeComponent->XMLDChild.empty())
 		for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
 		{
+			if (!tmpComponent.operator bool())
+				tmpComponent = make_shared<AllTheComponent>();
+
 			auto child = make_shared<Child>();
-			WorkOnComponents(SomeComponent->DialChild.at(i), child->getComponent(), Count);
+			WorkOnComponents(SomeComponent->DialChild.at(i), tmpComponent, Count);
+			child->setComponents(tmpComponent);
+			tmpComponent.reset();
 
 			GetParam(SomeComponent->XMLDChild.at(i)->ToElement(), child);
 			child->ChangeOrder(Count);
@@ -1380,8 +1432,13 @@ void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<All
 	else if (!SomeComponent->XML_TreeNode.empty())
 		for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
 		{
+			if (!tmpComponent.operator bool())
+				tmpComponent = make_shared<AllTheComponent>();
+
 			auto treenode = make_shared<TreeNode>();
-			WorkOnComponents(SomeComponent->_TreeNode.at(i), treenode->getComponent(), Count);
+			WorkOnComponents(SomeComponent->_TreeNode.at(i), tmpComponent, Count);
+			treenode->setComponents(tmpComponent);
+			tmpComponent.reset();
 
 			GetParam(SomeComponent->XML_TreeNode.at(i)->ToElement(), treenode);
 			treenode->ChangeOrder(Count);
@@ -1392,8 +1449,13 @@ void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<All
 	else if (!SomeComponent->XMLCHead.empty())
 		for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
 		{
+			if (!tmpComponent.operator bool())
+				tmpComponent = make_shared<AllTheComponent>();
+
 			auto collps = make_shared<CollapsingHeaders>();
-			WorkOnComponents(SomeComponent->CpsHead.at(i), collps->getComponent(), Count);
+			WorkOnComponents(SomeComponent->CpsHead.at(i), tmpComponent, Count);
+			collps->setComponents(tmpComponent);
+			tmpComponent.reset();
 
 			GetParam(SomeComponent->XMLCHead.at(i)->ToElement(), collps);
 			collps->ChangeOrder(Count);
@@ -1404,8 +1466,13 @@ void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<All
 	else if (!SomeComponent->XMLColumn.empty())
 		for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
 		{
+			if (!tmpComponent.operator bool())
+				tmpComponent = make_shared<AllTheComponent>();
+
 			auto column = make_shared<Column>();
-			WorkOnComponents(SomeComponent->_Column.at(i), column->getComponent(), Count);
+			WorkOnComponents(SomeComponent->_Column.at(i), tmpComponent, Count);
+			column->setComponents(tmpComponent);
+			tmpComponent.reset();
 
 			GetParam(SomeComponent->XMLColumn.at(i)->ToElement(), column);
 			column->ChangeOrder(Count);
@@ -1820,20 +1887,13 @@ void UI::EnableDialog(LPCSTR IDDialog)
 
 shared_ptr<dialogs> UI::getDialog(LPCSTR IDDialog)
 {
-	if (Dialogs.empty())
-	{
-		DebugTrace("UI->addButton()::Dialogs->empty() == empty!!!");
-		throw exception("UI->addButton()::Dialogs->empty() == empty!!!");
-		return nullptr;
-	}
-
 	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			return Dialogs.at(i);
 	}
 
-	return make_shared<dialogs>();
+	return nullptr;
 }
 
 // Update Mouse and Keyboard, Gamepad

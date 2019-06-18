@@ -228,3 +228,20 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 	if (AlsoDeleteSpace)
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
+
+void ParseText(string &Text, Type type)
+{
+	vector<string> strs;
+	boost::split(strs, Text, boost::is_any_of("\n"));
+	Text.clear();
+
+	for (size_t i = 0; i < strs.size(); i++)
+	{
+		if (type == Type::Information)
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "));
+		else if (type == Type::Error)
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "));
+		else
+			Text += strs.at(i);
+	}
+}

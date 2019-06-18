@@ -1,15 +1,27 @@
 #include "pch.h"
 
+#include "Console.h"
 #include "File_system.h"
+
+path File_system::p = "";
+static shared_ptr<boost::filesystem::ofstream> LogFile;
+path File_system::CriLogFName = "CritiesEngine.log";
+path File_system::LogFName = "Engine.log";
 
 File_system::File_system()
 {
-	p = _wgetcwd(NULL, 512);
+	p = _wgetcwd(nullptr, 512);
 	if (p.empty())
 	{
-		DebugTrace("File_system: Error get resources folder\n");
-		throw exception("p == empty!!!");
+#if defined (_DEBUG)
+		DebugTrace("File System::File_system Is Failed!");
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception("File System::File_system Is Failed!");
+#endif
+		Console::LogError("File System: Something is wrong with Get Resource Folder\\Path!");
 	}
+	CreateLog();
 	ScanFiles();
 }
 
@@ -132,6 +144,67 @@ _TypeOfFile File_system::GetTypeFile(string file)
 	}
 	else
 		return NONE;
+}
+
+void File_system::CreateLog()
+{
+	if (GetCurrentPath().empty())
+	{
+		MessageBoxA(Engine::GetHWND(), "Engine cannot get path to log file!", "Error!", MB_OK | MB_ICONERROR);
+		return;
+	}
+
+	string tmp = LogFName.string();
+	LogFName = GetCurrentPath().string() + string("\\") + tmp;
+
+	if (!exists(LogFName))
+	{
+		LogFile = make_shared<boost::filesystem::ofstream>(LogFName, std::ofstream::in | std::ofstream::app);
+		if (!LogFile->is_open())
+		{
+			MessageBoxA(Engine::GetHWND(), "Engine cannot create a log file!", "Error!", MB_OK | MB_ICONERROR);
+			return;
+		}
+	}
+	else
+	{
+		LogFile = make_shared<boost::filesystem::ofstream>(LogFName, std::ofstream::in | std::ofstream::app);
+		OpenLog();
+	}
+
+	LogFile->close();
+}
+
+void File_system::AddTextToLog(string Text, Type type)
+{
+	OpenLog();
+
+	ParseText(Text, type);
+	*LogFile << Text;
+
+	LogFile->close();
+}
+
+void File_system::OpenLog()
+{
+	if (!exists(LogFName))
+		CreateLog();
+
+	if (!LogFile->is_open())
+	{
+
+		LogFile = make_shared<boost::filesystem::ofstream>(LogFName, std::ofstream::in | std::ofstream::app);
+		if (!LogFile->is_open())
+		{
+			MessageBoxA(Engine::GetHWND(), "Engine cannot open a log file!", "Error!", MB_OK | MB_ICONERROR);
+			return;
+		}
+	}
+}
+
+void File_system::ClearLogs()
+{
+	boost::filesystem::remove(LogFName);
 }
 
 shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
@@ -293,6 +366,8 @@ vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeO
 	case NONE:
 		return vector<shared_ptr<File_system::AllFile::File>>{make_unique<File_system::AllFile::File>()};
 	}
+
+	return vector<shared_ptr<File_system::AllFile::File>>{make_unique<File_system::AllFile::File>()};
 }
 
 shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
@@ -477,12 +552,26 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 	}
 	else
 	{
-		DebugTrace("File System: GetResPathA failed.\n");
-		throw exception("ResPath == empty!!!");
+#if defined (_DEBUG)
+		DebugTrace("File System::GetResPathA Is Failed!");
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception("File System::GetResPathA Is Failed!");
+#endif
+		Console::LogError("File System: Something is wrong with File System Function (GetResPathA)!");
 	}
 
-	ToDo("Add Processing Errors!")
-	return make_shared<File_system::AllFile::File>();
+	// winerror.h 
+		//	e.g ERROR_FILE_NOT_FOUND
+
+#if defined(_DEBUG)
+	DebugTrace("File System: ERROR_FILE_NOT_FOUND!\n");
+#endif
+#if defined (ExceptionWhenEachError)
+	throw exception(string(string("File: ") + file + string(" not found\n")).c_str());
+#endif
+	Console::LogError(string("File: ") + file + string(" not found"));
+	return nullptr;
 }
 
 vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bool onlyFile, _TypeOfFile type)
@@ -881,8 +970,13 @@ string File_system::getDataFromFile(string File, bool LineByline, string start, 
 	}
 	else
 	{
-		DebugTrace("File System::getDataFromFile() failed.\n");
-		throw exception("streamObj == NOT OPEN!!!");
+#if defined (_DEBUG)
+		DebugTrace("File System::getDataFromFile Is Failed!");
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception("File System::getDataFromFile Is Failed!");
+#endif
+		Console::LogError("File System: Something is wrong with File System Function (getDataFromFile)!");
 		return "";
 	}
 
@@ -898,7 +992,7 @@ vector<string> File_system::getDataFromFileVector(string File, bool LineByline)
 		while (!streamObj.eof())
 		{
 			getline(streamObj, Cache);
-			Returned_val.back().append(Cache);
+			Returned_val.push_back(Cache);
 		}
 	else
 		while (!streamObj.eof())

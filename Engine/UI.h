@@ -5,6 +5,7 @@
 
 #include "File_system.h"
 #include "tinyxml2.h"
+#include "imgui.h"
 
 using namespace tinyxml2;
 
@@ -323,12 +324,6 @@ private:
 class UnformatedText
 {
 public:
-	enum Type
-	{
-		Normal = 0,
-		Information,
-		Error
-	} type = Normal;
 	class ColorText
 	{
 	public:

@@ -5,6 +5,7 @@
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
+#include "File_system.h"
 
 shared_ptr<Commands> Console::ProcessCommand = make_shared<Commands>();
 shared_ptr<dialogs> Console::Dialog;
@@ -16,13 +17,36 @@ HRESULT Console::Init()
 		ProcessCommand->Init();
 		Dialog = Application->getUI()->getDialog("Console");
 
+		auto Log = Application->getFS()->getDataFromFileVector(Application->getFS()->getLogFName().string(), true);
+
+		for (size_t i = 0; i < Log.size(); i++)
+		{
+			if (Log.at(i).find("[ERROR]") != string::npos)
+				Dialog->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
+					Log.at(i));
+			else if (Log.at(i).find("[INFO]") != string::npos)
+				Dialog->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Information,
+					Log.at(i));
+			else
+				Dialog->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Normal,
+					Log.at(i));
+		}
+
 		InitClass = true;
 		return S_OK;
 	}
 	catch (const exception &Catch)
 	{
-		DebugTrace(string(string("Console: Init is failed. ") + string(Catch.what())).c_str());
-		throw exception("Console is failed!!!");
+#if defined (_DEBUG)
+		DebugTrace(string(string("Console::catch() Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception(string(string("Console::catch() Was Triggered!\nReturn Error Text:")
+			+ Catch.what()).c_str());
+#endif
+		Console::LogError(string(string("Console: Something is wrong with Console Init Function!\nReturn Error Text:")
+			+ Catch.what()).c_str());
 		InitClass = false;
 		return E_FAIL;
 	}
@@ -133,38 +157,62 @@ void Console::AddCmd(LPCSTR Text)
 
 void Console::LogError(string Msg)
 {
-	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+	if (Msg.empty())
+		return;
+
+	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
+	{
+		File_system::AddTextToLog(Msg, Type::Error);
 		return;
+	}
 
 	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
-		UnformatedText::Type::Error, Msg);
+		Type::Error, Msg);
+
+	File_system::AddTextToLog(Msg, Type::Error);
 }
 
 void Console::LogInfo(string Msg)
 {
-	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+	if (Msg.empty())
+		return;
+
+	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
+	{
+		File_system::AddTextToLog(Msg, Type::Information);
 		return;
+	}
 
 	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
-		UnformatedText::Type::Information, Msg);
+		Type::Information, Msg);
+
+	File_system::AddTextToLog(Msg, Type::Information);
 }
 
 void Console::LogNormal(string Msg)
 {
-	if (Msg.empty() || !ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
+	if (Msg.empty())
+		return;
+
+	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.empty())
+	{
+		File_system::AddTextToLog(Msg, Type::Normal);
 		return;
+	}
 
 	Application->getUI()->getDialog("Console")->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
-		UnformatedText::Type::Normal, Msg);
+		Type::Normal, Msg);
+
+	File_system::AddTextToLog(Msg, Type::Normal);
 }
 
 /*

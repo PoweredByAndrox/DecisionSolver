@@ -4,7 +4,8 @@
 #include "pch.h"
 
 #include "Shaders.h"
-#include <WICTextureLoader.h>
+#include <Inc/WICTextureLoader.h>
+#include "imgui.h"
 
 class Render_Buffer
 {

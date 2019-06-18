@@ -5,57 +5,12 @@
 
 #include <PxPhysicsAPI.h>
 
-#if defined(DEBUG) && !defined(_M_X64)
-#pragma comment (lib, "PhysX_32.lib")
-#pragma comment (lib, "PhysXCommon_32.lib")
-#pragma comment (lib, "PhysXFoundation_32.lib")
-#pragma comment (lib, "PhysXExtensions_static_32.lib")
-#pragma comment (lib, "PhysXPvdSDK_static_32.lib")
-#pragma comment (lib, "SceneQuery_static_32.lib")
-#pragma comment (lib, "SimulationController_static_32.lib")
-#pragma comment (lib, "PhysXCharacterKinematic_static_32.lib")
-#pragma comment (lib, "PhysXCooking_32.lib")
-#pragma comment (lib, "PhysXTask_static_32.lib")
-#elif defined(DEBUG) && defined(_M_X64)
-#pragma comment (lib, "PhysX3DEBUG_x64.lib")
-#pragma comment (lib, "PhysX3CommonDEBUG_x64.lib")
-#pragma comment (lib, "PxFoundationDEBUG_x64.lib")
-#pragma comment (lib, "PhysX3ExtensionsDEBUG.lib")
-#pragma comment (lib, "PxPvdSDKDEBUG_x64.lib")
-#pragma comment (lib, "SceneQueryDEBUG.lib")
-#pragma comment (lib, "SimulationControllerDEBUG.lib")
-#pragma comment (lib, "PhysX3CharacterKinematicDEBUG_x64.lib")
-#pragma comment (lib, "PhysX3CookingDEBUG_x64.lib")
-#pragma comment (lib, "PxTaskDEBUG_x64")
-#elif !defined(_M_X64)
-#pragma comment (lib, "PhysX_32.lib")
-#pragma comment (lib, "PhysXCommon_32.lib")
-#pragma comment (lib, "PhysXFoundation_32.lib")
-#pragma comment (lib, "PhysXExtensions_static_32.lib")
-#pragma comment (lib, "PhysXPvdSDK_static_32.lib")
-#pragma comment (lib, "SceneQuery_static_32.lib")
-#pragma comment (lib, "SimulationController_static_32.lib")
-#pragma comment (lib, "PhysXCharacterKinematic_static_32.lib")
-#pragma comment (lib, "PhysXCooking_32.lib")
-#pragma comment (lib, "PhysXTask_static_32.lib")
-#elif defined(_M_X64)
-#pragma comment (lib, "PhysX3CharacterKinematic_x64.lib")
-#pragma comment (lib, "PhysX3Cooking_x64.lib")
-#pragma comment (lib, "PxTask_x64")
-#pragma comment (lib, "SceneQuery.lib")
-#pragma comment (lib, "PhysX3Common_x64.lib")
-#pragma comment (lib, "PxFoundation_x64.lib")
-#pragma comment (lib, "PxPvdSDK_x64.lib")
-#pragma comment (lib, "PhysX3_x64.lib")
-#pragma comment (lib, "PxPvdSDK_x64.lib")
-#pragma comment (lib, "PhysX3Extensions.lib")
-#endif
 using namespace physx;
 
 PxVec3 ToPxVec3(Vector3 var);
 Vector3 ToVec3(PxVec3 var);
 
-class Physics/*: public Models*/
+class Physics
 {
 public:
 	HRESULT Init();
@@ -68,7 +23,7 @@ public:
 	void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
 //	void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
 //	{
-//#if defined(DEBUG)
+//#if defined(_DEBUG)
 //		PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
 //		distanceJoint->setProjectionLinearTolerance(0.5f);
 //#endif
@@ -106,9 +61,6 @@ public:
 	}
 
 	//void SetPhysicsForCamera(Vector3 Pos, Vector3 Geom);
-
-	Physics() {}
-	~Physics() {}
 protected:
 	// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;
@@ -122,7 +74,9 @@ protected:
 	PxRigidStatic *gPlane = nullptr;
 	PxRigidDynamic *gBox = nullptr, *gActorCamera = nullptr;
 	PxCooking *gCooking = nullptr;
+#if defined (_DEBUG)
 	PxPvd *gPvd = nullptr;
+#endif
 	PxPvdTransport *transport = nullptr;
 	PxPvdSceneClient *pvdClient = nullptr;
 

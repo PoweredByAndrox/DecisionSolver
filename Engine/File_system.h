@@ -3,6 +3,7 @@
 #define __FILE_SYSTEM_H__
 #include "pch.h"
 
+#include <fstream>
 #include "boost/filesystem.hpp"
 #include <algorithm>
 
@@ -70,9 +71,22 @@ public:
 
 	_TypeOfFile GetTypeFile(string file);
 
+	static void CreateLog();
+	static void AddTextToLog(string Text, Type type);
+	static void OpenLog();
+	static void ClearLogs();
+
+	auto getCriLogFName() { return CriLogFName; }
+	auto getLogFName() { return LogFName; }
+
+	auto static GetCurrentPath() { return p; }
+
 	auto getAllFiles() { return Files; }
 protected:
-	path p;
+	static path p;
 	vector<shared_ptr<AllFile>> Files;
+
+	static path CriLogFName;
+	static path LogFName;
 };
 #endif // !__FILE_SYSTEM_H__

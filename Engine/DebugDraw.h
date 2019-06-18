@@ -10,10 +10,10 @@
 #pragma once
 #include <DirectXCollision.h>
 
-#include "PrimitiveBatch.h"
-#include "VertexTypes.h"
-#include "CommonStates.h"
-#include "Effects.h"
+#include "Inc/PrimitiveBatch.h"
+#include "Inc/VertexTypes.h"
+#include "Inc/CommonStates.h"
+#include "Inc/Effects.h"
 
 #include <wrl.h>
 
@@ -21,7 +21,7 @@ class DebugDraw
 {
 public:
 	DebugDraw() {}
-	~DebugDraw() {}
+	~DebugDraw() { Release(); }
 
 	void Init();
 
@@ -58,4 +58,6 @@ private:
 		m_inputLayout_Grid, m_inputLayout_Triangle;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_raster;
+
+	void Release();
 };
