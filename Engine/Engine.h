@@ -32,25 +32,10 @@ private:
 	bool WireFrame = false,
 		IsSimulation = false;
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
-	XMVECTORF32 _Color[9] =
-	{
-		DirectX::Colors::AliceBlue,
-		DirectX::Colors::Black,
-		DirectX::Colors::Chartreuse,
-		DirectX::Colors::DarkGreen,
-		DirectX::Colors::Indigo,
-		DirectX::Colors::LightSteelBlue,
-		DirectX::Colors::Magenta,
-		DirectX::Colors::OliveDrab,
-		DirectX::Colors::SkyBlue
-	};
 	HRESULT hr = S_OK;
 	wstring NameWnd = L"", ClassWND = L"";
 
-	__int64 CounterStart = 0, frameTimeOld = 0;
-	float frameCount = 0.f, fps = 0.f, countsPerSecond = 0.f, frameTime = 0.f;
-
-	WNDCLASSEXW wnd;
+	float fps = 0.f, frameTime = 0.f;
 
 	static ID3D11Device *Device;
 	static ID3D11DeviceContext *DeviceContext;
@@ -74,8 +59,9 @@ private:
 	ID3D11RasterizerState *rasterState = nullptr;
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
+	DXGI_ADAPTER_DESC pDesc;
 
-	UINT m4xMsaaQuality = 0l;
+	UINT m4xMsaaQuality = 0ul;
 
 #if defined(NEEDED_DEBUG_INFO)
 	ID3D11Debug *debug = nullptr;
@@ -88,11 +74,11 @@ private:
 	shared_ptr<UI> ui;
 	shared_ptr<CLua> lua;
 	//shared_ptr<Picking> Pick;
-	// shared_ptr<Terrain> terrain;
+	//shared_ptr<Terrain> terrain;
 	//shared_ptr<Frustum> frustum;
+	//shared_ptr<Levels> Level;
 	shared_ptr<Actor> mainActor;
 	shared_ptr<Physics> PhysX;
-	//shared_ptr<Levels> Level;
 	shared_ptr<Camera> camera;
 	shared_ptr<Shaders> shader;
 	shared_ptr<Mouse> mouse = make_shared<Mouse>();
@@ -118,7 +104,7 @@ public:
 	static HWND GetHWND() { return hwnd; }
 
 	wstring getNameWndW() { return NameWnd; }
-	string getNameWndA() 
+	string getNameWndA()
 	{
 		USES_CONVERSION;
 		return W2A(NameWnd.c_str());
@@ -130,9 +116,9 @@ public:
 	shared_ptr<UI> getUI() { return ui; }
 	//shared_ptr<Picking> getPick() { return Pick; }
 	//shared_ptr<Frustum> getFrustum() { return frustum; }
+	//shared_ptr<Levels> getLevel() { return Level; }
 	shared_ptr<Actor> getActor() { return mainActor; }
 	shared_ptr<Physics> getPhysics() { return PhysX; }
-	//shared_ptr<Levels> getLevel() { return Level; }
 	shared_ptr<Camera> getCamera() { return camera; }
 	shared_ptr<Shaders> getShader() { return shader; }
 	shared_ptr<Console> getConsole() { return console; }
@@ -244,17 +230,9 @@ public:
 	void SetPausePhysics(bool Pause) { IsSimulation = Pause; }
 
 	float getFPS() { return fps; }
-	static POINT getWorkAreaSize(HWND hwnd)
-	{
-		RECT rc = { 0, 0, 0, 0 };
-		POINT Rect = { 0, 0 };
-		GetClientRect(hwnd, &rc);
-		Rect.x = rc.right - rc.left; // Width
-		Rect.y = rc.bottom - rc.top; // Height
-		return Rect;
-	}
+	static POINT getWorkAreaSize(HWND hwnd);
 
-	float getframeTime() { return frameTime; }
+	float getframeTime();
 
 #if defined(Never_MainMenu)
 	shared_ptr<MainMenu> getMainMenu() { return Menu; }
@@ -268,49 +246,7 @@ public:
 
 	auto getAllThreadGroup() { return ThreadGroups; }
 private:
-	// Work with Time!
-	void StartTimer()
-	{
-		LARGE_INTEGER frequencyCount;
-		QueryPerformanceFrequency(&frequencyCount);
-
-		countsPerSecond = float(frequencyCount.QuadPart);
-
-		QueryPerformanceCounter(&frequencyCount);
-		CounterStart = frequencyCount.QuadPart;
-	}
-	double GetTime()
-	{
-		LARGE_INTEGER currentTime;
-		QueryPerformanceCounter(&currentTime);
-		return double(currentTime.QuadPart - CounterStart) / countsPerSecond;
-	}
-	float GetFrameTime()
-	{
-		LARGE_INTEGER currentTime;
-		__int64 tickCount;
-		QueryPerformanceCounter(&currentTime);
-
-		tickCount = currentTime.QuadPart - frameTimeOld;
-		frameTimeOld = currentTime.QuadPart;
-
-		if (tickCount < 0)
-			tickCount = 0;
-
-		return float(tickCount) / countsPerSecond;
-	}
-	void CountFPS()
-	{
-		frameCount++;
-		if (GetTime() > 1.0f)
-		{
-			fps = frameCount;
-			frameCount = 0;
-			StartTimer();
-		}
-
-		frameTime = GetFrameTime();
-	}
+	void CountFPS();
 
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;

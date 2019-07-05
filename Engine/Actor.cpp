@@ -2,6 +2,10 @@
 
 #include "Actor.h"
 
+#include "Inc\GeometricPrimitive.h"
+unique_ptr<DirectX::GeometricPrimitive> m_shape;
+#include "DebugDraw.h"
+
 void Actor::Update(float Time)
 {
 	if (Health == 0.0f && !IsGod)
@@ -20,6 +24,19 @@ void Actor::Update(float Time)
 void Actor::Render(float Time)
 {
 	Update(Time);
+
+	auto PosCCT = Application->getCamera()->GetCCT();
+
+	BoundingSphere sphere;
+	sphere.Radius = 1.f;
+	sphere.Center = ToExtended(PosCCT->getController()->getPosition());
+
+#if defined(_DEBUG)
+	Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::Crimson);
+#else
+	m_shape->Draw(Matrix::CreateTranslation(sphere.Center), Application->getCamera()->GetViewMatrix(),
+		Application->getCamera()->GetWorldMatrix());
+#endif
 }
 
 HRESULT Actor::Init()
@@ -32,11 +49,10 @@ HRESULT Actor::Init()
 	Application->getCamera()->SetScalers(0.010f, 6.0f);
 	Application->getCamera()->setCameraControlButtons(false, true, false);
 	Application->getCamera()->SetResetCursorAfterMove(true);
-	Application->getCamera()->SetEnableYAxisMovement(true);
+	Application->getCamera()->SetEnableYAxisMovement(false);
+
+	m_shape = GeometricPrimitive::CreateSphere(Application->getDeviceContext());
 
 	InitClass = true;
 	return S_OK;
 }
-
-void Actor::Destroy()
-{}

@@ -43,7 +43,6 @@ public:
 	}
 
 	void Update(float Time);
-	void Destroy();
 	void Render(float Time);
 
 	void Hit(float Value)
@@ -77,7 +76,7 @@ private:
 	Vector3 GetPostitionFromCamera() { return Application->getCamera()->GetEyePt(); }
 
 	//**********
-		// It's a cheat
+		// This is a cheat
 	bool IsGod = false;
 
 	//**********

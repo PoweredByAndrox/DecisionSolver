@@ -29,6 +29,8 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 		{
 			cmd->TypedCmd = Text;
 			ExecCommand(Console, cmd);
+			if (Text == "clear")
+				return;
 		}
 		else
 			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,

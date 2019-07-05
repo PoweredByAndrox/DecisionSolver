@@ -29,6 +29,21 @@ DXGI_SWAP_CHAIN_DESC1 Engine::SCD1;
 D3D11_TEXTURE2D_DESC Engine::descDepth;
 D3D11_VIEWPORT Engine::vp;
 
+WNDCLASSEXW wnd;
+
+XMVECTORF32 _Color[9] =
+{
+	DirectX::Colors::AliceBlue,
+	DirectX::Colors::Black,
+	DirectX::Colors::Chartreuse,
+	DirectX::Colors::DarkGreen,
+	DirectX::Colors::Indigo,
+	DirectX::Colors::LightSteelBlue,
+	DirectX::Colors::Magenta,
+	DirectX::Colors::OliveDrab,
+	DirectX::Colors::SkyBlue
+};
+
 HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 {
 	try
@@ -306,12 +321,22 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 	return S_OK;
 }
 
+ToDo("Need To Rework This!")
+void Engine::CountFPS()
+{
+	if (ui.operator bool() && ui->GetIO())
+		fps = ui->GetIO()->Framerate;
+}
+
+#include <chrono>
 void Engine::Render()
 {
 	if (!DeviceContext || !Device)
 		return;
 
 	CountFPS();
+
+	auto start = chrono::system_clock::now();
 
 	bool Off = true;
 	if (keyboard->IsConnected())
@@ -335,9 +360,9 @@ void Engine::Render()
 				IsSimulation = true;
 
 		if (TrackerKeyboard.pressed.F5)
-			PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 100);
+			PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 1);
 
-		if (TrackerKeyboard.pressed.OemTilde && console.operator bool())
+		if (console.operator bool() && TrackerKeyboard.pressed.OemTilde)
 			console->OpenConsole();
 
 		if (TrackerKeyboard.pressed.Escape)
@@ -362,7 +387,7 @@ void Engine::Render()
 
 	ClearRenderTarget();
 
-	mainActor->Render(frameTime);
+	mainActor->Render(getframeTime());
 
 #if defined (_DEBUG)
 	if (Off)
@@ -373,11 +398,11 @@ void Engine::Render()
 	{
 		BoundingSphere sphere;
 		sphere.Center = Sound->getSoundPosition();
-		dDraw->Draw(sphere, (Vector4)DirectX::Colors::Red);
+		dDraw->Draw(sphere, (Vector4)Colors::Red);
 	}
 #endif
 
-	PhysX->Simulation(frameTime);
+	PhysX->Simulation(getframeTime());
 
 #if defined(_DEBUG)
 	ui->Begin();
@@ -425,6 +450,11 @@ void Engine::Render()
 #endif
 
 	SwapChain->Present(0, 0);
+
+	auto end = chrono::system_clock::now();
+
+	chrono::duration<float> elapsed_seconds = end - start;
+	frameTime = elapsed_seconds.count();
 }
 
 void Engine::Destroy()
@@ -648,6 +678,24 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 	pBackBuffer->Release();
 
 	return S_OK;
+}
+
+POINT Engine::getWorkAreaSize(HWND hwnd)
+{
+	RECT rc = { 0, 0, 0, 0 };
+	POINT Rect = { 0, 0 };
+	GetClientRect(hwnd, &rc);
+	Rect.x = rc.right - rc.left; // Width
+	Rect.y = rc.bottom - rc.top; // Height
+	return Rect;
+}
+
+float Engine::getframeTime()
+{
+	if (frameTime == 0.f)
+		return 0.3f;
+	else
+		return frameTime;
 }
 
 void Engine::StackTrace(LPCSTR Error)

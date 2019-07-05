@@ -4,7 +4,6 @@
 /*
 #include "MainMenu.h"
 #include "Picking.h"
-#include "Terrain.h"
 #include "GameObjects.h"
 #include "Levels.h"
 */
@@ -34,6 +33,7 @@ shared_ptr<Actor> mActor;
 		//	e.g ERROR_FILE_NOT_FOUND
 
 ToDo("Unnecessary: Correct My English, Please)")
+ToDo("Use PxPreprocessor.h for Checking We Have x86 and etc")
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	try
@@ -48,15 +48,27 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		if (FAILED(Application->Init(wstring(L"DecisionEngine"), hInstance)))
 		{
-			DebugTrace("wWinMain::engine->Init() is failed.");
-			throw exception("wWinMain is failed!!!");
+#if defined (_DEBUG)
+			DebugTrace("wWinMain::Application->Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("wWinMain::Application->Init() is failed!!!");
+#endif
+			Console::LogError("Application::Init() is Fail!");
+
 			return 5;
 		}
 
 		if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 		{
+#if defined (_DEBUG)
 			DebugTrace("wWinMain::CoInitializeEx() is failed.");
-			throw exception("wWinMain is failed!!!");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("wWinMain::CoInitializeEx() is failed!!!");
+#endif
+			Console::LogError("CoInitializeEx() is Fail!");
+
 			return 3;
 		}
 
@@ -69,8 +81,13 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setUI(make_shared<UI>());
 		if (FAILED(Application->getUI()->Init()))
 		{
+#if defined (_DEBUG)
 			DebugTrace("wWinMain::getUI()->Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
 			throw exception("getUI()->Init() is failed!!!");
+#endif
+			Console::LogError("UI: Init is Fail!");
 			return 5;
 		}
 
@@ -90,6 +107,19 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getUI()->getDialog("Console")->ChangeSize(Application->getWorkAreaSize(Application->GetHWND()).x, 
 			Application->getWorkAreaSize(Application->GetHWND()).y/3);
 		
+		Application->setPhysics(make_shared<Physics>());
+		if (FAILED(Application->getPhysics()->Init()))
+		{
+#if defined (_DEBUG)
+			DebugTrace("wWinMain::getPhysics()->Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("getPhysics()->Init() is failed!!!");
+#endif
+			Console::LogError("PhysX: Init Failed!");
+			return 5;
+		}
+
 		//	// Camera Class
 		Application->setCamera(make_shared<Camera>());
 		if (FAILED(Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x,
@@ -120,28 +150,16 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 		//	// Audio (Sound) Class!!!
-		Application->setSound(make_shared<Audio>());
-		if (FAILED(Application->getSound()->Init()))
-		{
-			DebugTrace("wWinMain::getSound()->Init() is failed.");
-			throw exception("getSound()->Init() is failed!!!");
-			return 5;
-		}
-		Application->getSound()->changeSoundPos(Vector3::One * 5);
+		//Application->setSound(make_shared<Audio>());
+		//if (FAILED(Application->getSound()->Init()))
+		//{
+		//	DebugTrace("wWinMain::getSound()->Init() is failed.");
+		//	throw exception("getSound()->Init() is failed!!!");
+		//	return 5;
+		//}
+		//Application->getSound()->changeSoundPos(Vector3::One * 5);
 		//Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
-		Application->setPhysics(make_shared<Physics>());
-		if (FAILED(Application->getPhysics()->Init()))
-		{
-#if defined (_DEBUG)
-			DebugTrace("wWinMain::getPhysics()->Init() is failed.");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("getPhysics()->Init() is failed!!!");
-#endif
-			Console::LogError("PhysX: Init Failed!");
-			return 5;
-		}
 		//Application->getCLua()->Init();
 
 		//	// Debug Draw!!!
@@ -165,6 +183,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			else
 				Application->Render();
 		}
+
+		Application->getPhysics()->Destroy();
 
 		if (Application->getSound().operator bool())
 			Application->getSound()->ReleaseAudio();

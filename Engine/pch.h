@@ -94,18 +94,25 @@ using namespace tinyxml2;
 bool FindSubStr(wstring context, wstring const from);
 bool FindSubStr(string context, string const from);
 
-void replaceAll(wstring &context, wstring const &from, wstring const &to, bool OneTime = false, bool FindInEnd = false);
-void replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also, bool OneTime = false, bool FindInEnd = false);
+void replaceAll(wstring &context, wstring const &from, wstring const &to, bool OneTime = false,
+	bool FindInEnd = false, bool AlsoDeleteSpace = false);
+void replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also, bool OneTime = false,
+	bool FindInEnd = false, bool AlsoDeleteSpace = false);
 
-void replaceAll(string &context, string const &from, string const &to, bool OneTime = false, bool FindInEnd = false);
-void replaceAll(string &context, string const &from, string const &to, string const &also, bool OneTime = false, bool FindInEnd = false);
+void replaceAll(string &context, string const &from, string const &to, bool OneTime = false,
+	bool FindInEnd = false, bool AlsoDeleteSpace = false);
+void replaceAll(string &context, string const &from, string const &to, string const &also, bool OneTime = false,
+	bool FindInEnd = false, bool AlsoDeleteSpace = false);
 
-void deleteWord(string &context, string const &what, bool OneTime = false, bool FindInEnd = false);
-void deleteWord(string &context, char const what, char const OnWhat);
-void deleteWord(string &context, string const start, string const end, bool OneTime = false, bool AlsoDeleteSpace = true);
+void deleteWord(string &context, string const &what, bool OneTime = false, bool FindInEnd = false,
+	bool AlsoDeleteSpace = false);
+void deleteWord(string &context, char const what, char const OnWhat, bool AlsoDeleteSpace = false);
+void deleteWord(string &context, string const start, string const end, bool OneTime = false,
+	bool AlsoDeleteSpace = true);
 
 enum ModeProcessString { UntilTheBegin = 0, UntilTheEnd };
-void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd = false, bool AlsoDeleteSpace = true);
+void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd = false,
+	bool AlsoDeleteSpace = true);
 
 #include <boost/algorithm/string.hpp>
 using namespace boost::algorithm;

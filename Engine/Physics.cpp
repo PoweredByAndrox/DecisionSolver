@@ -42,9 +42,7 @@ HRESULT Physics::Init()
 			IsInitPhysX = false;
 			return E_FAIL;
 		}
-#endif
 
-#if defined (_DEBUG)
 		transport = PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 		//transport = PxDefaultPvdFileTransportCreate("sample.pxd2");
 		if (!transport)
@@ -109,6 +107,19 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
+		ControllerManager = PxCreateControllerManager(*gScene);
+		if (!ControllerManager)
+		{
+#if defined (_DEBUG)
+			DebugTrace("Physics::Init->ControllerManager Is nullptr!");
+#endif 
+#if defined (ExceptionWhenEachError)
+			throw exception("Physics::Init->ControllerManager Is nullptr!");
+#endif
+			Console::LogError("Physics: Something is wrong with create PhysX Contoller Manager!");
+		}
+
+#if defined (_DEBUG)
 		pvdClient = gScene->getScenePvdClient();
 		if (pvdClient)
 		{
@@ -116,6 +127,8 @@ HRESULT Physics::Init()
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
 			pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 		}
+#endif
+
 		// Params (below)
 			//static friction, dynamic friction, restitution
 		gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
@@ -298,20 +311,33 @@ void Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera 
 
 void Physics::Destroy()
 {
+	ClearAllObj();
+
 #if defined (_DEBUG)
 	if (gPvd)
 	{
 		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())
 			gPvd->getTransport()->flush();
-		gPvd->disconnect();
-		gPvd->release();
-		transport->release();
+		if (gPvd->isConnected())
+			gPvd->disconnect();
+		//gPvd->release();
+		if (transport)
+		{
+			if (transport->isConnected())
+				transport->disconnect();
+		}
 	}
 #endif
-	SAFE_release(gCooking);
-	SAFE_release(gScene);
-	SAFE_release(gPhysics);
-	SAFE_release(gFoundation);
+	if (ControllerManager)
+		ControllerManager->release();
+	if (gCooking)
+		gCooking->release();
+	if (gScene)
+		gScene->release();
+	if (gPhysics)
+		gPhysics->release();
+	if (gFoundation)
+		gFoundation->release();
 }
 
 void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel)
@@ -351,4 +377,14 @@ Quaternion ToQuat(PxQuat var)
 PxQuat ToQuaternion(Quaternion var)
 {
 	return PxQuat(var.x, var.y, var.z, var.w);
+}
+
+PxExtendedVec3 ToExtended(Vector3 var)
+{
+	return PxExtendedVec3(var.x, var.y, var.z);
+}
+
+Vector3 ToExtended(PxExtendedVec3 var)
+{
+	return Vector3((float)var.x, (float)var.y, (float)var.z);
 }

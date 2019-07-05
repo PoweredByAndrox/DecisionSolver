@@ -120,6 +120,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;UNICODE</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -162,6 +163,7 @@
     </ClCompile>
     <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Camera_Control.cpp" />
     <ClCompile Include="CCommands.cpp" />
     <ClCompile Include="CLua.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -195,6 +197,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PhysCamera.cpp" />
     <ClCompile Include="Physics.cpp" />
     <ClCompile Include="Picking.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -207,6 +210,7 @@
   <ItemGroup>
     <ClInclude Include="Audio.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Camera_Control.h" />
     <ClInclude Include="CCommands.h" />
     <ClInclude Include="CLua.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -237,6 +241,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PhysCamera.h" />
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Picking.h" />
     <ClInclude Include="Render_Buffer.h" />

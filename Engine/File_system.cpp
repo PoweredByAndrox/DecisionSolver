@@ -21,6 +21,9 @@ File_system::File_system()
 #endif
 		Console::LogError("File System: Something is wrong with Get Resource Folder\\Path!");
 	}
+
+	LogFName = GetCurrentPath().string() + string("\\") + LogFName.string();
+
 	CreateLog();
 	ScanFiles();
 }
@@ -153,11 +156,7 @@ void File_system::CreateLog()
 		MessageBoxA(Engine::GetHWND(), "Engine cannot get path to log file!", "Error!", MB_OK | MB_ICONERROR);
 		return;
 	}
-
-	string tmp = LogFName.string();
-	LogFName = GetCurrentPath().string() + string("\\") + tmp;
-
-	if (!exists(LogFName))
+	else if (!exists(LogFName))
 	{
 		LogFile = make_shared<boost::filesystem::ofstream>(LogFName, std::ofstream::in | std::ofstream::app);
 		if (!LogFile->is_open())

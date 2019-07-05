@@ -169,7 +169,7 @@ void DebugDraw::Draw(const BoundingSphere &sphere, Vector4 color)
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Sphere) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Sphere!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Sphere!");
 		return;
 	}
 
@@ -197,7 +197,7 @@ void DebugDraw::Draw(const BoundingBox &box, Vector4 color)
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Box) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Box!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Box!");
 		return;
 	}
 
@@ -230,7 +230,7 @@ void DebugDraw::Draw(const BoundingOrientedBox &obb, Vector4 color)
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Cube) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Cube!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Cube!");
 		return;
 	}
 
@@ -263,7 +263,7 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Frustum) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Frustum!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Frustum!");
 		return;
 	}
 
@@ -330,7 +330,7 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float Dis
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Grid) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Grid!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Grid!");
 		return;
 	}
 
@@ -387,11 +387,12 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Ring) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Ring!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Ring!");
 		return;
 	}
 
-	m_effect_Sphere->SetMatrices(Matrix::CreateTranslation(origin), Application->getCamera()->GetViewMatrix(),
+	m_effect_Sphere->SetMatrices(Matrix::Identity
+		/*Matrix::CreateTranslation(origin)*/, Application->getCamera()->GetViewMatrix(),
 		Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Sphere->Opaque(), nullptr, 0xFFFFFFFF);
@@ -404,7 +405,7 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 
 	m_batch_Sphere->Begin();
 
-	static const size_t c_ringSegments = 32;
+	const size_t c_ringSegments = 32;
 
 	VertexPositionColor verts[c_ringSegments + 1];
 
@@ -449,7 +450,7 @@ void DebugDraw::DrawRay(Vector3 origin, Vector3 direction, Vector4 color, bool n
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Ray) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Ray!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Ray!");
 		return;
 	}
 
@@ -506,7 +507,7 @@ void DebugDraw::DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vec
 #if defined (ExceptionWhenEachError)
 		throw exception("DebugDraw::Draw(const Triangle) Is Failed!");
 #endif
-		Console::LogError("DebugDraw: Something is wrong with create Debug Triangle!");
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Triangle!");
 		return;
 	}
 

@@ -10,6 +10,12 @@ using namespace physx;
 PxVec3 ToPxVec3(Vector3 var);
 Vector3 ToVec3(PxVec3 var);
 
+Quaternion ToQuat(PxQuat var);
+PxQuat ToQuaternion(Quaternion var);
+
+PxExtendedVec3 ToExtended(Vector3 var);
+Vector3 ToExtended(PxExtendedVec3 var);
+
 class Physics
 {
 public:
@@ -49,7 +55,10 @@ public:
 	PxPhysics *getPhysics() { if (gPhysics) return gPhysics; return nullptr; }
 	PxMaterial *getMaterial() { if (gMaterial) return gMaterial; return nullptr; }
 	PxRigidDynamic *getActrCamera() { if (gActorCamera) return gActorCamera; return nullptr; }
+#if defined (_DEBUG)
 	PxPvdSceneClient *getClientPVD() { if (pvdClient) return pvdClient; return nullptr; }
+#endif
+	PxControllerManager *getContrlManager() { return ControllerManager; }
 
 	void ClearAllObj()
 	{
@@ -76,9 +85,9 @@ protected:
 	PxCooking *gCooking = nullptr;
 #if defined (_DEBUG)
 	PxPvd *gPvd = nullptr;
-#endif
-	PxPvdTransport *transport = nullptr;
 	PxPvdSceneClient *pvdClient = nullptr;
+	PxPvdTransport *transport = nullptr;
+#endif
 
 	// ***************
 	HRESULT hr = S_OK;
@@ -90,6 +99,8 @@ protected:
 	// ***************
 	PxRigidDynamic *meshActor = nullptr;
 	PxTriangleMesh *triangleMesh = nullptr;
+
+	PxControllerManager *ControllerManager = nullptr;
 
 	// ***************
 		// Initialized bool variable

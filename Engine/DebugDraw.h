@@ -43,6 +43,8 @@ public:
 
 	void DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector4 color);
 
+	void Release();
+
 private:
 	unique_ptr<CommonStates> m_states_Ray, m_states_Box, m_states_BBox,
 		m_states_Sphere, m_states_Frustum, m_states_Grid, m_states_Triangle;
@@ -58,6 +60,4 @@ private:
 		m_inputLayout_Grid, m_inputLayout_Triangle;
 
 	Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_raster;
-
-	void Release();
 };

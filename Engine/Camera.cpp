@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "Camera.h"
 
 class Engine;
@@ -7,6 +6,20 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
 using namespace DirectX;
+
+HRESULT Camera::Init(float W, float H, float FOV)
+{
+	// Setup the view matrix
+	SetViewParams(Vector3(0, 5, 0), Vector3(1.0f, 0.0f, 0.0f));
+
+	// Setup the projection matrix
+	SetProjParams(FOV, W / H, 1.0f, 1000.0f);
+
+	C_CT = make_shared<Camera_Control>();
+	C_CT->Init();
+
+	return S_OK;
+}
 
 void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
@@ -37,39 +50,85 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
 }
 
+void Camera::SetNumberOfFramesToSmoothMouseData(int nFrames)
+{
+	if (nFrames > 0)
+		m_fFramesToSmoothMouseData = (float)nFrames;
+}
+
+Matrix Camera::GetViewMatrix() const
+{
+	return XMLoadFloat4x4(&m_mView);
+}
+
+Matrix Camera::GetProjMatrix() const
+{
+	return XMLoadFloat4x4(&m_mProj);
+}
+
+Vector3 Camera::GetLookAtPt() const
+{
+	return XMLoadFloat3(&m_vLookAt);
+}
+
+float Camera::GetNearClip() const
+{
+	return m_fNearPlane;
+}
+
+float Camera::GetFarClip() const
+{
+	return m_fFarPlane;
+}
+
+float Camera::getMoveScale() const
+{
+	return m_fMoveScaler;
+}
+
+Vector3 Camera::ConstrainToBoundary(Vector3 v)
+{
+	Vector3 vMin = XMLoadFloat3(&m_vMinBoundary);
+	Vector3 vMax = XMLoadFloat3(&m_vMaxBoundary);
+
+	return XMVectorClamp(v, vMin, vMax);
+}
+
 void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 {
-	if (bGetKeyboardInput)
+	if (Application->getKeyboard()->IsConnected())
 	{
 		m_vKeyboardDirection = Vector3::Zero;
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::W))
-			m_vKeyboardDirection.z += 1.0f;
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::W))
+			m_vKeyboardDirection += -mCameraRot.Forward();
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::S))
-			m_vKeyboardDirection.z -= 1.0f;
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::S))
+			m_vKeyboardDirection -= -mCameraRot.Forward();
 
 		if (m_bEnableYAxisMovement)
 		{
-			if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::E))
+			if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::E))
 				m_vKeyboardDirection.y += 1.0f;
 
-			if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::Q))
+			if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Q))
 				m_vKeyboardDirection.y -= 1.0f;
 		}
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::D))
-			m_vKeyboardDirection.x += 1.0f;
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
+			m_vKeyboardDirection += mCameraRot.Right();
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::A))
-			m_vKeyboardDirection.x -= 1.0f;
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
+			m_vKeyboardDirection -= mCameraRot.Right();
+
+		C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
 	}
 
-	if (((Application->getMouse()->GetState().leftButton && Left) || (Application->getMouse()->GetState().rightButton && Right))
-		!= WithoutButton)
+	if (((Application->getMouse()->GetState().leftButton && Left) ||
+		(Application->getMouse()->GetState().rightButton && Right)) != WithoutButton)
 		UpdateMouseDelta();
 	/*
-	if (bGetGamepadInput)
+	if (Application->getKeypad()->IsConnected())
 	{
 		m_vGamePadLeftThumb = Vector3::Zero;
 		m_vGamePadRightThumb = Vector3::Zero;
@@ -144,14 +203,14 @@ void Camera::UpdateVelocity(_In_ float fElapsedTime)
 {
 	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
-	vMouseDelta = XMLoadFloat2(&m_vMouseDelta),
+		vMouseDelta = XMLoadFloat2(&m_vMouseDelta),
 		vRotVelocity = vMouseDelta * m_fRotationScaler + vGamePadRightThumb * 0.02f;
 
 	XMStoreFloat2(&m_vRotVelocity, vRotVelocity);
 
 	Vector3 vKeyboardDirection = XMLoadFloat3(&m_vKeyboardDirection),
-	vGamePadLeftThumb = XMLoadFloat3(&m_vGamePadLeftThumb),
-	vAccel = vKeyboardDirection + vGamePadLeftThumb;
+		vGamePadLeftThumb = XMLoadFloat3(&m_vGamePadLeftThumb),
+		vAccel = vKeyboardDirection + vGamePadLeftThumb;
 
 	vAccel = XMVector3Normalize(vAccel);
 
@@ -201,7 +260,7 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	else
 		SetScalers(0.010f, 6.0f);
 
-	if (Application->getTrackerKeyboard().IsKeyPressed(DirectX::Keyboard::Keys::Home))
+	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Home))
 		Reset();
 
 	// Get keyboard/mouse/gamepad input
@@ -210,8 +269,9 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
 
-	// If rotating the camera 
-	if (((Application->getMouse()->GetState().leftButton && Left || Application->getMouse()->GetState().rightButton && Right)
+	// If rotating the camera
+	if (((Application->getMouse()->GetState().leftButton && Left ||
+		Application->getMouse()->GetState().rightButton && Right)
 		!= WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
 		// Update the pitch & yaw angle based on mouse movement
@@ -234,27 +294,95 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 	mCameraRot = XMMatrixRotationRollPitchYaw(m_fCameraPitchAngle, m_fCameraYawAngle, 0);
 
 	// Transform vectors based on camera's rotation matrix
-	vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot), 
+	vWorldUp = XMVector3TransformCoord(g_XMIdentityR1, mCameraRot);
 	vWorldAhead = XMVector3TransformCoord(g_XMIdentityR2, mCameraRot);
 
-		// Transform the position delta by the camera's rotation 
+		// Transform the position delta by the camera's rotation
 	if (!m_bEnableYAxisMovement)
 		mCameraRot = XMMatrixRotationRollPitchYaw(0.0f, m_fCameraYawAngle, 0.0f);
 
-	m_vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot);
+	Vector3 vEye = XMLoadFloat3(&m_vEye);
+
+	vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot);
+	vEye = C_CT->Update(vEye, fElapsedTime, mCameraRot.Up());
 
 	if (m_bClipToBoundary)
-		m_vEye = ConstrainToBoundary(m_vEye);
+		vEye = ConstrainToBoundary(m_vEye);
+	XMStoreFloat3(&m_vEye, vEye);
 
 		// Update the lookAt position based on the eye position
-	m_vLookAt = m_vEye + vWorldAhead;
+	m_vLookAt = vEye + vWorldAhead;
 
 		// Update the view matrix
-	m_mView = XMMatrixLookAtLH(m_vEye, m_vLookAt, vWorldUp);
+	m_mView = XMMatrixLookAtLH(vEye, m_vLookAt, vWorldUp);
 
 	m_mCameraWorld = m_mView.Invert();
 }
 
+Matrix Camera::GetWorldMatrix() const
+{
+	return XMLoadFloat4x4(&m_mCameraWorld);
+}
+
+Vector3 Camera::GetWorldRight() const
+{
+	return XMLoadFloat3(reinterpret_cast<const Vector3 *>(&m_mCameraWorld._11));
+}
+
+Vector3 Camera::GetWorldUp() const
+{
+	return vWorldUp;
+}
+
+Vector3 Camera::GetWorldAhead() const
+{
+	return vWorldAhead;
+}
+
+Vector3 Camera::GetEyePt() const
+{
+	return XMLoadFloat3(reinterpret_cast<const Vector3 *>(&m_mCameraWorld._41));
+}
+
+void Camera::setPosCam(Vector3 Pos)
+{
+	if (m_vEye != Pos)
+	{
+		m_vEye = Pos;
+
+		Vector3 vLookAt = m_vEye + vWorldAhead;
+		Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, vWorldUp),
+			mCameraWorld = mView.Invert();
+		XMStoreFloat3(&m_vLookAt, vLookAt);
+		XMStoreFloat4x4(&m_mView, mView);
+		XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
+
+		return;
+	}
+	m_vEye = Pos;
+}
+
+void Camera::setPosCam(float Y)
+{
+	if (m_vEye.y != Y)
+	{
+		m_vEye.y = Y;
+
+		Vector3 vLookAt = m_vEye + vWorldAhead;
+		Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, vWorldUp),
+			mCameraWorld = mView.Invert();
+		XMStoreFloat3(&m_vLookAt, vLookAt);
+		XMStoreFloat4x4(&m_mView, mView);
+		XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
+
+		return;
+	}
+	m_vEye.y = Y;
+}
+
+
+// // // // // // // //
+	// Another Class!!!
 void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
 {
 	float zMinimum = 0.f, r = 0.f;

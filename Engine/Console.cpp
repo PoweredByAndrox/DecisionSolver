@@ -14,8 +14,22 @@ HRESULT Console::Init()
 {
 	try
 	{
-		ProcessCommand->Init();
 		Dialog = Application->getUI()->getDialog("Console");
+		if (!Dialog.operator bool() || Dialog->GetTitle().empty())
+		{
+#if defined (_DEBUG)
+			DebugTrace("Console::Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("Console::Init() is failed!!!");
+#endif
+			Console::LogError("Console: Something is wrong with getting 'Console Dialog From XML'!");
+			return E_POINTER;
+		}
+
+		ProcessCommand->Init();
+
+		ChangeState(Dialog->getVisible() ? Console_STATE::Open : Console_STATE::Close);
 
 		auto Log = Application->getFS()->getDataFromFileVector(Application->getFS()->getLogFName().string(), true);
 

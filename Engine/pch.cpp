@@ -26,7 +26,7 @@ bool FindSubStr(string context, string const from)
 		return false;
 }
 
-void replaceAll(wstring &context, wstring const &from, wstring const &to, bool OneTime, bool FindInEnd)
+void replaceAll(wstring &context, wstring const &from, wstring const &to, bool OneTime, bool FindInEnd, bool AlsoDeleteSpace)
 {
 	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
@@ -46,8 +46,12 @@ void replaceAll(wstring &context, wstring const &from, wstring const &to, bool O
 			lookHere = foundHere + to.size();
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
-void replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also, bool OneTime, bool FindInEnd)
+void replaceAll(wstring &context, wstring const &from, wstring const &to, wstring const &also, bool OneTime,
+	bool FindInEnd, bool AlsoDeleteSpace)
 {
 	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
@@ -86,9 +90,12 @@ void replaceAll(wstring &context, wstring const &from, wstring const &to, wstrin
 			lookHere = foundHere + to.size();
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
 
-void replaceAll(string &context, string const &from, string const &to, bool OneTime, bool FindInEnd)
+void replaceAll(string &context, string const &from, string const &to, bool OneTime, bool FindInEnd, bool AlsoDeleteSpace)
 {
 	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
@@ -108,8 +115,12 @@ void replaceAll(string &context, string const &from, string const &to, bool OneT
 			lookHere = foundHere + to.size();
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
-void replaceAll(string &context, string const &from, string const &to, string const &also, bool OneTime, bool FindInEnd)
+void replaceAll(string &context, string const &from, string const &to, string const &also, bool OneTime,
+	bool FindInEnd, bool AlsoDeleteSpace)
 {
 	size_t lookHere = FindInEnd ? context.length() : 0;
 	size_t foundHere = 0;
@@ -147,9 +158,12 @@ void replaceAll(string &context, string const &from, string const &to, string co
 			lookHere = foundHere + to.size();
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
 
-void deleteWord(string &context, string const &what, bool OneTime, bool FindInEnd)
+void deleteWord(string &context, string const &what, bool OneTime, bool FindInEnd, bool AlsoDeleteSpace)
 {
 	string::size_type pos = FindInEnd ? context.rfind(what.c_str()) : context.find(what.c_str());
 	if (OneTime)
@@ -168,15 +182,21 @@ void deleteWord(string &context, string const &what, bool OneTime, bool FindInEn
 			pos = FindInEnd ? context.rfind(what.c_str(), pos + 1) : context.find(what.c_str(), pos + 1);
 		}
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
 
-void deleteWord(string &context, char const what, char const OnWhat)
+void deleteWord(string &context, char const what, char const OnWhat, bool AlsoDeleteSpace)
 {
 	for (size_t i = 0; i < context.length(); i++)
 	{
 		if (context.at(i) == what)
 			context[i] = OnWhat;
 	}
+
+	if (AlsoDeleteSpace)
+		context.erase(remove(context.begin(), context.end(), '	'), context.end());
 }
 
 void deleteWord(string &context, string const start, string const end, bool OneTime, bool AlsoDeleteSpace)
@@ -229,18 +249,22 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
+ToDo("Fix Bug!")
 void ParseText(string &Text, Type type)
 {
 	vector<string> strs;
+	deleteWord(Text, "\t", false, false, true);
 	boost::split(strs, Text, boost::is_any_of("\n"));
 	Text.clear();
 
 	for (size_t i = 0; i < strs.size(); i++)
 	{
 		if (type == Type::Information)
-			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "));
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "))
+				+ (strs.size() - 1 == i ? string("\n\n") : "");
 		else if (type == Type::Error)
-			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "));
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "))
+				+ (strs.size() - 1 == i ? string("\n\n") : "");
 		else
 			Text += strs.at(i);
 	}

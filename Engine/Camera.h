@@ -3,20 +3,14 @@
 #define __CAMERA_H__
 #include "pch.h"
 
-class Camera
+#include "Camera_Control.h"
+
+class Camera: public Camera_Control
 {
 public:
 	Camera() {}
 
-	HRESULT Init(float W, float H, float FOV = 1.0f)
-	{
-		// Setup the view matrix
-		SetViewParams(Vector3(0, 5, 0), Vector3(1.0f, 0.0f, 0.0f));
-
-		// Setup the projection matrix
-		SetProjParams(FOV, W / H, 1.0f, 1000.0f);
-		return S_OK;
-	}
+	HRESULT Init(float W, float H, float FOV = 1.0f);
 
 	// Functions to change camera matrices
 	virtual void Reset();
@@ -43,57 +37,52 @@ public:
 		m_fRotationScaler = fRotationScaler;
 		m_fMoveScaler = fMoveScaler;
 	}
-	void SetNumberOfFramesToSmoothMouseData(int nFrames) { if (nFrames > 0) m_fFramesToSmoothMouseData = (float)nFrames; }
+	void SetNumberOfFramesToSmoothMouseData(int nFrames);
 	void SetResetCursorAfterMove(bool bResetCursorAfterMove) { m_bResetCursorAfterMove = bResetCursorAfterMove; }
 
 	void setDrawCursor(bool IsDraw) { ShowCursor(IsDraw); }
 
 	// Functions to get state
-	Matrix GetViewMatrix() const { return DirectX::XMLoadFloat4x4(&m_mView); }
-	Matrix GetProjMatrix() const { return DirectX::XMLoadFloat4x4(&m_mProj); }
-	Vector3 GetLookAtPt() const { return DirectX::XMLoadFloat3(&m_vLookAt); }
-	float GetNearClip() const { return m_fNearPlane; }
-	float GetFarClip() const { return m_fFarPlane; }
+	Matrix GetViewMatrix() const;
+	Matrix GetProjMatrix() const;
+	Vector3 GetLookAtPt() const;
+	float GetNearClip() const;
+	float GetFarClip() const;
+	float getMoveScale() const;
 protected:
-	Vector3 ConstrainToBoundary(Vector3 v)
-	{
-		Vector3 vMin = XMLoadFloat3(&m_vMinBoundary);
-		Vector3 vMax = XMLoadFloat3(&m_vMaxBoundary);
-
-		return XMVectorClamp(v, vMin, vMax);
-	}
+	Vector3 ConstrainToBoundary(Vector3 v);
 
 	void UpdateMouseDelta();
 	void UpdateVelocity(float fElapsedTime);
 	void GetInput(bool bGetKeyboardInput, bool bGetGamepadInput);
 
-	Vector3 vWorldUp, vWorldAhead;
+	Vector3 vWorldUp = Vector3::Zero, vWorldAhead = Vector3::Zero;
 
 	Matrix m_mView = {},                    // View matrix 
 		m_mProj = {},						// Projection matrix
 		mCameraRot = {};
 
-	Vector3 m_vGamePadLeftThumb = { 0.f, 0.f, 0.f },
-		m_vGamePadRightThumb = { 0.f, 0.f, 0.f };
-	Vector3 m_vKeyboardDirection = { 0.f, 0.f, 0.f }; // Direction vector of keyboard input
+	Vector3 m_vGamePadLeftThumb = Vector3::Zero,
+		m_vGamePadRightThumb = Vector3::Zero,
+		m_vKeyboardDirection = Vector3::Zero; // Direction vector of keyboard input
 
-	Vector2 m_vMouseDelta = { 0.f, 0.f };        // Mouse relative delta smoothed over a few frames
-	Vector3 m_vDefaultEye = { 0.f, 0.f, 0.f },        // Default camera eye position
-		m_vDefaultLookAt = { 0.f, 0.f, 0.f },     // Default LookAt position
-		m_vEye = { 0.f, 0.f, 0.f },               // Camera eye position
-		m_vLookAt = { 0.f, 0.f, 0.f };            // LookAt position
+	Vector2 m_vMouseDelta = Vector2::Zero;        // Mouse relative delta smoothed over a few frames
+	Vector3 m_vDefaultEye = Vector3::Zero,        // Default camera eye position
+		m_vDefaultLookAt = Vector3::Zero,     // Default LookAt position
+		m_vEye = Vector3::Zero,               // Camera eye position
+		m_vLookAt = Vector3::Zero;            // LookAt position
 
 	float m_fCameraYawAngle = 0.f,                // Yaw angle of camera
 		m_fCameraPitchAngle = 0.f,              // Pitch angle of camera
 		m_fFramesToSmoothMouseData = 10.0f;       // Number of frames to smooth mouse data over
 
-	Vector3 m_vVelocity = { 0.f, 0.f, 0.f },          // Velocity of camera
-		m_vVelocityDrag = { 0.f, 0.f, 0.f };      // Velocity drag force
+	Vector3 m_vVelocity = Vector3::Zero,          // Velocity of camera
+		m_vVelocityDrag = Vector3::Zero;      // Velocity drag force
 
 	float m_fDragTimer = 0.f,                     // Countdown timer to apply drag
 		m_fTotalDragTimeToZero = 0.25f;           // Time it takes for velocity to go from full to 0
 
-	Vector2 m_vRotVelocity = { 0.f, 0.f };       // Velocity of camera
+	Vector2 m_vRotVelocity = Vector2::Zero;       // Velocity of camera
 
 	float m_fFOV = 0.f,                           // Field of view
 		m_fAspect = 0.f,                        // Aspect ratio
@@ -112,54 +101,22 @@ protected:
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
-	Vector2 m_ptLastMousePosition = { 0, 0 },     // Last absolute position of mouse cursor
-		ptCurMousePos = { 0, 0 },
-		ptCurMouseDelta = { 0, 0 };
+	Vector2 m_ptLastMousePosition = Vector2::Zero,     // Last absolute position of mouse cursor
+		ptCurMousePos = Vector2::Zero,
+		ptCurMouseDelta = Vector2::Zero;
 
 public:
 	void FrameMove(float fElapsedTime);
 
-	Matrix GetWorldMatrix() const { return DirectX::XMLoadFloat4x4(&m_mCameraWorld); }
+	Matrix GetWorldMatrix() const;
 
-	Vector3 GetWorldRight() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._11)); }
-	Vector3 GetWorldUp() const { return vWorldUp; }
-	Vector3 GetWorldAhead() const { return vWorldAhead; }
-	Vector3 GetEyePt() const { return DirectX::XMLoadFloat3(reinterpret_cast<const DirectX::XMFLOAT3*>(&m_mCameraWorld._41)); }
+	Vector3 GetWorldRight() const;
+	Vector3 GetWorldUp() const;
+	Vector3 GetWorldAhead() const;
+	Vector3 GetEyePt() const;
 
-	void setPosCam(Vector3 Pos)
-	{
-		if (m_vEye != Pos)
-		{
-			m_vEye = Pos;
-
-			Vector3 vLookAt = m_vEye + GetWorldAhead();
-			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
-				mCameraWorld = XMMatrixInverse(nullptr, mView);
-			XMStoreFloat3(&m_vLookAt, vLookAt);
-			XMStoreFloat4x4(&m_mView, mView);
-			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
-
-			return;
-		}
-		m_vEye = Pos;
-	}
-	void setPosCam(float Y)
-	{
-		if (m_vEye.y != Y)
-		{
-			m_vEye.y = Y;
-
-			Vector3 vLookAt = m_vEye + GetWorldAhead();
-			Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, GetWorldUp()),
-				mCameraWorld = XMMatrixInverse(nullptr, mView);
-			XMStoreFloat3(&m_vLookAt, vLookAt);
-			XMStoreFloat4x4(&m_mView, mView);
-			XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
-
-			return;
-		}
-		m_vEye.y = Y;
-	}
+	void setPosCam(Vector3 Pos);
+	void setPosCam(float Y);
 
 	void setCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
 	{
@@ -167,13 +124,18 @@ public:
 		Right = RightM;
 		WithoutButton = WithoutButtons;
 	}
+
+	auto GetCCT() { return C_CT; }
 protected:
 	Matrix m_mCameraWorld = {};
 
 	bool Left = false, Right = false;
 	bool WithoutButton = false;
+
+	shared_ptr<Camera_Control> C_CT;
 };
 
+ToDo("Need To Reformatting Class Below!")
 class Frustum
 {
 public:
