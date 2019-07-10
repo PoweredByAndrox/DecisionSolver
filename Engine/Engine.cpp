@@ -99,7 +99,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		UINT createDeviceFlags = 0;
 #if defined (DEBUG)
-		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DEBUGGABLE;
+		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 		D3D_DRIVER_TYPE driverTypes[] =
@@ -185,9 +185,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &SCD1, nullptr, nullptr, &SwapChain1);
 			if (SUCCEEDED(hr))
-			{
 				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void **>(&SwapChain));
-			}
 
 			SAFE_RELEASE(dxgiFactory2);
 		}
@@ -462,8 +460,6 @@ void Engine::Render()
 
 	chrono::duration<float> elapsed_seconds = end - start;
 	frameTime = elapsed_seconds.count();
-
-	OutputDebugStringA((string("\nTime Frame: ") + to_string(frameTime) + string("\n")).c_str());
 }
 
 void Engine::Destroy()
