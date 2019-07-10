@@ -163,7 +163,7 @@ void DebugDraw::Draw(const BoundingSphere &sphere, Vector4 color)
 	if (!m_states_Sphere.operator bool() || !m_effect_Sphere.operator bool() ||
 		!m_batch_Sphere.operator bool() || !m_inputLayout_Sphere)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Sphere) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -191,7 +191,7 @@ void DebugDraw::Draw(const BoundingBox &box, Vector4 color)
 	if (!m_states_Box.operator bool() || !m_effect_Box.operator bool() ||
 		!m_batch_Box.operator bool() || !m_inputLayout_Box)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Box) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -224,7 +224,7 @@ void DebugDraw::Draw(const BoundingOrientedBox &obb, Vector4 color)
 	if (!m_states_BBox.operator bool() || !m_effect_BBox.operator bool() ||
 		!m_batch_BBox.operator bool() || !m_inputLayout_BBox)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Cube) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -257,7 +257,7 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 	if (!m_states_Frustum.operator bool() || !m_effect_Frustum.operator bool() ||
 		!m_batch_Frustum.operator bool() || !m_inputLayout_Frustum)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Frustum) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -324,7 +324,7 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float Dis
 	if (!m_states_Grid.operator bool() || !m_effect_Grid.operator bool() ||
 		!m_batch_Grid.operator bool() || !m_inputLayout_Grid)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Grid) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -381,7 +381,7 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 	if (!m_states_Sphere.operator bool() || !m_effect_Sphere.operator bool() ||
 		!m_batch_Sphere.operator bool() || !m_inputLayout_Sphere)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Ring) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -444,7 +444,7 @@ void DebugDraw::DrawRay(Vector3 origin, Vector3 direction, Vector4 color, bool n
 	if (!m_states_Ray.operator bool() || !m_effect_Ray.operator bool() ||
 		!m_batch_Ray.operator bool() || !m_inputLayout_Ray)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Ray) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -501,7 +501,7 @@ void DebugDraw::DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vec
 	if (!m_states_Triangle.operator bool() || !m_effect_Triangle.operator bool() ||
 		!m_batch_Triangle.operator bool() || !m_inputLayout_Triangle)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("DebugDraw::Draw(const Triangle) Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)

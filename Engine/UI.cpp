@@ -67,7 +67,7 @@ HRESULT UI::Init()
 	}
 	catch (const exception &Catch)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("UI::Init->catch Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif
@@ -167,7 +167,7 @@ HRESULT UI::LoadXmlUI(string File)
 	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() > 0)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
 #if defined (ExceptionWhenEachError)
@@ -180,7 +180,7 @@ HRESULT UI::LoadXmlUI(string File)
 	}
 	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"), string("-->")).c_str()) > 0)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
 #if defined (ExceptionWhenEachError)

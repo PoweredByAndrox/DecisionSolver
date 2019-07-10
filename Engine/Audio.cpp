@@ -164,7 +164,7 @@ HRESULT Audio::Init()
 	USES_CONVERSION;
 	EngineTrace(XAudio2Create(&audio, XAUDIO2_STOP_ENGINE_WHEN_IDLE | XAUDIO2_1024_QUANTUM));
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 	XAUDIO2_DEBUG_CONFIGURATION debug = { 0 };
 	debug.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS;
 	debug.BreakMask = XAUDIO2_LOG_ERRORS;

@@ -13,7 +13,7 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
@@ -23,7 +23,7 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 	{
 		if (pErrorBlob)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace(string(string("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
 				(char *)pErrorBlob->GetBufferPointer()).c_str());
 #endif
@@ -66,7 +66,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
@@ -86,7 +86,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 			{
 				if (pErrorBlob)
 				{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 					DebugTrace(string(string("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
 						(char *)pErrorBlob->GetBufferPointer()).c_str());
 #endif
@@ -105,7 +105,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 	}
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("Shaders::CreateShaderFromFile() Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)

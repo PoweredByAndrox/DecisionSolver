@@ -19,7 +19,7 @@ HRESULT Physics::Init()
 		if (!gFoundation)
 		{
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->PxCreateFoundation Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -30,7 +30,7 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		gPvd = PxCreatePvd(*gFoundation);
 		if (!gPvd)
 		{
@@ -59,7 +59,7 @@ HRESULT Physics::Init()
 		gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 #endif
 		gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true,
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			gPvd
 #else
 			nullptr
@@ -67,7 +67,7 @@ HRESULT Physics::Init()
 );
 		if (!gPhysics)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->gPhysics Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -79,7 +79,7 @@ HRESULT Physics::Init()
 		}
 
 		PxInitExtensions(*gPhysics,
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			gPvd
 #else
 			nullptr
@@ -96,7 +96,7 @@ HRESULT Physics::Init()
 		gScene = gPhysics->createScene(sceneDesc);
 		if (!gScene)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->gScene Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -110,7 +110,7 @@ HRESULT Physics::Init()
 		ControllerManager = PxCreateControllerManager(*gScene);
 		if (!ControllerManager)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->ControllerManager Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -119,7 +119,7 @@ HRESULT Physics::Init()
 			Console::LogError("Physics: Something is wrong with create PhysX Contoller Manager!");
 		}
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		pvdClient = gScene->getScenePvdClient();
 		if (pvdClient)
 		{
@@ -134,7 +134,7 @@ HRESULT Physics::Init()
 		gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 		if (!gMaterial)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->gMaterial Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -149,7 +149,7 @@ HRESULT Physics::Init()
 		gPlane = gPhysics->createRigidStatic(planePos);
 		if (!gPlane)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->gPlane Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -171,7 +171,7 @@ HRESULT Physics::Init()
 		gCooking = PxCreateCooking(PX_PHYSICS_VERSION, *gFoundation, params);
 		if (!gCooking)
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Physics::Init->gCooking Is nullptr!");
 #endif 
 #if defined (ExceptionWhenEachError)
@@ -187,7 +187,7 @@ HRESULT Physics::Init()
 	}
 	catch (const exception &Catch)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("Physics::Init->catch() Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif 
@@ -313,7 +313,7 @@ void Physics::Destroy()
 {
 	ClearAllObj();
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	if (gPvd)
 	{
 		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())

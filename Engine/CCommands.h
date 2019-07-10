@@ -22,7 +22,7 @@ private:
 		float One = 0.f, Two = 0.f, Three = 0.f;
 		bool Checked = false;
 
-		void CheckNeededParam();
+		void CheckRequiredParam();
 
 		Command() {}
 		Command(string CommandStr, string CommandNeededParams, TypeOfCommand type): CommandStr(CommandStr),

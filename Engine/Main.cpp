@@ -48,27 +48,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		if (FAILED(Application->Init(wstring(L"DecisionEngine"), hInstance)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::Application->Init() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
 			throw exception("wWinMain::Application->Init() is failed!!!");
 #endif
 			Console::LogError("Application::Init() is Fail!");
-
 			return 5;
 		}
 
 		if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::CoInitializeEx() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
 			throw exception("wWinMain::CoInitializeEx() is failed!!!");
 #endif
 			Console::LogError("CoInitializeEx() is Fail!");
-
 			return 3;
 		}
 
@@ -81,7 +79,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setUI(make_shared<UI>());
 		if (FAILED(Application->getUI()->Init()))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::getUI()->Init() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -92,7 +90,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 		//	// Models Class
-		//auto Model = Application->getFS()->GetFile(string("Nanosuit.obj"));
+		//auto Model = Application->getFS()->GetFile(string("cargo transport 3.obj"));
 		//if (Model.operator bool())
 		//	Application->setModel(make_shared<Models>(Model->PathA));
 
@@ -110,7 +108,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setPhysics(make_shared<Physics>());
 		if (FAILED(Application->getPhysics()->Init()))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::getPhysics()->Init() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -125,7 +123,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		if (FAILED(Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x,
 			Application->getWorkAreaSize(Application->GetHWND()).y)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::getCamera()->Init() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -139,7 +137,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->setActor(make_shared<Actor>());
 		if (FAILED(Application->getActor()->Init()))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("wWinMain::getActor()->Init() is failed.");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -150,20 +148,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 		//	// Audio (Sound) Class!!!
-		//Application->setSound(make_shared<Audio>());
-		//if (FAILED(Application->getSound()->Init()))
-		//{
-		//	DebugTrace("wWinMain::getSound()->Init() is failed.");
-		//	throw exception("getSound()->Init() is failed!!!");
-		//	return 5;
-		//}
+//		Application->setSound(make_shared<Audio>());
+//		if (FAILED(Application->getSound()->Init()))
+//		{
+//#if defined (DEBUG)
+//			DebugTrace("wWinMain::getSound()->Init() is failed.");
+//#endif
+//#if defined (ExceptionWhenEachError)
+//			throw exception("getSound()->Init() is failed!!!");
+//#endif
+//
+//			Console::LogError("Sound: Something is wrong with Init Sound!");
+//			return 5;
+//		}
 		//Application->getSound()->changeSoundPos(Vector3::One * 5);
 		//Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
 		//Application->getCLua()->Init();
 
 		//	// Debug Draw!!!
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		Application->setDebugDraw(make_shared<DebugDraw>());
 		Application->getDebugDraw()->Init();
 #endif
@@ -189,14 +193,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		if (Application->getSound().operator bool())
 			Application->getSound()->ReleaseAudio();
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 		Application->getUI()->Destroy();
 #endif
 		Application->Destroy();
 	}
 	catch (const exception &Catch)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("wWinMain::catch() Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif

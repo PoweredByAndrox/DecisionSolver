@@ -22,26 +22,34 @@ static const vector<string> ListCommandsWithParams =
 #include "File_system.h"
 void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 {
-	if (!Text.empty())
-	{
-		auto cmd = FindPieceCommand(Console, Text);
-		if (cmd.operator bool() && !cmd->CommandStr.empty())
-		{
-			cmd->TypedCmd = Text;
-			ExecCommand(Console, cmd);
-			if (Text == "clear")
-				return;
-		}
-		else
-			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
-				string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
+	if (Text.empty())
+		return;
 
-		File_system::AddTextToLog(string("\n") + string("> ") + Text + string("\n"), Type::Normal);
+#if defined(Deep_Info)
+	OutputDebugStringA("\nCommands::Work()\n");
+#endif
+
+	auto cmd = FindPieceCommand(Console, Text);
+	if (cmd.operator bool() && !cmd->CommandStr.empty())
+	{
+		cmd->TypedCmd = Text;
+		ExecCommand(Console, cmd);
+		if (Text == "clear")
+			return;
 	}
+	else
+		Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Error,
+			string(string("You're typed: ") + Text + string("\n[error]: Unknown command type Help for help!")));
+
+	File_system::AddTextToLog(string("\n> ") + Text + string("\n"), Type::Normal);
 }
 
 void Commands::Init()
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nCommands::Init()\n");
+#endif
+
 	for (size_t i = 0; i < ListCommands.size(); i++)
 	{
 		commands.push_back(make_shared<Command>(ListCommands.at(i), "", Command::TypeOfCommand::WithoutParam));
@@ -64,6 +72,10 @@ void Commands::Init()
 
 void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cmd)
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nCommands::ExecCommand()\n");
+#endif
+
 	if (cmd->type == Command::TypeOfCommand::WithParam || cmd->type == Command::TypeOfCommand::Lua)
 	{
 		if (cmd->CommandUnprocessed.empty())
@@ -74,7 +86,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			return;
 		}
 
-		cmd->CheckNeededParam();
+		cmd->CheckRequiredParam();
 	}
 
 	string CMD = cmd->CommandStr;
@@ -157,6 +169,10 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 
 shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nCommands::FindPieceCommand()\n");
+#endif
+
 	for (size_t i = 0; i < commands.size(); i++)
 	{
 		string GetCommand = Text;
@@ -181,8 +197,12 @@ shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Co
 	return make_shared<Command>();
 }
 
-void Commands::Command::CheckNeededParam()
+void Commands::Command::CheckRequiredParam()
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nCommands::CheckNeededParam()\n");
+#endif
+
 	if (type == Lua)
 	{
 		auto Path = CommandUnprocessed;

@@ -12,6 +12,8 @@
 
 //#define ExceptionWhenEachError
 
+#define Deep_Info
+
 class DebugDraw;
 
 class CLua;
@@ -31,6 +33,7 @@ private:
 	static HWND hwnd;
 	bool WireFrame = false,
 		IsSimulation = false;
+
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
 	HRESULT hr = S_OK;
 	wstring NameWnd = L"", ClassWND = L"";

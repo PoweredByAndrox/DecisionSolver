@@ -58,8 +58,11 @@ Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 	//PCam->Update();
 
 	float jump_height = PCam->getJump()->getHeight(Time);
+
+#if defined (NEVER)
 	if (jump_height != 0.0f)
 		OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
+#endif
 
 	targetKeyDisplacement *= Application->getCamera()->getMoveScale();
 	targetKeyDisplacement *= Time;

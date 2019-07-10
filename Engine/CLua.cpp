@@ -9,6 +9,7 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 #include "Console.h"
 
+ToDo("Need To Replace Message To Console::")
 void CLua::Init()
 {
 	LuaState.open_libraries();

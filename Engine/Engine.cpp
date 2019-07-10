@@ -44,6 +44,8 @@ XMVECTORF32 _Color[9] =
 	DirectX::Colors::SkyBlue
 };
 
+bool DrawGrid = true, DrawCamSphere;
+
 HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 {
 	try
@@ -64,7 +66,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		if (!RegisterClassExW(&wnd))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->RegisterClassEx() Init is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -74,7 +76,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			return E_FAIL;
 		}
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 392 /*1024/2-120*/, 160 /*768-608*/,
 			1024, 768, NULL, NULL, hInstance, NULL)))
 #else
@@ -82,7 +84,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			NULL, NULL, hInstance, NULL)))
 #endif
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->CreateWindow() Init is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -96,7 +98,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		ClassWND = wnd.lpszClassName;
 
 		UINT createDeviceFlags = 0;
-#if defined(_DEBUG)
+#if defined (DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_DEBUGGABLE;
 #endif
 
@@ -127,7 +129,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		}
 		if (FAILED(hr))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->D3D11CreateDeviceAndSwapChain() Init is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -154,7 +156,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		}
 		else
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->DXGI Factory couldn't be obtained!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -211,7 +213,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		ID3D11Texture2D *pBackBuffer = nullptr;
 		if (FAILED(hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->GetBuffer() Get is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -223,7 +225,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		if (FAILED(hr = Device->CreateRenderTargetView(pBackBuffer, NULL, &RenderTargetView)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->CreateRenderTargetView() Init is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -249,7 +251,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		if (FAILED(hr = Device->CreateTexture2D(&descDepth, NULL, &DepthStencil)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->CreateTexture2D() Get is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -266,7 +268,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		if (FAILED(hr = Device->CreateDepthStencilView(DepthStencil, &descDSV, &DepthStencilView)))
 		{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 			DebugTrace("Engine::Init->CreateDepthStencilView() Init is failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -305,7 +307,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 	}
 	catch (const exception &Catch)
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("Engine::Init()->catch() Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif
@@ -338,7 +340,6 @@ void Engine::Render()
 
 	auto start = chrono::system_clock::now();
 
-	bool Off = true;
 	if (keyboard->IsConnected())
 	{
 		auto state = keyboard->GetState();
@@ -368,11 +369,17 @@ void Engine::Render()
 		if (TrackerKeyboard.pressed.Escape)
 			Quit();
 
-		if (keyboard->GetState().F6)
-			if (Off)
-				Off = false;
+		if (TrackerKeyboard.pressed.F6)
+			if (DrawGrid)
+				DrawGrid = false;
 			else
-				Off = true;
+				DrawGrid = true;
+
+		if (TrackerKeyboard.pressed.F7)
+			if (DrawCamSphere)
+				DrawCamSphere = false;
+			else
+				DrawCamSphere = true;
 	}
 	if (gamepad->GetState(0).IsConnected())
 	{
@@ -389,10 +396,10 @@ void Engine::Render()
 
 	mainActor->Render(getframeTime());
 
-#if defined (_DEBUG)
-	if (Off)
-		dDraw->DrawGrid(Vector3(800.f, 0.f, 0.f), Vector3(0.f, 0.f, 800.f), Vector3(0.f, 0.7f, 0.f),
-			250, (Vector4)Colors::OldLace);
+#if defined (DEBUG)
+	if (DrawGrid)
+		dDraw->DrawGrid(Vector3(500.f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.f), Vector3::Zero, 300,
+		(Vector4)Colors::Teal);
 
 	if (Sound.operator bool())
 	{
@@ -404,7 +411,7 @@ void Engine::Render()
 
 	PhysX->Simulation(getframeTime());
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 	ui->Begin();
 
 	auto Dial1 = ui->getDialog("Main");
@@ -455,6 +462,8 @@ void Engine::Render()
 
 	chrono::duration<float> elapsed_seconds = end - start;
 	frameTime = elapsed_seconds.count();
+
+	OutputDebugStringA((string("\nTime Frame: ") + to_string(frameTime) + string("\n")).c_str());
 }
 
 void Engine::Destroy()
@@ -485,7 +494,7 @@ ID3D11Device *Engine::getDevice()
 		return Device;
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("Engine::GetDevice() Get is failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -501,7 +510,7 @@ ID3D11DeviceContext *Engine::getDeviceContext()
 		return DeviceContext;
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("Engine::GetDeviceContext() Get is failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -518,7 +527,7 @@ IDXGISwapChain *Engine::getSwapChain()
 		return SwapChain;
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("Engine::GetSwapChain() Get is failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -535,7 +544,7 @@ ID3D11RenderTargetView *Engine::getTargetView()
 		return RenderTargetView;
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("Engine::GetTargetView() Get is failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -567,7 +576,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 		SCD.BufferDesc.Height, SCD.BufferDesc.Format,
 		SCD.Flags)))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->ResizeBuffers() Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -590,7 +599,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = SwapChain->ResizeTarget(&md)))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->ResizeTarget() Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -605,7 +614,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&pBackBuffer))))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->GetBuffer() Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -620,7 +629,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = Device->CreateRenderTargetView(pBackBuffer, 0, &RenderTargetView)))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->CreateRenderTargetView() Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -638,7 +647,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = Device->CreateTexture2D(&descDepth, 0, &DepthStencil)))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->CreateTexture2D() Get Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -653,7 +662,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = Device->CreateDepthStencilView(DepthStencil, 0, &DepthStencilView)))
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace(string(string("ResizeWindow()->CreateDepthStencilView() Init Is Failed!\nReturn Error Text:")
 			+ to_string(hr)).c_str());
 #endif
@@ -700,7 +709,7 @@ float Engine::getframeTime()
 
 void Engine::StackTrace(LPCSTR Error)
 {
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	DebugTrace("\n***********ERROR IN XML FILE***********\n");
 	DebugTrace(string(Error).c_str());
 	DebugTrace("\n***********ERROR IN XML FILE***********\n");

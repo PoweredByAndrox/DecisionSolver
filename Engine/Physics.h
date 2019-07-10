@@ -29,7 +29,7 @@ public:
 	void AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn->addForce(Vec3, ForceMode); }
 //	void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)
 //	{
-//#if defined(_DEBUG)
+//#if defined (DEBUG)
 //		PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));
 //		distanceJoint->setProjectionLinearTolerance(0.5f);
 //#endif
@@ -55,7 +55,7 @@ public:
 	PxPhysics *getPhysics() { if (gPhysics) return gPhysics; return nullptr; }
 	PxMaterial *getMaterial() { if (gMaterial) return gMaterial; return nullptr; }
 	PxRigidDynamic *getActrCamera() { if (gActorCamera) return gActorCamera; return nullptr; }
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	PxPvdSceneClient *getClientPVD() { if (pvdClient) return pvdClient; return nullptr; }
 #endif
 	PxControllerManager *getContrlManager() { return ControllerManager; }
@@ -83,7 +83,7 @@ protected:
 	PxRigidStatic *gPlane = nullptr;
 	PxRigidDynamic *gBox = nullptr, *gActorCamera = nullptr;
 	PxCooking *gCooking = nullptr;
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	PxPvd *gPvd = nullptr;
 	PxPvdSceneClient *pvdClient = nullptr;
 	PxPvdTransport *transport = nullptr;

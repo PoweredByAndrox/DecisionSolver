@@ -21,22 +21,25 @@ void Actor::Update(float Time)
 		(float)Application->getWorkAreaSize(Application->GetHWND()).y), 0.1f, 1000.f);
 }
 
+extern bool DrawCamSphere;
 void Actor::Render(float Time)
 {
 	Update(Time);
 
 	auto PosCCT = Application->getCamera()->GetCCT();
+	if (PosCCT.operator bool() && DrawCamSphere)
+	{
+		BoundingSphere sphere;
+		sphere.Radius = PosCCT->getController()->getRadius();
+		sphere.Center = ToExtended(PosCCT->getController()->getPosition());
 
-	BoundingSphere sphere;
-	sphere.Radius = 1.f;
-	sphere.Center = ToExtended(PosCCT->getController()->getPosition());
-
-#if defined(_DEBUG)
-	Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::Crimson);
+#if defined (DEBUG)
+		Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::Crimson);
 #else
-	m_shape->Draw(Matrix::CreateTranslation(sphere.Center), Application->getCamera()->GetViewMatrix(),
-		Application->getCamera()->GetWorldMatrix());
+		m_shape->Draw(Matrix::CreateTranslation(sphere.Center), Application->getCamera()->GetViewMatrix(),
+			Application->getCamera()->GetWorldMatrix());
 #endif
+	}
 }
 
 HRESULT Actor::Init()

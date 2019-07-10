@@ -13,13 +13,13 @@ File_system::File_system()
 	p = _wgetcwd(nullptr, 512);
 	if (p.empty())
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("File System::File_system Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
 		throw exception("File System::File_system Is Failed!");
 #endif
-		Console::LogError("File System: Something is wrong with Get Resource Folder\\Path!");
+		Console::LogError("File System: Something is wrong with Get Resource Folder or Path!");
 	}
 
 	LogFName = GetCurrentPath().string() + string("\\") + LogFName.string();
@@ -151,6 +151,10 @@ _TypeOfFile File_system::GetTypeFile(string file)
 
 void File_system::CreateLog()
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nFileSystem::CreateLog()\n");
+#endif
+
 	if (GetCurrentPath().empty())
 	{
 		MessageBoxA(Engine::GetHWND(), "Engine cannot get path to log file!", "Error!", MB_OK | MB_ICONERROR);
@@ -176,6 +180,17 @@ void File_system::CreateLog()
 
 void File_system::AddTextToLog(string Text, Type type)
 {
+#if defined(Deep_Info)
+	string Type = "";
+	if (type == Type::Error)
+		Type = "Error";
+	else if (type == Type::Information)
+		Type = "Info";
+	else if (type == Type::Normal)
+		Type = "Normal";
+	OutputDebugStringA(string(("\nFileSystem::AddTextToLog(") + Text + string(", ") + Type + string(")\n")).c_str());
+#endif
+
 	OpenLog();
 
 	ParseText(Text, type);
@@ -186,12 +201,15 @@ void File_system::AddTextToLog(string Text, Type type)
 
 void File_system::OpenLog()
 {
+#if defined(Deep_Info)
+	OutputDebugStringA("\nFileSystem::OpenLog()\n");
+#endif
+
 	if (!exists(LogFName))
 		CreateLog();
 
 	if (!LogFile->is_open())
 	{
-
 		LogFile = make_shared<boost::filesystem::ofstream>(LogFName, std::ofstream::in | std::ofstream::app);
 		if (!LogFile->is_open())
 		{
@@ -551,7 +569,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 	}
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("File System::GetResPathA Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -563,7 +581,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 	// winerror.h 
 		//	e.g ERROR_FILE_NOT_FOUND
 
-#if defined(_DEBUG)
+#if defined (DEBUG)
 	DebugTrace("File System: ERROR_FILE_NOT_FOUND!\n");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -969,7 +987,7 @@ string File_system::getDataFromFile(string File, bool LineByline, string start, 
 	}
 	else
 	{
-#if defined (_DEBUG)
+#if defined (DEBUG)
 		DebugTrace("File System::getDataFromFile Is Failed!");
 #endif
 #if defined (ExceptionWhenEachError)

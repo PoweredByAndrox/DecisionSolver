@@ -45,7 +45,7 @@ using namespace tinyxml2;
 
 #include "d3dx11effect.h"
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	#include <d3d11sdklayers.h>
 #endif
 
@@ -65,7 +65,7 @@ using namespace tinyxml2;
 	#define SAFE_release(p) { if (p) { (p)->release(); (p) = nullptr; } }
 #endif
 
-#if defined (_DEBUG)
+#if defined (DEBUG)
 	#if !defined (EngineTrace)
 		#define EngineTrace(x) \
 { \
