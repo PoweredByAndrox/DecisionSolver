@@ -6,6 +6,8 @@ extern shared_ptr<Engine> Application;
 #include "PhysCamera.h"
 #include "Camera.h"
 
+shared_ptr<StepTimer> TM = make_shared<StepTimer>();
+
 void Camera_Control::Init()
 {
 	PCam = make_shared<PhysCamera>();
@@ -39,13 +41,22 @@ void Camera_Control::Init()
 			ctrlShape->setFlag(PxShapeFlag::eSCENE_QUERY_SHAPE, false);
 		}
 	}
+
+	TM->SetFixedTimeStep(true);
+	TM->SetTargetElapsedSeconds(0.07); // Jump Time
 }
 
 void Camera_Control::PosControllerHead()
 {
 	PxRigidActor *charActor = C_Control->getActor();
+	if (!charActor)
+		return;
+
 	PxShape *shape = nullptr;
 	charActor->getShapes(&shape, 1);
+	if (!shape)
+		return;
+
 	PxCapsuleGeometry geom;
 	shape->getCapsuleGeometry(geom);
 
@@ -56,16 +67,17 @@ void Camera_Control::PosControllerHead()
 Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 {
 	//PCam->Update();
+	
+	TM->Tick();
 
-	float jump_height = PCam->getJump()->getHeight(Time);
+	float jump_height = PCam->getJump()->getHeight((float)TM->GetElapsedSeconds()) * Time;
 
-#if defined (NEVER)
-	if (jump_height != 0.0f)
-		OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
-#endif
+	//if (jump_height != 0.0f)
+	//	OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
+
+	PosControllerHead();
 
 	targetKeyDisplacement *= Application->getCamera()->getMoveScale();
-	targetKeyDisplacement *= Time;
 
 	targetKeyDisplacement.y += (jump_height == 0.0f ? Application->getPhysics()->getScene()->getGravity().y * Time :
 		booster(HeadPos.y, jump_height, Time * 0.5f));
@@ -76,9 +88,8 @@ Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 		PCam->getJump()->Stop();
 
 	if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::Space))
-		PCam->getJump()->Start(10.0f);
+		PCam->getJump()->Start(30.0f);
 
-	PosControllerHead();
 	HeadPos.y += booster(HeadPos.y, 0.3f, Time * 0.2f); // Also plus our cam position (y ~ 0.81f)
 
 	return HeadPos - VDir;

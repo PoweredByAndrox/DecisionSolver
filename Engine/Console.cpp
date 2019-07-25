@@ -14,9 +14,6 @@ HRESULT Console::Init()
 {
 	try
 	{
-#if defined(Deep_Info)
-		OutputDebugStringA("\nConsole::Init()\n");
-#endif
 		Dialog = Application->getUI()->getDialog("Console");
 		if (!Dialog.operator bool() || Dialog->GetTitle().empty())
 		{
@@ -79,10 +76,6 @@ void Console::Render()
 {
 	if (CState == Console_STATE::Close)
 		return;
-
-#if defined(Deep_Info)
-	OutputDebugStringA("\nConsole::Render()\n");
-#endif
 
 	Dialog = Application->getUI()->getDialog("Console");
 	if (!Dialog.operator bool() || Dialog->GetTitle().empty())
@@ -155,9 +148,6 @@ void Console::Render()
 
 void Console::OpenConsole()
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nConsole::OpenConsole()\n");
-#endif
 	if (CState == Console_STATE::Close)
 	{
 		Application->getUI()->EnableDialog("Console");
@@ -177,10 +167,6 @@ void Console::AddCmd(LPCSTR Text)
 	if (!Text || !ProcessCommand.operator bool() || !Dialog.operator bool())
 		return;
 
-#if defined(Deep_Info)
-	OutputDebugStringA((string("\nConsole::AddCmd(") + string(Text) + string(")\n")).c_str());
-#endif
-
 	ProcessCommand->Work(Dialog, Text);
 }
 
@@ -188,10 +174,6 @@ void Console::LogError(string Msg)
 {
 	if (Msg.empty())
 		return;
-
-#if defined(Deep_Info)
-	OutputDebugStringA(string(("\nConsole::LogError(") + Msg + string(")\n")).c_str());
-#endif
 
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
@@ -213,10 +195,6 @@ void Console::LogInfo(string Msg)
 	if (Msg.empty())
 		return;
 
-#if defined(Deep_Info)
-	OutputDebugStringA(string(("\nConsole::LogInfo(") + Msg + string(")\n")).c_str());
-#endif
-
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()
 		|| Application->getUI()->getDialog("Console")->getComponents()->childs.empty()
@@ -236,10 +214,6 @@ void Console::LogNormal(string Msg)
 {
 	if (Msg.empty())
 		return;
-
-#if defined(Deep_Info)
-	OutputDebugStringA(string(("\nConsole::LogNormal(") + Msg + string(")\n")).c_str());
-#endif
 
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Application->getUI()->getDialog("Console").operator bool()

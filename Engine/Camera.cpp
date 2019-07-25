@@ -94,17 +94,25 @@ Vector3 Camera::ConstrainToBoundary(Vector3 v)
 	return XMVectorClamp(v, vMin, vMax);
 }
 
+#include "Console.h"
 void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 {
 	if (Application->getKeyboard()->IsConnected())
 	{
 		m_vKeyboardDirection = Vector3::Zero;
+		float speed = 2.0f * Application->getframeTime();
 
 		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::W))
-			m_vKeyboardDirection += -mCameraRot.Forward();
+			m_vKeyboardDirection += speed * -mCameraRot.Forward();
 
 		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::S))
-			m_vKeyboardDirection -= -mCameraRot.Forward();
+			m_vKeyboardDirection -= speed * -mCameraRot.Forward();
+
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
+			m_vKeyboardDirection += speed * mCameraRot.Right();
+
+		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
+			m_vKeyboardDirection -= speed * mCameraRot.Right();
 
 		if (m_bEnableYAxisMovement)
 		{
@@ -115,13 +123,17 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 				m_vKeyboardDirection.y -= 1.0f;
 		}
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
-			m_vKeyboardDirection += mCameraRot.Right();
-
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
-			m_vKeyboardDirection -= mCameraRot.Right();
-
 		C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
+	}
+	else
+	{
+#if defined (DEBUG)
+		DebugTrace("Camera::GetInput is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception("Camera::GetInput is failed!!!");
+#endif
+		Console::LogError("Something is wrong with your Keyboard!");
 	}
 
 	if (((Application->getMouse()->GetState().leftButton && Left) ||
@@ -255,7 +267,7 @@ void Camera::Reset()
 
 void Camera::FrameMove(_In_ float fElapsedTime)
 {
-	if (GetAsyncKeyState(VK_LSHIFT))
+	if (Application->getKeyboard()->GetState().LeftShift)
 		SetScalers(0.010f, 6.f * 15.f);
 	else
 		SetScalers(0.010f, 6.0f);
@@ -303,8 +315,7 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 
 	Vector3 vEye = XMLoadFloat3(&m_vEye);
 
-	vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot);
-	vEye = C_CT->Update(vEye, fElapsedTime, mCameraRot.Up());
+	vEye = C_CT->Update(XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot), fElapsedTime, Vector3::Up);
 
 	if (m_bClipToBoundary)
 		vEye = ConstrainToBoundary(m_vEye);
@@ -344,43 +355,7 @@ Vector3 Camera::GetEyePt() const
 	return XMLoadFloat3(reinterpret_cast<const Vector3 *>(&m_mCameraWorld._41));
 }
 
-void Camera::setPosCam(Vector3 Pos)
-{
-	if (m_vEye != Pos)
-	{
-		m_vEye = Pos;
-
-		Vector3 vLookAt = m_vEye + vWorldAhead;
-		Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, vWorldUp),
-			mCameraWorld = mView.Invert();
-		XMStoreFloat3(&m_vLookAt, vLookAt);
-		XMStoreFloat4x4(&m_mView, mView);
-		XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
-
-		return;
-	}
-	m_vEye = Pos;
-}
-
-void Camera::setPosCam(float Y)
-{
-	if (m_vEye.y != Y)
-	{
-		m_vEye.y = Y;
-
-		Vector3 vLookAt = m_vEye + vWorldAhead;
-		Matrix mView = XMMatrixLookAtLH(m_vEye, vLookAt, vWorldUp),
-			mCameraWorld = mView.Invert();
-		XMStoreFloat3(&m_vLookAt, vLookAt);
-		XMStoreFloat4x4(&m_mView, mView);
-		XMStoreFloat4x4(&m_mCameraWorld, mCameraWorld);
-
-		return;
-	}
-	m_vEye.y = Y;
-}
-
-
+ToDo("Need To Reformatting Class Below!")
 // // // // // // // //
 	// Another Class!!!
 void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)

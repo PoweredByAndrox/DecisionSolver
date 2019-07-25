@@ -51,60 +51,24 @@ void Picking::tick()
 	SAFE_release(mMouseActorToDelete);
 }
 
-PxVec3 Picking::unProject(int x, int y, float depth) const
-{
-	PxU32 windowWidth = Application->getWorkAreaSize(Application->GetHWND()).x;
-	PxU32 windowHeight = Application->getWorkAreaSize(Application->GetHWND()).y;
-
-	const PxF32 outX = (float)x / (float)windowWidth;
-	const PxF32 outY = (float)y / (float)windowHeight;
-
-	Vector3 Done;//= Application->UnProject(outX * 2, outY * 2, depth * 2);
-	return PxVec3(Done.x, Done.y, Done.z);
-}
-void Picking::project(const PxVec3 &v, int &xi, int &yi, float &depth) const
-{
-	Vector3 pos;//= Application->Project(v.x, v.y, v.z);
-		//* Map x, y and z to range 0-1 */
-	pos.x = (pos.x + 1) * 0.5f;
-	pos.y = (pos.y + 1) * 0.5f;
-	pos.z = (pos.z + 1) * 0.5f;
-
-	PxU32 windowWidth = Application->getWorkAreaSize(Application->GetHWND()).x;
-	PxU32 windowHeight = Application->getWorkAreaSize(Application->GetHWND()).y;
-
-		/* Map x,y to viewport */
-	pos.x *= windowWidth;
-	pos.y *= windowHeight;
-
-	depth = (float)pos.z;
-
-	xi = (int)(pos.x + 0.5);
-	yi = (int)(pos.y + 0.5);
-}
-
 void Picking::computeCameraRay(PxVec3 &Pos, PxVec3 &dir, PxI32 x, PxI32 y) const
 {
-	const Matrix pmatProj = Application->getCamera()->GetProjMatrix();
+	Matrix ProjMat = Application->getCamera()->GetProjMatrix(),
+		ViewMat = Application->getCamera()->GetViewMatrix();
 
-	// Compute the vector of the pick ray in screen space
-	Vector3 v;
-	v.x = (+2.0f * x /  - 1.0f) / pmatProj._11;
-	v.y = (-2.0f * y /  + 1.0f) / pmatProj._22;
-	v.z = 1.0f;
-//	vPickRayDir = Vector3(v.x, v.y, 0.0f);
-//	vPickRayPos = Application->getCamera()->GetEyePt();
-	Vector3 rayOrigin = XMVector3Unproject(Vector4(x, y, 0.f, 1.f), Application->getViewPort().TopLeftX, Application->getViewPort().TopLeftY,
-		Application->getViewPort().Width,
-		Application->getViewPort().Height, 0.f, 1000.f, Application->getCamera()->GetProjMatrix(),
-		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetWorldMatrix());
-	Vector3 rayDirection = XMVector3Unproject(Vector4(x, y, 1.f, 1.f), Application->getViewPort().TopLeftX, Application->getViewPort().TopLeftY,
-		Application->getViewPort().Width,
-		Application->getViewPort().Height, 0.f, 1000.f, Application->getCamera()->GetProjMatrix(),
-		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetWorldMatrix());
+	float VP_Height = Application->getViewPort().Height, VP_Width = Application->getViewPort().Width;
 
-	Pos = ToPxVec3(rayOrigin);
-	dir = ToPxVec3(rayDirection - rayOrigin).getNormalized();
+	Vector3 nearVector = XMVector3Unproject(Vector3(float(x), float(VP_Height - y),
+		0.0f), 0.0f, 0.0f, VP_Width, VP_Height, 0.0f, 1.0f, ProjMat, Matrix::Identity, ViewMat),
+
+		farVector = XMVector3Unproject(Vector3(float(x), float(VP_Height - y),
+			1.0f), 0.0f, 0.0f, VP_Width, VP_Height, 0.0f, 1.0f, ProjMat, Matrix::Identity, ViewMat),
+
+		tmp;
+
+	Pos = ToPxVec3(Application->getCamera()->GetEyePt());
+	tmp = farVector - nearVector;
+	dir = ToPxVec3(tmp).getNormalized();
 }
 
 bool Picking::pick(int x, int y)
@@ -116,7 +80,7 @@ bool Picking::pick(int x, int y)
 	PxRaycastHit hit; hit.shape = nullptr;
 	PxRaycastBuffer hit1;
 
-	Application->getPhysics()->getScene()->raycast(rayOrig, rayDir, 100000.f, hit1, PxHitFlag::ePOSITION);
+	Application->getPhysics()->getScene()->raycast(rayOrig, rayDir, 1000.f, hit1, PxHitFlag::ePOSITION);
 	hit = hit1.block;
 
 	if (hit.shape)
@@ -128,11 +92,6 @@ bool Picking::pick(int x, int y)
 
 		if (!mSelectedActor)
 			mSelectedActor = static_cast<PxRigidActor*>(actor->is<PxArticulationLink>());
-
-			//ML::this is very useful to debug some collision problem
-		PxTransform t = actor->getGlobalPose();
-		PX_UNUSED(t);
-		//shdfnd::printFormatted("id = %i\n PxTransform transform(PxVec3(%f, %f, %f), PxQuat(%f, %f, %f, %f))\n", reinterpret_cast<size_t>(actor->userData), t.p.x, t.p.y, t.p.z, t.q.x, t.q.y, t.q.z, t.q.w);
 	}
 	else
 		mSelectedActor = 0;
@@ -155,7 +114,7 @@ bool Picking::pick(int x, int y)
 	return true;
 }
 
-PxActor *Picking::ReleasePick()
+void Picking::ReleasePick()
 {
 	// let go any picked actor
 	if (mMouseJoint)
@@ -166,12 +125,6 @@ PxActor *Picking::ReleasePick()
 		PX_ASSERT(!mMouseActorToDelete);
 		mMouseActorToDelete = mMouseActor;	// PT: instead, we mark for deletion next frame
 	}
-
-	PxActor *returnedActor = mSelectedActor;
-
-	mSelectedActor = nullptr;
-
-	return returnedActor;
 }
 
 //----------------------------------------------------------------------------//
@@ -232,7 +185,7 @@ void Picking::moveActor(int x, int y)
 	PxVec3 rayOrig, rayDir;
 	computeCameraRay(rayOrig, rayDir, x, y);
 
-	const PxVec3 pos = rayOrig + mDistanceToPicked * rayDir;
+	const PxVec3 pos = rayOrig + 10.0f * PxVec3(rayDir.x, -rayDir.y, rayDir.z);
 
 	mMouseActor->setKinematicTarget(PxTransform(pos, PxQuat(PxIdentity)));
 }

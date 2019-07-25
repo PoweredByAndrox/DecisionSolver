@@ -4,6 +4,7 @@ class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
+#include "StepTimer.h"
 void PhysCamera::TryStandup()
 {
 	// overlap with upper part
@@ -58,6 +59,7 @@ void PhysCamera::Jump::Start(PxF32 Force)
 {
 	if (!CanJump)
 		return;
+	
 	JumpTimes = 0.0f;
 	ForceJump = Force;
 	CanJump = false;
@@ -75,7 +77,8 @@ float PhysCamera::Jump::getHeight(float elapsedTime)
 {
 	if (CanJump)
 		return 0.0f;
+
 	JumpTimes += elapsedTime;
-	const float Result = -20.0f * JumpTimes*JumpTimes + ForceJump + (JumpTimes - 1.5f);
-	return Result * elapsedTime;
+	const float Result = -12.0f * JumpTimes*JumpTimes + ForceJump*JumpTimes;
+	return Result;
 }

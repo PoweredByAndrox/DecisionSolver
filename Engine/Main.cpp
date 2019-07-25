@@ -1,9 +1,9 @@
 #include "pch.h"
 
 #include "Engine.h"
+
 /*
 #include "MainMenu.h"
-#include "Picking.h"
 #include "GameObjects.h"
 #include "Levels.h"
 */
@@ -18,7 +18,7 @@
 #include "Audio.h"
 #include "Console.h"
 #include "Physics.h"
-//#include "Picking.h"
+#include "Picking.h"
 
 #include <iostream>
 
@@ -33,7 +33,7 @@ shared_ptr<Actor> mActor;
 		//	e.g ERROR_FILE_NOT_FOUND
 
 ToDo("Unnecessary: Correct My English, Please)")
-ToDo("Use PxPreprocessor.h for Checking We Have x86 and etc")
+ToDo("Use PxPreprocessor.h for Checking We Have x86 or x64")
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	try
@@ -95,14 +95,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		//	Application->setModel(make_shared<Models>(Model->PathA));
 
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
-		Application->getUI()->getDialog("Main")->ChangePosition(10.f, Application->getWorkAreaSize(Application->GetHWND()).y -
-			10.f, ImVec2(0.f, 1.f));
+		Application->getUI()->getDialog("Main")->ChangePosition(10.f,
+			Application->getWorkAreaSize(Application->GetHWND()).y - 10.f, ImVec2(0.f, 1.f));
 
 		//	// Console Class!!!
 		Application->setConsole(make_shared<Console>());
 		Application->getConsole()->Init();
 		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
-		Application->getUI()->getDialog("Console")->ChangeSize(Application->getWorkAreaSize(Application->GetHWND()).x, 
+		Application->getUI()->getDialog("Console")->ChangeSize(
+			Application->getWorkAreaSize(Application->GetHWND()).x, 
 			Application->getWorkAreaSize(Application->GetHWND()).y/3);
 		
 		Application->setPhysics(make_shared<Physics>());
@@ -162,7 +163,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 //			return 5;
 //		}
 		//Application->getSound()->changeSoundPos(Vector3::One * 5);
-		//Application->getSound()->changeSoundVol(0.03f); // This sound is too loud!!! BBBBEEEE CCCCAAARRREEEFFFUUULLL
 		
 		//Application->getCLua()->Init();
 
@@ -172,7 +172,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getDebugDraw()->Init();
 #endif
 
-		//Application->setPick(make_shared<Picking>());
+		Application->setPick(make_shared<Picking>());
 		// ***********
 
 		MSG msg = {0};
@@ -185,7 +185,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 				continue;
 			}
 			else
-				Application->Render();
+				Application->getTimer()->Tick([]()
+				{
+					Application->Render();
+				});
 		}
 
 		Application->getPhysics()->Destroy();
@@ -210,8 +213,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #endif
 		Console::LogError(string(string(");\nThe engine was crashed!\nReturn Error Text:")
 			+ Catch.what()).c_str());
-		MessageBoxA(Application->GetHWND(), string(string(");\nThe engine was crashed with this error message:\n") + string(Catch.what()) + 
-			string("\nAnd also error code: ") + to_string(GetLastError())).c_str(), Application->getNameWndA().c_str(), MB_OK | MB_ICONERROR);
+		MessageBoxA(Application->GetHWND(), string(string(");\nThe engine was crashed with this error message:\n")
+			+ string(Catch.what()) +  string("\nAnd also error code: ") + to_string(GetLastError())).c_str(),
+			Application->getNameWndA().c_str(), MB_OK | MB_ICONERROR);
 	}
 
 	return 0;

@@ -249,7 +249,6 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
-ToDo("Fix Bug!")
 void ParseText(string &Text, Type type)
 {
 	vector<string> strs;
@@ -261,11 +260,14 @@ void ParseText(string &Text, Type type)
 	{
 		if (type == Type::Information)
 			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "))
-				+ (strs.size() - 1 == i ? string("\n\n") : "");
+			+ (strs.size() - 1 == i ? string("\n\n") : "");
 		else if (type == Type::Error)
 			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "))
-				+ (strs.size() - 1 == i ? string("\n\n") : "");
+			+ (strs.size() - 1 == i ? string("\n\n") : "");
 		else
-			Text += strs.at(i);
+			if (strs.at(i) == "\n")
+				Text += "\n";
+			else
+				Text += strs.at(i);
 	}
 }

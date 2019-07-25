@@ -25,10 +25,6 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 	if (Text.empty())
 		return;
 
-#if defined(Deep_Info)
-	OutputDebugStringA("\nCommands::Work()\n");
-#endif
-
 	auto cmd = FindPieceCommand(Console, Text);
 	if (cmd.operator bool() && !cmd->CommandStr.empty())
 	{
@@ -46,10 +42,6 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 
 void Commands::Init()
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nCommands::Init()\n");
-#endif
-
 	for (size_t i = 0; i < ListCommands.size(); i++)
 	{
 		commands.push_back(make_shared<Command>(ListCommands.at(i), "", Command::TypeOfCommand::WithoutParam));
@@ -72,10 +64,6 @@ void Commands::Init()
 
 void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cmd)
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nCommands::ExecCommand()\n");
-#endif
-
 	if (cmd->type == Command::TypeOfCommand::WithParam || cmd->type == Command::TypeOfCommand::Lua)
 	{
 		if (cmd->CommandUnprocessed.empty())
@@ -169,10 +157,6 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 
 shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nCommands::FindPieceCommand()\n");
-#endif
-
 	for (size_t i = 0; i < commands.size(); i++)
 	{
 		string GetCommand = Text;
@@ -199,10 +183,6 @@ shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Co
 
 void Commands::Command::CheckRequiredParam()
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nCommands::CheckNeededParam()\n");
-#endif
-
 	if (type == Lua)
 	{
 		auto Path = CommandUnprocessed;

@@ -67,6 +67,7 @@ public:
 			SAFE_release(DynamicObjects.at(0));
 			DynamicObjects.erase(DynamicObjects.begin());
 		}
+		Cobes.clear();
 	}
 
 	//void SetPhysicsForCamera(Vector3 Pos, Vector3 Geom);
@@ -105,5 +106,9 @@ protected:
 	// ***************
 		// Initialized bool variable
 	bool IsInitPhysX = false;
+
+	vector<shared_ptr<GeometricPrimitive>> Cobes;
+
+	PxVec3 ConstrainToBoundary(PxVec3 Pos, PxVec3 Min, PxVec3 Max);
 };
 #endif // !__PHYSICS_H__

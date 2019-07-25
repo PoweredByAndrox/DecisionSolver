@@ -8,7 +8,7 @@
 #include "Console.h"
 #include "Physics.h"
 //#include "CLua.h"
-//#include "Picking.h"
+#include "Picking.h"
 #include "DebugDraw.h"
 
 ID3D11Device *Engine::Device = nullptr;
@@ -302,6 +302,9 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
+
+		Timer->SetFixedTimeStep(false);
+		Timer->SetTargetElapsedSeconds(1);
 	}
 	catch (const exception &Catch)
 	{
@@ -321,22 +324,33 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 	return S_OK;
 }
 
-ToDo("Need To Rework This!")
-void Engine::CountFPS()
-{
-	if (ui.operator bool() && ui->GetIO())
-		fps = ui->GetIO()->Framerate;
-}
-
-#include <chrono>
 void Engine::Render()
 {
 	if (!DeviceContext || !Device)
 		return;
 
-	CountFPS();
+	frameTime = float(Timer->GetElapsedSeconds());
 
-	auto start = chrono::system_clock::now();
+	//if (frameTime >= 1.0f)
+	//	frameTime = 1.0f / 60.0f;
+	//else if (frameTime <= 0.5f)
+	//	Timer->SetFixedTimeStep(true);
+	//else
+	//	Timer->SetFixedTimeStep(false);
+
+	//OutputDebugStringA((string("\nframeTime: ") + to_string(frameTime) + string("\n")).c_str());
+
+	fps = float(Timer->GetFramesPerSecond());
+
+	if (Pick.operator bool())
+	{
+		if (Pick->isPicked() && mouse->GetState().leftButton)
+			Pick->tick();
+		else if (!Pick->isPicked() && mouse->GetState().leftButton)
+			Pick->UpdatePick();
+		else
+			Pick->ReleasePick();
+	}
 
 	if (keyboard->IsConnected())
 	{
@@ -379,7 +393,7 @@ void Engine::Render()
 			else
 				DrawCamSphere = true;
 	}
-	if (gamepad->GetState(0).IsConnected())
+	else if (gamepad->GetState(0).IsConnected())
 	{
 		auto state = gamepad->GetState(0);
 		TrackerGamepad.Update(state);
@@ -392,11 +406,11 @@ void Engine::Render()
 
 	ClearRenderTarget();
 
-	mainActor->Render(getframeTime());
+	mainActor->Render(frameTime);
 
 #if defined (DEBUG)
 	if (DrawGrid)
-		dDraw->DrawGrid(Vector3(500.f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.f), Vector3::Zero, 300,
+		dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
 		(Vector4)Colors::Teal);
 
 	if (Sound.operator bool())
@@ -407,7 +421,7 @@ void Engine::Render()
 	}
 #endif
 
-	PhysX->Simulation(getframeTime());
+	PhysX->Simulation(frameTime);
 
 #if defined (DEBUG)
 	ui->Begin();
@@ -455,11 +469,6 @@ void Engine::Render()
 #endif
 
 	SwapChain->Present(0, 0);
-
-	auto end = chrono::system_clock::now();
-
-	chrono::duration<float> elapsed_seconds = end - start;
-	frameTime = elapsed_seconds.count();
 }
 
 void Engine::Destroy()
@@ -697,10 +706,7 @@ POINT Engine::getWorkAreaSize(HWND hwnd)
 
 float Engine::getframeTime()
 {
-	if (frameTime == 0.f)
-		return 0.3f;
-	else
-		return frameTime;
+	return frameTime;
 }
 
 void Engine::StackTrace(LPCSTR Error)

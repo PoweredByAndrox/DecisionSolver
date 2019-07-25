@@ -2,8 +2,6 @@
 
 #include "Physics.h"
 
-vector<shared_ptr<GeometricPrimitive>> Cobes;
-
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
@@ -11,11 +9,13 @@ extern shared_ptr<Engine> Application;
 #include "Console.h"
 #include "DebugDraw.h"
 
+shared_ptr<StepTimer> TM1 = make_shared<StepTimer>();
 HRESULT Physics::Init()
 {
 	try
 	{
-		gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback, gDefaultErrorCallback);
+		gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gDefaultAllocatorCallback,
+			gDefaultErrorCallback);
 		if (!gFoundation)
 		{
 
@@ -145,7 +145,8 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
-		PxTransform planePos = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+		PxTransform planePos = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi,
+			PxVec3(0.0f, 0.0f, 1.0f)));
 		gPlane = gPhysics->createRigidStatic(planePos);
 		if (!gPlane)
 		{
@@ -160,7 +161,8 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
-		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*gPlane, PxPlaneGeometry(), *gMaterial)->getActor());
+		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*gPlane, PxPlaneGeometry(),
+			*gMaterial)->getActor());
 
 		StaticObjects.push_back(gPlane);
 		
@@ -182,6 +184,8 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
+		TM1->SetFixedTimeStep(true);
+
 		IsInitPhysX = true;
 		return S_OK;
 	}
@@ -195,14 +199,29 @@ HRESULT Physics::Init()
 		throw exception(string(string("Physics::Init->catch() Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif
-		Console::LogError(string(string("Physics: Something is wrong with Init Function!\nReturn Error Text:")
+		Console::LogError(string(string("Physics: Something is wrong with Init Function!"\
+			"\nReturn Error Text:")
 			+ Catch.what()).c_str());
 		return E_FAIL;
 	}
 }
 
+PxVec3 Physics::ConstrainToBoundary(PxVec3 Pos, PxVec3 Min, PxVec3 Max)
+{
+	Vector3 vMin = ToVec3(Min),
+		vMax = ToVec3(Max),
+		ConvertPos = ToVec3(Pos);
+
+	ConvertPos.Clamp(vMin, vMax);
+	return ToPxVec3(ConvertPos);
+}
+
+ToDo("TEST LOGIC!!!")
+float Temp = 0.05f;
 void Physics::Simulation(float Timestep)
 {
+	TM1->Tick();
+
 	for (size_t i = 0; i < Cobes.size(); i++)
 	{
 		vector<PxQuat> aq;
@@ -214,10 +233,33 @@ void Physics::Simulation(float Timestep)
 			aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
 			pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
 
-			Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
+			Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(
+				Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
 				Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)),
-				Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix(), Colors::DarkSeaGreen,
-				nullptr, Application->IsWireFrame());
+				Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix(),
+				Colors::DarkSeaGreen, nullptr, Application->IsWireFrame());
+
+			if (GetAsyncKeyState(VK_OEM_PLUS))
+				Temp += 0.05f;
+			else if (GetAsyncKeyState(VK_OEM_MINUS))
+			{
+				Temp -= 0.05f;
+				if (Temp <= 0.0f)
+					Temp = 0.05f;
+			}
+
+			TM1->SetTargetElapsedSeconds(Temp);
+
+			float time = (float)TM1->GetElapsedSeconds();
+
+			OutputDebugStringA((boost::format("\nTargSec: %f, Time: %f") % Temp % time).str().c_str());
+			auto P = PhysObj.at(i)->getGlobalPose();
+		
+			OutputDebugStringA((boost::format(" Pos: X: %f, Y: %f, Z: %f\n")
+				% P.p.x% P.p.y% P.p.z).str().c_str());
+
+			PhysObj.at(i)->setGlobalPose(PxTransform(ConstrainToBoundary(PxVec3(P.p.x + time, P.p.y, P.p.z),
+				PxVec3(-100.f, -100.f, -100.f), PxVec3(100.f, 100.f, 100.f)), PxIdentity));
 		}
 	}
 
@@ -349,7 +391,8 @@ void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel
 	if (Geom == Vector3::Zero)
 		Geom = Vector3::One;
 
-	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
+	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)),
+		PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
 
 	gBox->setMass(Mass);
 

@@ -36,20 +36,9 @@
 
 #include "Physics.h"
 
-#define USE_D6_JOINT_FOR_MOUSE 1	// PT: please keep it 0 for interactive tests where one needs to rotate objects
+#define USE_D6_JOINT_FOR_MOUSE 1
 #define USE_SPHERICAL_JOINT_FOR_MOUSE 0
 //#define VISUALIZE_PICKING_RAYS
-
-struct PickingCommands
-{
-	enum Enum
-	{
-		PICK_START, //Bound to mouse 1 down
-		PICK_STOP,  //bound to mouse 1 up
-		SCREEN_MOTION_CURSOR, //See DefaultMovementStrategy
-		SCREEN_MOTION_CURSOR_DEPTH, //See DefaultMovementStrategy
-	};
-};
 
 class Engine;
 extern shared_ptr<Engine> Application;
@@ -64,11 +53,9 @@ public:
 	PX_FORCE_INLINE void UpdatePick() { pick(Application->getMouse()->GetState().x, Application->getMouse()->GetState().y); }
 	bool isPicked() const;
 	bool pick(int x, int y);
-	void computeCameraRay(PxVec3 &Pos, PxVec3 &dir, PxI32 x, PxI32 y)	const;
-	void project(const PxVec3 &v, int &xi, int &yi, float &depth) const;
+	void computeCameraRay(PxVec3 &Pos, PxVec3 &dir, PxI32 x, PxI32 y) const;
 
-		// returns picked actor
-	PxActor *ReleasePick();
+	void ReleasePick();
 	void tick();
 
 #ifdef VISUALIZE_PICKING_RAYS
@@ -83,7 +70,6 @@ public:
 private:
 	void grabActor(const PxVec3 &worldImpact, const PxVec3 &rayOrigin);
 	void moveActor(int x, int y);
-	PxVec3 unProject(int x, int y, float depth) const;
 
 	PxActor *mSelectedActor = nullptr;
 

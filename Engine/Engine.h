@@ -7,12 +7,12 @@
 #include <Inc/Mouse.h>
 #include <Inc/GamePad.h>
 
+#include "StepTimer.h"
+
 #define Never
 //#define NEEDED_DEBUG_INFO
 
 //#define ExceptionWhenEachError
-
-#define Deep_Info
 
 class DebugDraw;
 
@@ -26,7 +26,7 @@ class Shaders;
 class Audio;
 class Console;
 class Physics;
-//class Picking;
+class Picking;
 class Engine
 {
 private:
@@ -76,8 +76,7 @@ private:
 	shared_ptr<Console> console;
 	shared_ptr<UI> ui;
 	shared_ptr<CLua> lua;
-	//shared_ptr<Picking> Pick;
-	//shared_ptr<Terrain> terrain;
+	shared_ptr<Picking> Pick;
 	//shared_ptr<Frustum> frustum;
 	//shared_ptr<Levels> Level;
 	shared_ptr<Actor> mainActor;
@@ -87,6 +86,8 @@ private:
 	shared_ptr<Mouse> mouse = make_shared<Mouse>();
 	shared_ptr<Keyboard> keyboard = make_shared<Keyboard>();
 	shared_ptr<GamePad> gamepad = make_shared<GamePad>();
+
+	shared_ptr<StepTimer> Timer = make_shared<StepTimer>();
 
 	shared_ptr<DebugDraw> dDraw;
 
@@ -117,7 +118,7 @@ public:
 	shared_ptr<Models> getModel() { return model; }
 	shared_ptr<Audio> getSound() { return Sound; }
 	shared_ptr<UI> getUI() { return ui; }
-	//shared_ptr<Picking> getPick() { return Pick; }
+	shared_ptr<Picking> getPick() { return Pick; }
 	//shared_ptr<Frustum> getFrustum() { return frustum; }
 	//shared_ptr<Levels> getLevel() { return Level; }
 	shared_ptr<Actor> getActor() { return mainActor; }
@@ -126,6 +127,8 @@ public:
 	shared_ptr<Shaders> getShader() { return shader; }
 	shared_ptr<Console> getConsole() { return console; }
 	shared_ptr<CLua> getCLua() { return lua; }
+
+	shared_ptr<StepTimer> getTimer() { return Timer; }
 
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 
@@ -184,12 +187,12 @@ public:
 		if (!this->lua.operator bool())
 			this->lua = lua;
 	}
-	/*
 	void setPick(shared_ptr<Picking> Pick)
 	{
 		if (!this->Pick.operator bool())
 			this->Pick = Pick;
 	}
+	/*
 	void setFrustum(shared_ptr<Frustum> frustum)
 	{
 		if (!this->frustum.operator bool())

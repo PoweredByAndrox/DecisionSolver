@@ -53,7 +53,7 @@ public:
 
 	void ChangePosition(Vector3 Pos)
 	{
-		Application->getCamera()->setPosCam(Pos);
+		//Application->getCamera()->setPosCam(Pos);
 	}
 
 	HRESULT Init();

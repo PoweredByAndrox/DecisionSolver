@@ -31,9 +31,9 @@ HRESULT UI::Init()
 		Buf->SetShadersFile(FileShaders, Functions, Version);
 
 		if (!::QueryPerformanceFrequency((LARGE_INTEGER *)&g_TicksPerSecond))
-			return false;
+			return ERROR_INVALID_FUNCTION;
 		if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
-			return false;
+			return ERROR_INVALID_FUNCTION;
 
 		IO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
 		IO.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;

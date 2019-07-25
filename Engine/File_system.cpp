@@ -151,10 +151,6 @@ _TypeOfFile File_system::GetTypeFile(string file)
 
 void File_system::CreateLog()
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nFileSystem::CreateLog()\n");
-#endif
-
 	if (GetCurrentPath().empty())
 	{
 		MessageBoxA(Engine::GetHWND(), "Engine cannot get path to log file!", "Error!", MB_OK | MB_ICONERROR);
@@ -180,17 +176,6 @@ void File_system::CreateLog()
 
 void File_system::AddTextToLog(string Text, Type type)
 {
-#if defined(Deep_Info)
-	string Type = "";
-	if (type == Type::Error)
-		Type = "Error";
-	else if (type == Type::Information)
-		Type = "Info";
-	else if (type == Type::Normal)
-		Type = "Normal";
-	OutputDebugStringA(string(("\nFileSystem::AddTextToLog(") + Text + string(", ") + Type + string(")\n")).c_str());
-#endif
-
 	OpenLog();
 
 	ParseText(Text, type);
@@ -201,10 +186,6 @@ void File_system::AddTextToLog(string Text, Type type)
 
 void File_system::OpenLog()
 {
-#if defined(Deep_Info)
-	OutputDebugStringA("\nFileSystem::OpenLog()\n");
-#endif
-
 	if (!exists(LogFName))
 		CreateLog();
 

@@ -115,9 +115,6 @@ public:
 	Vector3 GetWorldAhead() const;
 	Vector3 GetEyePt() const;
 
-	void setPosCam(Vector3 Pos);
-	void setPosCam(float Y);
-
 	void setCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
 	{
 		Left = LeftM;
@@ -129,13 +126,11 @@ public:
 protected:
 	Matrix m_mCameraWorld = {};
 
-	bool Left = false, Right = false;
-	bool WithoutButton = false;
+	bool Left = false, Right = false, WithoutButton = false;
 
 	shared_ptr<Camera_Control> C_CT;
 };
 
-ToDo("Need To Reformatting Class Below!")
 class Frustum
 {
 public:
