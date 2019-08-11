@@ -14,42 +14,43 @@ constexpr auto fourccWAVE = 'EVAW';
 constexpr auto fourccXWMA = 'AMWX';
 constexpr auto fourccDPDS = 'sdpd';
 
-struct AudioFile
-{
-private:
-	WAVEFORMATEXTENSIBLE wfx;
-	XAUDIO2_BUFFER buffer;
-	IXAudio2SourceVoice *source = nullptr;
-	IXAudio2SubmixVoice *SubMix = nullptr;
-
-	X3DAUDIO_EMITTER Emitter;
-	X3DAUDIO_CONE EmitterCone;
-	X3DAUDIO_DISTANCE_CURVE Emitter_LFE_Curve;
-
-	X3DAUDIO_DSP_SETTINGS DSPSettings;
-	FLOAT32 matrixCoefficients[8];
-
-	//	WAV Buffer Data!
-	BYTE *pDataBuffer = nullptr;
-
-	HRESULT findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD *ChunkDataPosition);
-	HRESULT readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DWORD bufferOffset);
-	HRESULT loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer);
-public:
-	// For std::vector!
-	auto getBUFFER() { return &buffer; }
-	// For std::vector!
-	auto getWFX() { return &wfx; }
-	// For std::vector!
-	auto getSOURCE() { return source; }
-
-	HRESULT Load(string FName, int Channels);
-	void Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener, DWORD dwCalcFlags, int Channels);
-	void Destroy();
-};
-
 class Audio
 {
+private:
+	struct AudioFile
+	{
+	private:
+		WAVEFORMATEXTENSIBLE wfx;
+		XAUDIO2_BUFFER buffer;
+		IXAudio2SourceVoice *source = nullptr;
+		IXAudio2SubmixVoice *SubMix = nullptr;
+
+		X3DAUDIO_EMITTER Emitter;
+		X3DAUDIO_CONE EmitterCone;
+		X3DAUDIO_DISTANCE_CURVE Emitter_LFE_Curve;
+
+		X3DAUDIO_DSP_SETTINGS DSPSettings;
+		FLOAT32 matrixCoefficients[8];
+
+		//	WAV Buffer Data!
+		BYTE *pDataBuffer = nullptr;
+
+		HRESULT findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD *ChunkDataPosition);
+		HRESULT readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DWORD bufferOffset);
+		HRESULT loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer);
+	public:
+		// For std::vector!
+		auto getBUFFER() { return &buffer; }
+		// For std::vector!
+		auto getWFX() { return &wfx; }
+		// For std::vector!
+		auto getSOURCE() { return source; }
+
+		HRESULT Load(string FName, int Channels);
+		void Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener, DWORD dwCalcFlags, int Channels);
+		void Destroy();
+	};
+
 public:
 	HRESULT Init();
 	void Update();
@@ -75,7 +76,7 @@ private:
 	// ************
 	bool InitSoundSystem = false;
 
-	vector<shared_ptr<AudioFile>> AFiles;
+	vector<shared_ptr<Audio::AudioFile>> AFiles;
 
 	X3DAUDIO_HANDLE X3DInstance;
 	X3DAUDIO_LISTENER Listener = { XMFLOAT3(0,0,0) };

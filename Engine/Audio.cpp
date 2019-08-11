@@ -11,7 +11,7 @@ extern shared_ptr<Engine> Application;
 IXAudio2MasteringVoice *master = nullptr;
 IXAudio2 *audio = nullptr;
 
-HRESULT AudioFile::findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD *ChunkDataPosition)
+HRESULT Audio::AudioFile::findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD *ChunkDataPosition)
 {
 	if (SetFilePointer(file, 0, nullptr, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
 		return HRESULT_FROM_WIN32(GetLastError());
@@ -64,7 +64,7 @@ HRESULT AudioFile::findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD 
 
 	return S_OK;
 }
-HRESULT AudioFile::readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DWORD bufferOffset)
+HRESULT Audio::AudioFile::readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DWORD bufferOffset)
 {
 	HRESULT hr = S_OK;
 	if (INVALID_SET_FILE_POINTER == SetFilePointer(file, bufferOffset, nullptr, FILE_BEGIN))
@@ -76,7 +76,7 @@ HRESULT AudioFile::readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DW
 
 	return hr;
 }
-HRESULT AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
+HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
 {
 	HANDLE file = CreateFileA(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
 		OPEN_EXISTING, 0, nullptr);
@@ -110,7 +110,7 @@ HRESULT AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDI
 	return S_OK;
 }
 
-HRESULT AudioFile::Load(string FName, int Channels)
+HRESULT Audio::AudioFile::Load(string FName, int Channels)
 {
 	EngineTrace(loadWAVFile(FName, wfx, buffer));
 	EngineTrace(audio->CreateSourceVoice(&source, (WAVEFORMATEX *)&wfx));
@@ -146,7 +146,7 @@ HRESULT AudioFile::Load(string FName, int Channels)
 	return S_OK;
 }
 
-void AudioFile::Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener,
+void Audio::AudioFile::Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener,
 	DWORD dwCalcFlags, int Channels)
 {
 	if (!X3DInstance)
@@ -229,7 +229,7 @@ void Audio::doPlay()
 	}
 }
 
-void AudioFile::Destroy()
+void Audio::AudioFile::Destroy()
 {
 	if (SubMix)
 	{

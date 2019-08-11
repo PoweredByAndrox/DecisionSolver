@@ -11,14 +11,13 @@ extern shared_ptr<Engine> Application;
 
 ID3D11InputLayout *pLayout;
 ID3D11SamplerState *TexSamplerState;
-ID3D11RasterizerState *g_pRasWireFrame, *g_pRasStateSolid;
 ID3DBlob *VS, *PS;
 ID3D11VertexShader *pVS;
 ID3D11PixelShader *pPS;
 ID3D11Buffer *Matrices = nullptr;
-shared_ptr<Render_Buffer> RB = make_shared<Render_Buffer>();
 
-HRESULT	CompileShaderFromFile(LPCWSTR pFileName, const D3D_SHADER_MACRO* pDefines, LPCSTR pEntryPoint, LPCSTR pShaderModel, ID3DBlob** ppBytecodeBlob)
+HRESULT	CompileShaderFromFile(LPCWSTR pFileName, const D3D_SHADER_MACRO* pDefines, LPCSTR pEntryPoint,
+	LPCSTR pShaderModel, ID3DBlob** ppBytecodeBlob)
 {
 	UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
 
@@ -28,7 +27,8 @@ HRESULT	CompileShaderFromFile(LPCWSTR pFileName, const D3D_SHADER_MACRO* pDefine
 
 	ID3DBlob* pErrorBlob = NULL;
 
-	HRESULT result = D3DCompileFromFile(pFileName, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, pEntryPoint, pShaderModel, compileFlags, 0, ppBytecodeBlob, &pErrorBlob);
+	HRESULT result = D3DCompileFromFile(pFileName, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, pEntryPoint, pShaderModel,
+		compileFlags, 0, ppBytecodeBlob, &pErrorBlob);
 	if (FAILED(result))
 	{
 		if (pErrorBlob != NULL)
@@ -62,8 +62,10 @@ bool Models::LoadFromFile(string Filename)
 
 	processNode(pScene->mRootNode, pScene);
 
-	CompileShaderFromFile(Application->getFS()->GetFile("VertexShader.hlsl")->PathW.c_str(), 0, "Vertex_model_VS", "vs_4_0", &VS);
-	CompileShaderFromFile(Application->getFS()->GetFile("PixelShader.hlsl")->PathW.c_str(), 0, "Pixel_model_PS", "ps_4_0", &PS);
+	CompileShaderFromFile(Application->getFS()->GetFile("VertexShader.hlsl")->PathW.c_str(),
+		0, "Vertex_model_VS", "vs_4_0", &VS);
+	CompileShaderFromFile(Application->getFS()->GetFile("PixelShader.hlsl")->PathW.c_str(),
+		0, "Pixel_model_PS", "ps_4_0", &PS);
 
 	Application->getDevice()->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &pVS);
 	Application->getDevice()->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &pPS);
@@ -75,103 +77,22 @@ bool Models::LoadFromFile(string Filename)
 	};
 
 	Application->getDevice()->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), &pLayout);
-	Matrices = RB->CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	Matrices = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0);
 
-	return true;
-}
-bool Models::LoadFromFile(string Filename, UINT Flags, bool ConvertToLH)
-{
-	importer = new Assimp::Importer;
-
-	if (ConvertToLH)
-		pScene = importer->ReadFile(Filename.c_str(), Flags 
-		| aiProcess_ConvertToLeftHanded | aiProcess_OptimizeMeshes 
-		| aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindInvalidData
-		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph
-		| aiProcess_FindDegenerates | aiProcess_ImproveCacheLocality);
-	else
-		pScene = importer->ReadFile(Filename.c_str(), Flags);
-
-	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
-	{
-#if defined (DEBUG)
-		DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Models::pScene == nullptr!!!");
-#endif
-		Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
-		return false;
-	}
-
-	processNode(pScene->mRootNode, pScene);
-
-	SAFE_DELETE(importer);
 	return true;
 }
 
 bool Models::LoadFromAllModels()
 {
-	auto Files = Application->getFS()->getFilesInFolder("", _TypeOfFile::MODELS);
+	auto Files = Application->getFS()->GetFileByType(_TypeOfFile::MODELS);
 	for (size_t i = 0; i < Files.size(); i++)
 	{
 		importer = new Assimp::Importer;
 
-		pScene = importer->ReadFile(Files.at(i).c_str(), 
+		pScene = importer->ReadFile(Files.at(i)->PathA.c_str(), 
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded 
 		| aiProcess_OptimizeMeshes | aiProcess_SortByPType | aiProcess_FindInvalidData
 		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
-		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
-		{
-#if defined (DEBUG)
-			DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Models::pScene == nullptr!!!");
-#endif
-			Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
-			return false;
-		}
-
-		processNode(pScene->mRootNode, pScene);
-
-		SAFE_DELETE(importer);
-	}
-
-	return true;
-}
-bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
-{
-	int i1 = 0;
-
-		// Need To Check It!!!
-	auto Files = Application->getFS()->getFilesInFolder(".obj");
-	for (size_t i = 0; i < Files.size(); i++)
-	{
-		importer = new Assimp::Importer;
-
-		if (!ConvertToLH.empty())
-		{
-			for (size_t i1 = 0; i1 < ConvertToLH.size(); i1++)
-			{
-				if (ConvertToLH.at(i1))
-				{
-					pScene = importer->ReadFile(Files.at(i).c_str(), Flags.at(i1)
-						| aiProcess_ConvertToLeftHanded | aiProcess_OptimizeMeshes
-						| aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindInvalidData
-						| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
-					break;
-				}
-				else
-				{
-					pScene = importer->ReadFile(Files.at(i).c_str(), Flags.at(i1));
-					break;
-				}
-			}
-		}
-		else
-			pScene = importer->ReadFile(Files.at(i).c_str(), 0);
-
 		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 		{
 #if defined (DEBUG)
@@ -195,7 +116,8 @@ bool Models::LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH)
 void Models::Render(Matrix View, Matrix Proj)
 {
 	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
+	
+	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
 	Application->getDeviceContext()->VSSetShader(pVS, 0, 0);
 	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
 
@@ -229,12 +151,26 @@ Models::Models(string Filename)
 #endif
 		Console::LogError(string("Model: ") + Filename + string(" Can't Be Load!"));
 	}
+
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.MaxAnisotropy = 1;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	Application->getDevice()->CreateSamplerState(&sampDesc, &TexSamplerState);
 }
 
 vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName,
 	const aiScene *Scene)
 {
 	vector<Texture> textures;
+	string PathTexture = "";
+
 	for (UINT i = 0; i < mat->GetTextureCount(type); i++)
 	{
 		aiString str;
@@ -253,43 +189,50 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 		{
 			Texture texture;
 			if (Textype == "embedded compressed texture")
-				texture.texture = getTextureFromModel(Scene, getTextureIndex(&str));
+				texture.TextureSHRes = getTextureFromModel(Scene, getTextureIndex(&str));
 			else
 			{
 				auto textr = Application->getFS()->GetFile(string(str.C_Str()));
-				if (FindSubStr(textr->ExtA, string(".dds")))
+				if (textr.operator bool())
 				{
-					if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(), nullptr, &texture.texture)))
+					PathTexture = textr->PathA;
+
+					if (FindSubStr(textr->ExtA, string(".dds")))
 					{
+						if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
+							&texture.TextureRes, &texture.TextureSHRes)))
+						{
 #if defined (DEBUG)
-						DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+							DebugTrace("Models::CreateDDSTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
-						throw exception("Create failed!!!");
+							throw exception("Create failed!!!");
 #endif
-						Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
+							Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
+						}
 					}
-				}
-				else
-				{
-					if (FAILED(CreateWICTextureFromFile(Application->getDevice(), textr->PathW.c_str(), nullptr, &texture.texture)))
+					else
 					{
+						if (FAILED(CreateWICTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
+							&texture.TextureRes, &texture.TextureSHRes)))
+						{
 #if defined (DEBUG)
-						DebugTrace("Models::CreateWICTextureFromFile() create failed");
+							DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
-						throw exception("Create failed!!!");
+							throw exception("Create failed!!!");
 #endif
-						Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
+							Console::LogInfo(string("Something is wrong with Create the texture: ") + textr->FileA);
+						}
 					}
 				}
 			}
 			texture.type = typeName;
-			texture.path = Application->getFS()->GetFile(string(str.C_Str()))->PathA.c_str();
+			texture.path = PathTexture.c_str();
 
 			textures.push_back(texture);
 
-			this->Textures_loaded.push_back(texture);
+			Textures_loaded.push_back(texture);
 		}
 	}
 	return textures;
@@ -302,16 +245,15 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 		vector<Things> vertices;
 		vector<UINT> indices;
 		vector<Texture> textures;
-
+		Vector3 Max;
+		
 		mesh = Scene->mMeshes[node->mMeshes[i]];
 		if (mesh->mMaterialIndex >= 0)
 		{
 			aiMaterial *mat = Scene->mMaterials[mesh->mMaterialIndex];
-
-			CountMaterial = Scene->mNumMaterials;
-
+			
 			if (Textype.empty())
-				Textype = determineTextureType(Scene, mat);
+				Textype = determineTextureType(Scene, string(mat->GetName().C_Str()), mat);
 		}
 
 		for (UINT i = 0; i < mesh->mNumVertices; i++)
@@ -319,7 +261,8 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 			Things vertex;
 
 			vertex.Pos = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-
+			Max = Vector3(max(float(mesh->mVertices[i].x), Max.x), max(float(mesh->mVertices[i].y), Max.y),
+				max(float(mesh->mVertices[i].z), Max.z));
 			if (mesh->mTextureCoords[0])
 				vertex.Tex = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 
@@ -339,33 +282,49 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 		{
 			aiMaterial *material = Scene->mMaterials[mesh->mMaterialIndex];
 
-			vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", Scene);
+			vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE,
+				"texture_diffuse", Scene);
 			textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 			///It doesn't work!
-	/*
-			vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", Scene);
+			/*
+			vector<Texture> Opacity = loadMaterialTextures(material, aiTextureType_OPACITY,
+			"texture_opacity", Scene);
+			textures.insert(textures.end(), Opacity.begin(), Opacity.end());
+
+			vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR,
+			"texture_specular", Scene);
 			textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 
-			vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal", Scene);
+			vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT,
+			"texture_normal", Scene);
 			textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
 
-			vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height", Scene);
+			vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT,
+			"texture_height", Scene);
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 	*/
 		}
 
-		meshes.push_back(make_shared<Mesh>(vertices, indices, textures));
+		meshes.push_back(make_shared<Mesh>(vertices, indices, textures, Vector3::Zero, Max));
 	}
 
 	for (UINT i = 0; i < node->mNumChildren; i++)
 		processNode(node->mChildren[i], Scene);
 }
 
-string Models::determineTextureType(const aiScene *Scene, aiMaterial *mat)
+aiTextureType Models::getTextureType(string TypeName)
+{
+	if (contains(TypeName, "diffuse"))
+		return aiTextureType::aiTextureType_DIFFUSE;
+	else if (contains(TypeName, "opacity"))
+		return aiTextureType::aiTextureType_OPACITY;
+}
+
+string Models::determineTextureType(const aiScene *Scene, string TypeName, aiMaterial *mat)
 {
 	aiString textypeStr;
-	mat->GetTexture(aiTextureType_DIFFUSE, 0, &textypeStr);
+	mat->GetTexture(Models::getTextureType(TypeName), 0, &textypeStr);
 	string textypeteststr = textypeStr.C_Str();
 	if (textypeteststr == "*0" || textypeteststr == "*1" || textypeteststr == "*2"
 		|| textypeteststr == "*3" || textypeteststr == "*4" || textypeteststr == "*5")
@@ -395,7 +354,7 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
 	{
 #if defined (DEBUG)
-		DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+		DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
 		throw exception("Create failed!!!");
@@ -410,24 +369,30 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 
 void Models::setRotation(Vector3 rotaxis)
 {
-	rotate = Matrix::CreateFromQuaternion(Quaternion(rotaxis.x, rotaxis.y, rotaxis.z, 1.f));
+	if (rotaxis != Vector3::Zero)
+		rotate = XMMatrixRotationQuaternion(rotaxis);
 }
 
 void Models::setScale(Vector3 Scale)
 {
-	scale = Matrix::CreateScale(Scale);
+	if (Scale != Vector3::Zero)
+		scale = XMMatrixScalingFromVector(Scale);
 }
 
 void Models::setPosition(Vector3 Pos)
 {
-	position = Matrix::CreateTranslation(Pos);
+	if (Pos != Vector3::Zero)
+		position = XMMatrixTranslationFromVector(Pos);
 }
 
-void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
+void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures,
+	Vector3 Min, Vector3 Max)
 {
 	this->vertices = vertices;
 	this->indices = indices;
 	this->textures = textures;
+	MinAABB = Min;
+	MaxAABB = Max;
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -457,29 +422,27 @@ void Models::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 {
 	UINT stride = sizeof(Things);
 	UINT offset = 0;
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-
-	if (Matrices)
-		ThrowIfFailed(Application->getDeviceContext()->Map(Matrices, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
-
-	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
 
 	Matrix WVP = World * View * Proj;
-	dataPtr->mMVP = XMMatrixTranspose(WVP);
+	ConstantBuffer cb;
+	cb.mMVP = XMMatrixTranspose(WVP);
+	Application->getDeviceContext()->UpdateSubresource(Matrices, 0, nullptr, &cb, 0, 0);
 
-	if (Matrices)
-	{
-		Application->getDeviceContext()->Unmap(Matrices, 0);
-		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &Matrices);
-	}
+	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &Matrices);
 
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
 	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-	if (!textures.empty() && textures[0].texture)
-		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].texture);
+	if (!textures.empty() && textures[0].TextureSHRes)
+		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].TextureSHRes);
 
 	Application->getDeviceContext()->IASetInputLayout(pLayout);
+
+	bool WF = Application->IsWireFrame();
+	if (WF)
+		Application->getDeviceContext()->RSSetState(Application->GetWireFrame());
+	else
+		Application->getDeviceContext()->RSSetState(Application->GetNormalFrame());
 
 	Application->getDeviceContext()->DrawIndexed(indices.size(), 0, 0);
 }

@@ -30,8 +30,6 @@ File_system::File_system()
 
 void File_system::ScanFiles()
 {
-	USES_CONVERSION;
-
 	if (Files.empty())
 		Files.push_back(make_shared<AllFile>());
 
@@ -385,6 +383,99 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 
 		to_lower(extA);
 
+		// Getting File Without Ext!
+		if (extA.empty())
+		{
+			auto AllFiles = getFilesInFolder(ResPath, true, true);
+			for (size_t i = 0; i < AllFiles.size(); i++)
+			{
+				// Models
+				if (contains(AllFiles.at(i), file + string(".obj")))
+				{
+					auto F = GetFileByType(file + string(".obj"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Textures
+				else if (contains(AllFiles.at(i), file + string(".dds")))
+				{
+					auto F = GetFileByType(file + string(".dds"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".png")))
+				{
+					auto F = GetFileByType(file + string(".png"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".bmp")))
+				{
+					auto F = GetFileByType(file + string(".bmp"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Shaders
+				else if (contains(AllFiles.at(i), file + string(".hlsl")))
+				{
+					auto F = GetFileByType(file + string(".hlsl"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".fx")))
+				{
+					auto F = GetFileByType(file + string(".fx"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".vs")))
+				{
+					auto F = GetFileByType(file + string(".vs"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".ps")))
+				{
+					auto F = GetFileByType(file + string(".ps"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Sounds
+				else if (contains(AllFiles.at(i), file + string(".wav")))
+				{
+					auto F = GetFileByType(file + string(".wav"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Maps, UI and etc
+				else if (contains(AllFiles.at(i), file + string(".xml")))
+				{
+					auto F = GetFileByType(file + string(".xml"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Scripts
+				else if (contains(AllFiles.at(i), file + string(".lua")))
+				{
+					auto F = GetFileByType(file + string(".lua"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+
+				// Fonts
+				else if (contains(AllFiles.at(i), file + string(".ttf")))
+				{
+					auto F = GetFileByType(file + string(".ttf"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+			}
+		}
 		if (!ResPath.empty())
 		{
 			if (extA == ".obj")
@@ -404,7 +495,9 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 					}
 				}
 			}
-			else if (extA == ".dds" || extA == ".png" || extA == ".bmp")
+			else if (extA == ".dds"
+				|| extA == ".png"
+				|| extA == ".bmp")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("textures/")), true, true);
 				for (size_t i = 0; i < cache.size(); i++)
@@ -421,7 +514,10 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 					}
 				}
 			}
-			else if (extA == ".hlsl" || extA == ".fx" || extA == ".vs" || extA == ".ps")
+			else if (extA == ".hlsl"
+				|| extA == ".fx"
+				|| extA == ".vs"
+				|| extA == ".ps")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("shaders/")), true, true);
 				for (size_t i = 0; i < cache.size(); i++)

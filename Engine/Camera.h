@@ -17,6 +17,8 @@ public:
 	virtual void SetViewParams(Vector3 vEyePt, Vector3 vLookatPt);
 	virtual void SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane);
 
+	void SetFreeMoveCam(bool FreeMove) { FreeCamMove = FreeMove; m_bEnableYAxisMovement = true; }
+
 	// Functions to change behavior
 	void SetInvertPitch(bool bInvertPitch) { m_bInvertPitch = bInvertPitch; }
 	void SetDrag(bool bMovementDrag, float fTotalDragTimeToZero = 0.25f)
@@ -50,8 +52,6 @@ public:
 	float GetFarClip() const;
 	float getMoveScale() const;
 protected:
-	Vector3 ConstrainToBoundary(Vector3 v);
-
 	void UpdateMouseDelta();
 	void UpdateVelocity(float fElapsedTime);
 	void GetInput(bool bGetKeyboardInput, bool bGetGamepadInput);
@@ -97,7 +97,8 @@ protected:
 		m_bEnablePositionMovement = true,         // If true, then the user can translate the camera/model 
 		m_bEnableYAxisMovement = true,            // If true, then camera can move in the y-axis
 		m_bClipToBoundary = false,                 // If true, then the camera will be clipped to the boundary
-		m_bResetCursorAfterMove = false;           // If true, the class will reset the cursor position so that the cursor always has space to move 
+		m_bResetCursorAfterMove = false,           // If true, the class will reset the cursor position so that the cursor always has space to move 
+		FreeCamMove = false;						// Free Camera Move (aka Fly Free)
 
 	Vector3 m_vMinBoundary = { -1.f, -1.f, -1.f },       // Min point in clip boundary
 		m_vMaxBoundary = { 1.f, 1.f, 1.f };       // Max point in clip boundary
@@ -115,7 +116,7 @@ public:
 	Vector3 GetWorldAhead() const;
 	Vector3 GetEyePt() const;
 
-	void setCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
+	void SetCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
 	{
 		Left = LeftM;
 		Right = RightM;

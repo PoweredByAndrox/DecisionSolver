@@ -3,10 +3,10 @@
 #include "CCommands.h"
 //#include "CLua.h"
 #include "UI.h"
-#include "Physics.h"
 #include "Camera.h"
 
 ToDo("CLua: LUA Is Disabled Now In Engine!");
+ToDo("Add a 'Spawn' command after Reffactoring a GameObject Class")
 static const vector<string> ListCommands =
 {
 	string("help"), string("testmsg"),
@@ -15,7 +15,7 @@ static const vector<string> ListCommands =
 };
 static const vector<string> ListCommandsWithParams =
 {
-	string("changesize #float W, #float H"), string("addphysbox #float MassObj, #float SizeModel"),
+	string("changesize #float W, #float H"), /*string("addphysbox #float MassObj, #float SizeModel"),*/
 	//string("exec_lua #PathToFile.function(param)")
 };
 
@@ -128,12 +128,12 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	{
 		if (contains(CMD, "changesize"))
 			Console->ChangeSize(cmd->One, cmd->Two);
-		else if (contains(CMD, "addphysbox"))
-		{
-			float Size = cmd->Two, Mass = cmd->One;
-			Application->getPhysics()->AddNewActor(Application->getCamera()->GetEyePt(), Vector3(Size, Size, Size),
-				Mass, Size);
-		}
+		//else if (contains(CMD, "addphysbox"))
+		//{
+		//	float Size = cmd->Two, Mass = cmd->One;
+		//	Application->getPhysics()->AddNewActor(Application->getCamera()->GetEyePt(), Vector3(Size, Size, Size),
+		//		Mass, Size);
+		//}
 	}
 
 	Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(Type::Normal,

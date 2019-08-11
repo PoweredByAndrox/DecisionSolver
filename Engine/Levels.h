@@ -3,65 +3,35 @@
 #define __LEVELS__H_
 #include "pch.h"
 
-#include "File_system.h"
-#include "Models.h"
 #include "GameObjects.h"
 
-namespace EngineNS
+class Levels: public GameObjects
 {
-	class Levels: public GameObjects
-	{
-	public:
-		HRESULT Init();
+public:
+	HRESULT Init();
 
-		HRESULT LoadXML(LPCSTR File);
-		void ProcessXML();
+	HRESULT LoadXML(LPCSTR File);
+	void ProcessXML();
 
-		Levels() {}
-		~Levels() {}
+	void Update(Matrix View, Matrix Proj, float Time);
 
-		void Destroy()
-		{
-			while (!g_Obj.empty())
-			{
-				g_Obj.at(0).model->Release();
-				g_Obj.at(0).Destroy();
-				g_Obj.erase(g_Obj.begin());
-			}
-			while (!NPC.empty())
-			{
-				NPC.at(0).model->Release();
-				NPC.at(0).Destroy();
-				NPC.erase(NPC.begin());
-			}
-		}
+	void Destroy();
 
-		auto getObjects() { return g_Obj; }
-		auto getNPC() { return NPC; }
+	bool IsInit() { return InitClass; }
+protected:
+	// **********
+	bool InitClass = false;
 
-		bool IsInit() { return InitClass; }
-	protected:
-		// **********
-		bool InitClass = false;
+	// **********
+	shared_ptr<tinyxml2::XMLDocument> doc;
 
-		// **********
-		shared_ptr<tinyxml2::XMLDocument> doc;
+	// **********
+	vector<XMLNode *> Nods;
 
-		// **********
-		vector<GameObjects::Object> g_Obj;
-		vector<GameObjects::Object> NPC;
+	void UpdateLogic(float Time, shared_ptr<Object> &Obj);
 
-		// **********
-		vector<XMLElement *> Attrib;
-		vector<XMLNode *> Nods;
-
-		void StackTrace(const char *Error)
-		{
-			DebugTrace("\n***********ERROR IN XML FILE***********\n");
-			DebugTrace("===Check info below:\n");
-			DebugTrace(string(string("...\n") + string(Error) + string("\n...")).c_str());
-			DebugTrace("\n***********ERROR IN XML FILE***********\n");
-		}
-	};
+	vector<shared_ptr<GameObjects::Object>> XMLPreparing(vector<XMLElement *> Attrib);
+	
+	static void Spawn(Vector3 pos, GameObjects::TYPE type);
 };
 #endif // !__LEVELS__H_

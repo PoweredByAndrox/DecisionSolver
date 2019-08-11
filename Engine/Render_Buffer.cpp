@@ -281,12 +281,9 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 {
 	D3D11_RASTERIZER_DESC RasterDesc;
 	ZeroMemory(&RasterDesc, sizeof(RasterDesc));
-	RasterDesc.CullMode = D3D11_CULL_NONE;
 	RasterDesc.FillMode = D3D11_FILL_WIREFRAME;
+	RasterDesc.CullMode = D3D11_CULL_NONE;
 	RasterDesc.DepthClipEnable = true;
-	RasterDesc.ScissorEnable = true;
-	RasterDesc.AntialiasedLineEnable = true;
-	RasterDesc.MultisampleEnable = true;
 
 	vector<ID3D11RasterizerState *> WF_buff;
 	ID3D11RasterizerState *RsWF = nullptr, *RsNoWF = nullptr;
@@ -301,9 +298,6 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 	RasterDesc.FillMode = D3D11_FILL_SOLID;
 	RasterDesc.CullMode = D3D11_CULL_NONE;
 	RasterDesc.DepthClipEnable = true;
-	RasterDesc.ScissorEnable = true;
-	RasterDesc.AntialiasedLineEnable = true;
-	RasterDesc.MultisampleEnable = true;
 
 	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &RsNoWF)))
 	{
@@ -317,9 +311,7 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 
 ID3D11Buffer *Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags)
 {
-	if (m_pConstBuffer)
-		SAFE_RELEASE(m_pConstBuffer);
-
+	D3D11_BUFFER_DESC bd;
 	ZeroMemory(&bd, sizeof(bd));
 	bd.Usage = Usage;
 	bd.ByteWidth = sizeof(ConstantBuffer);
@@ -400,7 +392,7 @@ void Render_Buffer::Release()
 	SAFE_RELEASE(g_pBlendState);
 	while (!Buffer_blob.empty())
 	{
-		SAFE_RELEASE(Buffer_blob.at(0));
+		SAFE_RELEASE(Buffer_blob.front());
 		Buffer_blob.erase(Buffer_blob.begin());
 	}
 	Buffers.clear();
@@ -553,6 +545,8 @@ void Render_Buffer::RenderUI(ImDrawData *draw_data, bool WF)
 	}
 
 	D3D11_MAPPED_SUBRESOURCE vtx_resource, idx_resource;
+
+	ToDo("Crash in Release here!")
 	if (Application->getDeviceContext()->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
 		return;
 	if (Application->getDeviceContext()->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)

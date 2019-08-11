@@ -86,44 +86,45 @@ float Camera::getMoveScale() const
 	return m_fMoveScaler;
 }
 
-Vector3 Camera::ConstrainToBoundary(Vector3 v)
-{
-	Vector3 vMin = XMLoadFloat3(&m_vMinBoundary);
-	Vector3 vMax = XMLoadFloat3(&m_vMaxBoundary);
-
-	return XMVectorClamp(v, vMin, vMax);
-}
-
 #include "Console.h"
 void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 {
 	if (Application->getKeyboard()->IsConnected())
 	{
 		m_vKeyboardDirection = Vector3::Zero;
-		float speed = 2.0f * Application->getframeTime();
+		float speed = 2.2f * Application->getframeTime();
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::W))
+		if (!FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::W))
 			m_vKeyboardDirection += speed * -mCameraRot.Forward();
+		else if (FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::W))
+			m_vKeyboardDirection.z += speed;
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::S))
+		if (!FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::S))
 			m_vKeyboardDirection -= speed * -mCameraRot.Forward();
+		else if (FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::S))
+			m_vKeyboardDirection.z -= speed;
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
+		if (!FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
 			m_vKeyboardDirection += speed * mCameraRot.Right();
+		else if (FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::D))
+			m_vKeyboardDirection.x += speed;
 
-		if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
+		if (!FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
 			m_vKeyboardDirection -= speed * mCameraRot.Right();
+		else if (FreeCamMove && Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::A))
+			m_vKeyboardDirection.x -= speed;
 
-		if (m_bEnableYAxisMovement)
+		if (m_bEnableYAxisMovement && FreeCamMove)
 		{
 			if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::E))
-				m_vKeyboardDirection.y += 1.0f;
+				m_vKeyboardDirection.y += speed;
 
 			if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Q))
-				m_vKeyboardDirection.y -= 1.0f;
+				m_vKeyboardDirection.y -= speed;
 		}
 
-		C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
+		if (!FreeCamMove)
+			C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
 	}
 	else
 	{
@@ -315,10 +316,13 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 
 	Vector3 vEye = XMLoadFloat3(&m_vEye);
 
-	vEye = C_CT->Update(XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot), fElapsedTime, Vector3::Up);
+	if (!FreeCamMove)
+		vEye = C_CT->Update(XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot), fElapsedTime, Vector3::Up);
+	else
+		vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, -mCameraRot);
 
 	if (m_bClipToBoundary)
-		vEye = ConstrainToBoundary(m_vEye);
+		vEye = ConstrainToBoundary(m_vEye, m_vMinBoundary, m_vMaxBoundary);
 	XMStoreFloat3(&m_vEye, vEye);
 
 		// Update the lookAt position based on the eye position

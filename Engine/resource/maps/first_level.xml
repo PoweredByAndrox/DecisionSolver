@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- The level has 1 objects (two spaceships) -->
+<!-- The level has some objects (maybe two (or more) spaceships) -->
 <scene>
 	<objects>
-		<One id="Spaceship1" x="0" y="0" z="0"/>
+	<!-- Name of Model also this is an identifier --> 
+		<One id="v2colored_low">
+			<pos>0,0,0</pos>
+			<scale>0.005,0.005,0.005</scale>
+		</One>
+	<!-- If the name has a space then replace them with _ -->
+<!--  	<Two id="Test_phys_box">
+			<pos>5,0,0</pos>
+			<scale>0.005,0.005,0.005</scale>
+		</Two> -->
 	</objects>
 </scene>

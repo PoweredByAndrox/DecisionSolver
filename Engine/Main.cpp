@@ -2,12 +2,6 @@
 
 #include "Engine.h"
 
-/*
-#include "MainMenu.h"
-#include "GameObjects.h"
-#include "Levels.h"
-*/
-
 #include "DebugDraw.h"
 
 #include "File_system.h"
@@ -19,8 +13,7 @@
 #include "Console.h"
 #include "Physics.h"
 #include "Picking.h"
-
-#include <iostream>
+#include "Levels.h"
 
 shared_ptr<Engine> Application;
 #include "UI.h"
@@ -75,6 +68,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 		//Application->setCLua(make_shared<CLua>());
 
+#if defined (DEBUG)
 		//	// GUI!!!
 		Application->setUI(make_shared<UI>());
 		if (FAILED(Application->getUI()->Init()))
@@ -89,11 +83,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			return 5;
 		}
 
-		//	// Models Class
-		//auto Model = Application->getFS()->GetFile(string("cargo transport 3.obj"));
-		//if (Model.operator bool())
-		//	Application->setModel(make_shared<Models>(Model->PathA));
-
 		Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
 		Application->getUI()->getDialog("Main")->ChangePosition(10.f,
 			Application->getWorkAreaSize(Application->GetHWND()).y - 10.f, ImVec2(0.f, 1.f));
@@ -105,7 +94,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getUI()->getDialog("Console")->ChangeSize(
 			Application->getWorkAreaSize(Application->GetHWND()).x, 
 			Application->getWorkAreaSize(Application->GetHWND()).y/3);
-		
+#endif
+
 		Application->setPhysics(make_shared<Physics>());
 		if (FAILED(Application->getPhysics()->Init()))
 		{
@@ -167,13 +157,26 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		//Application->getCLua()->Init();
 
 		//	// Debug Draw!!!
-#if defined (DEBUG)
+
 		Application->setDebugDraw(make_shared<DebugDraw>());
 		Application->getDebugDraw()->Init();
-#endif
 
-		Application->setPick(make_shared<Picking>());
+		//Application->setPick(make_shared<Picking>());
 		// ***********
+
+		//	// Level Class
+		Application->setLevel(make_shared<Levels>());
+		if (FAILED(Application->getLevel()->Init()))
+		{
+#if defined (DEBUG)
+			DebugTrace("wWinMain::getLevel()->Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("getLevel()->Init() is failed!!!");
+#endif
+			Console::LogError("Levels: Init Failed!");
+			return 5;
+		}
 
 		MSG msg = {0};
 		while (msg.message != WM_QUIT)

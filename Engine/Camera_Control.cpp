@@ -43,7 +43,7 @@ void Camera_Control::Init()
 	}
 
 	TM->SetFixedTimeStep(true);
-	TM->SetTargetElapsedSeconds(0.07); // Jump Time
+	TM->SetTargetElapsedSeconds(0.7); // Jump Time
 }
 
 void Camera_Control::PosControllerHead()
@@ -70,10 +70,10 @@ Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 	
 	TM->Tick();
 
-	float jump_height = PCam->getJump()->getHeight((float)TM->GetElapsedSeconds()) * Time;
+	float jump_height = PCam->getJump()->getHeight((float)TM->GetElapsedSeconds() * Time);
 
-	//if (jump_height != 0.0f)
-	//	OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
+	if (jump_height != 0.0f)
+		OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
 
 	PosControllerHead();
 

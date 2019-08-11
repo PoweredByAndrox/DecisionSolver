@@ -16,6 +16,8 @@ PxQuat ToQuaternion(Quaternion var);
 PxExtendedVec3 ToExtended(Vector3 var);
 Vector3 ToExtended(PxExtendedVec3 var);
 
+class Models;
+class SimpleLogic;
 class Physics
 {
 public:
@@ -41,14 +43,12 @@ public:
 	vector<PxRigidDynamic *> GetPhysDynamicObject() { return DynamicObjects; }
 	vector<PxRigidStatic *> GetPhysStaticObject() { return StaticObjects; }
 
-	void AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel = 1.f);
-
 	PxVec3 GetObjPos(PxRigidDynamic *Obj) { return Obj->getGlobalPose().p; }
 
 	void Destroy();
 
 	bool IsPhysicsInit() { return IsInitPhysX; }
-	//void _createTriMesh(Models *Model, bool stat_dyn);
+	void _createTriMesh(shared_ptr<Models> Model, bool stat_dyn);
 
 	PxTriangleMesh *getTriMesh() { if (triangleMesh) return triangleMesh; return nullptr; }
 	PxScene *getScene() { if (gScene) return gScene; return nullptr; }
@@ -67,10 +67,10 @@ public:
 			SAFE_release(DynamicObjects.at(0));
 			DynamicObjects.erase(DynamicObjects.begin());
 		}
-		Cobes.clear();
+	//	Cobes.clear();
 	}
-
-	//void SetPhysicsForCamera(Vector3 Pos, Vector3 Geom);
+	
+	PxVec3 TestLogic(PxRigidDynamic *Obj, shared_ptr<SimpleLogic> Logic);
 protected:
 	// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;
@@ -107,8 +107,6 @@ protected:
 		// Initialized bool variable
 	bool IsInitPhysX = false;
 
-	vector<shared_ptr<GeometricPrimitive>> Cobes;
-
-	PxVec3 ConstrainToBoundary(PxVec3 Pos, PxVec3 Min, PxVec3 Max);
+	//vector<shared_ptr<GeometricPrimitive>> Cobes;
 };
 #endif // !__PHYSICS_H__

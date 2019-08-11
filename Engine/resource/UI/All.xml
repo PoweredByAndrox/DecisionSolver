@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- <gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
-font="capture-it_[allfont.ru]" sizefont="18" brightness="0.8">
+font="capture-it" sizefont="18" brightness="0.8">
 	<Tab text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
 	no_close_midle_mouse="false">
 		<TabItem text="Sounds">
@@ -33,7 +33,7 @@ font="capture-it_[allfont.ru]" sizefont="18" brightness="0.8">
 
 <gui id="Main" width="435" height="205" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
-font="capture-it_[allfont.ru]" sizefont="24" brightness="0.9">
+font="capture-it" sizefont="24" brightness="0.9">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
 		<Button text="Start!" visible="true"/>
 		<Button text="Stop!" visible="true"/>
@@ -44,7 +44,7 @@ font="capture-it_[allfont.ru]" sizefont="24" brightness="0.9">
 
 <gui id="Console" width="400" height="250" open="false" resize="false" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="true"
-font="capture-it_[allfont.ru]" sizefont="24" brightness="0.9">
+font="capture-it" sizefont="24" brightness="0.9">
 	<InputText text="Input" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>
 	<ListBox label="##ForHintCmd" visible="true"/>

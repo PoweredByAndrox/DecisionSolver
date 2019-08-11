@@ -114,6 +114,10 @@ enum ModeProcessString { UntilTheBegin = 0, UntilTheEnd };
 void deleteWord(string &context, string const start, ModeProcessString const mode, bool FindInEnd = false,
 	bool AlsoDeleteSpace = true);
 
+void getFloat3Text(string context, string Char2Split, vector<float> &Float3);
+
+Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max);
+
 #include <boost/algorithm/string.hpp>
 using namespace boost::algorithm;
 

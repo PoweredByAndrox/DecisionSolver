@@ -28,15 +28,15 @@ public:
 	HRESULT InitUI();
 	void RenderUI(ImDrawData *draw_data, bool WF);
 
-	vector<ID3D11RasterizerState *> CreateWF(); // WireFrame
+	static vector<ID3D11RasterizerState *> CreateWF(); // WireFrame
 
-	ID3D11Buffer *CreateVB(UINT ByteWidth, bool NeedVertice,
+	static ID3D11Buffer *CreateVB(UINT ByteWidth, bool NeedVertice,
 		D3D11_USAGE Usage, UINT CPUAccessFlags, void *vertices);
-	ID3D11Buffer *CreateIB(WORD ByteWidth, bool NeedIndices,
+	static ID3D11Buffer *CreateIB(WORD ByteWidth, bool NeedIndices,
 		D3D11_USAGE Usage, UINT CPUAccessFlags, void *indices);
 
-	ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
-	ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob, bool WithColor = true);
+	static ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
+	static ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob, bool WithColor = true);
 
 	void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, ID3D11ShaderResourceView *RenderTextr = nullptr, bool WF = false);
 
@@ -65,7 +65,6 @@ protected:
 	ID3D11InputLayout *m_layout = nullptr;
 	ID3D11SamplerState *m_sampleState = nullptr;
 	ID3D11ShaderResourceView *m_texture = nullptr;
-	D3D11_BUFFER_DESC bd;
 	ID3D11RasterizerState* g_pRasWireFrame = nullptr, *g_pRasStateSolid = nullptr;
 	ID3D11Texture2D *g_pDepthStencil = nullptr;
 	ID3D11DepthStencilView *g_pDepthStencilView = nullptr;

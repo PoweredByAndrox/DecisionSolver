@@ -78,7 +78,10 @@ float PhysCamera::Jump::getHeight(float elapsedTime)
 	if (CanJump)
 		return 0.0f;
 
+	OutputDebugStringA((string("\nJump elapsedTime: ") + to_string(elapsedTime) + string("\n")).c_str());
+
 	JumpTimes += elapsedTime;
-	const float Result = -12.0f * JumpTimes*JumpTimes + ForceJump*JumpTimes;
+	const float Result = (-Application->getPhysics()->getScene()->getGravity().y * -JumpTimes)
+		* JumpTimes*JumpTimes + ForceJump*JumpTimes;
 	return Result;
 }

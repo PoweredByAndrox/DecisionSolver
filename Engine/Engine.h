@@ -27,6 +27,7 @@ class Audio;
 class Console;
 class Physics;
 class Picking;
+class Levels;
 class Engine
 {
 private:
@@ -48,6 +49,8 @@ private:
 	static IDXGISwapChain1 *SwapChain1;
 	static ID3D11RenderTargetView *RenderTargetView;
 	static ID3D11Texture2D *DepthStencil;
+	ID3D11DepthStencilState *m_depthStencilState = nullptr;
+
 	static ID3D11DepthStencilView *DepthStencilView;
 	static IDXGIFactory1 *dxgiFactory;
 	static IDXGIFactory2 *dxgiFactory2;
@@ -58,8 +61,10 @@ private:
 	static D3D11_TEXTURE2D_DESC descDepth;
 	static D3D11_VIEWPORT vp;
 
+	D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+
 	D3D11_RASTERIZER_DESC rasterDesc;
-	ID3D11RasterizerState *rasterState = nullptr;
+	ID3D11RasterizerState *RsWF = nullptr, *RsNoWF = nullptr;
 
 	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 	DXGI_ADAPTER_DESC pDesc;
@@ -78,7 +83,7 @@ private:
 	shared_ptr<CLua> lua;
 	shared_ptr<Picking> Pick;
 	//shared_ptr<Frustum> frustum;
-	//shared_ptr<Levels> Level;
+	shared_ptr<Levels> Level;
 	shared_ptr<Actor> mainActor;
 	shared_ptr<Physics> PhysX;
 	shared_ptr<Camera> camera;
@@ -120,7 +125,7 @@ public:
 	shared_ptr<UI> getUI() { return ui; }
 	shared_ptr<Picking> getPick() { return Pick; }
 	//shared_ptr<Frustum> getFrustum() { return frustum; }
-	//shared_ptr<Levels> getLevel() { return Level; }
+	shared_ptr<Levels> getLevel() { return Level; }
 	shared_ptr<Actor> getActor() { return mainActor; }
 	shared_ptr<Physics> getPhysics() { return PhysX; }
 	shared_ptr<Camera> getCamera() { return camera; }
@@ -198,13 +203,12 @@ public:
 		if (!this->frustum.operator bool())
 			this->frustum = frustum;
 	}
+	*/
 	void setLevel(shared_ptr<Levels> Level)
 	{
 		if (!this->Level.operator bool())
 			this->Level = Level;
 	}
-	*/
-
 	shared_ptr<Mouse> getMouse() { return mouse; }
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }
 	shared_ptr<GamePad> getGamepad() { return gamepad; }
@@ -230,6 +234,8 @@ public:
 	static HRESULT ResizeWindow(WPARAM wParam);
 
 	bool IsWireFrame() { return WireFrame; }
+	ID3D11RasterizerState *GetWireFrame() { return RsWF; }
+	ID3D11RasterizerState *GetNormalFrame() { return RsNoWF; }
 	void SetWireFrame(bool WF) { WireFrame = WF; }
 
 	bool IsSimulatePhysics() { return IsSimulation; }
@@ -252,8 +258,6 @@ public:
 
 	auto getAllThreadGroup() { return ThreadGroups; }
 private:
-	void CountFPS();
-
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;
 	Mouse::ButtonStateTracker TrackerMouse;

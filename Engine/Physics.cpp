@@ -8,8 +8,8 @@ extern shared_ptr<Engine> Application;
 #include "Camera.h"
 #include "Console.h"
 #include "DebugDraw.h"
+#include "SimpleLogic.h"
 
-shared_ptr<StepTimer> TM1 = make_shared<StepTimer>();
 HRESULT Physics::Init()
 {
 	try
@@ -164,7 +164,7 @@ HRESULT Physics::Init()
 		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*gPlane, PxPlaneGeometry(),
 			*gMaterial)->getActor());
 
-		StaticObjects.push_back(gPlane);
+		//StaticObjects.push_back(gPlane);
 		
 		PxCookingParams params(gPhysics->getTolerancesScale());
 		params.meshWeldTolerance = 0.001f;
@@ -184,7 +184,7 @@ HRESULT Physics::Init()
 			return E_FAIL;
 		}
 
-		TM1->SetFixedTimeStep(true);
+		//Logic->Init();
 
 		IsInitPhysX = true;
 		return S_OK;
@@ -206,22 +206,10 @@ HRESULT Physics::Init()
 	}
 }
 
-PxVec3 Physics::ConstrainToBoundary(PxVec3 Pos, PxVec3 Min, PxVec3 Max)
-{
-	Vector3 vMin = ToVec3(Min),
-		vMax = ToVec3(Max),
-		ConvertPos = ToVec3(Pos);
-
-	ConvertPos.Clamp(vMin, vMax);
-	return ToPxVec3(ConvertPos);
-}
-
-ToDo("TEST LOGIC!!!")
-float Temp = 0.05f;
 void Physics::Simulation(float Timestep)
 {
-	TM1->Tick();
-
+	//Render
+	/*
 	for (size_t i = 0; i < Cobes.size(); i++)
 	{
 		vector<PxQuat> aq;
@@ -238,65 +226,69 @@ void Physics::Simulation(float Timestep)
 				Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)),
 				Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix(),
 				Colors::DarkSeaGreen, nullptr, Application->IsWireFrame());
-
-			if (GetAsyncKeyState(VK_OEM_PLUS))
-				Temp += 0.05f;
-			else if (GetAsyncKeyState(VK_OEM_MINUS))
-			{
-				Temp -= 0.05f;
-				if (Temp <= 0.0f)
-					Temp = 0.05f;
-			}
-
-			TM1->SetTargetElapsedSeconds(Temp);
-
-			float time = (float)TM1->GetElapsedSeconds();
-
-			OutputDebugStringA((boost::format("\nTargSec: %f, Time: %f") % Temp % time).str().c_str());
-			auto P = PhysObj.at(i)->getGlobalPose();
-		
-			OutputDebugStringA((boost::format(" Pos: X: %f, Y: %f, Z: %f\n")
-				% P.p.x% P.p.y% P.p.z).str().c_str());
-
-			PhysObj.at(i)->setGlobalPose(PxTransform(ConstrainToBoundary(PxVec3(P.p.x + time, P.p.y, P.p.z),
-				PxVec3(-100.f, -100.f, -100.f), PxVec3(100.f, 100.f, 100.f)), PxIdentity));
 		}
 	}
-
+	*/
 	if (!Application->IsSimulatePhysics())
 	{
 		gScene->simulate(Timestep);
 		gScene->fetchResults(true);
+
+		if (Application->getDebugDraw().operator bool())
+		{
+			BoundingBox box;
+			box.Center = Vector3::Zero;
+			box.Extents = Vector3(100.f, 50.f, 100.f);
+			Application->getDebugDraw()->Draw(box, (Vector4)Colors::DarkGoldenrod);
+		}
 	}
 }
 
-/*
-void Physics::_createTriMesh(Models *Model, bool stat_dyn)
+PxVec3 Physics::TestLogic(PxRigidDynamic *Obj, shared_ptr<SimpleLogic> Logic)
 {
-	auto Meshes = Model;
+	auto P = Obj->getGlobalPose();
+	OutputDebugStringA((boost::format(" Pos: X: %f, Y: %f, Z: %f\n")
+		% P.p.x% P.p.y% P.p.z).str().c_str());
+
+	if (GetAsyncKeyState(VK_NUMPAD5))
+		Logic->follow(Application->getCamera()->GetEyePt());
+
+	Vector3 Done = ToVec3(P.p), physPos = Vector3::Zero;
+	Logic->Update(Done);
+	Obj->setGlobalPose(PxTransform(ToPxVec3(physPos = ConstrainToBoundary(Done,
+		Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f))), PxIdentity));
+	OutputDebugStringA((boost::format(" One more model: X: %f, Y: %f, Z: %f\n")
+		% physPos.x% physPos.y% physPos.z).str().c_str());
+	return Obj->getGlobalPose().p;
+}
+
+#include "Models.h"
+void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
+{
+	auto Meshes = Model->getMeshes();
 
 	vector<PxVec3> verts;
-	vector<PxU32> tris;
+	vector<PxU32> indies;
 
 	for (size_t i = 0; i < Meshes.size(); i++)
 	{
-		auto Obj = Meshes.at(i).vertices;
+		auto Obj = Meshes.at(i)->getVertices();
 		for (size_t i1 = 0; i1 < Obj.size(); i1++)
-			verts.push_back(ToPxVec3(Obj.at(i1).Position));
+			verts.push_back(ToPxVec3(Obj.at(i1).Pos));
 
-		auto Obj1 = Meshes.at(i).indices;
+		auto Obj1 = Meshes.at(i)->getIndices();
 		for (size_t i1 = 0; i1 < Obj1.size(); i1++)
-			tris.push_back(Obj1.at(i1));
+			indies.push_back(Obj1.at(i1));
 	}
 
 	PxTriangleMeshDesc TriMeshDesc;
-	TriMeshDesc.points.count = tris.size();
+	TriMeshDesc.points.count = verts.size();
 	TriMeshDesc.points.stride = sizeof(PxVec3);
-	TriMeshDesc.points.data = verts.data();
+	TriMeshDesc.points.data = &(verts)[0];
 
-	TriMeshDesc.triangles.count = tris.size() / 3;
+	TriMeshDesc.triangles.count = indies.size() / 3;
 	TriMeshDesc.triangles.stride = 3 * sizeof(PxU32);
-	TriMeshDesc.triangles.data = tris.data();
+	TriMeshDesc.triangles.data = &(indies)[0];
 	if (!TriMeshDesc.isValid())
 	{
 		DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
@@ -330,26 +322,10 @@ void Physics::_createTriMesh(Models *Model, bool stat_dyn)
 	if (!stat_dyn)
 	{
 		PxRigidDynamic *TriMesh = gPhysics->createRigidDynamic(PxTransform(PxVec3(0.0f, 0.0f, 0.0f)));
-		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*StaticObjects.at(1), PxSphereGeometry(10.f), *gMaterial)->getActor());
+		gScene->addActor(*PxRigidActorExt::createExclusiveShape(*TriMesh, PxSphereGeometry(10.f), *gMaterial)->getActor());
 		DynamicObjects.push_back(TriMesh);
 	}
 }
-void Physics::SetPhysicsForCamera(Vector3 Pos, Vector3 Geom) // Position Camera // Geometry to default
-{
-	gActorCamera = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)), PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
-	gActorCamera->setMass(5.0f);
-//	gScene->addActor(*gActorCamera);
-
-	PxTransform relativePose(PxQuat(PxHalfPi, PxVec3(0.f, 0.f, 1.f)));
-	PxShape *aCapsuleShape = PxRigidActorExt::createExclusiveShape(*gActorCamera, PxCapsuleGeometry(1.5f, 1.f), *gMaterial);
-	aCapsuleShape->setLocalPose(relativePose);
-	PxRigidBodyExt::updateMassAndInertia(*gActorCamera, 0.5f);
-
-	gScene->addActor(*gActorCamera);
-
-	// DynamicObjects.push_back(gActorCamera);
-}
-*/
 
 void Physics::Destroy()
 {
@@ -362,7 +338,6 @@ void Physics::Destroy()
 			gPvd->getTransport()->flush();
 		if (gPvd->isConnected())
 			gPvd->disconnect();
-		//gPvd->release();
 		if (transport)
 		{
 			if (transport->isConnected())
@@ -380,26 +355,6 @@ void Physics::Destroy()
 		gPhysics->release();
 	if (gFoundation)
 		gFoundation->release();
-}
-
-void Physics::AddNewActor(Vector3 Pos, Vector3 Geom, float Mass, float SizeModel)
-{
-	if (SizeModel <= 0)
-		SizeModel = 10.f;
-	if (Mass <= 0)
-		Mass = 10.f;
-	if (Geom == Vector3::Zero)
-		Geom = Vector3::One;
-
-	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(Pos.x, Pos.y, Pos.z)),
-		PxBoxGeometry(PxVec3(Geom.x, Geom.y, Geom.z)), *gMaterial, 1.0f);
-
-	gBox->setMass(Mass);
-
-	gScene->addActor(*gBox);
-	Cobes.push_back(GeometricPrimitive::CreateCube(Application->getDeviceContext(), SizeModel, false));
-
-	DynamicObjects.push_back(gBox);
 }
 
 PxVec3 ToPxVec3(Vector3 var)

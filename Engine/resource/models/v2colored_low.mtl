@@ -1,0 +1,57 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v3.1.151580502)
+
+newmtl default
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.default.png
+
+newmtl jelezki
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.jelezo.png
+
+newmtl birki
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.birki.png
+
+newmtl birki_2
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.birki.png
+
+newmtl rucika
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.ruciki.png
+
+newmtl sumka
+kd 1 1 1
+ka 0 0 0
+ks 0 0 0
+ke 0 0 0
+d 1
+illum 1
+map_Kd sumka.v3_low.exported_Diffuse.sumka.png
+

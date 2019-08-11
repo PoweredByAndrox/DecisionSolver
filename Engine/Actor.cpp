@@ -1,9 +1,5 @@
 #include "pch.h"
-
 #include "Actor.h"
-
-#include "Inc\GeometricPrimitive.h"
-unique_ptr<DirectX::GeometricPrimitive> m_shape;
 #include "DebugDraw.h"
 
 void Actor::Update(float Time)
@@ -29,32 +25,17 @@ void Actor::Render(float Time)
 	auto PosCCT = Application->getCamera()->GetCCT();
 	if (PosCCT.operator bool() && DrawCamSphere)
 	{
-		BoundingSphere sphere;
-		sphere.Radius = PosCCT->getController()->getRadius();
-		sphere.Center = ToExtended(PosCCT->getController()->getPosition());
-
-#if defined (DEBUG)
-		Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::Crimson);
-#else
-		m_shape->Draw(Matrix::CreateTranslation(sphere.Center), Application->getCamera()->GetViewMatrix(),
-			Application->getCamera()->GetWorldMatrix());
-#endif
+		BoundingSphere sphere(ToExtended(PosCCT->getController()->getPosition()), PosCCT->getController()->getRadius());
+		Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::DarkSlateBlue);
 	}
 }
 
 HRESULT Actor::Init()
 {
-	//if (!DLG->IsInit())
-	//	V(DLG->Init());
-	//DLG->LoadFile(&string("For everything.xml"));
-	//DLG->getMAReplices();
-
 	Application->getCamera()->SetScalers(0.010f, 6.0f);
-	Application->getCamera()->setCameraControlButtons(false, true, false);
+	Application->getCamera()->SetCameraControlButtons(false, true, false);
 	Application->getCamera()->SetResetCursorAfterMove(true);
-	Application->getCamera()->SetEnableYAxisMovement(false);
-
-	m_shape = GeometricPrimitive::CreateSphere(Application->getDeviceContext());
+	Application->getCamera()->SetFreeMoveCam(false);
 
 	InitClass = true;
 	return S_OK;

@@ -20,7 +20,8 @@ using namespace Assimp;
 struct Texture
 {
 	string type, path;
-	ID3D11ShaderResourceView *texture = nullptr;
+	ID3D11ShaderResourceView *TextureSHRes = nullptr;
+	ID3D11Resource *TextureRes = nullptr;
 };
 #pragma pack(push, 1)
 struct Things
@@ -30,22 +31,26 @@ struct Things
 };
 #pragma pack()
 
-//class Mesh;
 class Models
 {
 private:
 	class Mesh
 	{
 	public:
-		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
+		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, Vector3 Min, Vector3 Max)
 		{
-			Init(vertices, indices, textures);
+			Init(vertices, indices, textures, Min, Max);
 		}
 		Mesh() {}
 		~Mesh() {}
 
-		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures);
+		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, Vector3 Min, Vector3 Max);
 		void Draw(Matrix World, Matrix View, Matrix Proj);
+
+		vector<Things> getVertices() { return vertices; }
+		vector<UINT> getIndices() { return indices; }
+		Vector3 getMinAABB() { return MinAABB; }
+		Vector3 getMaxAABB() { return MaxAABB; }
 	private:
 		vector<Things> vertices;
 		vector<UINT> indices;
@@ -54,15 +59,13 @@ private:
 		ID3D11Buffer *VertexBuffer, *IndexBuffer, *pConstantBuffer;
 		ID3D11VertexShader *pVS;
 		ID3D11PixelShader *pPS;
+		Vector3 MinAABB = Vector3::Zero, MaxAABB = Vector3::Zero;
 	};
 	vector<shared_ptr<Mesh>> meshes;
 
 public:
 	bool LoadFromFile(string Filename);
-	bool LoadFromFile(string Filename, UINT Flags, bool ConvertToLH);
-
 	bool LoadFromAllModels();
-	bool LoadFromAllModels(vector<UINT> Flags, vector<bool> ConvertToLH);
 
 	void Render(Matrix View, Matrix Proj);
 
@@ -73,7 +76,8 @@ public:
 	{
 		while (!Textures_loaded.empty())
 		{
-			SAFE_DELETE(Textures_loaded.at(0).texture);
+			SAFE_DELETE(Textures_loaded.front().TextureRes);
+			SAFE_DELETE(Textures_loaded.front().TextureSHRes);
 			Textures_loaded.erase(Textures_loaded.begin());
 		}
 
@@ -87,15 +91,16 @@ public:
 	void setPosition(Vector3 Pos);
 
 //	Vector3 getPosition() { return position.Translation(); }
+	vector<shared_ptr<Mesh>> getMeshes() { return meshes; }
 
 	~Models() {}
 protected:
-	Matrix position, scale, rotate;
+	Matrix position = Matrix::Identity, scale = Matrix::Identity, rotate = Matrix::Identity;
 
 #pragma pack(push, 1)
 	struct ConstantBuffer
 	{
-		Matrix mMVP;
+		Matrix mMVP = Matrix::Identity;
 	} cb;
 #pragma pack()
 
@@ -109,17 +114,13 @@ protected:
 
 	aiMesh *mesh = nullptr;
 
-	int CountMaterial = 0;
-
-	//vector<Mesh> Meshes;
-
-	shared_ptr<Render_Buffer> Buff = make_unique<Render_Buffer>();
-
 	void processNode(aiNode *node, const aiScene *Scene);
 
 	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene *Scene);
-	string determineTextureType(const aiScene *Scene, aiMaterial *mat);
+	string determineTextureType(const aiScene *Scene, string TypeName, aiMaterial *mat);
 	int getTextureIndex(aiString *str);
+
+	static aiTextureType getTextureType(string TypeName);
 
 	ID3D11ShaderResourceView *getTextureFromModel(const aiScene *Scene, int Textureindex);
 };

@@ -12,8 +12,6 @@
 #include "DebugDraw.h"
 #include "Console.h"
 
-ToDo("It'll Be Necessary To Add Pyramid Model")
-
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
@@ -28,6 +26,7 @@ void DebugDraw::Init()
 	m_states_Grid = make_unique<CommonStates>(Application->getDevice());
 	m_states_Frustum = make_unique<CommonStates>(Application->getDevice());
 	m_states_Triangle = make_unique<CommonStates>(Application->getDevice());
+	m_states_Pyramid = make_unique<CommonStates>(Application->getDevice());
 
 	m_effect_Ray = make_unique<BasicEffect>(Application->getDevice());
 	m_effect_Ray->SetVertexColorEnabled(true);
@@ -81,33 +80,52 @@ void DebugDraw::Init()
 
 	m_effect_Triangle->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
 
+	m_effect_Pyramid = make_unique<BasicEffect>(Application->getDevice());
+	m_effect_Pyramid->SetVertexColorEnabled(true);
+	m_effect_Pyramid->SetMatrices(Matrix::Identity, Application->getCamera()->GetViewMatrix(),
+		Application->getCamera()->GetProjMatrix());
+
+	m_effect_Pyramid->GetVertexShaderBytecode(&shaderByteCode, &byteCodeLength);
+
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-			VertexPositionColor::InputElementCount,shaderByteCode, byteCodeLength, m_inputLayout_Ray.ReleaseAndGetAddressOf()));
+			VertexPositionColor::InputElementCount,shaderByteCode, byteCodeLength,
+		m_inputLayout_Ray.ReleaseAndGetAddressOf()));
 	m_batch_Ray = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 	
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Box.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_Box.ReleaseAndGetAddressOf()));
 	m_batch_Box = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_BBox.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_BBox.ReleaseAndGetAddressOf()));
 	m_batch_BBox = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Sphere.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_Sphere.ReleaseAndGetAddressOf()));
 	m_batch_Sphere = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Grid.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength
+		, m_inputLayout_Grid.ReleaseAndGetAddressOf()));
 	m_batch_Grid = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Frustum.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_Frustum.ReleaseAndGetAddressOf()));
 	m_batch_Frustum = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
-		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength, m_inputLayout_Triangle.ReleaseAndGetAddressOf()));
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_Triangle.ReleaseAndGetAddressOf()));
 	m_batch_Triangle = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
+
+	ThrowIfFailed(Application->getDevice()->CreateInputLayout(VertexPositionColor::InputElements,
+		VertexPositionColor::InputElementCount, shaderByteCode, byteCodeLength,
+		m_inputLayout_Pyramid.ReleaseAndGetAddressOf()));
+	m_batch_Pyramid = make_unique<PrimitiveBatch<VertexPositionColor>>(Application->getDeviceContext());
 
 	CD3D11_RASTERIZER_DESC rastDesc(D3D11_FILL_SOLID, D3D11_CULL_NONE, false,
 		D3D11_DEFAULT_DEPTH_BIAS, D3D11_DEFAULT_DEPTH_BIAS_CLAMP,
@@ -158,6 +176,76 @@ void DebugDraw::DrawCube(Matrix matWorld, Vector4 color, bool BBox)
 		m_batch_Box->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_LINELIST, s_indices, _countof(s_indices), &verts[0], 8);
 }
 
+void DebugDraw::DrawPyramid(Matrix matWorld, Vector4 color)
+{
+	if (!m_states_Pyramid.operator bool() || !m_effect_Pyramid.operator bool() ||
+		!m_batch_Pyramid.operator bool() || !m_inputLayout_Pyramid)
+	{
+#if defined (DEBUG)
+		DebugTrace("DebugDraw::DrawPyramid() Is Failed!");
+#endif
+#if defined (ExceptionWhenEachError)
+		throw exception("DebugDraw::DrawPyramid() Is Failed!");
+#endif
+		Console::LogError("DebugDraw: Something is wrong with draw Debug Pyramid!");
+		return;
+	}
+
+	static const Vector3 s_verts[] =
+	{
+	{ XMFLOAT3(-1.0f,  1.0f, -1.0f) },
+	{ XMFLOAT3(1.0f,  1.0f, -1.0f) },
+	{ XMFLOAT3(1.0f,  1.0f,  1.0f) },
+	{ XMFLOAT3(-1.0f,  1.0f,  1.0f) },
+	{ XMFLOAT3(-1.0f, -1.0f, -1.0f) },
+	{ XMFLOAT3(1.0f, -1.0f, -1.0f) },
+	{ XMFLOAT3(1.0f, -1.0f,  1.0f) },
+	{ XMFLOAT3(-1.0f, -1.0f,  1.0f) }
+	};
+
+	static const WORD s_indices[] =
+	{
+		3, 1, 0,
+		2, 1, 3,
+
+		0, 5, 4,
+		1, 5, 0,
+
+		3, 4, 7,
+		0, 4, 3,
+
+		1, 6, 5,
+		2, 6, 1,
+
+		2, 7, 6,
+		3, 7, 2,
+
+		6, 4, 5,
+		7, 4, 6
+	};
+
+	vector<VertexPositionColor> verts;
+	for (size_t i = 0; i < 5; ++i)
+	{
+		verts.push_back(VertexPositionColor(Vector3::Transform(s_verts[i], matWorld), color));
+	}
+
+	m_effect_Pyramid->SetMatrices(Matrix::Identity,
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
+
+	Application->getDeviceContext()->OMSetBlendState(m_states_Pyramid->Opaque(), nullptr, 0xFFFFFFFF);
+	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Pyramid->DepthNone(), 0);
+	Application->getDeviceContext()->RSSetState(m_raster.Get());
+
+	m_effect_Pyramid->Apply(Application->getDeviceContext());
+
+	Application->getDeviceContext()->IASetInputLayout(m_inputLayout_Pyramid.Get());
+
+	m_batch_Pyramid->Begin();
+	m_batch_Pyramid->DrawIndexed(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST, s_indices, 18, &verts[0], 5);
+	m_batch_Pyramid->End();
+}
+
 void DebugDraw::Draw(const BoundingSphere &sphere, Vector4 color)
 {
 	if (!m_states_Sphere.operator bool() || !m_effect_Sphere.operator bool() ||
@@ -201,8 +289,9 @@ void DebugDraw::Draw(const BoundingBox &box, Vector4 color)
 		return;
 	}
 
-	m_effect_Box->SetMatrices(Matrix::CreateScale(Vector3(box.Extents))
-		* Matrix::CreateTranslation(box.Center), Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
+	m_effect_Box->SetMatrices(Matrix::Identity/*CreateScale(Vector3(box.Extents))
+		* Matrix::CreateTranslation(box.Center)*/,
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Box->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Box->DepthNone(), 0);
@@ -234,7 +323,7 @@ void DebugDraw::Draw(const BoundingOrientedBox &obb, Vector4 color)
 		return;
 	}
 
-	m_effect_BBox->SetMatrices(Matrix::CreateScale(Vector3(obb.Extents)) * Matrix::CreateTranslation(obb.Center),
+	m_effect_BBox->SetMatrices(Matrix::Identity,
 		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_BBox->Opaque(), nullptr, 0xFFFFFFFF);
@@ -267,7 +356,8 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 		return;
 	}
 
-	m_effect_Frustum->SetMatrices(Matrix::Identity, Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
+	m_effect_Frustum->SetMatrices(Matrix::Identity,
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Frustum->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Frustum->DepthNone(), 0);
@@ -334,8 +424,8 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float Dis
 		return;
 	}
 
-	m_effect_Grid->SetMatrices(Matrix::Identity, Application->getCamera()->GetViewMatrix(),
-		Application->getCamera()->GetProjMatrix());
+	m_effect_Grid->SetMatrices(Matrix::Identity,
+		Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Grid->Opaque(), nullptr, 0xFFFFFFFF);
 	Application->getDeviceContext()->OMSetDepthStencilState(m_states_Grid->DepthNone(), 0);
@@ -548,6 +638,7 @@ void DebugDraw::Release()
 	m_states_Frustum.release();
 	m_states_Grid.release();
 	m_states_Triangle.release();
+	m_states_Pyramid.release();
 
 	m_effect_Ray.release();
 	m_effect_Box.release();
@@ -556,6 +647,7 @@ void DebugDraw::Release()
 	m_effect_Frustum.release();
 	m_effect_Grid.release();
 	m_effect_Triangle.release();
+	m_effect_Pyramid.release();
 
 	m_batch_Ray.release();
 	m_batch_Box.release();
@@ -564,4 +656,5 @@ void DebugDraw::Release()
 	m_batch_Frustum.release();
 	m_batch_Grid.release();
 	m_batch_Triangle.release();
+	m_batch_Pyramid.release();
 }

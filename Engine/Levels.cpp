@@ -1,6 +1,15 @@
 #include "pch.h"
 #include "Levels.h"
-using namespace EngineNS;
+
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+#include "File_system.h"
+#include "Physics.h"
+
+ToDo("Replace Exceptions To Log Trace")
+
+static vector<shared_ptr<GameObjects::Object>> Obj_other, Obj_npc;
 
 HRESULT Levels::LoadXML(LPCSTR File)
 {
@@ -9,25 +18,132 @@ HRESULT Levels::LoadXML(LPCSTR File)
 	doc->LoadFile(File);
 	if (doc->ErrorID() > 0)
 	{
-		StackTrace(doc->ErrorStr());
+		Application->StackTrace(doc->ErrorStr());
 		throw exception("Levels->LoadXML()::doc->LoadFile() == 0!!!");
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(&string(File), true, string("<!--"), string("-->")).c_str()) > 0)
-		{
-			throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
-			return E_FAIL;
-		}
+	else if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true, string("<!--"), string("-->")).c_str()) > 0)
+	{
+		throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+		return E_FAIL;
+	}
 
 	ProcessXML();
 	return S_OK;
 }
 
+vector<shared_ptr<GameObjects::Object>> Levels::XMLPreparing(vector<XMLElement *> Attrib)
+{
+	vector<shared_ptr<GameObjects::Object>> g_Obj;
+	for (int i = 0;; i++)
+	{
+		Vector3 Pos = Vector3::Zero, Scale = Vector3::Zero,
+			Rotate = Vector3::Zero;
+		string ID_TEXT = "", ModelName = "";
+		shared_ptr<SimpleLogic> Logic = make_shared<SimpleLogic>();
+
+		GameObjects::TYPE type;
+		if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "objects") == 0)
+			type = GameObjects::TYPE::OBJECTS_Dyn;
+		else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "npc") == 0)
+			type = GameObjects::TYPE::NPC;
+		else
+			type = GameObjects::TYPE::NONE;
+
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
+		for (;;) // Count Of Arguments
+		{
+			if (FirstAttr && strcmp(FirstAttr->Name(), "id") == 0)
+			{
+				ID_TEXT = FirstAttr->Value();
+				replaceAll(ID_TEXT, string(" "), string("_"));
+				ModelName = FirstAttr->Value();
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+		}
+
+		vector<XMLNode *> Node = { Attrib.back()->FirstChild() };
+		for (;;) // Count Of Nodes
+		{
+			vector<float> Result;
+			if (Node.back() && strcmp(Node.back()->Value(), "scale") == 0)
+			{
+				Result.clear();
+				getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
+				Scale = Vector3(Result.data());
+
+				if (!Node.back()->NextSibling())
+					break;
+				else
+					Node.push_back(Node.back()->NextSibling());
+			}
+			if (Node.back() && strcmp(Node.back()->Value(), "rotate") == 0)
+			{
+				Result.clear();
+				getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
+				Rotate = Vector3(Result.data());
+
+				if (!Node.back()->NextSibling())
+					break;
+				else
+					Node.push_back(Node.back()->NextSibling());
+			}
+		
+			if (Node.back() && strcmp(Node.back()->Value(), "pos") == 0)
+			{
+				Result.clear();
+				getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
+				Pos = Vector3(Result.data());
+
+				if (!Node.back()->NextSibling())
+					break;
+				else
+					Node.push_back(Node.back()->NextSibling());
+			}
+		}
+
+		g_Obj.push_back(make_shared<GameObjects::Object>(ID_TEXT, ModelName, Logic, type, Pos, Scale, Rotate));
+
+		if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
+			break;
+
+		if (Attrib.back()->NextSibling())
+			Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
+	}
+
+	return g_Obj;
+}
+
+void Levels::Spawn(Vector3 pos, GameObjects::TYPE type)
+{
+	switch (type)
+	{
+	case GameObjects::OBJECTS_Dyn:
+		//Obj_other.push_back(make_shared<GameObjects::Object>(ID_TEXT, i, ModelName, Logic, type, Pos, Scale, Rotate));
+		break;
+//	case GameObjects::NPC:
+//		break;
+//	case GameObjects::ACTOR:
+//		break;
+//	case GameObjects::OBJECTS_Stat:
+//		break;
+//	case GameObjects::ETC:
+//		break;
+//	case GameObjects::NONE:
+//		break;
+
+	default:
+		break;
+	}
+}
+
 void Levels::ProcessXML()
 {
-	Vector3 XYZ;
+	vector<XMLElement *> Attrib = { doc->RootElement()->FirstChild()->ToElement() };
 
-	Attrib = { doc->RootElement()->FirstChild()->ToElement() };
 	if (!Attrib.back())
 	{
 		DebugTrace("Levels->ProcessXML()::doc->RootElement() == nullptr!!!");
@@ -35,181 +151,96 @@ void Levels::ProcessXML()
 		return;
 	}
 
-	string cache = Attrib.back()->Value();
+	string cache = doc->RootElement()->FirstChild()->ToElement()->Value();
 	to_lower(cache);
+
 	if (strcmp(cache.c_str(), "objects") == 0)
 	{
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
-
-		for (;;)
-		{
-			g_Obj.at(i - 1).ID = i;
-			XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
-			for (int i1 = 1; i1 < INT16_MAX; i1++) // Count Of Arguments
-			{
-				if (Attrib.back()->ToElement()->FirstChild())
-					if (strcmp(Attrib.back()->ToElement()->FirstChild()->Value(), "scale") == 0)
-					{
-						Nods.push_back(Attrib.back()->ToElement()->FirstChild());
-						string str = Nods.back()->FirstChild()->Value();
-						str = deleteWord(str, ',', ' ');
-						sscanf_s(str.c_str(), "%f %f %f", &XYZ.x, &XYZ.y, &XYZ.z);
-						g_Obj.at(i1 - 1).HasScale = true;
-						g_Obj.at(i1 - 1).model->setScale(XYZ);
-						XYZ = Vector3::Zero;
-					}
-				if (Attrib.back()->ToElement()->FirstChild())
-					if (strcmp(Attrib.back()->ToElement()->FirstChild()->Value(), "rotate") == 0)
-					{
-						Nods.push_back(Attrib.back()->ToElement()->FirstChild());
-						string str = Nods.back()->FirstChild()->Value();
-						str = deleteWord(str, ',', ' ');
-						sscanf_s(str.c_str(), "%f %f %f", &XYZ.x, &XYZ.y, &XYZ.z);
-						g_Obj.at(i1 - 1).HasRotation = true;
-						g_Obj.at(i1 - 1).model->setRotation(XYZ);
-						XYZ = Vector3::Zero;
-					}
-
-				if (strcmp(FirstAttr->Name(), "id") == 0)
-				{
-					g_Obj.at(i - 1).ID_TEXT = FirstAttr->Value();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "x") == 0)
-				{
-					XYZ.x = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "y") == 0)
-				{
-					XYZ.y = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "z") == 0)
-				{
-					XYZ.z = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					g_Obj.at(i1 - 1).model->setPosition(XYZ);
-					if (!FirstAttr)
-						break;
-				}
-			}
-			if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
-				break;
-
-			if (Attrib.back()->NextSibling())
-				Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
-		}
+		Obj_other = XMLPreparing(Attrib);
 	}
-	if (Attrib.back()->Parent()->NextSibling())
-		Attrib.push_back(Attrib.back()->Parent()->NextSibling()->ToElement());
-
-	cache = Attrib.back()->Value();
-	to_lower(cache);
-	if (strcmp(cache.c_str(), "npc") == 0)
+	else if (strcmp(cache.c_str(), "npc") == 0)
 	{
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
-
-		for (;;)
-		{
-			NPC.at(i - 1).ID = i;
-			XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
-			for (int i1 = 1; i1 < INT16_MAX; i1++) // Count Of Arguments
-			{
-				if (Attrib.back()->ToElement()->FirstChild())
-					if (strcmp(Attrib.back()->ToElement()->FirstChild()->Value(), "scale") == 0)
-					{
-						Nods.push_back(Attrib.back()->ToElement()->FirstChild());
-						string str = Nods.back()->FirstChild()->Value();
-						str = deleteWord(str, ',', ' ');
-						sscanf_s(str.c_str(), "%f %f %f", &XYZ.x, &XYZ.y, &XYZ.z);
-						NPC.at(i1 - 1).HasScale = true;
-						NPC.at(i1 - 1).model->setScale(XYZ);
-						XYZ = Vector3::Zero;
-					}
-				if (Nods.back()->NextSibling())
-					if (strcmp(Nods.back()->NextSibling()->Value(), "rotate") == 0)
-					{
-						Nods.push_back(Nods.back()->NextSibling());
-						string str = Nods.back()->FirstChild()->Value();
-						str = deleteWord(str, ',', ' ');
-						sscanf_s(str.c_str(), "%f %f %f", &XYZ.x, &XYZ.y, &XYZ.z);
-						NPC.at(i1 - 1).HasRotation = true;
-						NPC.at(i1 - 1).model->setRotation(XYZ);
-						XYZ = Vector3::Zero;
-					}
-
-				if (strcmp(FirstAttr->Name(), "id") == 0)
-				{
-					NPC.at(i - 1).ID_TEXT = FirstAttr->Value();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "x") == 0)
-				{
-					XYZ.x = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "y") == 0)
-				{
-					XYZ.y = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-
-				if (strcmp(FirstAttr->Name(), "z") == 0)
-				{
-					XYZ.z = FirstAttr->FloatValue();
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					NPC.at(i1 - 1).model->setPosition(XYZ);
-					if (!FirstAttr)
-						break;
-				}
-			}
-			if (Attrib.back()->Parent()->LastChild()->Value() == Attrib.back()->Value())
-				break;
-
-			if (Attrib.back()->NextSibling())
-				Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
-		}
+		Obj_npc = XMLPreparing(Attrib);
 	}
 }
 
-HRESULT EngineNS::Levels::Init()
+#include "DebugDraw.h"
+void Levels::Update(Matrix View, Matrix Proj, float Time)
+{
+	// Objects
+	for (auto it : Obj_other)
+	{
+		auto Model = it->GetModel();
+		if (it->GetScale())
+			Model->setScale(it->GetScaleCord());
+		else if (it->GetRotation())
+			Model->setRotation(it->GetRotCord());
+
+		OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") % it->GetPositionCord().x % it->GetPositionCord().y %
+			it->GetPositionCord().z).str().c_str());
+		UpdateLogic(Time, it);
+		Model->setPosition(it->GetPositionCord());
+		Model->Render(View, Proj);
+	}
+
+	// NPC
+	for (auto it : Obj_npc)
+	{
+		auto Model = it->GetModel();
+		if (it->GetScale())
+			Model->setScale(it->GetScaleCord());
+		else if (it->GetRotation())
+			Model->setRotation(it->GetRotCord());
+
+		//it->SetPositionCoords(UpdateLogic(Time, it));
+		Model->setPosition(it->GetPositionCord());
+		Model->Render(View, Proj);
+	}
+}
+
+void Levels::Destroy()
+{
+	while (!Obj_other.empty())
+	{
+		Obj_other.front()->GetModel()->Release();
+		Obj_other.front()->Destroy();
+		Obj_other.erase(Obj_other.begin());
+	}
+	while (!Obj_npc.empty())
+	{
+		Obj_npc.front()->GetModel()->Release();
+		Obj_npc.front()->Destroy();
+		Obj_npc.erase(Obj_npc.begin());
+	}
+}
+
+float Test1 = 0.0f, Test2 = 0.5f;
+void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
+{
+	if (GetAsyncKeyState(VK_NUMPAD1))
+		Test2 += 0.05f;
+	if (GetAsyncKeyState(VK_NUMPAD2))
+		Test2 -= 0.05f;
+
+	Test1 += Time;
+	if (Test1 >= Test2)
+	{
+		Test1 = 0.0f;
+		Obj->SetPositionCoords(ToVec3(Application->getPhysics()->TestLogic(Obj->GetPH(), Obj->GetLogic())));
+	}
+}
+
+HRESULT Levels::Init()
 {
 	try
 	{
-		auto Files = Application->getFS()->getFilesInFolder(".obj");
-		for (int i = 0; i < Files.size(); i++)
+		auto MapFiles = Application->getFS()->GetFileByType(_TypeOfFile::LEVELS);
+		for (size_t i = 0; i < MapFiles.size(); i++)
 		{
-			/*if (FindSubStr(Files.at(i), string("Nanosuit.obj")) || FindSubStr(Files.at(i), string("Muddy.obj"))) // This is hardcoded!!!
-			{
-				NPC.push_back(GameObjects::Object(new Models(&Files.at(i))));
-				NPC.back().type = Object::TYPE::NPC;
-			}
-			else
-			{*/
-				g_Obj.push_back(GameObjects::Object(new Models(&Files.at(i))));
-				g_Obj.back().type = Object::TYPE::OBJECTS;
-			//}
-		
+			EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
 		}
-		LoadXML(Application->getFS()->GetFile(string("first_level.xml"))->PathA.c_str());
 
 		InitClass = true;
 		return S_OK;

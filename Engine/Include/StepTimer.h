@@ -50,11 +50,18 @@ public:
     // Set whether to use fixed or variable timestep mode.
     void SetFixedTimeStep(bool isFixedTimestep)            { m_isFixedTimeStep = isFixedTimestep; }
 
+	bool GetIsFixedTimeStep() { return m_isFixedTimeStep; }
+
     // Set how often to call Update when in fixed timestep mode.
-    void SetTargetElapsedTicks(UINT64 targetElapsed)    { m_targetElapsedTicks = targetElapsed; }
+    void SetTargetElapsedTicks(UINT64 targetElapsed)
+	{
+		if (targetElapsed == 0 || targetElapsed <= 0) return;
+		else
+			m_targetElapsedTicks = targetElapsed;
+	}
 	void SetTargetElapsedSeconds(double targetElapsed)
 	{
-		if (targetElapsed == 0.0) return;
+		if (targetElapsed == 0 || targetElapsed <= 0) return;
 		else
 			m_targetElapsedTicks = SecondsToTicks(targetElapsed);
 	}

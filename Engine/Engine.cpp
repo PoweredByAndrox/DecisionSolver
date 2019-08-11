@@ -10,6 +10,7 @@
 //#include "CLua.h"
 #include "Picking.h"
 #include "DebugDraw.h"
+#include "Levels.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -166,6 +167,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			return hr;
 		}
 
+		UINT WidthWindow = getWorkAreaSize(hwnd).x, HeightWindow = getWorkAreaSize(hwnd).y;
+
 		hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void **>(&dxgiFactory2));
 		if (dxgiFactory2)
 		{
@@ -175,8 +178,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 				DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void **>(&DeviceContext1));
 
 			ZeroMemory(&SCD1, sizeof(SCD1));
-			SCD1.Width = getWorkAreaSize(hwnd).x;
-			SCD1.Height = getWorkAreaSize(hwnd).y;
+			SCD1.Width = WidthWindow;
+			SCD1.Height = HeightWindow;
 			SCD1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			SCD1.SampleDesc.Count = 4;
 			SCD1.SampleDesc.Quality = m4xMsaaQuality - 1;
@@ -194,8 +197,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			// DirectX 11.0 systems
 			ZeroMemory(&SCD, sizeof(SCD));
 			SCD.BufferCount = 1;
-			SCD.BufferDesc.Width = getWorkAreaSize(hwnd).x;
-			SCD.BufferDesc.Height = getWorkAreaSize(hwnd).y;
+			SCD.BufferDesc.Width = WidthWindow;
+			SCD.BufferDesc.Height = HeightWindow;
 			SCD.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 			SCD.BufferDesc.RefreshRate.Numerator = 60;
 			SCD.BufferDesc.RefreshRate.Denominator = 1;
@@ -235,8 +238,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		SAFE_RELEASE(pBackBuffer);
 
 		ZeroMemory(&descDepth, sizeof(descDepth));
-		descDepth.Width = getWorkAreaSize(hwnd).x;
-		descDepth.Height = getWorkAreaSize(hwnd).y;
+		descDepth.Width = WidthWindow;
+		descDepth.Height = HeightWindow;
 		descDepth.MipLevels = 1;
 		descDepth.ArraySize = 1;
 		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -259,8 +262,38 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			return hr;
 		}
 
+		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+		depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+		depthStencilDesc.StencilEnable = true;
+		depthStencilDesc.StencilReadMask = 0xFF;
+		depthStencilDesc.StencilWriteMask = 0xFF;
+		depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+		depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+		depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+		depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+		if (FAILED(hr = Device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState)))
+		{
+#if defined (DEBUG)
+			DebugTrace("Engine::Init->CreateDepthStencilState() Get is failed!");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("Engine::Init->CreateDepthStencilState() Get is failed!");
+#endif
+			Console::LogError("Engine: Something is wrong with create Deph Stencil State Buffer!");
+			return hr;
+		}
+		DeviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+
+
 		ZeroMemory(&descDSV, sizeof(descDSV));
-		descDSV.Format = descDepth.Format;
+		descDSV.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 		descDSV.Texture2D.MipSlice = 0;
 
@@ -278,22 +311,12 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 
-		rasterDesc.AntialiasedLineEnable = true;
-		rasterDesc.CullMode = D3D11_CULL_BACK;
-		rasterDesc.DepthBias = 0;
-		rasterDesc.DepthBiasClamp = 0.0f;
-		rasterDesc.DepthClipEnable = true;
-		rasterDesc.FillMode = D3D11_FILL_SOLID;
-		rasterDesc.FrontCounterClockwise = false;
-		rasterDesc.MultisampleEnable = true;
-		rasterDesc.ScissorEnable = false;
-		rasterDesc.SlopeScaledDepthBias = 0.0f;
+		auto WF = Render_Buffer::CreateWF();
+		RsWF = WF.at(0);
+		RsNoWF = WF.at(1);
 
-		Device->CreateRasterizerState(&rasterDesc, &rasterState);
-		DeviceContext->RSSetState(rasterState);
-
-		vp.Width = (float)getWorkAreaSize(hwnd).x;
-		vp.Height = (float)getWorkAreaSize(hwnd).y;
+		vp.Width = (float)WidthWindow;
+		vp.Height = (float)HeightWindow;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -302,9 +325,6 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 		ShowWindow(hwnd, SW_SHOW);
 		UpdateWindow(hwnd);
-
-		Timer->SetFixedTimeStep(false);
-		Timer->SetTargetElapsedSeconds(1);
 	}
 	catch (const exception &Catch)
 	{
@@ -372,8 +392,8 @@ void Engine::Render()
 			else
 				IsSimulation = true;
 
-		if (TrackerKeyboard.pressed.F5)
-			PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 1);
+		//if (TrackerKeyboard.pressed.F5)
+		//	PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 1);
 
 		if (console.operator bool() && TrackerKeyboard.pressed.OemTilde)
 			console->OpenConsole();
@@ -409,63 +429,66 @@ void Engine::Render()
 	mainActor->Render(frameTime);
 
 #if defined (DEBUG)
-	if (DrawGrid)
-		dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
-		(Vector4)Colors::Teal);
-
-	if (Sound.operator bool())
+	if (dDraw.operator bool())
 	{
-		BoundingSphere sphere;
-		sphere.Center = Sound->getSoundPosition();
-		dDraw->Draw(sphere, (Vector4)Colors::Red);
+		if (DrawGrid)
+			dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
+			(Vector4)Colors::Teal);
+
+		if (Sound.operator bool())
+		{
+			BoundingSphere sphere;
+			sphere.Center = Sound->getSoundPosition();
+			dDraw->Draw(sphere, (Vector4)Colors::Red);
+		}
 	}
 #endif
 
 	PhysX->Simulation(frameTime);
 
-#if defined (DEBUG)
-	ui->Begin();
-
-	auto Dial1 = ui->getDialog("Main");
-	if (Dial1.operator bool() && !Dial1->GetTitle().empty())
-	{
-		float CamPos[3] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
-		Dial1->getComponents()->Label.front()->ChangeText(string((boost::format(
-			string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n") +
-			string("Resolution Window: W:%f, H:%f")) % fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
-			getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
-
-		if (Sound.operator bool())
-		{
-			if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.front()->IsClicked())
-				Sound->doPlay();
-			if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.at(1)->IsClicked())
-				Sound->doStop();
-			if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.back()->IsClicked())
-				Sound->doPause();
-		}
-
-		Dial1->Render();
-	}
-	auto Dial2 = ui->getDialog("List Of Game Objects");
-	if (Dial2.operator bool() && !Dial2->GetTitle().empty())
-		Dial2->Render();
-
-	if (ui->getDialog("Console").operator bool() && !ui->getDialog("Console")->GetTitle().empty())
-		console->Render();
-
-	ui->FrameEnd();
-#endif
-
-	if (model.operator bool())
-	{
-		model->setPosition(Vector3::One);
-		model->Render(camera->GetViewMatrix(), camera->GetProjMatrix());
-	}
-
 #if defined(NEEDED_DEBUG_INFO)
 	Device->QueryInterface(IID_ID3D11Debug, (void **) &debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+#endif
+
+	if (Level.operator bool())
+		Level->Update(camera->GetViewMatrix(), camera->GetProjMatrix(), frameTime);
+
+#if defined (DEBUG)
+	if (ui.operator bool())
+	{
+		ui->Begin();
+
+		auto Dial1 = ui->getDialog("Main");
+		if (Dial1.operator bool() && !Dial1->GetTitle().empty())
+		{
+			float CamPos[3] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
+			Dial1->getComponents()->Label.front()->ChangeText(string((boost::format(
+				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n") +
+				string("Resolution Window: W:%f, H:%f")) % fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
+				getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
+
+			if (Sound.operator bool())
+			{
+				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.front()->IsClicked())
+					Sound->doPlay();
+				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.at(1)->IsClicked())
+					Sound->doStop();
+				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.back()->IsClicked())
+					Sound->doPause();
+			}
+
+			Dial1->Render();
+		}
+		auto Dial2 = ui->getDialog("List Of Game Objects");
+		if (Dial2.operator bool() && !Dial2->GetTitle().empty())
+			Dial2->Render();
+
+		if (ui->getDialog("Console").operator bool() && !ui->getDialog("Console")->GetTitle().empty())
+			console->Render();
+
+		ui->FrameEnd();
+	}
 #endif
 
 	SwapChain->Present(0, 0);
@@ -479,6 +502,8 @@ void Engine::Destroy()
 	SAFE_RELEASE(RenderTargetView);
 	SAFE_RELEASE(SwapChain);
 	SAFE_RELEASE(SwapChain1);
+
+	SAFE_RELEASE(m_depthStencilState);
 
 	SAFE_RELEASE(DeviceContext1);
 	SAFE_RELEASE(Device1);

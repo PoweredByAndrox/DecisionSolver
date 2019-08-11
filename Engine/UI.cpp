@@ -1852,7 +1852,7 @@ void UI::ProcessXML()
 		// Count of all the components only in dialog!
 		dialog.at(IDDial)->ChangeOrder(XMLDialogs.at(IDDial)->Components->OrderlyRender);
 		dialog.at(IDDial)->ChangeSize(W, H);
-		dialog.at(IDDial)->ChangeFont(Application->getFS()->GetFile(nameFont + string(".ttf"))->PathA, SizeFont, Bright);
+		dialog.at(IDDial)->ChangeFont(Application->getFS()->GetFile(nameFont)->PathA, SizeFont, Bright);
 	}
 	Dialogs = dialog;
 }

@@ -249,6 +249,16 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
+void getFloat3Text(string context, string Char2Split, vector<float>& Float3)
+{
+	vector<string> Result;
+	boost::split(Result, context, boost::is_any_of(","));
+	for (size_t i = 0; i < Result.size(); i++)
+	{
+		Float3.push_back((float)atof(Result.at(i).c_str()));
+	}
+}
+
 void ParseText(string &Text, Type type)
 {
 	vector<string> strs;
@@ -270,4 +280,10 @@ void ParseText(string &Text, Type type)
 			else
 				Text += strs.at(i);
 	}
+}
+
+Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max)
+{
+	Pos.Clamp(Min, Max);
+	return Pos;
 }
