@@ -481,8 +481,8 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 		return;
 	}
 
-	m_effect_Sphere->SetMatrices(Matrix::Identity
-		/*Matrix::CreateTranslation(origin)*/, Application->getCamera()->GetViewMatrix(),
+	m_effect_Sphere->SetMatrices(
+		Matrix::Identity, Application->getCamera()->GetViewMatrix(),
 		Application->getCamera()->GetProjMatrix());
 
 	Application->getDeviceContext()->OMSetBlendState(m_states_Sphere->Opaque(), nullptr, 0xFFFFFFFF);

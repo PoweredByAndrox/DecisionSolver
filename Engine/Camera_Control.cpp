@@ -7,6 +7,7 @@ extern shared_ptr<Engine> Application;
 #include "Camera.h"
 
 shared_ptr<StepTimer> TM = make_shared<StepTimer>();
+PxCapsuleController *Camera_Control::C_Control = nullptr;
 
 void Camera_Control::Init()
 {
@@ -24,9 +25,9 @@ void Camera_Control::Init()
 	capscDescActor.reportCallback = nullptr;
 	capscDescActor.behaviorCallback = nullptr;
 
-	C_Control = static_cast<PxCapsuleController*>
+	C_Control = static_cast<PxCapsuleController *>
 		(Application->getPhysics()->getContrlManager()->createController(capscDescActor));
-	if(!C_Control)
+	if (!C_Control)
 	{
 		// ToDo Exception Of "Cannot Create a Phys Control Camera"
 	}
@@ -43,7 +44,13 @@ void Camera_Control::Init()
 	}
 
 	TM->SetFixedTimeStep(true);
-	TM->SetTargetElapsedSeconds(0.7); // Jump Time
+	TM->SetTargetElapsedSeconds(
+#if defined(DEBUG)
+		0.02f
+#else 
+		0.005f
+#endif
+	); // Jump Time
 }
 
 void Camera_Control::PosControllerHead()
@@ -64,33 +71,34 @@ void Camera_Control::PosControllerHead()
 		Vector3(0.f, geom.halfHeight + geom.radius, 0.f);
 }
 
+//#include "Console.h"
 Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 {
 	//PCam->Update();
-	
+
 	TM->Tick();
-
-	float jump_height = PCam->getJump()->getHeight((float)TM->GetElapsedSeconds() * Time);
-
-	if (jump_height != 0.0f)
-		OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
+	auto Jump = PCam->getJump();
+	float jump_height = Jump->getHeight((float)TM->GetElapsedSeconds()),
+		fScaleMove = Application->getCamera()->getMoveScale(), X = fScaleMove, Z = fScaleMove;
+	//OutputDebugStringA((string("\nJumpHeight: ") + to_string(jump_height) + string("\n")).c_str());
+	//Console::LogInfo((boost::format("\nJumpHeight: %f") % jump_height).str().c_str());
 
 	PosControllerHead();
 
-	targetKeyDisplacement *= Application->getCamera()->getMoveScale();
+	targetKeyDisplacement.x *= X;
+	targetKeyDisplacement.z *= Z;
 
-	targetKeyDisplacement.y += (jump_height == 0.0f ? Application->getPhysics()->getScene()->getGravity().y * Time :
-		booster(HeadPos.y, jump_height, Time * 0.5f));
+	targetKeyDisplacement.y += (jump_height == 0.0f && Jump->getCanJump() ?
+		Application->getPhysics()->getScene()->getGravity().y * Time :
+		jump_height);
 
-	const PxU32 flags = C_Control->move(targetKeyDisplacement, 0.1f, Time, PxControllerFilters(0));
+	const PxU32 flags = C_Control->move(targetKeyDisplacement, 0.0f, Time, PxControllerFilters(0));
 
 	if (flags & PxControllerCollisionFlag::eCOLLISION_DOWN)
-		PCam->getJump()->Stop();
+		Jump->Stop();
 
-	if (Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::Space))
-		PCam->getJump()->Start(30.0f);
-
-	HeadPos.y += booster(HeadPos.y, 0.3f, Time * 0.2f); // Also plus our cam position (y ~ 0.81f)
+	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Space))
+		Jump->Start(30.0f);
 
 	return HeadPos - VDir;
 }
@@ -98,6 +106,11 @@ Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 void Camera_Control::GetInput(Vector3 VDir)
 {
 	targetKeyDisplacement = ToPxVec3(VDir);
+}
+
+void Camera_Control::Teleport(Vector3 NewPos)
+{
+	C_Control->setPosition(ToExtended(NewPos));
 }
 
 float Camera_Control::booster(float camTargY, float somethingY, float Delta)

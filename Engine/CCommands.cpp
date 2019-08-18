@@ -1,22 +1,20 @@
 #include "pch.h"
 
 #include "CCommands.h"
-//#include "CLua.h"
+#include "CLua.h"
 #include "UI.h"
 #include "Camera.h"
 
-ToDo("CLua: LUA Is Disabled Now In Engine!");
 ToDo("Add a 'Spawn' command after Reffactoring a GameObject Class")
 static const vector<string> ListCommands =
 {
-	string("help"), string("testmsg"),
-	string("quit"), string("clear"),
+	string("help"), string("quit"), string("clear"),
 	string("dotorque"), string("cleanphysbox")
 };
 static const vector<string> ListCommandsWithParams =
 {
 	string("changesize #float W, #float H"), /*string("addphysbox #float MassObj, #float SizeModel"),*/
-	//string("exec_lua #PathToFile.function(param)")
+	string("exec_lua #PathToFile.function(param)")
 };
 
 #include "File_system.h"
@@ -89,6 +87,11 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			{
 				all.append(string(string("\n") + ListCommands.at(i)));
 			}
+			all.append(string(string("\nCMD With Params:")));
+			for (size_t i = 0; i < ListCommandsWithParams.size(); i++)
+			{
+				all.append(string(string("\n") + ListCommandsWithParams.at(i)));
+			}
 
 			Console->getComponents()->childs.back()->getComponent()->UText.back()->AddCLText(
 				Type::Information, string("#list of available commands: ") + all);
@@ -121,8 +124,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	}
 	if (cmd->type == Command::TypeOfCommand::Lua)
 	{
-		//if (contains(CMD, "exec_lua"))
-		//	Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
+		if (contains(CMD, "exec_lua"))
+			Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
 	}
 	if (cmd->type == Command::TypeOfCommand::WithParam)
 	{

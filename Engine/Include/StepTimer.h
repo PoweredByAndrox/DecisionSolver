@@ -35,11 +35,11 @@ public:
 
     // Get elapsed time since the previous Update call.
     UINT64 GetElapsedTicks() const                        { return m_elapsedTicks; }
-    double GetElapsedSeconds() const                    { return TicksToSeconds(m_elapsedTicks); }
+    float GetElapsedSeconds() const                    { return TicksToSeconds(m_elapsedTicks); }
 
     // Get total time since the start of the program.
     UINT64 GetTotalTicks() const                        { return m_totalTicks; }
-    double GetTotalSeconds() const                        { return TicksToSeconds(m_totalTicks); }
+	float GetTotalSeconds() const                        { return TicksToSeconds(m_totalTicks); }
 
     // Get total number of updates since start of the program.
     UINT32 GetFrameCount() const                        { return m_frameCount; }
@@ -59,7 +59,7 @@ public:
 		else
 			m_targetElapsedTicks = targetElapsed;
 	}
-	void SetTargetElapsedSeconds(double targetElapsed)
+	void SetTargetElapsedSeconds(float targetElapsed)
 	{
 		if (targetElapsed == 0 || targetElapsed <= 0) return;
 		else
@@ -69,8 +69,8 @@ public:
     // Integer format represents time using 10,000,000 ticks per second.
     static const UINT64 TicksPerSecond = 10000000;
 
-    static double TicksToSeconds(UINT64 ticks)            { return static_cast<double>(ticks) / TicksPerSecond; }
-    static UINT64 SecondsToTicks(double seconds)        { return static_cast<UINT64>(seconds * TicksPerSecond); }
+    static float TicksToSeconds(UINT64 ticks)            { return static_cast<float>(ticks) / TicksPerSecond; }
+    static UINT64 SecondsToTicks(float seconds)        { return static_cast<UINT64>(seconds * TicksPerSecond); }
 
     // After an intentional timing discontinuity (for instance a blocking IO operation)
     // call this to avoid having the fixed timestep logic attempt a set of catch-up 

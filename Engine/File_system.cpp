@@ -374,12 +374,23 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 	auto F = GetFileByType(file);
 	if (!F->FileA.empty() || !F->FileW.empty())
 		return F;
+	
+	// Replace Chars For Not To Find a Extension File
+	bool WasReplace = false;
+	string Cache = file;
+	replaceAll(file, ".", "_");
+	if (Cache != file)
+		WasReplace = true;
 
 	if (!p.empty())
 	{
 		string ResPath = p.generic_path().generic_string() + string("/resource/");
 		string extA = extension(file.c_str());
 		wstring extW = path(file.c_str()).extension().wstring();
+
+		if (WasReplace)
+			// Revert Chars For "Normal" Find a File
+			replaceAll(file, "_", ".");
 
 		to_lower(extA);
 

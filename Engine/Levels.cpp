@@ -178,8 +178,8 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 		else if (it->GetRotation())
 			Model->setRotation(it->GetRotCord());
 
-		OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") % it->GetPositionCord().x % it->GetPositionCord().y %
-			it->GetPositionCord().z).str().c_str());
+		//OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") % it->GetPositionCord().x % it->GetPositionCord().y %
+		//	it->GetPositionCord().z).str().c_str());
 		UpdateLogic(Time, it);
 		Model->setPosition(it->GetPositionCord());
 		Model->Render(View, Proj);

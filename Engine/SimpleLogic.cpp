@@ -37,7 +37,7 @@ void SimpleLogic::Update(Vector3 &Pos)
 
 	timer_1->SetTargetElapsedSeconds(Time);
 
-	OutputDebugStringA((boost::format("\nTime1: %f") % Time).str().c_str());
+	//OutputDebugStringA((boost::format("\nTime1: %f") % Time).str().c_str());
 
 //	if (Modes != Follow)
 	Modes = ProgressMass.at(Progress);

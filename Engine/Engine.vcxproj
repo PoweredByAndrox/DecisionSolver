@@ -165,10 +165,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Camera_Control.cpp" />
     <ClCompile Include="CCommands.cpp" />
-    <ClCompile Include="CLua.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="CLua.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Dialogs.cpp">
@@ -211,10 +208,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Camera_Control.h" />
     <ClInclude Include="CCommands.h" />
-    <ClInclude Include="CLua.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="CLua.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Dialogs.h">

@@ -35,7 +35,7 @@ private:
 	bool WireFrame = false,
 		IsSimulation = false;
 
-	XMVECTORF32 _ColorBuffer = DirectX::Colors::Black;
+	XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;
 	HRESULT hr = S_OK;
 	wstring NameWnd = L"", ClassWND = L"";
 
@@ -88,9 +88,9 @@ private:
 	shared_ptr<Physics> PhysX;
 	shared_ptr<Camera> camera;
 	shared_ptr<Shaders> shader;
-	shared_ptr<Mouse> mouse = make_shared<Mouse>();
-	shared_ptr<Keyboard> keyboard = make_shared<Keyboard>();
-	shared_ptr<GamePad> gamepad = make_shared<GamePad>();
+	static shared_ptr<Mouse> mouse;
+	static shared_ptr<Keyboard> keyboard;
+	static shared_ptr<GamePad> gamepad;
 
 	shared_ptr<StepTimer> Timer = make_shared<StepTimer>();
 
@@ -105,7 +105,7 @@ public:
 
 	void Render();
 	void Destroy();
-	void Quit() { ::PostQuitMessage(0); }
+	static void Quit() { ::PostQuitMessage(0); }
 
 	Engine() {}
 	~Engine() {}
@@ -257,6 +257,10 @@ public:
 	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
 
 	auto getAllThreadGroup() { return ThreadGroups; }
+	//static bool IsKeyboardDown(Keyboard::Keys Key);
+	//static bool IsKeyboardUp(Keyboard::Keys Key);
+	//static bool IsMouseDown(Keyboard::Keys Key);
+	//static bool IsMouseUp(Keyboard::Keys Key);
 private:
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;

@@ -14,3 +14,9 @@ end
 function TestLogNormal(Text)
 	Engine.Console.LogNormal(Text)
 end
+
+function main()
+							-- Path, Need Find?
+	Engine.Sound.PlayFile("09.08.17", true)
+	Engine.Sound.Play()
+end

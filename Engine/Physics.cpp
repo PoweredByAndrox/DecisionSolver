@@ -247,8 +247,8 @@ void Physics::Simulation(float Timestep)
 PxVec3 Physics::TestLogic(PxRigidDynamic *Obj, shared_ptr<SimpleLogic> Logic)
 {
 	auto P = Obj->getGlobalPose();
-	OutputDebugStringA((boost::format(" Pos: X: %f, Y: %f, Z: %f\n")
-		% P.p.x% P.p.y% P.p.z).str().c_str());
+//	OutputDebugStringA((boost::format(" Pos: X: %f, Y: %f, Z: %f\n")
+//		% P.p.x% P.p.y% P.p.z).str().c_str());
 
 	if (GetAsyncKeyState(VK_NUMPAD5))
 		Logic->follow(Application->getCamera()->GetEyePt());
@@ -257,8 +257,8 @@ PxVec3 Physics::TestLogic(PxRigidDynamic *Obj, shared_ptr<SimpleLogic> Logic)
 	Logic->Update(Done);
 	Obj->setGlobalPose(PxTransform(ToPxVec3(physPos = ConstrainToBoundary(Done,
 		Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f))), PxIdentity));
-	OutputDebugStringA((boost::format(" One more model: X: %f, Y: %f, Z: %f\n")
-		% physPos.x% physPos.y% physPos.z).str().c_str());
+//	OutputDebugStringA((boost::format(" One more model: X: %f, Y: %f, Z: %f\n")
+//		% physPos.x% physPos.y% physPos.z).str().c_str());
 	return Obj->getGlobalPose().p;
 }
 

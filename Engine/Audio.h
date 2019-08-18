@@ -6,39 +6,73 @@
 #include "File_system.h"
 #include <xaudio2.h>
 #include <X3DAudio.h>
-
-constexpr auto fourccRIFF = 'FFIR';
-constexpr auto fourccDATA = 'atad';
-constexpr auto fourccFMT = ' tmf';
-constexpr auto fourccWAVE = 'EVAW';
-constexpr auto fourccXWMA = 'AMWX';
-constexpr auto fourccDPDS = 'sdpd';
+#include <mmsystem.h>
 
 class Audio
 {
 private:
-	struct AudioFile
+	class XAudio2Callback: public IXAudio2VoiceCallback
+	{
+	public:
+		HANDLE handle;
+		XAudio2Callback():
+			handle(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE)) {}
+
+		virtual ~XAudio2Callback()
+		{
+			CloseHandle(handle);
+		}
+		void __stdcall OnStreamEnd() override
+		{
+			SetEvent(handle);
+		}
+		void __stdcall OnBufferStart(void *pBufferContext) override
+		{
+			SetEvent(handle);
+		}
+
+		void __stdcall OnVoiceProcessingPassStart(UINT32 BytesRequired) override {}
+		void __stdcall OnVoiceProcessingPassEnd() override {}
+		void __stdcall OnBufferEnd(void* pBufferContext) override {}
+		void __stdcall OnLoopEnd(void* pBufferContext) override {}
+		void __stdcall OnVoiceError(void* pBufferContext, HRESULT Error) override {}
+	};
+
+	class EngineCallBack: public IXAudio2EngineCallback
+	{
+	public:
+		void __stdcall OnProcessingPassEnd() override {}
+		void __stdcall OnProcessingPassStart() override {}
+		void __stdcall OnCriticalError(HRESULT Error) override {}
+	};
+
+	EngineCallBack engineCallBack;
+
+	class AudioFile
 	{
 	private:
 		WAVEFORMATEXTENSIBLE wfx;
 		XAUDIO2_BUFFER buffer;
-		IXAudio2SourceVoice *source = nullptr;
-		IXAudio2SubmixVoice *SubMix = nullptr;
+		IXAudio2SourceVoice *source;
+		IXAudio2SubmixVoice *SubMix;
 
-		X3DAUDIO_EMITTER Emitter;
-		X3DAUDIO_CONE EmitterCone;
-		X3DAUDIO_DISTANCE_CURVE Emitter_LFE_Curve;
-
-		X3DAUDIO_DSP_SETTINGS DSPSettings;
-		FLOAT32 matrixCoefficients[8];
+		XAudio2Callback voiceCallBack;
 
 		//	WAV Buffer Data!
-		BYTE *pDataBuffer = nullptr;
+		vector<BYTE> pDataBuffer;
+		WAVEFORMATEX WaveFormEx;
+		HMMIO mmio;
+		MMCKINFO riff, fmt, data;
 
-		HRESULT findChunk(HANDLE file, DWORD fourcc, DWORD *ChunkSize, DWORD *ChunkDataPosition);
-		HRESULT readChunkData(HANDLE file, void *buffer, DWORD bufferSize, DWORD bufferOffset);
 		HRESULT loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer);
 	public:
+		AudioFile(string FName, int Channels)
+		{
+			Load(FName, Channels);
+		}
+		AudioFile() {}
+		~AudioFile() {}
+
 		// For std::vector!
 		auto getBUFFER() { return &buffer; }
 		// For std::vector!
@@ -46,8 +80,11 @@ private:
 		// For std::vector!
 		auto getSOURCE() { return source; }
 
+		auto getWaveFormatEx() { return WaveFormEx; }
+
 		HRESULT Load(string FName, int Channels);
-		void Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener, DWORD dwCalcFlags, int Channels);
+		void Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener,
+			X3DAUDIO_EMITTER Emitter, X3DAUDIO_CONE EmitterCone, X3DAUDIO_DSP_SETTINGS DSPSettings, DWORD dwCalcFlags);
 		void Destroy();
 	};
 
@@ -55,33 +92,41 @@ public:
 	HRESULT Init();
 	void Update();
 
-	void doPause();
-	void doResume();
-	void doStop();
-	void doPlay();
+	static void doPause();
+	static void doResume();
+	static void doStop();
+	static void doPlay();
 
 	void ReleaseAudio();
 
-	void changeSoundVol(float Vol);
+	static void changeSoundVol(float Vol);
 	void changeSoundPan(float Pan);
 
 	void changeSoundPos(Vector3 pos) { this->pos = pos; }
 	Vector3 getSoundPosition() { return pos; }
 	Audio() {}
-	~Audio() {}
+	~Audio() { ReleaseAudio(); }
 
 	// ************
 	bool IsInitSoundSystem() { return InitSoundSystem; }
+
+	static void PlayFile(string File, bool NeedFind);
 private:
 	// ************
 	bool InitSoundSystem = false;
 
-	vector<shared_ptr<Audio::AudioFile>> AFiles;
+	static vector<unique_ptr<Audio::AudioFile>> AFiles;
+	static XAUDIO2_VOICE_DETAILS VOICE_Details;
 
 	X3DAUDIO_HANDLE X3DInstance;
 	X3DAUDIO_LISTENER Listener = { XMFLOAT3(0,0,0) };
 	X3DAUDIO_CONE Listener_DirectionalCone;
-	XAUDIO2_VOICE_DETAILS VOICE_Details;
+
+	X3DAUDIO_EMITTER Emitter;
+	X3DAUDIO_CONE EmitterCone;
+	X3DAUDIO_DISTANCE_CURVE Emitter_LFE_Curve;
+
+	X3DAUDIO_DSP_SETTINGS DSPSettings;
 
 	Vector3 pos = Vector3::Zero;
 

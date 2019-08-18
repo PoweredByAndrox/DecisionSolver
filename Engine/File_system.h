@@ -27,7 +27,8 @@ private:
 				Size(Size), TypeOfFile(TypeOfFile) {}
 
 			wstring PathW = L"", ExtW = L"", FileW = L"";
-			string PathA = "", ExtA = "", FileA = "";
+			string PathA = "", // Full Path To Required File
+				ExtA = "", FileA = "";
 
 			size_t Size = 0;
 
@@ -80,6 +81,7 @@ public:
 	auto getLogFName() { return LogFName; }
 
 	auto static GetCurrentPath() { return p; }
+	string static GetCurPath() { return p.string(); }
 
 	auto getAllFiles() { return Files; }
 protected:

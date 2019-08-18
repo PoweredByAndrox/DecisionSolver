@@ -73,15 +73,20 @@ void PhysCamera::Jump::Stop()
 	ForceJump = 0.0f;
 }
 
+//#include "Console.h"
 float PhysCamera::Jump::getHeight(float elapsedTime)
 {
 	if (CanJump)
 		return 0.0f;
 
-	OutputDebugStringA((string("\nJump elapsedTime: ") + to_string(elapsedTime) + string("\n")).c_str());
+	//Console::LogInfo((boost::format("\nJump elapsedTime: %f") % elapsedTime).str().c_str());
 
 	JumpTimes += elapsedTime;
+	//OutputDebugStringA((string("\nJumpTimes: ") + to_string(JumpTimes) + string("\n")).c_str());
+
 	const float Result = (-Application->getPhysics()->getScene()->getGravity().y * -JumpTimes)
 		* JumpTimes*JumpTimes + ForceJump*JumpTimes;
-	return Result;
+	//OutputDebugStringA((string("\nResult: ") + to_string(Result) + string("\n")).c_str());
+
+	return Result * elapsedTime;
 }

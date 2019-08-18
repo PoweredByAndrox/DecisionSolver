@@ -57,8 +57,8 @@ private:
 		vector<Texture> textures;
 
 		ID3D11Buffer *VertexBuffer, *IndexBuffer, *pConstantBuffer;
-		ID3D11VertexShader *pVS;
-		ID3D11PixelShader *pPS;
+		//ID3D11VertexShader *pVS;
+		//ID3D11PixelShader *pPS;
 		Vector3 MinAABB = Vector3::Zero, MaxAABB = Vector3::Zero;
 	};
 	vector<shared_ptr<Mesh>> meshes;

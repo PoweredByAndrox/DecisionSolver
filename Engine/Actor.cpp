@@ -32,10 +32,9 @@ void Actor::Render(float Time)
 
 HRESULT Actor::Init()
 {
-	Application->getCamera()->SetScalers(0.010f, 6.0f);
 	Application->getCamera()->SetCameraControlButtons(false, true, false);
 	Application->getCamera()->SetResetCursorAfterMove(true);
-	Application->getCamera()->SetFreeMoveCam(false);
+	Application->getCamera()->SetFreeMoveCam(true);
 
 	InitClass = true;
 	return S_OK;

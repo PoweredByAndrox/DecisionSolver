@@ -7,7 +7,7 @@
 #include "Audio.h"
 #include "Console.h"
 #include "Physics.h"
-//#include "CLua.h"
+#include "CLua.h"
 #include "Picking.h"
 #include "DebugDraw.h"
 #include "Levels.h"
@@ -29,6 +29,10 @@ DXGI_SWAP_CHAIN_DESC Engine::SCD;
 DXGI_SWAP_CHAIN_DESC1 Engine::SCD1;
 D3D11_TEXTURE2D_DESC Engine::descDepth;
 D3D11_VIEWPORT Engine::vp;
+
+shared_ptr<Mouse> Engine::mouse = make_shared<Mouse>();
+shared_ptr<Keyboard> Engine::keyboard = make_shared<Keyboard>();
+shared_ptr<GamePad> Engine::gamepad = make_shared<GamePad>();
 
 WNDCLASSEXW wnd;
 
@@ -78,8 +82,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		}
 
 #if defined (DEBUG)
-		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 392 /*1024/2-120*/, 160 /*768-608*/,
-			1024, 768, NULL, NULL, hInstance, NULL)))
+		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP,
+			392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
 #else
 		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 0, 0, 1024, 768,
 			NULL, NULL, hInstance, NULL)))
@@ -123,8 +127,9 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
 		{
 			auto m_driverType = driverTypes[driverTypeIndex];
-			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags, featureLevels, numFeatureLevels,
-				D3D11_SDK_VERSION, &Device, &*featureLevel, &DeviceContext);
+			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags,
+				featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &Device, &*featureLevel,
+				&DeviceContext);
 			if (SUCCEEDED(hr))
 				break;
 		}
@@ -175,7 +180,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			// DirectX 11.1 or later
 			hr = Device->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void **>(&Device1));
 			if (SUCCEEDED(hr))
-				DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void **>(&DeviceContext1));
+				DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1),
+					reinterpret_cast<void **>(&DeviceContext1));
 
 			ZeroMemory(&SCD1, sizeof(SCD1));
 			SCD1.Width = WidthWindow;
@@ -188,7 +194,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 
 			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &SCD1, nullptr, nullptr, &SwapChain1);
 			if (SUCCEEDED(hr))
-				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain), reinterpret_cast<void **>(&SwapChain));
+				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain),
+					reinterpret_cast<void **>(&SwapChain));
 
 			SAFE_RELEASE(dxgiFactory2);
 		}
@@ -336,8 +343,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		throw exception(string(string("Engine::Init()->catch() Was Triggered!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 #endif
-		Console::LogError(string(string("Engine: Something is wrong with create Init Function!\nReturn Error Text:")
-			+ Catch.what()).c_str());
+		Console::LogError(string(string("Engine: Something is wrong with create Init Function!\n") +
+			string("Return Error Text: ")) + Catch.what());
 		return hr;
 	}
 
@@ -358,9 +365,9 @@ void Engine::Render()
 	//else
 	//	Timer->SetFixedTimeStep(false);
 
-	//OutputDebugStringA((string("\nframeTime: ") + to_string(frameTime) + string("\n")).c_str());
-
 	fps = float(Timer->GetFramesPerSecond());
+	
+//	Console::LogInfo((boost::format("\nFramTime: %f\nFPS: %f") % frameTime % fps).str().c_str());
 
 	if (Pick.operator bool())
 	{
@@ -419,35 +426,43 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
+//#if defined (NEVER)
 	if (Sound.operator bool())
-		Sound->Update();
+	{
+		if (TrackerKeyboard.pressed.NumPad5)
+			Sound->doPlay();
+		if (TrackerKeyboard.pressed.NumPad6)
+			Sound->doStop();
+		if (TrackerKeyboard.pressed.NumPad7)
+			Sound->doPause();
+	}
+//#endif
 
-	//lua->Update();
+	lua->Update();
 
 	ClearRenderTarget();
 
 	mainActor->Render(frameTime);
 
-#if defined (DEBUG)
 	if (dDraw.operator bool())
 	{
 		if (DrawGrid)
 			dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
 			(Vector4)Colors::Teal);
-
 		if (Sound.operator bool())
 		{
 			BoundingSphere sphere;
+			sphere.Radius = 50.0f;
 			sphere.Center = Sound->getSoundPosition();
 			dDraw->Draw(sphere, (Vector4)Colors::Red);
+			Sound->Update();
 		}
 	}
-#endif
 
 	PhysX->Simulation(frameTime);
 
 #if defined(NEEDED_DEBUG_INFO)
-	Device->QueryInterface(IID_ID3D11Debug, (void **) &debug);
+	Device->QueryInterface(IID_ID3D11Debug, (void **)&debug);
 	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
@@ -477,7 +492,6 @@ void Engine::Render()
 				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.back()->IsClicked())
 					Sound->doPause();
 			}
-
 			Dial1->Render();
 		}
 		auto Dial2 = ui->getDialog("List Of Game Objects");
@@ -615,7 +629,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with Resize Buffers Swap Chain!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text: ") + to_string(hr)));
 		return hr;
 	}
 
@@ -638,7 +652,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with Resize Target Swap Chain!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text:") + to_string(hr)));
 		return hr;
 	}
 
@@ -653,7 +667,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with create Swap Chain!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text:") + to_string(hr)));
 		return hr;
 	}
 
@@ -668,7 +682,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with create Render Target Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text:") + to_string(hr)));
 		return hr;
 	}
 
@@ -686,7 +700,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with create Depth Stencil Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text:") + to_string(hr)));
 		return hr;
 	}
 
@@ -701,7 +715,7 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 			+ to_string(hr)).c_str());
 #endif
 		Console::LogError(string(string("ResizeWindow: Something is wrong with create Depth Stencil Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)).c_str());
+			+ string("Return Error Text:") + to_string(hr)));
 		return hr;
 	}
 
@@ -796,3 +810,34 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
+
+//bool Engine::IsKeyboardDown(Keyboard::Keys Key)
+//{
+//	if (!keyboard.operator bool() && !keyboard->IsConnected())
+//		return false;
+//
+//	return keyboard->GetState().IsKeyDown(Key);
+//}
+//
+//bool Engine::IsKeyboardUp(Keyboard::Keys Key)
+//{
+//	if (!keyboard.operator bool() && !keyboard->IsConnected())
+//		return false;
+//
+//	return keyboard->GetState().IsKeyUp(Key);
+//}
+//bool Engine::IsMouseDown(Keyboard::Keys Key)
+//{
+//	if (!keyboard.operator bool() && !keyboard->IsConnected())
+//		return false;
+//
+//	return keyboard->GetState().IsKeyDown(Key);
+//}
+//
+//bool Engine::IsMouseUp(Keyboard::Keys Key)
+//{
+//	if (!mouse.operator bool() && !mouse->IsConnected())
+//		return false;
+//
+//	return mouse->GetState().(Key);
+//}

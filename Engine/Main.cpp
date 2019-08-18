@@ -21,7 +21,7 @@ shared_ptr<Engine> Application;
 shared_ptr<Actor> mActor;
 #include "Shaders.h"
 
-//#include "CLua.h"
+#include "CLua.h"
 	// winerror.h 
 		//	e.g ERROR_FILE_NOT_FOUND
 
@@ -32,6 +32,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	try
 	{
 		Application = make_shared<Engine>();
+
+		if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
+		{
+#if defined (DEBUG)
+			DebugTrace("wWinMain::CoInitializeEx() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("wWinMain::CoInitializeEx() is failed!!!");
+#endif
+			Console::LogError("CoInitializeEx() is Fail!");
+			return 3;
+		}
 
 		//	// Shader Class!!!
 		Application->setShader(make_shared<Shaders>());
@@ -51,22 +63,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			return 5;
 		}
 
-		if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
-		{
-#if defined (DEBUG)
-			DebugTrace("wWinMain::CoInitializeEx() is failed.");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("wWinMain::CoInitializeEx() is failed!!!");
-#endif
-			Console::LogError("CoInitializeEx() is Fail!");
-			return 3;
-		}
-
 		// ***********
 		// INITIALIZATION ALL THE CLASSES
 
-		//Application->setCLua(make_shared<CLua>());
+		Application->setCLua(make_shared<CLua>());
 
 #if defined (DEBUG)
 		//	// GUI!!!
@@ -92,8 +92,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Application->getConsole()->Init();
 		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
 		Application->getUI()->getDialog("Console")->ChangeSize(
-			Application->getWorkAreaSize(Application->GetHWND()).x, 
-			Application->getWorkAreaSize(Application->GetHWND()).y/3);
+			Application->getWorkAreaSize(Application->GetHWND()).x,
+			Application->getWorkAreaSize(Application->GetHWND()).y / 3);
 #endif
 
 		Application->setPhysics(make_shared<Physics>());
@@ -139,22 +139,22 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 		//	// Audio (Sound) Class!!!
-//		Application->setSound(make_shared<Audio>());
-//		if (FAILED(Application->getSound()->Init()))
-//		{
-//#if defined (DEBUG)
-//			DebugTrace("wWinMain::getSound()->Init() is failed.");
-//#endif
-//#if defined (ExceptionWhenEachError)
-//			throw exception("getSound()->Init() is failed!!!");
-//#endif
-//
-//			Console::LogError("Sound: Something is wrong with Init Sound!");
-//			return 5;
-//		}
+		Application->setSound(make_shared<Audio>());
+		if (FAILED(Application->getSound()->Init()))
+		{
+#if defined (DEBUG)
+			DebugTrace("wWinMain::getSound()->Init() is failed.");
+#endif
+#if defined (ExceptionWhenEachError)
+			throw exception("getSound()->Init() is failed!!!");
+#endif
+
+			Console::LogError("Sound: Something is wrong with Init Sound!");
+			return 5;
+		}
 		//Application->getSound()->changeSoundPos(Vector3::One * 5);
-		
-		//Application->getCLua()->Init();
+
+		Application->getCLua()->Init();
 
 		//	// Debug Draw!!!
 
@@ -178,7 +178,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			return 5;
 		}
 
-		MSG msg = {0};
+		MSG msg = { 0 };
 		while (msg.message != WM_QUIT)
 		{
 			if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -189,15 +189,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			}
 			else
 				Application->getTimer()->Tick([]()
-				{
-					Application->Render();
-				});
+			{
+				Application->Render();
+			});
 		}
 
 		Application->getPhysics()->Destroy();
-
-		if (Application->getSound().operator bool())
-			Application->getSound()->ReleaseAudio();
 
 #if defined (DEBUG)
 		Application->getUI()->Destroy();
@@ -217,7 +214,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		Console::LogError(string(string(");\nThe engine was crashed!\nReturn Error Text:")
 			+ Catch.what()).c_str());
 		MessageBoxA(Application->GetHWND(), string(string(");\nThe engine was crashed with this error message:\n")
-			+ string(Catch.what()) +  string("\nAnd also error code: ") + to_string(GetLastError())).c_str(),
+			+ string(Catch.what()) + string("\nAnd also error code: ") + to_string(GetLastError())).c_str(),
 			Application->getNameWndA().c_str(), MB_OK | MB_ICONERROR);
 	}
 

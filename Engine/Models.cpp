@@ -115,12 +115,6 @@ bool Models::LoadFromAllModels()
 
 void Models::Render(Matrix View, Matrix Proj)
 {
-	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	
-	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
-	Application->getDeviceContext()->VSSetShader(pVS, 0, 0);
-	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
-
 	for (size_t i = 0; i < meshes.size(); i++)
 	{
 		meshes.at(i)->Draw(scale * rotate * position, View, Proj);
@@ -316,9 +310,10 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 aiTextureType Models::getTextureType(string TypeName)
 {
 	if (contains(TypeName, "diffuse"))
-		return aiTextureType::aiTextureType_DIFFUSE;
+		return aiTextureType_DIFFUSE;
 	else if (contains(TypeName, "opacity"))
-		return aiTextureType::aiTextureType_OPACITY;
+		return aiTextureType_OPACITY;
+	return aiTextureType_UNKNOWN;
 }
 
 string Models::determineTextureType(const aiScene *Scene, string TypeName, aiMaterial *mat)
@@ -423,20 +418,32 @@ void Models::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
 	UINT stride = sizeof(Things);
 	UINT offset = 0;
 
+	//1
+	Application->getDeviceContext()->IASetInputLayout(pLayout);
+	//2
+	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
+	//3
+	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//4
+	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//5
+	Application->getDeviceContext()->VSSetShader(pVS, 0, 0);
+	//6
+	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
+
 	Matrix WVP = World * View * Proj;
 	ConstantBuffer cb;
 	cb.mMVP = XMMatrixTranspose(WVP);
 	Application->getDeviceContext()->UpdateSubresource(Matrices, 0, nullptr, &cb, 0, 0);
-
 	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &Matrices);
 
-	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
-	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	//7
+	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
 
 	if (!textures.empty() && textures[0].TextureSHRes)
+		//8
 		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].TextureSHRes);
 
-	Application->getDeviceContext()->IASetInputLayout(pLayout);
 
 	bool WF = Application->IsWireFrame();
 	if (WF)
