@@ -3,51 +3,13 @@
 #define __SOUND_SYSTEM_H__
 #include "pch.h"
 
-#include "File_system.h"
-#include <xaudio2.h>
+#include "DXSDKAudio2.h"
 #include <X3DAudio.h>
 #include <mmsystem.h>
 
 class Audio
 {
 private:
-	class XAudio2Callback: public IXAudio2VoiceCallback
-	{
-	public:
-		HANDLE handle;
-		XAudio2Callback():
-			handle(CreateEventEx(nullptr, nullptr, 0, EVENT_MODIFY_STATE | SYNCHRONIZE)) {}
-
-		virtual ~XAudio2Callback()
-		{
-			CloseHandle(handle);
-		}
-		void __stdcall OnStreamEnd() override
-		{
-			SetEvent(handle);
-		}
-		void __stdcall OnBufferStart(void *pBufferContext) override
-		{
-			SetEvent(handle);
-		}
-
-		void __stdcall OnVoiceProcessingPassStart(UINT32 BytesRequired) override {}
-		void __stdcall OnVoiceProcessingPassEnd() override {}
-		void __stdcall OnBufferEnd(void* pBufferContext) override {}
-		void __stdcall OnLoopEnd(void* pBufferContext) override {}
-		void __stdcall OnVoiceError(void* pBufferContext, HRESULT Error) override {}
-	};
-
-	class EngineCallBack: public IXAudio2EngineCallback
-	{
-	public:
-		void __stdcall OnProcessingPassEnd() override {}
-		void __stdcall OnProcessingPassStart() override {}
-		void __stdcall OnCriticalError(HRESULT Error) override {}
-	};
-
-	EngineCallBack engineCallBack;
-
 	class AudioFile
 	{
 	private:
@@ -55,8 +17,6 @@ private:
 		XAUDIO2_BUFFER buffer;
 		IXAudio2SourceVoice *source;
 		IXAudio2SubmixVoice *SubMix;
-
-		XAudio2Callback voiceCallBack;
 
 		//	WAV Buffer Data!
 		vector<BYTE> pDataBuffer;
@@ -105,7 +65,7 @@ public:
 	void changeSoundPos(Vector3 pos) { this->pos = pos; }
 	Vector3 getSoundPosition() { return pos; }
 	Audio() {}
-	~Audio() { ReleaseAudio(); }
+	~Audio() {}
 
 	// ************
 	bool IsInitSoundSystem() { return InitSoundSystem; }
@@ -117,6 +77,7 @@ private:
 
 	static vector<unique_ptr<Audio::AudioFile>> AFiles;
 	static XAUDIO2_VOICE_DETAILS VOICE_Details;
+	static XAUDIO2_DEVICE_DETAILS DEVICE_Details;
 
 	X3DAUDIO_HANDLE X3DInstance;
 	X3DAUDIO_LISTENER Listener = { XMFLOAT3(0,0,0) };

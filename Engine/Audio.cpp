@@ -15,6 +15,7 @@ XAUDIO2_VOICE_STATE pVoiceState;
 
 vector<unique_ptr<Audio::AudioFile>> Audio::AFiles;
 XAUDIO2_VOICE_DETAILS Audio::VOICE_Details;
+XAUDIO2_DEVICE_DETAILS Audio::DEVICE_Details;
 
 HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
 {
@@ -102,8 +103,7 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 
 	EngineTrace(loadWAVFile(FName, wfx, buffer));
 
-	EngineTrace(audio->CreateSourceVoice(&source, &WaveFormEx, 0u,
-		2.0f, &voiceCallBack));
+	EngineTrace(audio->CreateSourceVoice(&source, &WaveFormEx));
 
 	source->Stop();
 	source->FlushSourceBuffers();
@@ -117,11 +117,7 @@ void Audio::AudioFile::Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO
 	source->SetOutputMatrix(NULL, DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount, DSPSettings.pMatrixCoefficients);
 	source->SetFrequencyRatio(DSPSettings.DopplerFactor);
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_WIN8)
 	source->GetState(&pVoiceState);
-#else
-	source->GetState(&xstate);
-#endif
 }
 HRESULT Audio::Init()
 {
@@ -131,37 +127,21 @@ HRESULT Audio::Init()
 	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
 	SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
-	EngineTrace(XAudio2Create(&audio, XAUDIO2_STOP_ENGINE_WHEN_IDLE | XAUDIO2_1024_QUANTUM));
 
-#if defined (NEVER)
-	XAUDIO2_DEBUG_CONFIGURATION debug = { 0 };
-	debug.TraceMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_MEMORY |
-		XAUDIO2_LOG_INFO | XAUDIO2_LOG_DETAIL | XAUDIO2_LOG_API_CALLS |
-		XAUDIO2_LOG_TIMING | XAUDIO2_LOG_LOCKS | XAUDIO2_LOG_MEMORY | XAUDIO2_LOG_STREAMING;
-	debug.BreakMask = XAUDIO2_LOG_ERRORS | XAUDIO2_LOG_WARNINGS | XAUDIO2_LOG_MEMORY |
-		XAUDIO2_LOG_INFO | XAUDIO2_LOG_DETAIL | XAUDIO2_LOG_API_CALLS |
-		XAUDIO2_LOG_TIMING | XAUDIO2_LOG_LOCKS | XAUDIO2_LOG_MEMORY | XAUDIO2_LOG_STREAMING;
-	debug.LogFileline = true;
-	debug.LogFunctionName = true;
-	debug.LogThreadID = true;
-	debug.LogTiming = true;
-	audio->SetDebugConfiguration(&debug, 0);
-#endif
+	EngineTrace(XAudio2Create(&audio));
 
-	DWORD dwChannelMask = 0ul;
 	EngineTrace(audio->CreateMasteringVoice(&master));
 
 	master->GetVoiceDetails(&VOICE_Details);
-	EngineTrace(master->GetChannelMask(&dwChannelMask));
-	X3DAudioInitialize(dwChannelMask, X3DAUDIO_SPEED_OF_SOUND, X3DInstance);
+	audio->GetDeviceDetails(0, &DEVICE_Details);
+
+	X3DAudioInitialize(DEVICE_Details.OutputFormat.dwChannelMask, X3DAUDIO_SPEED_OF_SOUND, X3DInstance);
 
 	auto SoundFiles = Application->getFS()->GetFileByType(_TypeOfFile::SOUNDS);
 	for (size_t i = 0; i < SoundFiles.size(); i++)
 	{
 		AFiles.push_back(make_unique<AudioFile>(SoundFiles.at(i)->PathA, VOICE_Details.InputChannels));
 	}
-
-	audio->RegisterForCallbacks(&engineCallBack);
 
 	Listener_DirectionalCone.InnerAngle = X3DAUDIO_PI * 5.0f / 6.0f;
 	Listener_DirectionalCone.OuterAngle = X3DAUDIO_PI * 11.0f / 6.0f;
@@ -263,7 +243,6 @@ void Audio::AudioFile::Destroy()
 void Audio::ReleaseAudio()
 {
 	SAFE_DELETE(DSPSettings.pMatrixCoefficients);
-	audio->UnregisterForCallbacks(&engineCallBack);
 
 	doStop();
 	for (size_t i = 0; i < AFiles.size(); i++)
@@ -287,6 +266,7 @@ void Audio::ReleaseAudio()
 		audio->StopEngine();
 		audio = nullptr;
 	}
+
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
 	SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
 	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));

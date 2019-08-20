@@ -65,30 +65,21 @@ using namespace tinyxml2;
 	#define SAFE_release(p) { if (p) { (p)->release(); (p) = nullptr; } }
 #endif
 
-#if defined (DEBUG)
-	#if !defined (EngineTrace)
-		#define EngineTrace(x) \
+#if !defined (EngineTrace)
+	#define EngineTrace(x) \
 { \
 	HRESULT hr = (x); \
 	if (FAILED(hr)) \
 		return DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
 } 
-	#endif
-	#if !defined (V_RETURN)
-		#define V_RETURN(x) \
+#endif
+#if !defined (V_RETURN)
+	#define V_RETURN(x) \
 { \
 	HRESULT hr = (x); \
 	if (FAILED(hr)) \
 		return DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
 }
-	#endif
-#else
-	#if !defined (EngineTrace)
-		#define EngineTrace(x) { HRESULT hr = (x); }
-	#endif
-	#if !defined (V_RETURN)
-		#define V_RETURN(x) { HRESULT hr = (x); if (FAILED(hr)) { return hr; } }
-	#endif
 #endif
 
 bool FindSubStr(wstring context, wstring const from);

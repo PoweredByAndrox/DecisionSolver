@@ -199,6 +199,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 #if defined (DEBUG)
 		Application->getUI()->Destroy();
 #endif
+		Application->getSound()->ReleaseAudio();
 		Application->Destroy();
 	}
 	catch (const exception &Catch)
