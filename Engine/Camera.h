@@ -17,6 +17,8 @@ public:
 	virtual void SetViewParams(Vector3 vEyePt, Vector3 vLookatPt);
 	virtual void SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane);
 
+	void Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx = true);
+
 	void SetFreeMoveCam(bool FreeMove) { FreeCamMove = FreeMove; m_bEnableYAxisMovement = true; }
 
 	// Functions to change behavior

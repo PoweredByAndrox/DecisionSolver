@@ -11,6 +11,7 @@
 #include "Picking.h"
 #include "DebugDraw.h"
 #include "Levels.h"
+#include "CutScene.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -53,301 +54,237 @@ bool DrawGrid = true, DrawCamSphere;
 
 HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 {
-	try
+	this->hInstance = hInstance;
+	ZeroMemory(&wnd, sizeof(WNDCLASSEXW));
+	wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
+	wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
+	wnd.hInstance = hInstance;
+	wnd.hIcon = LoadIconW(hInstance, (LPCWSTR)IDI_ICON1);
+	wnd.hIconSm = wnd.hIcon;
+	wnd.hCursor = LoadCursorW(hInstance, IDC_ARROW);
+	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wnd.lpszClassName = L"WND_ENGINE";
+	wnd.cbSize = sizeof(WNDCLASSEXW);
+
+	if (!::RegisterClassExW(&wnd))
 	{
-		this->hInstance = hInstance;
-		wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
-		wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
-		wnd.cbClsExtra = 0;
-		wnd.cbWndExtra = 0;
-		wnd.hInstance = hInstance;
-		wnd.hIcon = LoadIconW(hInstance, IDI_WINLOGO);
-		wnd.hIconSm = wnd.hIcon;
-		wnd.hCursor = LoadCursorW(hInstance, IDC_ARROW);
-		wnd.hbrBackground = (HBRUSH)nullptr;
-		wnd.lpszMenuName = L"";
-		wnd.lpszClassName = L"WND_ENGINE";
-		wnd.cbSize = sizeof(WNDCLASSEXW);
-
-		if (!RegisterClassExW(&wnd))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->RegisterClassEx() Init is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->RegisterClassEx() Init is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create the main window class!");
-			return E_FAIL;
-		}
-
-#if defined (DEBUG)
-		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP,
-			392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
-#else
-		if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP, 0, 0, 1024, 768,
-			NULL, NULL, hInstance, NULL)))
-#endif
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->CreateWindow() Init is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->CreateWindow() Init is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create the main window!");
-			return E_FAIL;
-		}
-
-		this->NameWnd = NameWnd;
-		ClassWND = wnd.lpszClassName;
-
-		UINT createDeviceFlags = 0;
-#if defined (DEBUG)
-		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-		D3D_DRIVER_TYPE driverTypes[] =
-		{
-			D3D_DRIVER_TYPE_HARDWARE,
-			D3D_DRIVER_TYPE_WARP,
-			D3D_DRIVER_TYPE_REFERENCE,
-		};
-		UINT numDriverTypes = ARRAYSIZE(driverTypes);
-
-		D3D_FEATURE_LEVEL featureLevels[] =
-		{
-			D3D_FEATURE_LEVEL_11_1,
-			D3D_FEATURE_LEVEL_11_0,
-			D3D_FEATURE_LEVEL_10_1,
-			D3D_FEATURE_LEVEL_10_0,
-		};
-		UINT numFeatureLevels = ARRAYSIZE(featureLevels);
-
-		for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
-		{
-			auto m_driverType = driverTypes[driverTypeIndex];
-			hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags,
-				featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &Device, &*featureLevel,
-				&DeviceContext);
-			if (SUCCEEDED(hr))
-				break;
-		}
-		if (FAILED(hr))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->D3D11CreateDeviceAndSwapChain() Init is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->D3D11CreateDeviceAndSwapChain() Init is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Device And Swap Chain Buffer!");
-			return hr;
-		}
-
-		Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality);
-
-		IDXGIDevice *dxgiDevice = nullptr;
-		hr = Device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
-		if (SUCCEEDED(hr))
-		{
-			IDXGIAdapter *adapter = nullptr;
-			hr = dxgiDevice->GetAdapter(&adapter);
-			if (SUCCEEDED(hr))
-			{
-				hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(&dxgiFactory));
-				SAFE_RELEASE(adapter);
-			}
-			SAFE_RELEASE(dxgiDevice);
-		}
-		else
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->DXGI Factory couldn't be obtained!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->DXGI Factory couldn't be obtained!");
-#endif
-			Console::LogError("Engine::Init->DXGI Factory couldn't be obtained!");
-			return hr;
-		}
-
-		UINT WidthWindow = getWorkAreaSize(hwnd).x, HeightWindow = getWorkAreaSize(hwnd).y;
-
-		hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void **>(&dxgiFactory2));
-		if (dxgiFactory2)
-		{
-			// DirectX 11.1 or later
-			hr = Device->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void **>(&Device1));
-			if (SUCCEEDED(hr))
-				DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1),
-					reinterpret_cast<void **>(&DeviceContext1));
-
-			ZeroMemory(&SCD1, sizeof(SCD1));
-			SCD1.Width = WidthWindow;
-			SCD1.Height = HeightWindow;
-			SCD1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			SCD1.SampleDesc.Count = 4;
-			SCD1.SampleDesc.Quality = m4xMsaaQuality - 1;
-			SCD1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			SCD1.BufferCount = 1;
-
-			hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &SCD1, nullptr, nullptr, &SwapChain1);
-			if (SUCCEEDED(hr))
-				hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain),
-					reinterpret_cast<void **>(&SwapChain));
-
-			SAFE_RELEASE(dxgiFactory2);
-		}
-		else
-		{
-			// DirectX 11.0 systems
-			ZeroMemory(&SCD, sizeof(SCD));
-			SCD.BufferCount = 1;
-			SCD.BufferDesc.Width = WidthWindow;
-			SCD.BufferDesc.Height = HeightWindow;
-			SCD.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			SCD.BufferDesc.RefreshRate.Numerator = 60;
-			SCD.BufferDesc.RefreshRate.Denominator = 1;
-			SCD.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			SCD.OutputWindow = hwnd;
-			SCD.SampleDesc.Count = 1;
-			SCD.SampleDesc.Quality = m4xMsaaQuality - 1;
-			SCD.Windowed = true;
-
-			hr = dxgiFactory->CreateSwapChain(Device, &SCD, &SwapChain);
-		}
-
-		ID3D11Texture2D *pBackBuffer = nullptr;
-		if (FAILED(hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer)))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->GetBuffer() Get is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->GetBuffer() Get is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Back Buffer!");
-			return hr;
-		}
-
-		if (FAILED(hr = Device->CreateRenderTargetView(pBackBuffer, NULL, &RenderTargetView)))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->CreateRenderTargetView() Init is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->CreateRenderTargetView() Init is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Render Target View Buffer!");
-			return hr;
-		}
-		SAFE_RELEASE(pBackBuffer);
-
-		ZeroMemory(&descDepth, sizeof(descDepth));
-		descDepth.Width = WidthWindow;
-		descDepth.Height = HeightWindow;
-		descDepth.MipLevels = 1;
-		descDepth.ArraySize = 1;
-		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		descDepth.SampleDesc.Count = 4;
-		descDepth.SampleDesc.Quality = m4xMsaaQuality - 1;
-		descDepth.Usage = D3D11_USAGE_DEFAULT;
-		descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		descDepth.CPUAccessFlags = 0;
-		descDepth.MiscFlags = 0;
-
-		if (FAILED(hr = Device->CreateTexture2D(&descDepth, NULL, &DepthStencil)))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->CreateTexture2D() Get is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->CreateTexture2D() Get is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Deph Stencil Buffer!");
-			return hr;
-		}
-
-		ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
-		depthStencilDesc.DepthEnable = true;
-		depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-		depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
-		depthStencilDesc.StencilEnable = true;
-		depthStencilDesc.StencilReadMask = 0xFF;
-		depthStencilDesc.StencilWriteMask = 0xFF;
-		depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-		depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-		depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-		depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-		depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-		if (FAILED(hr = Device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState)))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->CreateDepthStencilState() Get is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->CreateDepthStencilState() Get is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Deph Stencil State Buffer!");
-			return hr;
-		}
-		DeviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
-
-
-		ZeroMemory(&descDSV, sizeof(descDSV));
-		descDSV.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
-		descDSV.Texture2D.MipSlice = 0;
-
-		if (FAILED(hr = Device->CreateDepthStencilView(DepthStencil, &descDSV, &DepthStencilView)))
-		{
-#if defined (DEBUG)
-			DebugTrace("Engine::Init->CreateDepthStencilView() Init is failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Engine::Init->CreateDepthStencilView() Init is failed!");
-#endif
-			Console::LogError("Engine: Something is wrong with create Deph Stencil Buffer!");
-			return hr;
-		}
-
-		DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
-
-		auto WF = Render_Buffer::CreateWF();
-		RsWF = WF.at(0);
-		RsNoWF = WF.at(1);
-
-		vp.Width = (float)WidthWindow;
-		vp.Height = (float)HeightWindow;
-		vp.MinDepth = 0.0f;
-		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = 0;
-		vp.TopLeftY = 0;
-		DeviceContext->RSSetViewports(1, &vp);
-
-		ShowWindow(hwnd, SW_SHOW);
-		UpdateWindow(hwnd);
+		LogError("Engine::Init->RegisterClassEx() Init is failed!",
+			"Engine::Init->RegisterClassEx() Init is failed!",
+			"Engine: Something is wrong with create the main window class!");
+		return E_FAIL;
 	}
-	catch (const exception &Catch)
+	if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP,
+		392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
+
+		//if (!(hwnd = ::CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE
+		//	| WS_POPUP, 0, 0, 1024, 768, nullptr, nullptr, hInstance, nullptr)))
 	{
+		LogError("Engine::Init->CreateWindow() Init is failed!",
+			"Engine::Init->CreateWindow() Init is failed!",
+			"Engine: Something is wrong with create the main window!");
+		return E_FAIL;
+	}
+
+	this->NameWnd = NameWnd;
+	ClassWND = wnd.lpszClassName;
+
+	UINT createDeviceFlags = 0;
 #if defined (DEBUG)
-		DebugTrace(string(string("Engine::Init()->catch() Was Triggered!\nReturn Error Text:")
-			+ Catch.what()).c_str());
+	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("Engine::Init()->catch() Was Triggered!\nReturn Error Text:")
-			+ Catch.what()).c_str());
-#endif
-		Console::LogError(string(string("Engine: Something is wrong with create Init Function!\n") +
-			string("Return Error Text: ")) + Catch.what());
+
+	D3D_DRIVER_TYPE driverTypes[] =
+	{
+		D3D_DRIVER_TYPE_HARDWARE,
+		D3D_DRIVER_TYPE_WARP,
+		D3D_DRIVER_TYPE_REFERENCE,
+	};
+	UINT numDriverTypes = ARRAYSIZE(driverTypes);
+
+	D3D_FEATURE_LEVEL featureLevels[] =
+	{
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
+
+	for (UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++)
+	{
+		auto m_driverType = driverTypes[driverTypeIndex];
+		hr = D3D11CreateDevice(nullptr, m_driverType, nullptr, createDeviceFlags,
+			featureLevels, numFeatureLevels, D3D11_SDK_VERSION, &Device, &*featureLevel,
+			&DeviceContext);
+		if (SUCCEEDED(hr))
+			break;
+	}
+	if (FAILED(hr))
+	{
+		LogError("Engine::Init->D3D11CreateDeviceAndSwapChain() Init is failed!",
+			"Engine::Init->D3D11CreateDeviceAndSwapChain() Init is failed!",
+			"Engine: Something is wrong with create Device And Swap Chain Buffer!");
 		return hr;
 	}
 
+	Device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m4xMsaaQuality);
+
+	IDXGIDevice *dxgiDevice = nullptr;
+	hr = Device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void **>(&dxgiDevice));
+	if (SUCCEEDED(hr))
+	{
+		IDXGIAdapter *adapter = nullptr;
+		hr = dxgiDevice->GetAdapter(&adapter);
+		if (SUCCEEDED(hr))
+		{
+			hr = adapter->GetParent(__uuidof(IDXGIFactory1), reinterpret_cast<void **>(&dxgiFactory));
+			SAFE_RELEASE(adapter);
+		}
+		SAFE_RELEASE(dxgiDevice);
+	}
+	else
+	{
+		LogError("Engine::Init->DXGI Factory couldn't be obtained!",
+			"Engine::Init->DXGI Factory couldn't be obtained!",
+			"Engine::Init->DXGI Factory couldn't be obtained!");
+		return hr;
+	}
+
+	UINT WidthWindow = getWorkAreaSize(hwnd).x, HeightWindow = getWorkAreaSize(hwnd).y;
+
+	hr = dxgiFactory->QueryInterface(__uuidof(IDXGIFactory2), reinterpret_cast<void **>(&dxgiFactory2));
+	if (dxgiFactory2)
+	{
+		// DirectX 11.1 or later
+		hr = Device->QueryInterface(__uuidof(ID3D11Device1), reinterpret_cast<void **>(&Device1));
+		if (SUCCEEDED(hr))
+			DeviceContext->QueryInterface(__uuidof(ID3D11DeviceContext1),
+				reinterpret_cast<void **>(&DeviceContext1));
+
+		ZeroMemory(&SCD1, sizeof(SCD1));
+		SCD1.Width = WidthWindow;
+		SCD1.Height = HeightWindow;
+		SCD1.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		SCD1.SampleDesc.Count = 4;
+		SCD1.SampleDesc.Quality = m4xMsaaQuality - 1;
+		SCD1.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		SCD1.BufferCount = 1;
+
+		hr = dxgiFactory2->CreateSwapChainForHwnd(Device, hwnd, &SCD1, nullptr, nullptr, &SwapChain1);
+		if (SUCCEEDED(hr))
+			hr = SwapChain1->QueryInterface(__uuidof(IDXGISwapChain),
+				reinterpret_cast<void **>(&SwapChain));
+
+		SAFE_RELEASE(dxgiFactory2);
+	}
+	else
+	{
+		// DirectX 11.0 systems
+		ZeroMemory(&SCD, sizeof(SCD));
+		SCD.BufferCount = 1;
+		SCD.BufferDesc.Width = WidthWindow;
+		SCD.BufferDesc.Height = HeightWindow;
+		SCD.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		SCD.BufferDesc.RefreshRate.Numerator = 60;
+		SCD.BufferDesc.RefreshRate.Denominator = 1;
+		SCD.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		SCD.OutputWindow = hwnd;
+		SCD.SampleDesc.Count = 1;
+		SCD.SampleDesc.Quality = m4xMsaaQuality - 1;
+		SCD.Windowed = true;
+
+		hr = dxgiFactory->CreateSwapChain(Device, &SCD, &SwapChain);
+	}
+
+	ID3D11Texture2D *pBackBuffer = nullptr;
+	if (FAILED(hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&pBackBuffer)))
+	{
+		LogError("Engine::Init->GetBuffer() Get is failed!", "Engine::Init->GetBuffer() Get is failed!",
+			"Engine: Something is wrong with create Back Buffer!");
+		return hr;
+	}
+
+	if (FAILED(hr = Device->CreateRenderTargetView(pBackBuffer, nullptr, &RenderTargetView)))
+	{
+		LogError("Engine::Init->CreateRenderTargetView() Init is failed!",
+			"Engine::Init->CreateRenderTargetView() Init is failed!",
+			"Engine: Something is wrong with create Render Target View Buffer!");
+		return hr;
+	}
+	SAFE_RELEASE(pBackBuffer);
+
+	ZeroMemory(&descDepth, sizeof(descDepth));
+	descDepth.Width = WidthWindow;
+	descDepth.Height = HeightWindow;
+	descDepth.MipLevels = 1;
+	descDepth.ArraySize = 1;
+	descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	descDepth.SampleDesc.Count = 4;
+	descDepth.SampleDesc.Quality = m4xMsaaQuality - 1;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+	if (FAILED(hr = Device->CreateTexture2D(&descDepth, nullptr, &DepthStencil)))
+	{
+		LogError("Engine::Init->CreateTexture2D() Get is failed!",
+			"Engine::Init->CreateTexture2D() Get is failed!",
+			"Engine: Something is wrong with create Deph Stencil Buffer!");
+		return hr;
+	}
+
+	ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
+	depthStencilDesc.DepthEnable = true;
+	depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	depthStencilDesc.StencilEnable = true;
+	depthStencilDesc.StencilReadMask = 0xFF;
+	depthStencilDesc.StencilWriteMask = 0xFF;
+	depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
+	depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
+	depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+
+	if (FAILED(hr = Device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState)))
+	{
+		LogError("Engine::Init->CreateDepthStencilState() Get is failed!",
+			"Engine::Init->CreateDepthStencilState() Get is failed!",
+			"Engine: Something is wrong with create Deph Stencil State Buffer!");
+		return hr;
+	}
+	DeviceContext->OMSetDepthStencilState(m_depthStencilState, 1);
+
+	ZeroMemory(&descDSV, sizeof(descDSV));
+	descDSV.Format = descDepth.Format;
+	descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+
+	if (FAILED(hr = Device->CreateDepthStencilView(DepthStencil, &descDSV, &DepthStencilView)))
+	{
+		LogError("Engine::Init->CreateDepthStencilView() Init is failed!",
+			"Engine::Init->CreateDepthStencilView() Init is failed!",
+			"Engine: Something is wrong with create Deph Stencil Buffer!");
+		return hr;
+	}
+
+	DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+
+	auto WF = Render_Buffer::CreateWF();
+	RsWF = WF.at(0);
+	RsNoWF = WF.at(1);
+
+	vp.Width = (float)WidthWindow;
+	vp.Height = (float)HeightWindow;
+	vp.MinDepth = 0.0f;
+	vp.MaxDepth = 1.0f;
+	vp.TopLeftX = 0;
+	vp.TopLeftY = 0;
+	DeviceContext->RSSetViewports(1, &vp);
+
+	::ShowWindow(hwnd, SW_SHOW);
+	::UpdateWindow(hwnd);
 	return S_OK;
 }
 
@@ -395,7 +332,10 @@ void Engine::Render()
 
 		if (TrackerKeyboard.pressed.F3)
 			if (IsSimulation)
+			{
 				IsSimulation = false;
+				CScene->Pause();
+			}
 			else
 				IsSimulation = true;
 
@@ -418,7 +358,10 @@ void Engine::Render()
 			if (DrawCamSphere)
 				DrawCamSphere = false;
 			else
+			{
+				CScene->Start();
 				DrawCamSphere = true;
+			}
 	}
 	else if (gamepad->GetState(0).IsConnected())
 	{
@@ -426,7 +369,6 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
-//#if defined (NEVER)
 	if (Sound.operator bool())
 	{
 		if (TrackerKeyboard.pressed.NumPad5)
@@ -436,13 +378,14 @@ void Engine::Render()
 		if (TrackerKeyboard.pressed.NumPad7)
 			Sound->doPause();
 	}
-//#endif
 
 	lua->Update();
 
 	ClearRenderTarget();
 
 	mainActor->Render(frameTime);
+
+	CScene->Update();
 
 	if (dDraw.operator bool())
 	{
@@ -472,31 +415,67 @@ void Engine::Render()
 #if defined (DEBUG)
 	if (ui.operator bool())
 	{
+		::ShowCursor(false);
+
 		ui->Begin();
 
-		auto Dial1 = ui->getDialog("Main");
+		auto Dial1 = ui->getDialog("SDKDIAL");
 		if (Dial1.operator bool() && !Dial1->GetTitle().empty())
 		{
-			float CamPos[3] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
+			float CamPos[] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
 			Dial1->getComponents()->Label.front()->ChangeText(string((boost::format(
-				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\nIs Simulation PhysX : %b\n") +
-				string("Resolution Window: W:%f, H:%f")) % fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
-				getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y).str()));
+				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"\
+					"Is Simulation PhysX : %b\nResolution Window: W:%f, H:%f\nFrameTime:%f"))
+				% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
+				getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y % frameTime).str()));
 
+			auto Comp = Dial1->getComponents()->CollpsHeader.back()->getComponent();
 			if (Sound.operator bool())
 			{
-				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.front()->IsClicked())
+				if (Comp->Btn.front()->IsClicked())
+				{
+					Sound->PlayFile(Comp->combo.back()->GetSelect(), true);
 					Sound->doPlay();
-				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.at(1)->IsClicked())
+				}
+				if (Comp->Btn.at(1)->IsClicked())
 					Sound->doStop();
-				if (Dial1->getComponents()->CollpsHeader.back()->getComponent()->Btn.back()->IsClicked())
+				if (Comp->Btn.back()->IsClicked())
 					Sound->doPause();
+			}
+
+			if (Comp->combo.back()->IsMouseSelected())
+			{
+				Comp->combo.back()->ClearItems();
+				FS->RescanFiles(_TypeOfFile::SOUNDS);
+				auto SoundFiles = FS->GetFileByType(_TypeOfFile::SOUNDS);
+
+				for (size_t i = 0; i < SoundFiles.size(); i++)
+				{
+					string FNameWithoutExt = SoundFiles.at(i)->FileA;
+					deleteWord(FNameWithoutExt, SoundFiles.at(i)->ExtA);
+					Comp->combo.back()->AddItem(FNameWithoutExt);
+				}
 			}
 			Dial1->Render();
 		}
+		ToDo("PBAX: Reformat It ASs soon as possible (XD)")
 		auto Dial2 = ui->getDialog("List Of Game Objects");
 		if (Dial2.operator bool() && !Dial2->GetTitle().empty())
+		{
+			auto Comp = Dial2->getComponents();
+			auto Tab_Comp = Comp->Tabs.back()->getComponent().back();
+			if (strcmp(Comp->Btn.at(0)->GetText(), "Spawn a Phys Cube") == 0 && Comp->Btn.at(0)->IsClicked())
+			{
+				PhysX->SpawnObject();
+			//	Tab_Comp->TabItemComp.back()->selectable.push_back(make_shared<Selectable>());
+			//	Tab_Comp->TabItemComp.back()->selectable.back()->ChangeID((string("Obj#") +
+			//		to_string(PhysX->GetPhysDynamicObject().size())).c_str());
+			}
+			if (strcmp(Comp->Btn.at(1)->GetText(), "Clear a Phys Cube") == 0 && Comp->Btn.at(1)->IsClicked())
+				PhysX->ClearAllObj();
+
 			Dial2->Render();
+		}
 
 		if (ui->getDialog("Console").operator bool() && !ui->getDialog("Console")->GetTitle().empty())
 			console->Render();
@@ -506,6 +485,20 @@ void Engine::Render()
 #endif
 
 	SwapChain->Present(0, 0);
+}
+
+void Engine::LogError(string DebugText, string ExceptionText, string LogText)
+{
+#if defined (DEBUG)
+	if (!DebugText.empty())
+		DebugTrace(DebugText.c_str());
+#endif
+#if defined (ExceptionWhenEachError)
+	if (!ExceptionText.empty())
+		throw exception(ExceptionText.c_str());
+#endif
+	if (!LogText.empty())
+		Console::LogError(LogText.c_str());
 }
 
 void Engine::Destroy()
@@ -538,13 +531,8 @@ ID3D11Device *Engine::getDevice()
 		return Device;
 	else
 	{
-#if defined (DEBUG)
-		DebugTrace("Engine::GetDevice() Get is failed");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("GetDevice() Get is failed!!!");
-#endif
-		Console::LogError("Engine: Error with get Main Device Context! Maybe You Forgotten To Create Main Device?");
+		LogError("Engine::GetDevice() Get is failed", "GetDevice() Get is failed!!!", 
+			"Engine: Error with get Main Device Context! Maybe You Forgotten To Create Main Device?");
 		return nullptr;
 	}
 }
@@ -554,13 +542,8 @@ ID3D11DeviceContext *Engine::getDeviceContext()
 		return DeviceContext;
 	else
 	{
-#if defined (DEBUG)
-		DebugTrace("Engine::GetDeviceContext() Get is failed");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("GetDeviceContext() Get is failed!!!");
-#endif
-		Console::LogError("Engine: Error with get Device Context! Maybe You Forgotten To Create Devices?");
+		LogError("Engine::GetDeviceContext() Get is failed", "GetDeviceContext() Get is failed!!!",
+			"Engine: Error with get Device Context! Maybe You Forgotten To Create Devices?");
 		return nullptr;
 	}
 }
@@ -571,13 +554,8 @@ IDXGISwapChain *Engine::getSwapChain()
 		return SwapChain;
 	else
 	{
-#if defined (DEBUG)
-		DebugTrace("Engine::GetSwapChain() Get is failed");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("GetSwapChain() Get is failed!!!");
-#endif
-		Console::LogError("Engine: Error with get Swap Chain Buffer! Maybe You Forgotten To Create Devices?");
+		LogError("Engine::GetSwapChain() Get is failed", "GetSwapChain() Get is failed!!!",
+			"Engine: Error with get Swap Chain Buffer! Maybe You Forgotten To Create Devices?");
 		return nullptr;
 	}
 }
@@ -588,15 +566,16 @@ ID3D11RenderTargetView *Engine::getTargetView()
 		return RenderTargetView;
 	else
 	{
-#if defined (DEBUG)
-		DebugTrace("Engine::GetTargetView() Get is failed");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("GetTargetView() Get is failed!!!");
-#endif
-		Console::LogError("Engine: Error with get Target View Buffer! Maybe You Forgotten To Create Devices?");
+		LogError("Engine::GetTargetView() Get is failed", "GetTargetView() Get is failed!!!",
+			"Engine: Error with get Target View Buffer! Maybe You Forgotten To Create Devices?");
 		return nullptr;
 	}
+}
+
+void Engine::ClearRenderTarget()
+{
+	DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
+	DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 HRESULT Engine::ResizeWindow(WPARAM wParam)
@@ -620,16 +599,13 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 		SCD.BufferDesc.Height, SCD.BufferDesc.Format,
 		SCD.Flags)))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->ResizeBuffers() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->ResizeBuffers() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with Resize Buffers Swap Chain!\n")
-			+ string("Return Error Text: ") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->ResizeBuffers() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->ResizeBuffers() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with Resize Buffers Swap Chain!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
@@ -643,46 +619,37 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = SwapChain->ResizeTarget(&md)))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->ResizeTarget() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->ResizeTarget() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with Resize Target Swap Chain!\n")
-			+ string("Return Error Text:") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->ResizeTarget() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->ResizeTarget() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with Resize Target Swap Chain!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
 	if (FAILED(hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&pBackBuffer))))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->GetBuffer() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->GetBuffer() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with create Swap Chain!\n")
-			+ string("Return Error Text:") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->GetBuffer() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->GetBuffer() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with create Target Swap Chain!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
 	if (FAILED(hr = Device->CreateRenderTargetView(pBackBuffer, 0, &RenderTargetView)))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->CreateRenderTargetView() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->CreateRenderTargetView() Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with create Render Target Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->CreateRenderTargetView() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->CreateRenderTargetView() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with create Render Target Buffer!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
@@ -691,38 +658,32 @@ HRESULT Engine::ResizeWindow(WPARAM wParam)
 
 	if (FAILED(hr = Device->CreateTexture2D(&descDepth, 0, &DepthStencil)))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->CreateTexture2D() Get Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->CreateTexture2D() Get Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with create Depth Stencil Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->CreateTexture2D() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->CreateTexture2D() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with create Depth Stencil Buffer!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
 	if (FAILED(hr = Device->CreateDepthStencilView(DepthStencil, 0, &DepthStencilView)))
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("ResizeWindow()->CreateDepthStencilView() Init Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("ResizeWindow()->CreateDepthStencilView() Init Is Failed!\nReturn Error Text:")
-			+ to_string(hr)).c_str());
-#endif
-		Console::LogError(string(string("ResizeWindow: Something is wrong with create Depth Stencil Buffer!\n")
-			+ string("Return Error Text:") + to_string(hr)));
+		LogError((boost::format("ResizeWindow()->CreateDepthStencilView() Is Failed!\nReturn Error Text: %s")
+			% to_string(hr)).str(),
+			(boost::format("ResizeWindow()->CreateDepthStencilView() Is Failed!\nReturn Error Text: %s")
+				% to_string(hr)).str(),
+				(boost::format("ResizeWindow: Something is wrong with create View Depth Stencil Buffer!\n"\
+					"Return Error Text: %s")
+					% to_string(hr)).str());
 		return hr;
 	}
 
 	DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
 
-	vp.Width = (float)getWorkAreaSize(GetHWND()).x;
-	vp.Height = (float)getWorkAreaSize(GetHWND()).y;
+	vp.Width = (float)getWorkAreaSize(hwnd).x;
+	vp.Height = (float)getWorkAreaSize(hwnd).y;
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
@@ -772,13 +733,13 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		if (uMsg != WM_DESTROY && Application->getUI().operator bool())
 		{
-			ThrowIfFailed(ResizeWindow(wParam));
+			ResizeWindow(wParam);
 			UI::ResizeWnd();
 		}
-		break;
+	break;
 
 	case WM_DESTROY:
-		::PostQuitMessage(0);
+		Quit();
 		break;
 
 	case WM_INPUT:
@@ -794,7 +755,7 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_XBUTTONUP:
 	case WM_MOUSEHOVER:
 		Mouse::ProcessMessage(uMsg, wParam, lParam);
-		break;
+	break;
 
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
@@ -805,12 +766,15 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_SYSCOMMAND:
 		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-		break;
+			break;
+	default:
+		return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+	return true;
 }
 
+//	Work with LUA Scripts (now don't work)
 //bool Engine::IsKeyboardDown(Keyboard::Keys Key)
 //{
 //	if (!keyboard.operator bool() && !keyboard->IsConnected())

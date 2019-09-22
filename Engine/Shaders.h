@@ -6,16 +6,15 @@
 class Shaders
 {
 public:
-	HRESULT CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader, ID3DBlob **ppBlobOut);
-	vector<void *> CompileShaderFromFile(vector<ID3DBlob *> Things);
-	vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName, vector<string> VersionShader, DWORD ShaderFlags = 0);
-
-	Shaders() {}
-	~Shaders() {}
+	static HRESULT CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader,
+		ID3DBlob **ppBlobOut);
+	static vector<void *> CompileShaderFromFile(vector<ID3DBlob *> Things);
+	static vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName,
+		vector<string> VersionShader, DWORD ShaderFlags = 0);
 
 private:
-	HRESULT result = S_OK;
+	static HRESULT result;
 
-	ID3DBlob *pErrorBlob = nullptr;
+	static ID3DBlob *pErrorBlob;
 };
 #endif // !__SHADERS_H__

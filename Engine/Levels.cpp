@@ -6,8 +6,7 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 #include "File_system.h"
 #include "Physics.h"
-
-ToDo("Replace Exceptions To Log Trace")
+#include "Camera.h"
 
 static vector<shared_ptr<GameObjects::Object>> Obj_other, Obj_npc;
 
@@ -19,12 +18,15 @@ HRESULT Levels::LoadXML(LPCSTR File)
 	if (doc->ErrorID() > 0)
 	{
 		Application->StackTrace(doc->ErrorStr());
-		throw exception("Levels->LoadXML()::doc->LoadFile() == 0!!!");
+		Engine::LogError("Levels->LoadXML()::doc->LoadFile() == nullptr", "Levels->LoadXML()::doc->LoadFile() == nullptr",
+			"Levels: Something is wrong with Load XML File!");
 		return E_FAIL;
 	}
 	else if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true, string("<!--"), string("-->")).c_str()) > 0)
 	{
-		throw exception(string(string("Levels->LoadXML()::doc->Parse: \n") + string(doc->ErrorStr())).c_str());
+		Engine::LogError((boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
+			(boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
+			(boost::format("Levels: Something is wrong with Load XML File!\nReturned: %s") % string(doc->ErrorStr())).str());
 		return E_FAIL;
 	}
 
@@ -146,8 +148,9 @@ void Levels::ProcessXML()
 
 	if (!Attrib.back())
 	{
-		DebugTrace("Levels->ProcessXML()::doc->RootElement() == nullptr!!!");
-		throw exception("Levels->ProcessXML()::doc->RootElement() == nullptr!!!");
+		Engine::LogError("Levels->LoadXML()::doc->RootElement() == nullptr",
+			"Levels->LoadXML()::doc->RootElement() == nullptr",
+			"Levels: Something is wrong with Process XML File!");
 		return;
 	}
 
@@ -156,11 +159,17 @@ void Levels::ProcessXML()
 
 	if (strcmp(cache.c_str(), "objects") == 0)
 	{
+		if (!Attrib.back()->FirstChild())
+			return;
+
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
 		Obj_other = XMLPreparing(Attrib);
 	}
 	else if (strcmp(cache.c_str(), "npc") == 0)
 	{
+		if (!Attrib.back()->FirstChild())
+			return;
+
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
 		Obj_npc = XMLPreparing(Attrib);
 	}
@@ -175,10 +184,11 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 		auto Model = it->GetModel();
 		if (it->GetScale())
 			Model->setScale(it->GetScaleCord());
-		else if (it->GetRotation())
+		if (it->GetRotation())
 			Model->setRotation(it->GetRotCord());
 
-		//OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") % it->GetPositionCord().x % it->GetPositionCord().y %
+		//OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") %
+		//it->GetPositionCord().x % it->GetPositionCord().y %
 		//	it->GetPositionCord().z).str().c_str());
 		UpdateLogic(Time, it);
 		Model->setPosition(it->GetPositionCord());
@@ -191,7 +201,7 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 		auto Model = it->GetModel();
 		if (it->GetScale())
 			Model->setScale(it->GetScaleCord());
-		else if (it->GetRotation())
+		if (it->GetRotation())
 			Model->setRotation(it->GetRotCord());
 
 		//it->SetPositionCoords(UpdateLogic(Time, it));
@@ -228,28 +238,27 @@ void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
 	if (Test1 >= Test2)
 	{
 		Test1 = 0.0f;
-		Obj->SetPositionCoords(ToVec3(Application->getPhysics()->TestLogic(Obj->GetPH(), Obj->GetLogic())));
+		//if (GetAsyncKeyState(VK_NUMPAD5))
+		//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
+
+		Vector3 newPos = ConstrainToBoundary(Obj->GetPositionCord(),
+			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
+			newRot = Vector3::Zero;
+		Obj->GetLogic()->Update(newPos, newRot);
+		Obj->SetRotationCoords(newRot);
+		Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
+		Obj->SetPositionCoords(newPos);
 	}
 }
 
 HRESULT Levels::Init()
 {
-	try
+	auto MapFiles = Application->getFS()->GetFileByType(_TypeOfFile::LEVELS);
+	for (size_t i = 0; i < MapFiles.size(); i++)
 	{
-		auto MapFiles = Application->getFS()->GetFileByType(_TypeOfFile::LEVELS);
-		for (size_t i = 0; i < MapFiles.size(); i++)
-		{
-			EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
-		}
+		EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
+	}
 
-		InitClass = true;
-		return S_OK;
-	}
-	catch (const exception &Catch)
-	{
-		DebugTrace(string(string("Levels: Init is failed. ") + string(Catch.what())).c_str());
-		throw exception("Levels:init() is failed!!!");
-		InitClass = false;
-		return E_FAIL;
-	}
+	InitClass = true;
+	return S_OK;
 }

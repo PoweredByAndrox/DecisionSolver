@@ -7,79 +7,45 @@ static shared_ptr<Render_Buffer> Buf = make_shared<Render_Buffer>();
 
 HRESULT UI::Init()
 {
-	try
-	{
-		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
 
-		ImGuiIO &IO = ImGui::GetIO();
-		IO.IniFilename = NULL;
-		IO.LogFilename = NULL;
+	ImGuiIO &IO = ImGui::GetIO();
+	IO.IniFilename = NULL; IO.LogFilename = NULL;
+	IO.MouseDrawCursor = true;
+	IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NoMouseCursorChange |
+		ImGuiConfigFlags_DockingEnable;
+	if (!::QueryPerformanceFrequency((LARGE_INTEGER *)&g_TicksPerSecond))
+		return ERROR_INVALID_FUNCTION;
+	if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
+		return ERROR_INVALID_FUNCTION;
 
-		vector<wstring> FileShaders;
-		vector<string> Functions, Version;
+	IO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos;
+	IO.BackendPlatformName = "DecisionSolver";
 
-		FileShaders.push_back(Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW);
-		FileShaders.push_back(Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW);
+	IO.KeyMap[ImGuiKey_Tab] = VK_TAB;
+	IO.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
+	IO.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
+	IO.KeyMap[ImGuiKey_UpArrow] = VK_UP;
+	IO.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
+	IO.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
+	IO.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
+	IO.KeyMap[ImGuiKey_Home] = VK_HOME;
+	IO.KeyMap[ImGuiKey_End] = VK_END;
+	IO.KeyMap[ImGuiKey_Insert] = VK_INSERT;
+	IO.KeyMap[ImGuiKey_Delete] = VK_DELETE;
+	IO.KeyMap[ImGuiKey_Backspace] = VK_BACK;
+	IO.KeyMap[ImGuiKey_Space] = VK_SPACE;
+	IO.KeyMap[ImGuiKey_Enter] = VK_RETURN;
+	IO.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
+	IO.KeyMap[ImGuiKey_A] = 'A';
+	IO.KeyMap[ImGuiKey_C] = 'C';
+	IO.KeyMap[ImGuiKey_V] = 'V';
+	IO.KeyMap[ImGuiKey_X] = 'X';
+	IO.KeyMap[ImGuiKey_Y] = 'Y';
+	IO.KeyMap[ImGuiKey_Z] = 'Z';
 
-		Functions.push_back(string("Vertex_ui_VS"));
-		Functions.push_back(string("Pixel_ui_PS"));
-
-		Version.push_back(string("vs_4_0"));
-		Version.push_back(string("ps_4_0"));
-
-		Buf->SetShadersFile(FileShaders, Functions, Version);
-
-		if (!::QueryPerformanceFrequency((LARGE_INTEGER *)&g_TicksPerSecond))
-			return ERROR_INVALID_FUNCTION;
-		if (!::QueryPerformanceCounter((LARGE_INTEGER *)&g_Time))
-			return ERROR_INVALID_FUNCTION;
-
-		IO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-		IO.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
-		IO.BackendPlatformName = "DecisionSolver";
-		IO.ImeWindowHandle = Application->GetHWND();
-
-		IO.KeyMap[ImGuiKey_Tab] = VK_TAB;
-		IO.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-		IO.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-		IO.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-		IO.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-		IO.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
-		IO.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
-		IO.KeyMap[ImGuiKey_Home] = VK_HOME;
-		IO.KeyMap[ImGuiKey_End] = VK_END;
-		IO.KeyMap[ImGuiKey_Insert] = VK_INSERT;
-		IO.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-		IO.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-		IO.KeyMap[ImGuiKey_Space] = VK_SPACE;
-		IO.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-		IO.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
-		IO.KeyMap[ImGuiKey_A] = 'A';
-		IO.KeyMap[ImGuiKey_C] = 'C';
-		IO.KeyMap[ImGuiKey_V] = 'V';
-		IO.KeyMap[ImGuiKey_X] = 'X';
-		IO.KeyMap[ImGuiKey_Y] = 'Y';
-		IO.KeyMap[ImGuiKey_Z] = 'Z';
-
-		InitUI = true;
-		return S_OK;
-	}
-	catch (const exception &Catch)
-	{
-#if defined (DEBUG)
-		DebugTrace(string(string("UI::Init->catch Was Triggered!\nReturn Error Text:")
-			+ Catch.what()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("UI::Init->catch Was Triggered!\nReturn Error Text:")
-			+ Catch.what()).c_str());
-#endif
-		Console::LogError(string(string("UI: Something is wrong with UI Init Function!\nReturn Error Text:")
-			+ Catch.what()).c_str());
-		InitUI = false;
-		return E_FAIL;
-	}
+	InitUI = true;
 	return S_OK;
 }
 void dialogs::ChangeFont(string FontName, float SizePixel, float Brighten)
@@ -102,11 +68,9 @@ void UI::ResizeWnd()
 	Buf->Release();
 	Buf->InitUI();
 
-	ToDo("Change This!!!");
-	if (!Application->getUI()->getDialogs().empty())
+	if (!Application->getUI()->getDialogs().empty() &&
+		Application->getUI()->getDialog("Console").operator bool())
 	{
-		Application->getUI()->getDialog("Main")->ChangePosition(10.f,
-			Application->getWorkAreaSize(Application->GetHWND()).y - 10.f, ImVec2(0.f, 1.f));
 		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
 		Application->getUI()->getDialog("Console")->ChangeSize(
 			Application->getWorkAreaSize(Application->GetHWND()).x,
@@ -119,7 +83,8 @@ void UI::Begin()
 	Buf->InitUI();
 	ImGuiIO &io = ImGui::GetIO();
 	IM_ASSERT(io.Fonts->IsBuilt() &&
-		"Font atlas not built! It is generally built by the renderer back-end. Missing call to renderer _NewFrame() function?");
+		"Font atlas not built! It is generally built by the renderer back-end."\
+		" Missing call to renderer _NewFrame() function?");
 
 	RECT rect;
 	::GetClientRect(Application->GetHWND(), &rect);
@@ -167,33 +132,29 @@ HRESULT UI::LoadXmlUI(string File)
 	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() > 0)
 	{
+		Engine::LogError("", (boost::format("UI::LoatXmlUI() ErrorID > 0!\nReturn Error ID: %s") %
+			to_string(doc->ErrorID())).str(),
+			(boost::format("UI: Something is wrong with load XML File!\nReturn Error Text: %s"\
+				"\nErrorID(see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
 #if defined (DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("UI::LoatXmlUI() ErrorID > 0!\nReturn Error Text:")
-			+ doc->ErrorID()).c_str());
-#endif
-		Console::LogError(string(string("UI: Something is wrong with load XML File!\nReturn Error Text:")
-			+ doc->ErrorStr() + "\nErrorID (see tinyXml doc): " + to_string(doc->ErrorID())).c_str());
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"), string("-->")).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"),
+		string("-->")).c_str()) > 0)
 	{
+		Engine::LogError("", (boost::format("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error ID: %s")
+			% to_string(doc->ErrorID())).str(),
+			(boost::format("UI: Something is wrong with Parse XML File!\nReturn Error Text: %s"
+				"\nErrorID (see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
 #if defined (DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
-#if defined (ExceptionWhenEachError)
-		throw exception(string(string("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error Text:")
-			+ doc->ErrorID()).c_str());
-#endif
-		Console::LogError(string(string("UI: Something is wrong with Parse XML File!\nReturn Error Text:")
-			+ doc->ErrorStr() + "\nErrorID (see tinyXml doc): " + to_string(doc->ErrorID())).c_str());
 		return E_FAIL;
 	}
 
 	ProcessXML();
-
 	return S_OK;
 }
 
@@ -235,6 +196,15 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		GetParam(Component->labels.at(i)->ToElement(), label);
 		label->ChangeOrder(Component->IDlabels.at(i));
 		DoneComponent->Label.push_back(label);
+	}
+	//	Combobox
+	for (size_t i = 0; i < Component->IDcombo.size(); i++)
+	{
+		CountOrder++;
+		auto combo = make_shared<Combobox>();
+		GetParam(Component->combo.at(i)->ToElement(), combo);
+		combo->ChangeOrder(Component->IDcombo.at(i));
+		DoneComponent->combo.push_back(combo);
 	}
 	//	Separator
 	for (size_t i = 0; i < Component->IDseparators.size(); i++)
@@ -415,6 +385,12 @@ void UI::XMLPreparing(shared_ptr<XMLDial> &InDial, XMLNode *everything, int &cou
 		InDial->Components->tlist.push_back(everything);
 		return;
 	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InDial->Components->IDcombo.push_back(countComp);
+		InDial->Components->combo.push_back(everything);
+		return;
+	}
 }
 void UI::XMLPreparingCollps(shared_ptr<XMLDial> &InCHead, XMLNode *everything, int &countComp)
 {
@@ -491,6 +467,12 @@ void UI::XMLPreparingCollps(shared_ptr<XMLDial> &InCHead, XMLNode *everything, i
 		InCHead->Components->CpsHead.back()->tlist.push_back(everything);
 		return;
 	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InCHead->Components->CpsHead.back()->IDcombo.push_back(countComp);
+		InCHead->Components->CpsHead.back()->combo.push_back(everything);
+		return;
+	}
 }
 void UI::XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, int &countComp)
 {
@@ -545,6 +527,12 @@ void UI::XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, in
 	{
 		InChild->Components->DialChild.back()->IDtlist.push_back(countComp);
 		InChild->Components->DialChild.back()->tlist.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InChild->Components->DialChild.back()->IDcombo.push_back(countComp);
+		InChild->Components->DialChild.back()->combo.push_back(everything);
 		return;
 	}
 	if (strcmp(everything->Value(), "TreeNode") == 0)
@@ -643,6 +631,12 @@ void UI::XMLPreparingTNode(shared_ptr<XMLDial> &InTNode, XMLNode *everything, in
 		InTNode->Components->_TreeNode.back()->tlist.push_back(everything);
 		return;
 	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InTNode->Components->_TreeNode.back()->IDcombo.push_back(countComp);
+		InTNode->Components->_TreeNode.back()->combo.push_back(everything);
+		return;
+	}
 }
 void UI::XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &countComp)
 {
@@ -719,6 +713,12 @@ void UI::XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &c
 		InTab->Components->_Tab.back()->Component.back()->tlist.push_back(everything);
 		return;
 	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InTab->Components->_Tab.back()->Component.back()->IDcombo.push_back(countComp);
+		InTab->Components->_Tab.back()->Component.back()->combo.push_back(everything);
+		return;
+	}
 }
 
 void UI::XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *everything, int &countComp)
@@ -791,6 +791,12 @@ void UI::XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *ever
 	{
 		InCHead->IDtlist.push_back(countComp);
 		InCHead->tlist.push_back(everything);
+		return;
+	}
+	if (strcmp(everything->Value(), "Combo") == 0)
+	{
+		InCHead->IDcombo.push_back(countComp);
+		InCHead->combo.push_back(everything);
 		return;
 	}
 }
@@ -995,6 +1001,22 @@ void UI::GetParam(XMLElement *Nods, shared_ptr<TextList> &TList)
 		if (strcmp(FirstAttr->Name(), "label") == 0)
 		{
 			TList->ChangeTitle(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+	}
+}
+void UI::GetParam(XMLElement *Nods, shared_ptr<Combobox> &Combo)
+{
+	if (!Nods) return;
+
+	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Nods->ToElement()->FirstAttribute());
+	for (;;)
+	{
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			Combo->ChangeID(FirstAttr->Value());
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
@@ -1488,7 +1510,7 @@ void UI::ProcessXML()
 {
 	vector<shared_ptr<dialogs>> dialog;
 
-		// Get All The Dialogs
+	// Get All The Dialogs
 	for (;;)
 	{
 		if (XMLDialogs.empty())
@@ -1504,11 +1526,11 @@ void UI::ProcessXML()
 		else
 			break;
 	}
-		// Starting Work On Dialogs
+	// Starting Work On Dialogs
 	int i = 0;
 	for (auto It = XMLDialogs.begin(); It != XMLDialogs.end(); ++It)
 	{
-			// Get The Last Element In This Dialog!
+		// Get The Last Element In This Dialog!
 		vector<XMLNode *> FirstComponent;
 		for (;;)
 		{
@@ -1519,7 +1541,7 @@ void UI::ProcessXML()
 			else
 				break;
 		}
-			// Work With All The XML Nodes!
+		// Work With All The XML Nodes!
 		int OrderlyRenderInDial = 0;
 		for (auto First : FirstComponent)
 		{
@@ -1632,7 +1654,7 @@ void UI::ProcessXML()
 								XMLDialogs.at(i)->Components->_Tab.back()->TabItems.push_back(Attr->Value());
 								XMLDialogs.at(i)->Components->_Tab.back()->Component.push_back(make_shared<XMLComponents>());
 
-								GetRecursion(SpecialComp, 
+								GetRecursion(SpecialComp,
 									XMLDialogs.at(i)->Components->_Tab.back()->Component.back()->OrderlyRender,
 									XMLDialogs.at(i)->Components->_Tab.back()->Component.back());
 
@@ -1671,7 +1693,7 @@ void UI::ProcessXML()
 							XMLDialogs.at(i)->Components->_Column.back()->OrderlyRender);
 				}
 			}
-				// *******
+			// *******
 			else
 			{
 				XMLPreparing(XMLDialogs.at(i), First, XMLDialogs.at(i)->Components->OrderlyRender);
@@ -1680,7 +1702,7 @@ void UI::ProcessXML()
 
 			XMLDialogs.at(i)->Components->OrderlyRender++;
 		}
-			// ID (Count) of XMLDialogs
+		// ID (Count) of XMLDialogs
 		i++;
 	}
 
@@ -1778,6 +1800,14 @@ void UI::ProcessXML()
 				if (!FirstAttr)
 					break;
 			}
+			if (strcmp(FirstAttr->Name(), "fullscreene") == 0)
+			{
+				dialog.at(IDDial)->setFullScreen(FirstAttr->BoolValue());
+				W = 0.f; H = 0.f;
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
 		}
 
 		// ********
@@ -1840,12 +1870,20 @@ void UI::ProcessXML()
 			tlist->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
 			dialog.at(IDDial)->getComponents()->TList.push_back(tlist);
 		}
+		//	Combobox
+		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDcombo.size(); i++)
+		{
+			auto combo = make_shared<Combobox>();
+			GetParam(XMLDialogs.at(IDDial)->Components->combo.at(i)->ToElement(), combo);
+			combo->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDcombo.at(i));
+			dialog.at(IDDial)->getComponents()->combo.push_back(combo);
+		}
 		//	Selectable
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDselect.size(); i++)
 		{
 			auto select = make_shared<Selectable>();
 			GetParam(XMLDialogs.at(IDDial)->Components->select.at(i)->ToElement(), select);
-			select->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
+			select->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDselect.at(i));
 			dialog.at(IDDial)->getComponents()->selectable.push_back(select);
 		}
 
@@ -1887,13 +1925,19 @@ void UI::EnableDialog(LPCSTR IDDialog)
 
 shared_ptr<dialogs> UI::getDialog(LPCSTR IDDialog)
 {
+	if (Dialogs.empty() || !IDDialog)
+		return make_shared<dialogs>();
+
 	for (size_t i = 0; i < Dialogs.size(); i++)
 	{
 		if (strcmp(Dialogs.at(i)->GetTitle().c_str(), IDDialog) == 0)
 			return Dialogs.at(i);
 	}
 
-	return nullptr;
+	//Engine::LogError("UI: " + string(IDDialog) + " Cannot Be Found!",
+	//	"UI: " + string(IDDialog) + " Cannot Be Found!",
+	//	"UI: " + string(IDDialog) + " Cannot Be Found!");
+	return make_shared<dialogs>();
 }
 
 // Update Mouse and Keyboard, Gamepad
@@ -1984,7 +2028,7 @@ void UI::Gamepads()
 LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (!ImGui::GetCurrentContext())
-		return 0;
+		return false;
 
 	ImGuiIO &io = ImGui::GetIO();
 	switch (uMsg)
@@ -2010,7 +2054,7 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		if (!ImGui::IsAnyMouseDown() && !::GetCapture())
 			::SetCapture(Application->GetHWND());
 		io.MouseDown[button] = true;
-		return 0;
+		return false;
 	}
 	case WM_LBUTTONUP:
 	case WM_RBUTTONUP:
@@ -2031,32 +2075,32 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			button = Application->getTrackerMouse().xButton1 ? 3 : 4;
 
 		io.MouseDown[button] = false;
-		return 0;
+		return false;
 	}
 	case WM_MOUSEWHEEL:
 		io.MouseWheel += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-		return 0;
+		return false;
 	case WM_MOUSEHWHEEL:
 		io.MouseWheelH += (float)GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA;
-		return 0;
+		return false;
 	case WM_KEYDOWN:
 	case WM_SYSKEYDOWN:
 		if (wParam < 256)
 			io.KeysDown[wParam] = 1;
-		return 0;
+		return false;
 	case WM_KEYUP:
 	case WM_SYSKEYUP:
 		if (wParam < 256)
 			io.KeysDown[wParam] = 0;
-		return 0;
+		return false;
 	case WM_CHAR:
 		if (wParam > 0 && wParam < 0x10000)
 			io.AddInputCharacter((unsigned short)wParam);
-		return 0;
+		return false;
 	case WM_SETCURSOR:
 		if (LOWORD(lParam) == HTCLIENT && UpdateMouseCursor())
-			return 1;
-		return 0;
+			return true;
+		return false;
 	}
 	return false;
 }
@@ -2102,7 +2146,21 @@ void dialogs::Render()
 			PosY_Last = PosY;
 		}
 
-		ImGui::Begin(IDTitle.c_str(), &IsVisible, window_flags);
+		if (IsFullScreen)
+		{
+			ImGuiViewport *viewport = ImGui::GetMainViewport();
+			ImGui::SetNextWindowPos(viewport->Pos);
+			ImGui::SetNextWindowSize(viewport->Size);
+			ImGui::SetNextWindowViewport(viewport->ID);
+
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+			ImGui::Begin(IDTitle.c_str(), &IsVisible, window_flags);
+			ImGui::PopStyleVar(3);
+		}
+		else
+			ImGui::Begin(IDTitle.c_str(), &IsVisible, window_flags);
 
 		if (IsNeedBringToFont)
 		{
@@ -2333,6 +2391,11 @@ void AllTheComponent::RenderComponents(int &now)
 	{
 		if (selectable.at(i)->getRenderOrder() == now)
 			selectable.at(i)->Render();
+	}
+	for (size_t i = 0; i < combo.size(); i++)
+	{
+		if (combo.at(i)->getRenderOrder() == now)
+			combo.at(i)->Render();
 	}
 	for (size_t i = 0; i < CollpsHeader.size(); i++)
 	{

@@ -23,6 +23,7 @@
     <ProjectGuid>{E3B9711D-5F12-4BCD-B7F2-5AEC1A1890EC}</ProjectGuid>
     <RootNamespace>Engine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <ProjectName>SDKE</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -82,7 +83,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <Link />
@@ -167,6 +168,7 @@
     <ClCompile Include="CCommands.cpp" />
     <ClCompile Include="CLua.cpp" />
     <ClCompile Include="Console.cpp" />
+    <ClCompile Include="CutScene.cpp" />
     <ClCompile Include="DebugDraw.cpp" />
     <ClCompile Include="Dialogs.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -210,6 +212,7 @@
     <ClInclude Include="CCommands.h" />
     <ClInclude Include="CLua.h" />
     <ClInclude Include="Console.h" />
+    <ClInclude Include="CutScene.h" />
     <ClInclude Include="DebugDraw.h" />
     <ClInclude Include="Dialogs.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -235,6 +238,7 @@
     <ClInclude Include="Physics.h" />
     <ClInclude Include="Picking.h" />
     <ClInclude Include="Render_Buffer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="SimpleLogic.h" />
     <ClInclude Include="UI.h" />
@@ -276,6 +280,12 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
       <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex_model_VS</EntryPointName>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SDKE.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="SDK_ICON_24.08.19 (Test).ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -12,12 +12,9 @@ public:
 	void Init();
 
 	void Update();
-	void callFunction(string FileName, string Function, string params);
-	CLua() {}
-	~CLua() {}
-
-	state &getLState() { return LuaState; }
+	static void callFunction(string FileName, string Function, string params);
+	static void Reinit();
 private:
-	state LuaState;
+	static state LuaState;
 };
 #endif // !__CLUA__H_

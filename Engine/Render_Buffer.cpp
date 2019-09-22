@@ -5,64 +5,7 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
 #include "Render_Buffer.h"
-
-void Render_Buffer::SetShadersFile(vector<wstring> ShaderFile, vector<string> Func, vector<string> VersionShader)
-{
-	this->ShaderFile = ShaderFile;
-	this->Func = Func;
-	this->VersionShader = VersionShader;
-}
-
-HRESULT Render_Buffer::InitSimpleBuffer(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct, bool LayoutWithColor)
-{
-	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(ShaderFile, Func, VersionShader));
-	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
-	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
-
-	m_layout = CreateLayout(Buffer_blob[0], LayoutWithColor);
-
-	m_vertexBuffer = CreateVB(SizeStruct * VertexSize, true, D3D11_USAGE_DEFAULT, 0, Vertix);
-
-	UINT offset = 0;
-	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &SizeStruct, &offset);
-
-	m_indexBuffer = CreateIB(sizeof(WORD) * IndicesSize, true, D3D11_USAGE_DEFAULT, 0, Indix);
-
-	auto WF = CreateWF();
-	g_pRasWireFrame = WF.at(0);
-	g_pRasStateSolid = WF.at(1);
-
-	//D3D11_SAMPLER_DESC samplerDesc;
-	//ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-	//samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	//samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	//samplerDesc.MipLODBias = 0.0f;
-	//samplerDesc.MaxAnisotropy = 1;
-	//samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	//samplerDesc.BorderColor[0] = 0;
-	//samplerDesc.BorderColor[1] = 0;
-	//samplerDesc.BorderColor[2] = 0;
-	//samplerDesc.BorderColor[3] = 0;
-	//samplerDesc.MinLOD = 0;
-	//samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	//if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
-	//{
-	//	DebugTrace("Render_Buffer::InitModels()->CreateSamplerState() is failed");
-	//	throw exception("Init is failed!!!");
-	//	return E_FAIL;
-	//}
-
-	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R16_UINT, 0);
-
-	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	m_pConstBuffer = CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-	init = true;
-	return hr;
-}
+#include "Inc/DirectXHelpers.h"
 
 ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithColor)
 {
@@ -88,6 +31,8 @@ ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithC
 			return nullptr;
 		}
 
+		Layout->SetPrivateData(WKPDID_D3DDebugObjectName, string("LayoutUI").size() - 1, string("LayoutUI").c_str());
+
 		return Layout;
 	}
 	else
@@ -108,13 +53,16 @@ ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithC
 			return nullptr;
 		}
 
+		Layout->SetPrivateData(WKPDID_D3DDebugObjectName, string("Layout").size() - 1, string("Layout").c_str());
+
 		return Layout;
 	}
 
 	return nullptr;
 }
 
-ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_USAGE Usage, UINT CPUAccessFlags, void *vertices)
+ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_USAGE Usage,
+	UINT CPUAccessFlags, void *vertices)
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
@@ -149,10 +97,13 @@ ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_US
 		return nullptr;
 	}
 
+	VB->SetPrivateData(WKPDID_D3DDebugObjectName, string("VB").size() - 1, string("VB").c_str());
+
 	return VB;
 }
 
-ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_USAGE Usage, UINT CPUAccessFlags, void *indices)
+ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_USAGE Usage,
+	UINT CPUAccessFlags, void *indices)
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
@@ -186,95 +137,9 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_US
 		return nullptr;
 	}
 
+	IB->SetPrivateData(WKPDID_D3DDebugObjectName, string("IB").size() - 1, string("IB").c_str());
+
 	return IB;
-}
-
-void Render_Buffer::RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies, ID3D11ShaderResourceView *RenderTextr, bool WF)
-{
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-
-	if (m_pConstBuffer)
-		ThrowIfFailed(Application->getDeviceContext()->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
-
-	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
-
-	Matrix WVP = World * View * Proj;
-	dataPtr->mMVP = XMMatrixTranspose(WVP);
-
-	if (m_pConstBuffer)
-	{
-		Application->getDeviceContext()->Unmap(m_pConstBuffer, 0);
-		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
-	}
-
-	Application->getDeviceContext()->VSSetShader(m_vertexShader, 0, 0);
-	Application->getDeviceContext()->PSSetShader(m_pixelShader, 0, 0);
-
-	//if (m_sampleState)
-	//Application->getDeviceContext()->PSSetSamplers(0, 1, &m_sampleState);
-
-	Application->getDeviceContext()->IASetInputLayout(m_layout);
-
-	if (WF && g_pRasWireFrame)
-		Application->getDeviceContext()->RSSetState(g_pRasWireFrame);
-	else if (!WF && g_pRasStateSolid)
-		Application->getDeviceContext()->RSSetState(g_pRasStateSolid);
-
-	if (RenderTextr)
-		Application->getDeviceContext()->PSSetShaderResources(0, 1, &RenderTextr);
-
-	Application->getDeviceContext()->DrawIndexed(Indicies, 0, 0);
-}
-
-HRESULT Render_Buffer::InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct, bool LayoutWithColor)
-{
-	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(ShaderFile,Func, VersionShader));
-
-	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
-	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
-
-	m_layout = CreateLayout(Buffer_blob[0], LayoutWithColor);
-
-	auto WF = CreateWF();
-	g_pRasWireFrame = WF.at(0);
-	g_pRasStateSolid = WF.at(1);
-
-	m_vertexBuffer = CreateVB(SizeStruct * VertexSize, true, D3D11_USAGE_DEFAULT, 0, Vertix);
-	m_indexBuffer = CreateIB(sizeof(UINT) * IndicesSize, true, D3D11_USAGE_DEFAULT, 0, Indix);
-
-	D3D11_SAMPLER_DESC samplerDesc;
-	ZeroMemory(&samplerDesc, sizeof(samplerDesc));
-	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDesc.MipLODBias = 0.0f;
-	samplerDesc.MaxAnisotropy = 1;
-	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	samplerDesc.BorderColor[0] = 0;
-	samplerDesc.BorderColor[1] = 0;
-	samplerDesc.BorderColor[2] = 0;
-	samplerDesc.BorderColor[3] = 0;
-	samplerDesc.MinLOD = 0;
-	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	if (FAILED(Application->getDevice()->CreateSamplerState(&samplerDesc, &m_sampleState)))
-	{
-		DebugTrace("Render_Buffer::InitModels()->CreateSamplerState() is failed");
-		throw exception("Init is failed!!!");
-		return E_FAIL;
-	}
-
-	UINT offset = 0;
-	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &SizeStruct, &offset);
-
-	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	m_pConstBuffer = CreateConstBuff(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-
-	init = true;
-	return hr;
 }
 
 vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
@@ -294,10 +159,13 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 	}
 	WF_buff.push_back(RsWF);
 
+	RsWF->SetPrivateData(WKPDID_D3DDebugObjectName, string("WireFrame").size() - 1, string("WireFrame").c_str());
+
 	ZeroMemory(&RasterDesc, sizeof(RasterDesc));
 	RasterDesc.FillMode = D3D11_FILL_SOLID;
 	RasterDesc.CullMode = D3D11_CULL_NONE;
 	RasterDesc.DepthClipEnable = true;
+	RasterDesc.ScissorEnable = true;
 
 	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &RsNoWF)))
 	{
@@ -305,6 +173,8 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 		throw exception("Create failed!!!");
 	}
 	WF_buff.push_back(RsNoWF);
+
+	RsNoWF->SetPrivateData(WKPDID_D3DDebugObjectName, string("noWireFrame").size() - 1, string("noWireFrame").c_str());
 
 	return WF_buff;
 }
@@ -326,46 +196,9 @@ ID3D11Buffer *Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFl
 		return nullptr;
 	}
 
+	ConstBuff->SetPrivateData(WKPDID_D3DDebugObjectName, string("ConstBuff").size() - 1, string("ConstBuff").c_str());
+
 	return ConstBuff;
-}
-
-void Render_Buffer::RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, bool WF)
-{
-	D3D11_MAPPED_SUBRESOURCE mappedResource;
-
-	if (m_pConstBuffer)
-		ThrowIfFailed(Application->getDeviceContext()->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource));
-
-	auto dataPtr = (ConstantBuffer *)mappedResource.pData;
-
-	Matrix WVP = World * View * Proj;
-	dataPtr->mMVP = XMMatrixTranspose(WVP);
-
-	if (m_pConstBuffer)
-	{
-		Application->getDeviceContext()->Unmap(m_pConstBuffer, 0);
-		Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);
-	}
-
-	if (m_layout)
-		Application->getDeviceContext()->IASetInputLayout(m_layout);
-
-	if (WF && g_pRasWireFrame)
-		Application->getDeviceContext()->RSSetState(g_pRasWireFrame);
-	else if (!WF && g_pRasStateSolid)
-		Application->getDeviceContext()->RSSetState(g_pRasStateSolid);
-
-	if (m_sampleState)
-		Application->getDeviceContext()->PSSetSamplers(0, 1, &m_sampleState);
-
-	if (m_vertexShader)
-		Application->getDeviceContext()->VSSetShader(m_vertexShader, NULL, 0);
-	if (m_pixelShader)
-		Application->getDeviceContext()->PSSetShader(m_pixelShader, NULL, 0);
-
-	if (RenderTextr)
-		Application->getDeviceContext()->PSSetShaderResources(0, 1, &RenderTextr);
-	Application->getDeviceContext()->DrawIndexed(SizeIndices, 0, 0);
 }
 
 void Render_Buffer::Release()
@@ -390,14 +223,9 @@ void Render_Buffer::Release()
 	SAFE_RELEASE(g_pDepthStencilState);
 	SAFE_RELEASE(g_pFontSampler);
 	SAFE_RELEASE(g_pBlendState);
-	while (!Buffer_blob.empty())
-	{
-		SAFE_RELEASE(Buffer_blob.front());
-		Buffer_blob.erase(Buffer_blob.begin());
-	}
-	Buffers.clear();
 }
 
+#include "File_system.h"
 HRESULT Render_Buffer::InitUI()
 {
 	ImGuiIO &io = ImGui::GetIO();
@@ -425,22 +253,36 @@ HRESULT Render_Buffer::InitUI()
 		SAFE_RELEASE(g_pDepthStencilState);
 		SAFE_RELEASE(g_pFontSampler);
 		SAFE_RELEASE(g_pBlendState);
-		while (!Buffer_blob.empty())
-		{
-			SAFE_RELEASE(Buffer_blob.at(0));
-			Buffer_blob.erase(Buffer_blob.begin());
-		}
-		Buffers.clear();
 	}
 
 	D3D11_INPUT_ELEMENT_DESC local_layout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-		{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->pos),
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (size_t)(&((ImDrawVert*)0)->uv),
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (size_t)(&((ImDrawVert*)0)->col),
+		D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	Buffers = Shader->CompileShaderFromFile(Buffer_blob = Shader->CreateShaderFromFile(ShaderFile, Func, VersionShader));
+	vector<ID3DBlob *> Buffer_blob;
+	vector<wstring> FileShaders = 
+	{
+		Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW,
+		Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW
+	};
+	vector<string> Functions =
+	{
+		string("Vertex_ui_VS"),
+		string("Pixel_ui_PS")
+	},
+		Version =
+	{
+		string("vs_4_0"),
+		string("ps_4_0")
+	};
+	vector<void *> Buffers = Shaders::CompileShaderFromFile(Buffer_blob = 
+		Shaders::CreateShaderFromFile(FileShaders, Functions, Version));
 	m_vertexShader = (ID3D11VertexShader *)Buffers[0]; // VS
 	m_pixelShader = (ID3D11PixelShader *)Buffers[1]; // PS
 
@@ -473,7 +315,8 @@ HRESULT Render_Buffer::InitUI()
 	DepthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	DepthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
 	DepthDesc.StencilEnable = false;
-	DepthDesc.FrontFace.StencilFailOp = DepthDesc.FrontFace.StencilDepthFailOp = DepthDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	DepthDesc.FrontFace.StencilFailOp = DepthDesc.FrontFace.StencilDepthFailOp = 
+		DepthDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 	DepthDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
 	DepthDesc.BackFace = DepthDesc.FrontFace;
 	Application->getDevice()->CreateDepthStencilState(&DepthDesc, &g_pDepthStencilState);
@@ -507,7 +350,6 @@ HRESULT Render_Buffer::InitUI()
 	srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = TexrtDesc.MipLevels;
-	srvDesc.Texture2D.MostDetailedMip = 0;
 	Application->getDevice()->CreateShaderResourceView(pTexture, &srvDesc, &g_pFontTextureView);
 	pTexture->Release();
 
@@ -520,10 +362,7 @@ HRESULT Render_Buffer::InitUI()
 	desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	desc.MipLODBias = 0.f;
 	desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	desc.MinLOD = 0.f;
-	desc.MaxLOD = 0.f;
 	Application->getDevice()->CreateSamplerState(&desc, &g_pFontSampler);
 
 	return true;
@@ -536,20 +375,24 @@ void Render_Buffer::RenderUI(ImDrawData *draw_data, bool WF)
 		SAFE_RELEASE(m_vertexBuffer);
 		VBufferSize = draw_data->TotalVtxCount + 5000;
 
-		assert(m_vertexBuffer = CreateVB(VBufferSize * sizeof(ImDrawVert), false, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, nullptr));
+		assert(m_vertexBuffer = CreateVB(VBufferSize * sizeof(ImDrawVert), false,
+			D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, nullptr));
 	}
 	if (!m_indexBuffer || IBufferSize < draw_data->TotalIdxCount)
 	{
 		SAFE_RELEASE(m_indexBuffer);
-		assert(m_indexBuffer = CreateIB(IBufferSize * sizeof(ImDrawIdx), false, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, nullptr));
+		assert(m_indexBuffer = CreateIB(IBufferSize * sizeof(ImDrawIdx), false,
+			D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, nullptr));
 	}
 
 	D3D11_MAPPED_SUBRESOURCE vtx_resource, idx_resource;
 
 	ToDo("Crash in Release here!")
-	if (Application->getDeviceContext()->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &vtx_resource) != S_OK)
+	if (Application->getDeviceContext()->Map(m_vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0,
+		&vtx_resource) != S_OK)
 		return;
-	if (Application->getDeviceContext()->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &idx_resource) != S_OK)
+	if (Application->getDeviceContext()->Map(m_indexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0,
+		&idx_resource) != S_OK)
 		return;
 	ImDrawVert* vtx_dst = (ImDrawVert*)vtx_resource.pData;
 	ImDrawIdx* idx_dst = (ImDrawIdx*)idx_resource.pData;
@@ -565,7 +408,8 @@ void Render_Buffer::RenderUI(ImDrawData *draw_data, bool WF)
 	Application->getDeviceContext()->Unmap(m_indexBuffer, 0);
 
 	D3D11_MAPPED_SUBRESOURCE mapped_resource;
-	if (Application->getDeviceContext()->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+	if (Application->getDeviceContext()->Map(m_pConstBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0,
+		&mapped_resource) != S_OK)
 		return;
 	ConstantBuffer *constant_buffer = (ConstantBuffer *)mapped_resource.pData;
 	float L = draw_data->DisplayPos.x;
@@ -597,7 +441,8 @@ void Render_Buffer::RenderUI(ImDrawData *draw_data, bool WF)
 	UINT offset = 0, stride = sizeof(ImDrawVert);
 	Application->getDeviceContext()->IASetInputLayout(m_layout);
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &m_vertexBuffer, &stride, &offset);
-	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, sizeof(ImDrawIdx) == 2 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
+	Application->getDeviceContext()->IASetIndexBuffer(m_indexBuffer, sizeof(ImDrawIdx) == 2 ?
+		DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT, 0);
 	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	Application->getDeviceContext()->VSSetShader(m_vertexShader, NULL, 0);
 	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &m_pConstBuffer);

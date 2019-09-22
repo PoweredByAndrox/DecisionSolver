@@ -108,11 +108,6 @@ void Camera_Control::GetInput(Vector3 VDir)
 	targetKeyDisplacement = ToPxVec3(VDir);
 }
 
-void Camera_Control::Teleport(Vector3 NewPos)
-{
-	C_Control->setPosition(ToExtended(NewPos));
-}
-
 float Camera_Control::booster(float camTargY, float somethingY, float Delta)
 {
 	if (Delta < 0.0f)

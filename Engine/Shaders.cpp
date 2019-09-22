@@ -5,11 +5,14 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
 #include "Shaders.h"
-//#include "d3dx9effect.h"
 #include "File_system.h"
 #include "Console.h"
 
-HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader, ID3DBlob **ppBlobOut)
+HRESULT Shaders::result = S_OK;
+ID3DBlob *Shaders::pErrorBlob = nullptr;
+
+HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName,
+	string *VersionShader, ID3DBlob **ppBlobOut)
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
@@ -18,22 +21,17 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName, 
 #endif
 
 	ThrowIfFailed(result = D3DX11CompileFromFileW(FileName->c_str(), NULL, NULL, 
-		FunctionName->c_str(), VersionShader->c_str(), dwShaderFlags, NULL, NULL, ppBlobOut, &pErrorBlob, NULL));
+		FunctionName->c_str(), VersionShader->c_str(), dwShaderFlags, NULL, NULL,
+		ppBlobOut, &pErrorBlob, NULL));
 	if (FAILED(result))
 	{
 		if (pErrorBlob)
-		{
-#if defined (DEBUG)
-			DebugTrace(string(string("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
-				(char *)pErrorBlob->GetBufferPointer()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
-				(char *)pErrorBlob->GetBufferPointer()).c_str());
-#endif
-				Console::LogError(string(string("Shaders: Shader compiller is failed!\nReturn Text:") +
-					(char *)pErrorBlob->GetBufferPointer()).c_str());
-		}
+			Engine::LogError((boost::format("Shaders::CreateShaderFromFile() Failed!\nReturn Text: %s") %
+				(char *)pErrorBlob->GetBufferPointer()).str(),
+				(boost::format("Shaders::CreateShaderFromFile() Failed!\nReturn Text: %s") %
+				(char *)pErrorBlob->GetBufferPointer()).str(),
+					(boost::format("Shaders: Shader compiller failed!\nReturn Text: %s") %
+					(char *)pErrorBlob->GetBufferPointer()).str());
 		SAFE_RELEASE(pErrorBlob);
 		return result;
 	}
@@ -49,10 +47,13 @@ vector<void *> Shaders::CompileShaderFromFile(vector<ID3DBlob *> Things)
 	ID3D11PixelShader *m_pixelShader = nullptr;
 	ID3D11PixelShader *m_pixelShader2 = nullptr;
 
-	Application->getDevice()->CreateVertexShader(Things.at(0)->GetBufferPointer(), Things.at(0)->GetBufferSize(), NULL, &m_vertexShader);
-	Application->getDevice()->CreatePixelShader(Things.at(1)->GetBufferPointer(), Things.at(1)->GetBufferSize(), NULL, &m_pixelShader);
+	Application->getDevice()->CreateVertexShader(Things.at(0)->GetBufferPointer(),
+		Things.at(0)->GetBufferSize(), NULL, &m_vertexShader);
+	Application->getDevice()->CreatePixelShader(Things.at(1)->GetBufferPointer(),
+		Things.at(1)->GetBufferSize(), NULL, &m_pixelShader);
 	if (Things.size() == 3)
-		Application->getDevice()->CreatePixelShader(Things.at(2)->GetBufferPointer(), Things.at(2)->GetBufferSize(), NULL, &m_pixelShader2);
+		Application->getDevice()->CreatePixelShader(Things.at(2)->GetBufferPointer(),
+			Things.at(2)->GetBufferSize(), NULL, &m_pixelShader2);
 
 	ppBlobOut.push_back(m_vertexShader);
 	ppBlobOut.push_back(m_pixelShader);
@@ -62,7 +63,8 @@ vector<void *> Shaders::CompileShaderFromFile(vector<ID3DBlob *> Things)
 	return ppBlobOut;
 }
 
-vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName, vector<string> VersionShader, DWORD ShaderFlags)
+vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName,
+	vector<string> VersionShader, DWORD ShaderFlags)
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
@@ -85,33 +87,17 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 			if (FAILED(result))
 			{
 				if (pErrorBlob)
-				{
-#if defined (DEBUG)
-					DebugTrace(string(string("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
-						(char *)pErrorBlob->GetBufferPointer()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-					throw exception("Shaders::CreateShaderFromFile() Is Failed!\nReturn Text:") +
-						(char *)pErrorBlob->GetBufferPointer()).c_str());
-#endif
-						Console::LogError(string(string("Shaders: Shader compiller is failed!\nReturn Text:") +
-							(char *)pErrorBlob->GetBufferPointer()).c_str());
-				}
+					Engine::LogError((boost::format("Shaders::CreateShaderFromFile() Failed!\nReturn Text: %s") %
+					(char *)pErrorBlob->GetBufferPointer()).str(),
+						(boost::format("Shaders::CreateShaderFromFile() Failed!\nReturn Text: %s") %
+						(char *)pErrorBlob->GetBufferPointer()).str(),
+							(boost::format("Shaders: Shader compiller failed!\nReturn Text: %s") %
+						(char *)pErrorBlob->GetBufferPointer()).str());
 				SAFE_RELEASE(pErrorBlob);
 			}
 			SAFE_RELEASE(pErrorBlob);
 			ppBlobOut.push_back(Cache);
 		}
-	}
-	else
-	{
-#if defined (DEBUG)
-		DebugTrace("Shaders::CreateShaderFromFile() Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Shaders::CreateShaderFromFile() Is Failed!");
-#endif
-		Console::LogError("Shaders: CreateShaderFromFile() It's necessary to 3 arguments are equal!");
 	}
 	return ppBlobOut;
 }

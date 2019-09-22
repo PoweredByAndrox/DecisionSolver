@@ -18,13 +18,6 @@ private:
 #pragma pack()
 
 public:
-	void SetShadersFile(vector<wstring> ShaderFile, vector<string> Func, vector<string> VersionShader);
-
-	HRESULT InitSimpleBuffer(UINT VertexSize = 0U, void *Vertix = nullptr, UINT IndicesSize = 0U, void *Indix = nullptr, UINT SizeStruct = 0U,
-		bool LayoutWithColor = false);
-
-	HRESULT InitModels(UINT VertexSize, void *Vertix, UINT IndicesSize, void *Indix, UINT SizeStruct, bool LayoutWithColor);
-
 	HRESULT InitUI();
 	void RenderUI(ImDrawData *draw_data, bool WF);
 
@@ -37,10 +30,6 @@ public:
 
 	static ID3D11Buffer *CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFlags);
 	static ID3D11InputLayout *CreateLayout(ID3DBlob *Buffer_blob, bool WithColor = true);
-
-	void RenderSimpleBuffer(Matrix World, Matrix View, Matrix Proj, int Indicies = 0, ID3D11ShaderResourceView *RenderTextr = nullptr, bool WF = false);
-
-	void RenderModels(Matrix World, Matrix View, Matrix Proj, UINT SizeIndices, ID3D11ShaderResourceView *RenderTextr, bool WF);
 
 	Render_Buffer() {}
 	~Render_Buffer() {}
@@ -74,16 +63,8 @@ protected:
 	ID3D11ShaderResourceView *g_pFontTextureView = nullptr;
 	ID3D11BlendState *g_pBlendState = nullptr;
 
-	shared_ptr<Shaders> Shader = make_unique<Shaders>();
-
-	vector<ID3DBlob *> Buffer_blob;
-	vector<void *> Buffers;
-
 	// ***********
 	// For UI
 	int VBufferSize = 5000, IBufferSize = 10000;
-
-	vector<wstring> ShaderFile;
-	vector<string> Func, VersionShader;
 };
 #endif // !__RENDER_BUFFER_H__

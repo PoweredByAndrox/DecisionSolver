@@ -37,29 +37,24 @@ private:
 	class Mesh
 	{
 	public:
-		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, Vector3 Min, Vector3 Max)
+		Mesh(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
 		{
-			Init(vertices, indices, textures, Min, Max);
+			Init(vertices, indices, textures);
 		}
 		Mesh() {}
 		~Mesh() {}
 
-		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures, Vector3 Min, Vector3 Max);
-		void Draw(Matrix World, Matrix View, Matrix Proj);
+		void Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures);
+		void Draw();
 
 		vector<Things> getVertices() { return vertices; }
 		vector<UINT> getIndices() { return indices; }
-		Vector3 getMinAABB() { return MinAABB; }
-		Vector3 getMaxAABB() { return MaxAABB; }
 	private:
 		vector<Things> vertices;
 		vector<UINT> indices;
 		vector<Texture> textures;
 
-		ID3D11Buffer *VertexBuffer, *IndexBuffer, *pConstantBuffer;
-		//ID3D11VertexShader *pVS;
-		//ID3D11PixelShader *pPS;
-		Vector3 MinAABB = Vector3::Zero, MaxAABB = Vector3::Zero;
+		ID3D11Buffer *VertexBuffer = nullptr, *IndexBuffer = nullptr;
 	};
 	vector<shared_ptr<Mesh>> meshes;
 
@@ -90,12 +85,18 @@ public:
 	void setScale(Vector3 Scale);
 	void setPosition(Vector3 Pos);
 
-//	Vector3 getPosition() { return position.Translation(); }
 	vector<shared_ptr<Mesh>> getMeshes() { return meshes; }
 
 	~Models() {}
 protected:
-	Matrix position = Matrix::Identity, scale = Matrix::Identity, rotate = Matrix::Identity;
+	Matrix position = Matrix(), scale = Matrix(), rotate = Matrix();
+	ID3D11Buffer *pConstantBuffer = nullptr;
+
+	ID3D11InputLayout *pLayout = nullptr;
+	ID3D11SamplerState *TexSamplerState = nullptr;
+
+	ID3D11VertexShader *VS = nullptr;
+	ID3D11PixelShader *PS = nullptr;
 
 #pragma pack(push, 1)
 	struct ConstantBuffer

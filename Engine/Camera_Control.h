@@ -34,8 +34,6 @@ public:
 	auto getController() { return C_Control; }
 	void setTargKey(PxVec3 Vec3) { targetKeyDisplacement = Vec3; }
 
-	static void Teleport(Vector3 NewPos);
-
 	Vector3 getHeadPos() { return HeadPos; }
 	//~Camera_Control()
 	//{

@@ -10,10 +10,13 @@ extern shared_ptr<Engine> Application;
 #include "Console.h"
 #include "Audio.h"
 #include "Camera.h"
+#include "CutScene.h"
+
+state CLua::LuaState;
 
 void CLua::Init()
 {
-	LuaState.open_libraries();
+	LuaState.open_libraries(lib::base, lib::package);
 
 	// Log Funtions (Console) !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<Console>("Console", "AddCmd",
@@ -27,10 +30,18 @@ void CLua::Init()
 
 	// Camera !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<Camera>("Camera", "ChangePos", &Camera::Teleport,
-		"GetPos", &Camera::GetEyePt, "GetDir", &Camera::GetLookAtPt);
+		"GetPos", &Camera::GetEyePt, "GetLook", &Camera::GetLookAtPt);
 
 	// File System !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<File_system>("FS", "GetCurPath", &File_system::GetCurPath);
+
+	// CutScene !!!
+	LuaState["Engine"].get_or_create<table>().new_usertype<CutScene>("CutScene", constructors<CutScene()>(),
+		//CutScene(Vector3, Vector3, float)>(),
+		"AddPoint", &CutScene::AddNewPoint, "Start", &CutScene::Start, "Update", &CutScene::Update);
+
+	LuaState.new_usertype<Vector3>("vec3", constructors<Vector3(), Vector3(float, float, float),
+		void(float, float, float)>());
 
 	//// Keyboard !!!
 	//LuaState["Engine"].get_or_create<table>().new_usertype<Keyboard>("Keyboard", "IsKeyDown", &Engine::IsKeyboardDown,
@@ -39,14 +50,23 @@ void CLua::Init()
 	//// Mouse !!!
 	//Table_Engine.new_usertype<Mouse::>("Mouse", "IsKeyDown", &Engine::IsKeyDown,
 	//	"IsKeyUp", &Engine::IsKeyUp, "SetVisible", &Engine::SetVisibleMouse);
+	const string package_path = LuaState["package"]["path"];
+	LuaState["package"]["path"] = package_path + (!package_path.empty() ? ";" : "")
+		+ Application->getFS()->getPathFromType(_TypeOfFile::SCRIPTS) + "?.lua";
+
+	Reinit();
+}
+
+void CLua::Reinit()
+{
+	callFunction("main.lua", "initEverything", "");
 }
 
 void CLua::Update()
 {
 	try
 	{
-		if (Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Keys::D5))
-			callFunction("test.lua", "main", "");
+		callFunction("main.lua", "main", "");
 	}
 	catch (const exception &SomeError)
 	{
@@ -76,6 +96,6 @@ void CLua::callFunction(string FileName, string Function, string params)
 	}
 	catch (error e)
 	{
-		Console::LogError(string("Lua error:\n") + string(e.what()));
+		Console::LogError(e.what());
 	}
 }

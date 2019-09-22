@@ -1,45 +1,13 @@
 #include "pch.h"
 
-#include "Shaders.h"
-#include "File_system.h"
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
 #include "Models.h"
 #include "Console.h"
-
-ID3D11InputLayout *pLayout;
-ID3D11SamplerState *TexSamplerState;
-ID3DBlob *VS, *PS;
-ID3D11VertexShader *pVS;
-ID3D11PixelShader *pPS;
-ID3D11Buffer *Matrices = nullptr;
-
-HRESULT	CompileShaderFromFile(LPCWSTR pFileName, const D3D_SHADER_MACRO* pDefines, LPCSTR pEntryPoint,
-	LPCSTR pShaderModel, ID3DBlob** ppBytecodeBlob)
-{
-	UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
-
-#ifdef DEBUG
-	compileFlags |= D3DCOMPILE_DEBUG;
-#endif
-
-	ID3DBlob* pErrorBlob = NULL;
-
-	HRESULT result = D3DCompileFromFile(pFileName, pDefines, D3D_COMPILE_STANDARD_FILE_INCLUDE, pEntryPoint, pShaderModel,
-		compileFlags, 0, ppBytecodeBlob, &pErrorBlob);
-	if (FAILED(result))
-	{
-		if (pErrorBlob != NULL)
-			OutputDebugStringA((LPCSTR)pErrorBlob->GetBufferPointer());
-	}
-
-	if (pErrorBlob != NULL)
-		pErrorBlob->Release();
-
-	return result;
-}
+#include "Shaders.h"
+#include "File_system.h"
 
 bool Models::LoadFromFile(string Filename)
 {	
@@ -47,28 +15,54 @@ bool Models::LoadFromFile(string Filename)
 
 	pScene = importer->ReadFile(Filename.c_str(),
 		aiProcess_Triangulate |
-		aiProcess_ConvertToLeftHanded);
+		aiProcess_ConvertToLeftHanded |
+		aiProcess_JoinIdenticalVertices);
 	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 	{
-#if defined (DEBUG)
-		DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Models::pScene == nullptr!!!");
-#endif
-		Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
+		Engine::LogError((boost::format("Model: Scene return nullptr with text: %s") % importer->GetErrorString()).str(),
+			"Models::pScene == nullptr!!!",
+			(boost::format("Model: Scene return nullptr with text:") % importer->GetErrorString()).str());
 		return false;
 	}
 
 	processNode(pScene->mRootNode, pScene);
 
-	CompileShaderFromFile(Application->getFS()->GetFile("VertexShader.hlsl")->PathW.c_str(),
-		0, "Vertex_model_VS", "vs_4_0", &VS);
-	CompileShaderFromFile(Application->getFS()->GetFile("PixelShader.hlsl")->PathW.c_str(),
-		0, "Pixel_model_PS", "ps_4_0", &PS);
+	D3D11_SAMPLER_DESC sampDesc;
+	ZeroMemory(&sampDesc, sizeof(sampDesc));
+	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.ComparisonFunc = D3D11_COMPARISON_NOT_EQUAL;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	Application->getDevice()->CreateVertexShader(VS->GetBufferPointer(), VS->GetBufferSize(), NULL, &pVS);
-	Application->getDevice()->CreatePixelShader(PS->GetBufferPointer(), PS->GetBufferSize(), NULL, &pPS);
+	Application->getDevice()->CreateSamplerState(&sampDesc, &TexSamplerState);
+
+	vector<ID3DBlob *> Buffer_blob;
+	vector<wstring> FileShaders =
+	{
+		Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW,
+		Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW
+	};
+	vector<string> Functions =
+	{
+		string("Vertex_model_VS"),
+		string("Pixel_model_PS")
+	},
+		Version =
+	{
+		string("vs_4_0"),
+		string("ps_4_0")
+	};
+	vector<void *> Buffers = Shaders::CompileShaderFromFile(Buffer_blob =
+		Shaders::CreateShaderFromFile(FileShaders, Functions, Version));
+	VS = (ID3D11VertexShader *)Buffers[0]; // VS
+	PS = (ID3D11PixelShader *)Buffers[1]; // PS
+
+	Application->getDevice()->CreateVertexShader(Buffer_blob.at(0)->GetBufferPointer(), Buffer_blob.at(0)->GetBufferSize(),
+		NULL, &VS);
+	Application->getDevice()->CreatePixelShader(Buffer_blob.at(1)->GetBufferPointer(), Buffer_blob.at(1)->GetBufferSize(),
+		NULL, &PS);
 
 	D3D11_INPUT_ELEMENT_DESC ied[] =
 	{
@@ -76,8 +70,11 @@ bool Models::LoadFromFile(string Filename)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	Application->getDevice()->CreateInputLayout(ied, 2, VS->GetBufferPointer(), VS->GetBufferSize(), &pLayout);
-	Matrices = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0);
+	Application->getDevice()->CreateInputLayout(ied, 2, Buffer_blob.at(0)->GetBufferPointer(),
+		Buffer_blob.at(0)->GetBufferSize(), &pLayout);
+
+	pConstantBuffer = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0);
+	position = Matrix::CreateTranslation(Vector3::One);
 
 	return true;
 }
@@ -95,13 +92,9 @@ bool Models::LoadFromAllModels()
 		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
 		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
 		{
-#if defined (DEBUG)
-			DebugTrace(string(string("Model: Scene return nullptr with text:") + importer->GetErrorString()).c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-			throw exception("Models::pScene == nullptr!!!");
-#endif
-			Console::LogError(string("Model: Scene return nullptr with text:") + importer->GetErrorString());
+			Engine::LogError((boost::format("Model: Scene return nullptr with text: %s") % importer->GetErrorString()).str(),
+				"Models::pScene == nullptr!!!",
+				(boost::format("Model: Scene return nullptr with text:") % importer->GetErrorString()).str());
 			return false;
 		}
 
@@ -115,48 +108,38 @@ bool Models::LoadFromAllModels()
 
 void Models::Render(Matrix View, Matrix Proj)
 {
+	Matrix WVP = (rotate * scale * position) * View * Proj;
+	ConstantBuffer cb;
+	cb.mMVP = XMMatrixTranspose(WVP);
+	Application->getDeviceContext()->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
+	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &pConstantBuffer);
+	//7
+	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
+	//3
+	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//1
+	Application->getDeviceContext()->IASetInputLayout(pLayout);
+	//5
+	Application->getDeviceContext()->VSSetShader(VS, 0, 0);
+	//6
+	Application->getDeviceContext()->PSSetShader(PS, 0, 0);
+
 	for (size_t i = 0; i < meshes.size(); i++)
 	{
-		meshes.at(i)->Draw(scale * rotate * position, View, Proj);
+		meshes.at(i)->Draw();
 	}
 }
 
 Models::Models(string Filename)
 {
 	if (Filename.empty())
-	{
-#if defined (ExceptionWhenEachError)
-		throw exception("Models: File Not Found!\n");
-#endif
-#if defined (DEBUG)
-		DebugTrace(string(string("Model File: ") + Filename + string("not found And Can't Be Load!")).c_str());
-#endif
-		Console::LogError(string("Model File: ") + Filename + string("not found And Can't Be Load!"));
-
-		return;
-	}
+		Engine::LogError((boost::format("Model File: %s not found And Can't Be Load!") % Filename).str(),
+			"Models: File Not Found!\n",
+			(boost::format("Model File: %s not found And Can't Be Load!") % Filename).str());
 	if (!LoadFromFile(Filename))
-	{
-#if defined (ExceptionWhenEachError)
-		throw exception("Models::LoadFromFile == false!\n");
-#endif
-#if defined (DEBUG)
-		DebugTrace(string(string("Model: ") + Filename + string(" Can't Be Load!")).c_str());
-#endif
-		Console::LogError(string("Model: ") + Filename + string(" Can't Be Load!"));
-	}
-
-	D3D11_SAMPLER_DESC sampDesc;
-	ZeroMemory(&sampDesc, sizeof(sampDesc));
-	sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	sampDesc.MaxAnisotropy = 1;
-	sampDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-	Application->getDevice()->CreateSamplerState(&sampDesc, &TexSamplerState);
+		Engine::LogError((boost::format("Model File: %s Can't Be Load!") % Filename).str(),
+			"Models::LoadFromFile == false!\n",
+			(boost::format("Model File: %s Can't Be Load!") % Filename).str());
 }
 
 vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName,
@@ -255,8 +238,8 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 			Things vertex;
 
 			vertex.Pos = Vector3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-			Max = Vector3(max(float(mesh->mVertices[i].x), Max.x), max(float(mesh->mVertices[i].y), Max.y),
-				max(float(mesh->mVertices[i].z), Max.z));
+			//Max = Vector3(max(float(mesh->mVertices[i].x), Max.x), max(float(mesh->mVertices[i].y), Max.y),
+			//	max(float(mesh->mVertices[i].z), Max.z));
 			if (mesh->mTextureCoords[0])
 				vertex.Tex = Vector2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 
@@ -268,9 +251,7 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 			aiFace face = mesh->mFaces[i];
 
 			for (UINT j = 0; j < face.mNumIndices; j++)
-			{
 				indices.push_back(face.mIndices[j]);
-			}
 		}
 		if (mesh->mMaterialIndex >= 0)
 		{
@@ -297,10 +278,10 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 			vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT,
 			"texture_height", Scene);
 			textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
-	*/
+			*/
 		}
 
-		meshes.push_back(make_shared<Mesh>(vertices, indices, textures, Vector3::Zero, Max));
+		meshes.push_back(make_shared<Mesh>(vertices, indices, textures));
 	}
 
 	for (UINT i = 0; i < node->mNumChildren; i++)
@@ -354,7 +335,8 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 #if defined (ExceptionWhenEachError)
 		throw exception("Create failed!!!");
 #endif
-		Console::LogInfo(string("Something is wrong with this texture: ") + Scene->mTextures[Textureindex]->mFilename.C_Str());
+		Console::LogInfo(string("Something is wrong with this texture: ") +
+			Scene->mTextures[Textureindex]->mFilename.C_Str());
 
 		return nullptr;
 	}
@@ -380,14 +362,11 @@ void Models::setPosition(Vector3 Pos)
 		position = XMMatrixTranslationFromVector(Pos);
 }
 
-void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures,
-	Vector3 Min, Vector3 Max)
+void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
 {
 	this->vertices = vertices;
 	this->indices = indices;
 	this->textures = textures;
-	MinAABB = Min;
-	MaxAABB = Max;
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
@@ -413,40 +392,21 @@ void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Te
 	Application->getDevice()->CreateBuffer(&ibd, &initData, &IndexBuffer);
 }
 
-void Models::Mesh::Draw(Matrix World, Matrix View, Matrix Proj)
+void Models::Mesh::Draw()
 {
 	UINT stride = sizeof(Things);
 	UINT offset = 0;
 
-	//1
-	Application->getDeviceContext()->IASetInputLayout(pLayout);
 	//2
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
-	//3
-	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//4
 	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	//5
-	Application->getDeviceContext()->VSSetShader(pVS, 0, 0);
-	//6
-	Application->getDeviceContext()->PSSetShader(pPS, 0, 0);
-
-	Matrix WVP = World * View * Proj;
-	ConstantBuffer cb;
-	cb.mMVP = XMMatrixTranspose(WVP);
-	Application->getDeviceContext()->UpdateSubresource(Matrices, 0, nullptr, &cb, 0, 0);
-	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &Matrices);
-
-	//7
-	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
 
 	if (!textures.empty() && textures[0].TextureSHRes)
 		//8
 		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].TextureSHRes);
 
-
-	bool WF = Application->IsWireFrame();
-	if (WF)
+	if (Application->IsWireFrame())
 		Application->getDeviceContext()->RSSetState(Application->GetWireFrame());
 	else
 		Application->getDeviceContext()->RSSetState(Application->GetNormalFrame());

@@ -67,10 +67,10 @@ public:
 			SAFE_release(DynamicObjects.at(0));
 			DynamicObjects.erase(DynamicObjects.begin());
 		}
-	//	Cobes.clear();
+		Cobes.clear();
 	}
-	
-	PxVec3 TestLogic(PxRigidDynamic *Obj, shared_ptr<SimpleLogic> Logic);
+
+	void SpawnObject();
 protected:
 	// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;
@@ -107,6 +107,6 @@ protected:
 		// Initialized bool variable
 	bool IsInitPhysX = false;
 
-	//vector<shared_ptr<GeometricPrimitive>> Cobes;
+	vector<shared_ptr<GeometricPrimitive>> Cobes;
 };
 #endif // !__PHYSICS_H__

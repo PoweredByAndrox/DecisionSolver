@@ -3,11 +3,11 @@
 <!-- The level has some objects (maybe two (or more) spaceships) -->
 <scene>
 	<objects>
-	<!-- Name of Model also this is an identifier --> 
-		<One id="v2colored_low">
+	<!-- Name of Model also like an identifier --> 
+	<!--	<One id="v2colored_low">
 			<pos>0,0,0</pos>
 			<scale>0.005,0.005,0.005</scale>
-		</One>
+		</One>-->
 	<!-- If the name has a space then replace them with _ -->
 <!--  	<Two id="Test_phys_box">
 			<pos>5,0,0</pos>

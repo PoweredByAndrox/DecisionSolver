@@ -25,7 +25,6 @@ static auto vector_getter = [](void *vec, int idx, const char **out_text)
 	*out_text = Vector.at(idx).c_str();
 	return true;
 };
-
 class Buttons;
 class Labels;
 class ITextMulti;
@@ -39,6 +38,7 @@ class TreeNode;
 class Tab;
 class Column;
 class Selectable;
+class Combobox;
 struct AllTheComponent
 {
 	vector<shared_ptr<Buttons>> Btn;
@@ -54,6 +54,7 @@ struct AllTheComponent
 	vector<shared_ptr<TreeNode>> TNode;
 	vector<shared_ptr<Tab>> Tabs;
 	vector<shared_ptr<Selectable>> selectable;
+	vector<shared_ptr<Combobox>> combo;
 
 	void RenderComponents(int &now);
 	void RenderColumn(int OrderCount, int CountColumn, LPCSTR IDColumn = "", bool border = true);
@@ -91,6 +92,9 @@ struct XMLComponents
 	vector<XMLNode *> select;
 	vector<int> IDselect;
 
+	vector<XMLNode *> combo;
+	vector<int> IDcombo;
+
 	vector<shared_ptr<XMLComponents>> CpsHead;
 	vector<XMLNode *> XMLCHead;
 	vector<shared_ptr<XMLComponents>> DialChild;
@@ -117,6 +121,45 @@ struct XMLDial
 	XMLDial(XMLNode *dial): Dial(dial) {}
 };
 
+class Combobox
+{
+private:
+	bool Combo(const char *label, int *currIndex, vector<string> &values)
+	{
+		if (values.empty())
+			return false;
+		return ImGui::Combo(label, currIndex, vector_getter, static_cast<void *>(&values), values.size());
+	}
+
+public:
+	void ChangeOrder(int num) { OrderlyRender = num; }
+	void ChangeID(LPCSTR ID) { this->ID = ID; }
+
+	int getRenderOrder() { return OrderlyRender; }
+	LPCSTR GetID() { return ID; }
+
+	vector<string> GetItems() { return Items; }
+	void AddItem(string Item) { Items.push_back(Item); }
+
+	void ClearItems() { Items.clear(); }
+
+	string GetSelect() { return Items.at(selected); }
+	bool IsMouseSelected() { return Active; }
+
+	Combobox() {}
+	~Combobox() {}
+
+	void Render()
+	{
+		Combo(ID, &selected, Items);
+		Active = ImGui::IsItemActive();
+	}
+private:
+	int OrderlyRender = 0, selected = 0;
+	LPCSTR ID = "";
+	bool Active = false;
+	vector<string> Items = { string("None") };
+};
 class Selectable
 {
 public:
@@ -238,12 +281,6 @@ private:
 class TextList
 {
 private:
-	//bool Combo(const char *label, int *currIndex, vector<string> &values)
-	//{
-	//	if (values.empty())
-	//		return false;
-	//	return ImGui::Combo(label, currIndex, vector_getter, static_cast<void *>(&values), values.size());
-	//}
 	bool ListBox(const char *label, int *currIndex, vector<string> &values)
 	{
 		if (values.empty())
@@ -669,12 +706,15 @@ public:
 	string GetTitle() { return IDTitle; }
 
 	bool getVisible() { return IsVisible; }
+	bool getIsFullScreen() { return IsFullScreen; }
+
 	int getOrderCount() { return OrderlyRender; }
 
 	void setResizeble(bool Resizeble) { IsResizeble = Resizeble; }
 	void setMoveble(bool Moveble) { IsMoveble = Moveble; }
 	void setCollapsible(bool Collapsible) { IsCollapsible = Collapsible; }
 	void setBringToFont(bool BringToFont) { IsNeedBringToFont = BringToFont; }
+	void setFullScreen(bool FullScreen) { IsFullScreen = FullScreen; }
 
 	shared_ptr<AllTheComponent> getComponents() { return Component; }
 	auto GetCurrentWindow() { return ImGui::GetCurrentWindow(); }
@@ -683,15 +723,12 @@ public:
 	~dialogs() {}
 
 	dialogs(LPCSTR IDTitle): IDTitle(IDTitle) {}
-	dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble, bool IsCollapsible, int style,
-		bool IsNeedBringToFont, float SizeW = 0.f, float SizeH = 0.f):
-		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), IsMoveble(IsMoveble), IsResizeble(IsResizeble),
-		IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont), SizeW(SizeW), SizeH(SizeH)
+	dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble,
+		bool IsCollapsible, int style, bool IsNeedBringToFont, bool IsFullScreen, float SizeW = 0.f, float SizeH = 0.f):
+		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), IsMoveble(IsMoveble),
+		IsResizeble(IsResizeble), IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont),
+		IsFullScreen(IsFullScreen), SizeW(SizeW), SizeH(SizeH)
 	{
-		ImGuiIO &io = ImGui::GetIO();
-		if (IsKeyboardSupport)
-			io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
 		ImGui::StyleColorsClassic();
 	}
 
@@ -704,7 +741,8 @@ private:
 		IsMoveble = false,
 		IsResizeble = false,
 		IsCollapsible = false,
-		IsNeedBringToFont = false;
+		IsNeedBringToFont = false,
+		IsFullScreen = false;
 
 	ImGuiWindowFlags window_flags = 0;
 
@@ -789,6 +827,7 @@ protected:
 
 	void GetParam(XMLElement *Nods, shared_ptr<Buttons>& btn);
 	void GetParam(XMLElement *Nods, shared_ptr<TextList> &TList);
+	void GetParam(XMLElement *Nods, shared_ptr<Combobox> &Combo);
 	void GetParam(XMLElement *Nods, shared_ptr<Labels> &Label);
 	void GetParam(XMLElement *Nods, shared_ptr<IText> &Itext);
 	void GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul);

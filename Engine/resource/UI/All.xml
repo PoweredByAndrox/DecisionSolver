@@ -1,40 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- <gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
+<!--<gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="18" brightness="0.8">
+	<Button text="Spawn a Phys Cube" visible="true"/>
+	<Button text="Clear a Phys Cube" visible="true"/>
 	<Tab text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
 	no_close_midle_mouse="false">
-		<TabItem text="Sounds">
-			<TreeNode text="Sound Objects">
-				<Selectable id="Obj№1"/>
-				<Column count="2" id="ColumnSound" border="false">
-					<Button text="Play" visible="true"/>
-					<Button text="Pause" visible="true"/>
-					<Label text="Path to File:" visible="true"/>
-					<Label text="3D Pos:" visible="true"/>
-					<Label text="Dis (ToCam):" visible="true"/>
-					<Label text="Volume Sound:" visible="true"/>
-				</Column>
-			</TreeNode>
-		</TabItem>
-		<TabItem text="Physics">
-			<TreeNode text="Physic Objects">
-				<Button text="Start Simulate" visible="true"/>
-				<Button text="Pause Simulate" visible="true"/>
-				<Label text="Direction:" visible="true"/>
-				<Column count="2" id="ColumnPhysic" border="false">
-					<Label text="3D Pos:" visible="true"/>
-					<Label text="Distantion(ToCam):" visible="true"/>
+		<TabItem text="Objects">
+			<TreeNode text="Phys Objects">
+				<Selectable id="Obj#1"/>
+				<Column count="2" id="ColumnPhObj" border="false">
+ 				<Button text="Play Logic" visible="true"/>
+					<Button text="Stop Logic" visible="true"/>
+ 				<Label text="3D Pos:" visible="true"/>
+					<Label text="Distantion (ToCam):" visible="true"/>
+					<Label text="Direction:" visible="true"/>
 				</Column>
 			</TreeNode>
 		</TabItem>
 	</Tab>
-</gui> -->
-
-<gui id="Main" width="435" height="205" open="true" resize="true" 
-show_title="true" moveble="true" collapsible="false" bring_to_font="false"
-font="capture-it" sizefont="24" brightness="0.9">
+</gui>
+-->
+<gui id="SDKDIAL" width="0" height="0" open="true" resize="true" 
+show_title="false" moveble="false" collapsible="false" bring_to_font="false"
+font="capture-it" sizefont="24" brightness="0.9" fullscreene="false">
 	<Collapse text="Sound" seldefault="true" collapsible="true">
+		<Combo id="Select Track!" />
 		<Button text="Start!" visible="true"/>
 		<Button text="Stop!" visible="true"/>
 		<Button text="Pause!" visible="true"/>

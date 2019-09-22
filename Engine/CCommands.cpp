@@ -9,7 +9,8 @@ ToDo("Add a 'Spawn' command after Reffactoring a GameObject Class")
 static const vector<string> ListCommands =
 {
 	string("help"), string("quit"), string("clear"),
-	string("dotorque"), string("cleanphysbox")
+	string("dotorque"), string("cleanphysbox"),
+	string("reinit_lua")
 };
 static const vector<string> ListCommandsWithParams =
 {
@@ -121,6 +122,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		}
 		else if (contains(CMD, "cleanphysbox"))
 			Application->getPhysics()->ClearAllObj();
+		else if (contains(CMD, "reinit_lua"))
+			CLua::Reinit();
 	}
 	if (cmd->type == Command::TypeOfCommand::Lua)
 	{
@@ -162,18 +165,18 @@ shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Co
 {
 	for (size_t i = 0; i < commands.size(); i++)
 	{
-		string GetCommand = Text;
-		string GetParam = Text;
+		string GetCommand = Text, GetParam = Text, ThisCommand = commands.at(i)->CommandStr;
 
-		if (GetParam.length() > commands.at(i)->CommandStr.length())
+		if (GetParam.length() > ThisCommand.length())
 			deleteWord(GetParam, " ", ModeProcessString::UntilTheBegin, false, false);
 
 		deleteWord(GetCommand, " ", ModeProcessString::UntilTheEnd);
 		to_lower(GetCommand);
+		to_lower(ThisCommand);
 
-		if (contains(commands.at(i)->CommandStr, GetCommand))
+		if (strcmp(ThisCommand.c_str(), GetCommand.c_str()) == 0)
 		{
-			if (Text.length() <= commands.at(i)->CommandStr.length() || GetParam.empty())
+			if (Text.length() <= ThisCommand.length() || GetParam.empty())
 				return commands.at(i);
 
 			commands.at(i)->CommandUnprocessed = GetParam;

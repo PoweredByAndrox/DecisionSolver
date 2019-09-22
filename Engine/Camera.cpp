@@ -24,11 +24,13 @@ HRESULT Camera::Init(float W, float H, float FOV)
 void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
 	XMStoreFloat3(&m_vEye, vEyePt);
-	XMStoreFloat3(&m_vDefaultEye, vEyePt);
-
 	XMStoreFloat3(&m_vLookAt, vLookatPt);
-	XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
 
+	if (!C_CT.operator bool())
+	{
+		XMStoreFloat3(&m_vDefaultEye, vEyePt);
+		XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
+	}
 		// Calc the view matrix
 	m_mView = XMMatrixLookAtLH(vEyePt, vLookatPt, Vector3::Up);
 
@@ -46,8 +48,16 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 	m_fAspect = fAspect;
 	m_fNearPlane = fNearPlane;
 	m_fFarPlane = fFarPlane;
-
+	
 	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
+}
+
+void Camera::Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx)
+{
+	if (C_CT.operator bool() && !NoTPPhysx)
+		C_CT->getController()->setPosition(PxExtendedVec3(NewPos.x, NewPos.y, NewPos.z));
+
+	SetViewParams(NewPos, NewLook);
 }
 
 void Camera::SetNumberOfFramesToSmoothMouseData(int nFrames)
@@ -131,60 +141,12 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 			C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
 	}
 	else
-	{
-#if defined (DEBUG)
-		DebugTrace("Camera::GetInput is failed.");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Camera::GetInput is failed!!!");
-#endif
-		Console::LogError("Something is wrong with your Keyboard!");
-	}
+		Engine::LogError("Camera::GetInput failed.", "Camera::GetInput failed.",
+			"Something is wrong with your Keyboard!");
 
 	if (((Application->getMouse()->GetState().leftButton && Left) ||
 		(Application->getMouse()->GetState().rightButton && Right)) != WithoutButton)
 		UpdateMouseDelta();
-	/*
-	if (Application->getKeypad()->IsConnected())
-	{
-		m_vGamePadLeftThumb = Vector3::Zero;
-		m_vGamePadRightThumb = Vector3::Zero;
-
-			// Get controller state
-		for (DWORD iUserIndex = 0; iUserIndex < DXUT_MAX_CONTROLLERS; iUserIndex++)
-		{
-			DXUTGetGamepadState(iUserIndex, &m_GamePad[iUserIndex], true, true);
-
-				// Mark time if the controller is in a non-zero state
-			if (m_GamePad[iUserIndex].wButtons || m_GamePad[iUserIndex].sThumbLX || m_GamePad[iUserIndex].sThumbLY ||
-				m_GamePad[iUserIndex].sThumbRX || m_GamePad[iUserIndex].sThumbRY || m_GamePad[iUserIndex].bLeftTrigger ||
-				m_GamePad[iUserIndex].bRightTrigger)
-				m_GamePadLastActive[iUserIndex] = DXUTGetTime();
-		}
-
-			// Find out which controller was non-zero last
-		int iMostRecentlyActive = -1;
-		double fMostRecentlyActiveTime = 0.0f;
-		for (DWORD iUserIndex = 0; iUserIndex < DXUT_MAX_CONTROLLERS; iUserIndex++)
-			if (m_GamePadLastActive[iUserIndex] > fMostRecentlyActiveTime)
-			{
-				fMostRecentlyActiveTime = m_GamePadLastActive[iUserIndex];
-				iMostRecentlyActive = iUserIndex;
-			}
-
-			// Use the most recent non-zero controller if its connected
-		if (iMostRecentlyActive >= 0 && m_GamePad[iMostRecentlyActive].bConnected)
-		{
-			m_vGamePadLeftThumb.x = m_GamePad[iMostRecentlyActive].fThumbLX;
-			m_vGamePadLeftThumb.y = 0.0f;
-			m_vGamePadLeftThumb.z = m_GamePad[iMostRecentlyActive].fThumbLY;
-
-			m_vGamePadRightThumb.x = m_GamePad[iMostRecentlyActive].fThumbRX;
-			m_vGamePadRightThumb.y = 0.0f;
-			m_vGamePadRightThumb.z = m_GamePad[iMostRecentlyActive].fThumbRY;
-		}
-	}
-	*/
 }
 
 void Camera::UpdateMouseDelta()
@@ -202,10 +164,9 @@ void Camera::UpdateMouseDelta()
 	if (m_bResetCursorAfterMove)
 	{
 		Vector2 ptCenter = Vector2(Application->getWorkAreaSize(Application->GetHWND()).x,
-			Application->getWorkAreaSize(Application->GetHWND()).y);
+			Application->getWorkAreaSize(Application->GetHWND()).y) / 2;
 
-		ptCenter /= 2;
-		SetCursorPos(ptCenter.x, ptCenter.y);
+		::SetCursorPos(ptCenter.x, ptCenter.y);
 		m_ptLastMousePosition = ptCenter;
 	}
 
@@ -267,8 +228,8 @@ void Camera::UpdateVelocity(_In_ float fElapsedTime)
 
 void Camera::Reset()
 {
-	SetViewParams(m_vDefaultEye, m_vDefaultLookAt);
-	C_CT->Teleport(m_vEye);
+	//SetViewParams(m_vDefaultEye, m_vDefaultLookAt);
+	Teleport(m_vDefaultEye, m_vDefaultLookAt);
 }
 
 void Camera::FrameMove(_In_ float fElapsedTime)
@@ -311,8 +272,8 @@ void Camera::FrameMove(_In_ float fElapsedTime)
 		m_fCameraYawAngle += fYawDelta;
 
 			// Limit pitch to straight up or straight down
-		m_fCameraPitchAngle = max(-XM_PI / 2.0f, m_fCameraPitchAngle);
-		m_fCameraPitchAngle = min(+XM_PI / 2.0f, m_fCameraPitchAngle);
+		m_fCameraPitchAngle = max(-XM_PIDIV2, m_fCameraPitchAngle);
+		m_fCameraPitchAngle = min(XM_PIDIV2, m_fCameraPitchAngle);
 	}
 
 		// Make a rotation matrix based on the camera's yaw & pitch

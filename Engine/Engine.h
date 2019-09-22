@@ -8,6 +8,7 @@
 #include <Inc/GamePad.h>
 
 #include "StepTimer.h"
+#include "resource.h"
 
 #define Never
 //#define NEEDED_DEBUG_INFO
@@ -22,12 +23,12 @@ class UI;
 class Models;
 class Camera;
 class Actor;
-class Shaders;
 class Audio;
 class Console;
 class Physics;
 class Picking;
 class Levels;
+class CutScene;
 class Engine
 {
 private:
@@ -81,13 +82,13 @@ private:
 	shared_ptr<Console> console;
 	shared_ptr<UI> ui;
 	shared_ptr<CLua> lua;
+	shared_ptr<CutScene> CScene;
 	shared_ptr<Picking> Pick;
 	//shared_ptr<Frustum> frustum;
 	shared_ptr<Levels> Level;
 	shared_ptr<Actor> mainActor;
 	shared_ptr<Physics> PhysX;
 	shared_ptr<Camera> camera;
-	shared_ptr<Shaders> shader;
 	static shared_ptr<Mouse> mouse;
 	static shared_ptr<Keyboard> keyboard;
 	static shared_ptr<GamePad> gamepad;
@@ -129,9 +130,9 @@ public:
 	shared_ptr<Actor> getActor() { return mainActor; }
 	shared_ptr<Physics> getPhysics() { return PhysX; }
 	shared_ptr<Camera> getCamera() { return camera; }
-	shared_ptr<Shaders> getShader() { return shader; }
 	shared_ptr<Console> getConsole() { return console; }
 	shared_ptr<CLua> getCLua() { return lua; }
+	shared_ptr<CutScene> getCScene() { return CScene; }
 
 	shared_ptr<StepTimer> getTimer() { return Timer; }
 
@@ -167,11 +168,6 @@ public:
 		if (!this->mainActor.operator bool())
 			this->mainActor = mainActor;
 	}
-	void setShader(shared_ptr<Shaders> shader)
-	{
-		if (!this->shader.operator bool())
-			this->shader = shader;
-	}
 	void setSound(shared_ptr<Audio> Sound)
 	{
 		if (!this->Sound.operator bool())
@@ -191,6 +187,11 @@ public:
 	{
 		if (!this->lua.operator bool())
 			this->lua = lua;
+	}
+	void setCScene(shared_ptr<CutScene> CScene)
+	{
+		if (!this->CScene.operator bool())
+			this->CScene = CScene;
 	}
 	void setPick(shared_ptr<Picking> Pick)
 	{
@@ -226,11 +227,7 @@ public:
 	UINT getMsaaQuality() { return m4xMsaaQuality; }
 
 	void ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }
-	void ClearRenderTarget()
-	{
-		DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
-		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0u);
-	}
+	void ClearRenderTarget();
 	static HRESULT ResizeWindow(WPARAM wParam);
 
 	bool IsWireFrame() { return WireFrame; }
@@ -257,6 +254,9 @@ public:
 	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
 
 	auto getAllThreadGroup() { return ThreadGroups; }
+
+	static void LogError(string DebugText, string ExceptionText, string LogText);
+
 	//static bool IsKeyboardDown(Keyboard::Keys Key);
 	//static bool IsKeyboardUp(Keyboard::Keys Key);
 	//static bool IsMouseDown(Keyboard::Keys Key);

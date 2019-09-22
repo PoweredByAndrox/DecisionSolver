@@ -62,30 +62,17 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 	data.ckid = mmioFOURCC('d', 'a', 't', 'a');
 
 	if (mmioDescend(mmio, &data, &riff, MMIO_FINDCHUNK) != MMSYSERR_NOERROR)
-	{
-#if defined (DEBUG)
-		DebugTrace((boost::format("Audio::LoadWAV()-> This File: %s Has a Bad Data.") % filename.c_str()).str().c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Audio::LoadWAV() is failed!!!");
-#endif
-		Console::LogError("Sound: Something is wrong with Load WAV File!");
-	}
+		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Has a Bad Data.")
+			% filename.c_str()).str(),
+			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File!");
 
 	pDataBuffer.resize(data.cksize);
 
 	if (mmioRead(
 		mmio,
 		reinterpret_cast<HPSTR>(&pDataBuffer[0]), data.cksize) != (signed)data.cksize)
-	{
-#if defined (DEBUG)
-		DebugTrace((boost::format("Audio::LoadWAV()-> This File: %s Isn't a WAV File.") % filename.c_str()).str().c_str());
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Audio::LoadWAV() is failed!!!");
-#endif
-		Console::LogError("Sound: Something is wrong with Load WAV File!");
-	}
+		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Isn't a WAV File.") % filename).str(),
+			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File!");
 
 	mmioClose(mmio, MMIO_FHOPEN);
 
@@ -114,7 +101,8 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 void Audio::AudioFile::Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener,
 	X3DAUDIO_EMITTER Emitter, X3DAUDIO_CONE EmitterCone, X3DAUDIO_DSP_SETTINGS DSPSettings, DWORD dwCalcFlags)
 {
-	source->SetOutputMatrix(NULL, DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount, DSPSettings.pMatrixCoefficients);
+	source->SetOutputMatrix(NULL, DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount,
+		DSPSettings.pMatrixCoefficients);
 	source->SetFrequencyRatio(DSPSettings.DopplerFactor);
 
 	source->GetState(&pVoiceState);
@@ -164,14 +152,14 @@ void Audio::Update()
 
 	master->GetVoiceDetails(&VOICE_Details);
 
-	X3DAUDIO_VECTOR posCam = { Application->getCamera()->GetEyePt().x,
-		Application->getCamera()->GetEyePt().y,
-		Application->getCamera()->GetEyePt().z },
-		WAh = { Application->getCamera()->GetWorldAhead().x, Application->getCamera()->GetWorldAhead().y,
-	   Application->getCamera()->GetWorldAhead().z },
-
-		WUp = { Application->getCamera()->GetWorldUp().x, Application->getCamera()->GetWorldUp().y,
-	Application->getCamera()->GetWorldUp().z };
+	Vector3
+		Eye = Application->getCamera()->GetEyePt(),
+		WorldAhead = Application->getCamera()->GetWorldAhead(),
+		WorldUp = Application->getCamera()->GetWorldUp();
+	X3DAUDIO_VECTOR
+		posCam = { Eye.x, Eye.y, Eye.z },
+		WAh = { WorldAhead.x, WorldAhead.y, WorldAhead.z },
+		WUp = { WorldUp.x, WorldUp.y, WorldUp.z };
 
 	Listener.OrientFront = WAh;
 	Listener.OrientTop = WUp;
@@ -211,7 +199,8 @@ void Audio::Update()
 
 	for (size_t i = 0; i < AFiles.size(); i++)
 	{
-		AFiles.at(i)->Update(pos, X3DInstance, Listener, Emitter, EmitterCone, DSPSettings, dwCalcFlags);
+		AFiles.at(i)->Update(pos, X3DInstance, Listener, Emitter, EmitterCone, DSPSettings,
+			dwCalcFlags);
 	}
 }
 
@@ -291,7 +280,9 @@ void Audio::PlayFile(string File, bool NeedFind)
 {
 	if (File.empty())
 	{
-		Console::LogError((boost::format("LUA (Audio):\nFile: %s Doesn't Exist") % File).str().c_str());
+		Engine::LogError("Something is wrong with Engine::PlayFile",
+			"Something is wrong with Engine::PlayFile",
+			(boost::format("LUA (Audio):\nFile: %s Doesn't Exist") % File).str());
 		return;
 	}
 

@@ -181,13 +181,8 @@ void DebugDraw::DrawPyramid(Matrix matWorld, Vector4 color)
 	if (!m_states_Pyramid.operator bool() || !m_effect_Pyramid.operator bool() ||
 		!m_batch_Pyramid.operator bool() || !m_inputLayout_Pyramid)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::DrawPyramid() Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::DrawPyramid() Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Pyramid!");
+		Engine::LogError("DebugDraw::DrawPyramid() Failed!", "DebugDraw::DrawPyramid() Failed!",
+			"DebugDraw: Something is wrong with draw Debug Pyramid!");
 		return;
 	}
 
@@ -251,13 +246,8 @@ void DebugDraw::Draw(const BoundingSphere &sphere, Vector4 color)
 	if (!m_states_Sphere.operator bool() || !m_effect_Sphere.operator bool() ||
 		!m_batch_Sphere.operator bool() || !m_inputLayout_Sphere)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Sphere) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Sphere) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Sphere!");
+		Engine::LogError("DebugDraw::Draw(const Sphere) Failed!", "DebugDraw::Draw(const Sphere) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Sphere!");
 		return;
 	}
 
@@ -279,13 +269,8 @@ void DebugDraw::Draw(const BoundingBox &box, Vector4 color)
 	if (!m_states_Box.operator bool() || !m_effect_Box.operator bool() ||
 		!m_batch_Box.operator bool() || !m_inputLayout_Box)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Box) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Box) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Box!");
+		Engine::LogError("DebugDraw::Draw(const Box) Failed!", "DebugDraw::Draw(const Box) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Box!");
 		return;
 	}
 
@@ -313,13 +298,8 @@ void DebugDraw::Draw(const BoundingOrientedBox &obb, Vector4 color)
 	if (!m_states_BBox.operator bool() || !m_effect_BBox.operator bool() ||
 		!m_batch_BBox.operator bool() || !m_inputLayout_BBox)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Cube) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Cube) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Cube!");
+		Engine::LogError("DebugDraw::Draw(const Cube) Failed!", "DebugDraw::Draw(const Cube) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Cube!");
 		return;
 	}
 
@@ -346,13 +326,8 @@ void DebugDraw::Draw(const BoundingFrustum &frustum, Vector4 color)
 	if (!m_states_Frustum.operator bool() || !m_effect_Frustum.operator bool() ||
 		!m_batch_Frustum.operator bool() || !m_inputLayout_Frustum)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Frustum) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Frustum) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Frustum!");
+		Engine::LogError("DebugDraw::Draw(const Frustum) Failed!", "DebugDraw::Draw(const Frustum) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Frustum!");
 		return;
 	}
 
@@ -414,13 +389,8 @@ void DebugDraw::DrawGrid(Vector3 xAxis, Vector3 yAxis, Vector3 origin, float Dis
 	if (!m_states_Grid.operator bool() || !m_effect_Grid.operator bool() ||
 		!m_batch_Grid.operator bool() || !m_inputLayout_Grid)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Grid) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Grid) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Grid!");
+		Engine::LogError("DebugDraw::Draw(const Grid) Failed!", "DebugDraw::Draw(const Grid) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Grid!");
 		return;
 	}
 
@@ -471,13 +441,8 @@ void DebugDraw::DrawRing(Vector3 origin, Vector3 majorAxis, Vector3 minorAxis, V
 	if (!m_states_Sphere.operator bool() || !m_effect_Sphere.operator bool() ||
 		!m_batch_Sphere.operator bool() || !m_inputLayout_Sphere)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Ring) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Ring) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Ring!");
+		Engine::LogError("DebugDraw::Draw(const Ring) Failed!", "DebugDraw::Draw(const Ring) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Ring!");
 		return;
 	}
 
@@ -534,13 +499,8 @@ void DebugDraw::DrawRay(Vector3 origin, Vector3 direction, Vector4 color, bool n
 	if (!m_states_Ray.operator bool() || !m_effect_Ray.operator bool() ||
 		!m_batch_Ray.operator bool() || !m_inputLayout_Ray)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Ray) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Ray) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Ray!");
+		Engine::LogError("DebugDraw::Draw(const Ray) Failed!", "DebugDraw::Draw(const Ray) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Ray!");
 		return;
 	}
 
@@ -591,13 +551,8 @@ void DebugDraw::DrawTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vec
 	if (!m_states_Triangle.operator bool() || !m_effect_Triangle.operator bool() ||
 		!m_batch_Triangle.operator bool() || !m_inputLayout_Triangle)
 	{
-#if defined (DEBUG)
-		DebugTrace("DebugDraw::Draw(const Triangle) Is Failed!");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("DebugDraw::Draw(const Triangle) Is Failed!");
-#endif
-		Console::LogError("DebugDraw: Something is wrong with draw Debug Triangle!");
+		Engine::LogError("DebugDraw::Draw(const Triangle) Failed!", "DebugDraw::Draw(const Triangle) Failed!",
+			"DebugDraw: Something is wrong with draw Debug Triangle!");
 		return;
 	}
 

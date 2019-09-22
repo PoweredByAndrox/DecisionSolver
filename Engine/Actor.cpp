@@ -6,7 +6,7 @@ void Actor::Update(float Time)
 {
 	if (Health == 0.0f && !IsGod)
 		IsDead = true;
-	else if (IsGod)
+	if (IsGod)
 		Health = 999999.9999f;
 
 	Position = Application->getCamera()->GetEyePt();
@@ -33,7 +33,7 @@ void Actor::Render(float Time)
 HRESULT Actor::Init()
 {
 	Application->getCamera()->SetCameraControlButtons(false, true, false);
-	Application->getCamera()->SetResetCursorAfterMove(true);
+	Application->getCamera()->SetResetCursorAfterMove(false);
 	Application->getCamera()->SetFreeMoveCam(true);
 
 	InitClass = true;

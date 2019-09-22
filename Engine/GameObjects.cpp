@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "GameObjects.h"
 
-//ToDo("Move Load Functions From Level In This Class!")
 class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
@@ -25,15 +24,9 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	// Set Up The Render Model
 	SetModel(make_shared<Models>(Application->getFS()->GetFile(ModelNameFile)->PathA));
 	if (!model.operator bool())
-	{
-#if defined (DEBUG)
-		DebugTrace("GameObjects:Object: Create a New Object is failed.");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("GameObjects:Object: Create Model is failed!!!");
-#endif
-		Console::LogError("GameObjects:Object: Create a New Object is Fail!");
-	}
+		Engine::LogError("GameObjects:Object: Create a New Object is failed.",
+			"GameObjects:Object: Create Model is failed!!!",
+			"GameObjects:Object: Create a New Object is Fail!");
 	// Set Up The Logic
 	SetLogic(Logic);
 	// Set Up The Physic

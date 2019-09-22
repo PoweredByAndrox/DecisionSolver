@@ -27,7 +27,8 @@ private:
 				Size(Size), TypeOfFile(TypeOfFile) {}
 
 			wstring PathW = L"", ExtW = L"", FileW = L"";
-			string PathA = "", // Full Path To Required File
+			// Full Path To Required File
+			string PathA = "",
 				ExtA = "", FileA = "";
 
 			size_t Size = 0;
@@ -51,18 +52,21 @@ public:
 	File_system();
 	~File_system() {}
 
+	// Function read all files from our Resource
 	void ScanFiles();
+	// Function if need to rescan files
+	void RescanFiles(_TypeOfFile T);
 
 	shared_ptr<AllFile::File> GetFile(string file);
 	shared_ptr<AllFile::File> GetFileByType(string file);
 	vector<shared_ptr<AllFile::File>> GetFileByType(_TypeOfFile T);
 
 	//********
-	vector<wstring> getFilesInFolder(wstring Folder, _TypeOfFile type = NONE);
-	vector<wstring> getFilesInFolder(wstring Folder, bool Recursive = false, bool onlyFile = false, _TypeOfFile type = NONE);
+	vector<wstring> getFilesInFolder(wstring Folder);
+	vector<wstring> getFilesInFolder(wstring Folder, bool Recursive = false, bool onlyFile = false);
 
-	vector<string> getFilesInFolder(string Folder, bool Recursive, bool onlyFile, _TypeOfFile type = NONE);
-	vector<string> getFilesInFolder(string Folder, _TypeOfFile type = NONE);
+	vector<string> getFilesInFolder(string Folder, bool Recursive, bool onlyFile);
+	vector<string> getFilesInFolder(string Folder);
 
 	// Work With Files
 	string getDataFromFile(string File, bool LineByline, string start, string end);
@@ -77,18 +81,18 @@ public:
 	static void OpenLog();
 	static void ClearLogs();
 
-	auto getCriLogFName() { return CriLogFName; }
 	auto getLogFName() { return LogFName; }
 
 	auto static GetCurrentPath() { return p; }
 	string static GetCurPath() { return p.string(); }
 
+	string getPathFromType(_TypeOfFile T);
+	
 	auto getAllFiles() { return Files; }
 protected:
 	static path p;
 	vector<shared_ptr<AllFile>> Files;
 
-	static path CriLogFName;
 	static path LogFName;
 };
 #endif // !__FILE_SYSTEM_H__

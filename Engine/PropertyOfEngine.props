@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;$(SolutionDir)Include\PhysX;$(SolutionDir)..\submodules\LuaJIT\include;$(SolutionDir)..\submodules\SOL2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Include;$(SolutionDir)..\submodules\ASSIMP\Include;$(SolutionDir)..\submodules\FX11\inc;$(SolutionDir)..\submodules\DXTK\;$(SolutionDir)..\submodules\tinyXML2;$(SolutionDir)..\submodules\imgui;$(SolutionDir)..\submodules;$(SolutionDir)Include\PhysX;$(SolutionDir)..\submodules\LuaJIT\include;$(SolutionDir)..\submodules\SOL2\include;$(SolutionDir)..\submodules\lzo\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -14,9 +14,9 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;X3DAudio.lib;d3d11.lib;d3dx11.lib;DxErr.lib;Dxgi.lib;DxGuid.lib;D3DCSX.lib;DirectXTK.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;X3DAudio.lib;d3d11.lib;d3dx11.lib;DxErr.lib;Dxgi.lib;DxGuid.lib;D3DCSX.lib;DirectXTK.lib;lzo2.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
-      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;$(SolutionDir)..\submodules\lzo\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup />

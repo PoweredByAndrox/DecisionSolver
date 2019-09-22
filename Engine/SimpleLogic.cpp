@@ -7,26 +7,26 @@ extern shared_ptr<Engine> Application;
 #include "StepTimer.h"
 
 //ToDo("Need To Do Another One Capsule Physics And Add Jump To Logic")
-
-vector<SimpleLogic::LogicMode> ProgressMass = { SimpleLogic::LogicMode::Forward,
-SimpleLogic::LogicMode::Forward, SimpleLogic::LogicMode::Forward, SimpleLogic::LogicMode::Right };
-
-void SimpleLogic::follow(Vector3 Where)
+vector<SimpleLogic::Point> Points =
 {
-	Modes = LogicMode::Follow;
-	NeededPos = Where;
+	SimpleLogic::Point(Vector3(1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 0
+	SimpleLogic::Point(Vector3(-1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 1
+	SimpleLogic::Point(Vector3(-1.5f, 0.f, -1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 2
+	SimpleLogic::Point(Vector3(1.5f, 0.f, -1.5), Vector3::Zero, SimpleLogic::LogicMode::Stay), // 3
+};
+
+void SimpleLogic::AddNewPoint(Vector3 Pos, Vector3 Rotate, LogicMode TestState)
+{
+	Points.push_back(Point(Pos, Rotate, TestState));
 }
 
-void SimpleLogic::Update(Vector3 &Pos)
+void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot)
 {
 	if (!timer_1->GetIsFixedTimeStep())
 	{
-		exception("This Timer hasn't set for Fixed Time!");
+		throw exception("This Timer hasn't set for Fixed Time!");
 		return;
 	}
-
-	if (Progress >= 4)
-		Progress = 0;
 
 	timer_1->Tick();
 
@@ -39,32 +39,28 @@ void SimpleLogic::Update(Vector3 &Pos)
 
 	//OutputDebugStringA((boost::format("\nTime1: %f") % Time).str().c_str());
 
-//	if (Modes != Follow)
-	Modes = ProgressMass.at(Progress);
+	if ((size_t)Progress >= Points.size())
+		Progress = 0;
 
-	Progress++;
-	if (Modes == Forward) // Up
+	auto _Point = Points.at(Progress);
+	if (CurrentModes != Follow && (CurrentModes == WalkToNewPoint || CurrentModes == Stay
+		&& timer_1->GetElapsedSeconds() >= Time)) // Wait for five (0.5f) seconds and go!
 	{
-		Pos.z -= (float)timer_1->GetElapsedSeconds(); // Forward
-		return;
-	}
-	if (Modes == Backward) // Back
-	{
-		Pos.z += (float)timer_1->GetElapsedSeconds(); // Backward
-		return;
-	}
-	if (Modes == Left) // Left
-	{
-		Pos.x -= (float)timer_1->GetElapsedSeconds(); // Left
-		return;
-	}
-	if (Modes == Right) // Right
-	{
-		Pos.x += (float)timer_1->GetElapsedSeconds(); // Right
-		return;
+		CurrentModes = _Point.TestState;
+		Progress++;
 	}
 
-	return;
+	//if (CurrentModes == Follow)
+	//{
+	//	Pos = Vector3::SmoothStep(Pos, NeededPos, timer_1->GetElapsedSeconds());
+	//	Rot = Vector3::SmoothStep(Rot, timer_1->GetElapsedSeconds());
+	//}
+
+	if (CurrentModes != Stay)
+	{
+		Pos = Vector3::SmoothStep(Pos, _Point.Pos, 0.85f);
+		Rot = Vector3::SmoothStep(Rot, _Point.Rotate, timer_1->GetElapsedSeconds());
+	}
 }
 
 void SimpleLogic::Init()
