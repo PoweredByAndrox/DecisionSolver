@@ -3,21 +3,11 @@
 #define __ACTOR_H__
 #include "pch.h"
 
-//#include "GameObjects.h"
-#include "Camera.h"
-#include "Dialogs.h"
+//#include "Dialogs.h"
 
-class Engine;
-extern shared_ptr<Engine> Application;
-#include "Engine.h"
-
-class Actor : public Camera//, public Dialogs
+class Actor //, public Dialogs
 {
 public:
-
-	Actor() {}
-	~Actor() {}
-
 	bool isDead() { return IsDead; }
 
 	void ChangeHealth(float Value, char Char)
@@ -72,8 +62,6 @@ private:
 	bool IsDead = false, InitClass = false;
 	float Health = 100.0f, FOV = 0.80f;
 
-	//**********
-	Vector3 GetPostitionFromCamera() { return Application->getCamera()->GetEyePt(); }
 
 	//**********
 		// This is a cheat

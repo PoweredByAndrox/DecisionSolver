@@ -14,7 +14,7 @@
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;X3DAudio.lib;d3d11.lib;d3dx11.lib;DxErr.lib;Dxgi.lib;DxGuid.lib;D3DCSX.lib;DirectXTK.lib;lzo2.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;X3DAudio.lib;d3d11.lib;d3dx11.lib;DxErr.lib;Dxgi.lib;DxGuid.lib;D3DCSX.lib;DirectXTK.lib;lzo2.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;$(SolutionDir)..\submodules\lzo\$(ConfigurationName)</AdditionalLibraryDirectories>
     </Link>

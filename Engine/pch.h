@@ -70,7 +70,7 @@ using namespace tinyxml2;
 { \
 	HRESULT hr = (x); \
 	if (FAILED(hr)) \
-		return DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
+		return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
 } 
 #endif
 #if !defined (V_RETURN)
@@ -78,7 +78,7 @@ using namespace tinyxml2;
 { \
 	HRESULT hr = (x); \
 	if (FAILED(hr)) \
-		return DXTrace(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
+		return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
 }
 #endif
 
@@ -106,6 +106,7 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 	bool AlsoDeleteSpace = true);
 
 void getFloat3Text(string context, string Char2Split, vector<float> &Float3);
+void getTextFloat3(string &context, string Char2Split, vector<float> Float3);
 
 Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max);
 

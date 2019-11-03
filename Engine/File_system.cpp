@@ -131,10 +131,12 @@ void File_system::ScanFiles()
 		}
 	}
 }
+
 void File_system::RescanFiles(_TypeOfFile Type)
 {
 	// Get New Files
-	auto Files = getFilesInFolder("sounds", true, true);
+	GetFileByType(Type).clear();
+	auto Files = getFilesInFolder(getPathFromType(Type), true, true);
 	for (size_t i = 0; i < Files.size(); i++)
 	{
 		// If File Doesn't Exist
@@ -153,7 +155,8 @@ _TypeOfFile File_system::GetTypeFile(string file)
 		|| F.extension().string() == ".vs" || F.extension().string() == ".ps")
 		return SHADERS;
 	else if (F.extension().string() == ".dds" || F.extension().string() == ".png"
-		|| F.extension().string() == ".bmp" || F.extension().string() == ".mtl")
+		|| F.extension().string() == ".bmp" || F.extension().string() == ".mtl"
+		|| F.extension().string() == ".jpg")
 		return TEXTURES;
 	else if (F.extension().string() == ".wav")
 		return SOUNDS;
@@ -260,7 +263,6 @@ string File_system::getPathFromType(_TypeOfFile T)
 
 shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
 {
-	USES_CONVERSION;
 	to_lower(file);
 	bool has_branch_path = path(file).has_branch_path();
 
@@ -425,10 +427,10 @@ vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeO
 	case FONTS:
 		return Files.back()->Fonts;
 	case NONE:
-		return vector<shared_ptr<File_system::AllFile::File>>{make_unique<File_system::AllFile::File>()};
+		return Files.back()->None;
 	}
 
-	return vector<shared_ptr<File_system::AllFile::File>>{make_unique<File_system::AllFile::File>()};
+	return vector<shared_ptr<File_system::AllFile::File>>();
 }
 
 shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
@@ -453,7 +455,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 
 	if (!p.empty())
 	{
-		string ResPath = p.generic_path().generic_string() + string("\\resource\\");
+		string ResPath = p.string() + string("\\resource\\");
 		string extA = extension(file);
 		wstring extW = path(file).extension().wstring();
 
@@ -500,6 +502,12 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 				else if (contains(AllFiles.at(i), file + string(".bmp")))
 				{
 					auto F = GetFileByType(file + string(".bmp"));
+					if (!F->FileA.empty() || !F->FileW.empty())
+						return F;
+				}
+				else if (contains(AllFiles.at(i), file + string(".jpg")))
+				{
+					auto F = GetFileByType(file + string(".jpg"));
 					if (!F->FileA.empty() || !F->FileW.empty())
 						return F;
 				}
@@ -586,7 +594,8 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 			}
 			else if (extA == ".dds"
 				|| extA == ".png"
-				|| extA == ".bmp")
+				|| extA == ".bmp"
+				|| extA == ".jpg")
 			{
 				auto cache = getFilesInFolder(string(ResPath + string("textures\\")), true, true);
 				for (size_t i = 0; i < cache.size(); i++)
@@ -750,7 +759,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
 
 	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n", (boost::format("File: %s not found\n") % file).str(),
 		(boost::format("File: %s not found\n") % file).str());
-	return nullptr;
+	return make_shared<File_system::AllFile::File>("", "", "", 0, _TypeOfFile::NONE);
 }
 
 vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bool onlyFile)
@@ -758,10 +767,10 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bo
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"\\resource\\")).c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), wstring(p.wstring() + wstring(L"\\resource\\")).c_str()) != NULL)
 		ResPath = wstring(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"\\resource\\") + wstring(Folder.c_str());	// No!
+		ResPath = p.wstring() + wstring(L"\\resource\\") + wstring(Folder.c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -791,10 +800,10 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder)
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), wstring(p.generic_path().generic_wstring() + wstring(L"\\resource\\")).c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), wstring(p.wstring() + wstring(L"\\resource\\")).c_str()) != NULL)
 		ResPath = wstring(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_wstring() + wstring(L"\\resource\\") + wstring(Folder.c_str());	// No!
+		ResPath = p.wstring() + wstring(L"\\resource\\") + wstring(Folder.c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -808,10 +817,10 @@ vector<string> File_system::getFilesInFolder(string Folder, bool Recursive, bool
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), string(p.generic_path().generic_string() + string("\\resource\\")).c_str()) != NULL)
+	if (strstr(Folder.c_str(), string(p.string() + string("\\resource\\")).c_str()) != NULL)
 		ResPath = string(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("\\resource\\") + string(Folder.c_str());	// No!
+		ResPath = p.string() + string("\\resource\\") + string(Folder.c_str());	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
@@ -849,10 +858,10 @@ vector<string> File_system::getFilesInFolder(string Folder)
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), string(p.generic_path().generic_string() + string("\\resource\\")).c_str()) != NULL)
+	if (strstr(Folder.c_str(), string(p.string() + string("\\resource\\")).c_str()) != NULL)
 		ResPath = string(Folder.c_str());	// If found
 	else
-		ResPath = p.generic_path().generic_string() + string("\\resource\\") + string(Folder.c_str());	// No!
+		ResPath = p.string() + string("\\resource\\") + string(Folder.c_str());	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
@@ -917,7 +926,7 @@ vector<string> File_system::getDataFromFileVector(string File, bool LineByline)
 	if (!Returned_val.empty())
 		return Returned_val;
 
-	return vector<string> {""};
+	return vector<string>();
 }
 bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr)
 {

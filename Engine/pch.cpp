@@ -242,20 +242,28 @@ void deleteWord(string &context, string const start, ModeProcessString const mod
 			context.erase(context.find(start), context.length());
 
 	if (mode == ModeProcessString::UntilTheBegin)
-		if (FindInEnd ? context.rfind(start) : context.find(start) != string::npos)
-			context.erase(0, context.find(start));
+		if (FindInEnd ? context.rfind(start) : context.find(start) + 1 /* with start char */ != string::npos)
+			context.erase(0, FindInEnd ? context.rfind(start) : context.find(start) + 1);
 
 	if (AlsoDeleteSpace)
 		context.erase(remove(context.begin(), context.end(), ' '), context.end());
 }
 
-void getFloat3Text(string context, string Char2Split, vector<float>& Float3)
+void getFloat3Text(string context, string Char2Split, vector<float> &Float3)
 {
 	vector<string> Result;
 	boost::split(Result, context, boost::is_any_of(","));
 	for (size_t i = 0; i < Result.size(); i++)
 	{
 		Float3.push_back((float)atof(Result.at(i).c_str()));
+	}
+}
+
+void getTextFloat3(string &context, string Char2Split, vector<float> Float3)
+{
+	for (size_t i = 0; i < Float3.size(); i++)
+	{
+		context += i == 0 ? to_string(Float3.at(i)) : Char2Split + to_string(Float3.at(i));
 	}
 }
 

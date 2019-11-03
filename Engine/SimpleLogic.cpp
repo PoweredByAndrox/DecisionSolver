@@ -9,9 +9,9 @@ extern shared_ptr<Engine> Application;
 //ToDo("Need To Do Another One Capsule Physics And Add Jump To Logic")
 vector<SimpleLogic::Point> Points =
 {
-	SimpleLogic::Point(Vector3(1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 0
-	SimpleLogic::Point(Vector3(-1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 1
-	SimpleLogic::Point(Vector3(-1.5f, 0.f, -1.5), Vector3::Zero, SimpleLogic::LogicMode::WalkToNewPoint), // 2
+	SimpleLogic::Point(Vector3(1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::Stay), // 0
+	SimpleLogic::Point(Vector3(-1.5f, 0.f, 1.5), Vector3::Zero, SimpleLogic::LogicMode::Stay), // 1
+	SimpleLogic::Point(Vector3(-1.5f, 0.f, -1.5), Vector3::Zero, SimpleLogic::LogicMode::Stay), // 2
 	SimpleLogic::Point(Vector3(1.5f, 0.f, -1.5), Vector3::Zero, SimpleLogic::LogicMode::Stay), // 3
 };
 

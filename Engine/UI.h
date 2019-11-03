@@ -39,25 +39,42 @@ class Tab;
 class Column;
 class Selectable;
 class Combobox;
+
 struct AllTheComponent
 {
-	vector<shared_ptr<Buttons>> Btn;
-	vector<shared_ptr<Labels>> Label;
-	vector<shared_ptr<ITextMulti>> Itextmul;
-	vector<shared_ptr<IText>> Itext;
-	vector<shared_ptr<_Separator>> separators;
-	vector<shared_ptr<Column>> column;
-	vector<shared_ptr<CollapsingHeaders>> CollpsHeader;
-	vector<shared_ptr<Child>> childs;
-	vector<shared_ptr<UnformatedText>> UText;
-	vector<shared_ptr<TextList>> TList;
-	vector<shared_ptr<TreeNode>> TNode;
-	vector<shared_ptr<Tab>> Tabs;
-	vector<shared_ptr<Selectable>> selectable;
-	vector<shared_ptr<Combobox>> combo;
+	//  ID	    Pointer to Component
+	map<string, shared_ptr<Buttons>> Btn;
+	map<string, shared_ptr<Labels>> Label;
+	map<string, shared_ptr<ITextMulti>> Itextmul;
+	map<string, shared_ptr<IText>> Itext;
+	map<string, shared_ptr<_Separator>> separators;
+	map<string, shared_ptr<Column>> column;
+	map<string, shared_ptr<CollapsingHeaders>> CollpsHeader;
+	map<string, shared_ptr<Child>> childs;
+	map<string, shared_ptr<UnformatedText>> UText;
+	map<string, shared_ptr<TextList>> TList;
+	map<string, shared_ptr<TreeNode>> TNode;
+	map<string, shared_ptr<Tab>> Tabs;
+	map<string, shared_ptr<Selectable>> selectable;
+	map<string, shared_ptr<Combobox>> combo;
+
+	shared_ptr<Buttons> FindComponentBtn(string CmpName);
+	shared_ptr<Labels> FindComponentLabel(string CmpName);
+	shared_ptr<ITextMulti> FindComponentITextMul(string CmpName);
+	shared_ptr<IText> FindComponentIText(string CmpName);
+	shared_ptr<UnformatedText> FindComponentUText(string CmpName);
+	shared_ptr<TextList> FindComponentTList(string CmpName);
+	shared_ptr<Selectable> FindComponentSelectable(string CmpName);
+	shared_ptr<Combobox> FindComponentCombo(string CmpName);
+
+	// For Recursive
+	shared_ptr<TreeNode> FindComponentTreeNode(string CmpName);
+	shared_ptr<Tab> FindComponentTab(string CmpName);
+	shared_ptr<Child> FindComponentChild(string CmpName);
+	shared_ptr<CollapsingHeaders> FindComponentCHeader(string CmpName);
 
 	void RenderComponents(int &now);
-	void RenderColumn(int OrderCount, int CountColumn, LPCSTR IDColumn = "", bool border = true);
+	void RenderColumn(int OrderCount, int CountColumn, string IDColumn = "", bool border = true);
 };
 struct XMLComponents;
 struct TItem
@@ -121,7 +138,37 @@ struct XMLDial
 	XMLDial(XMLNode *dial): Dial(dial) {}
 };
 
-class Combobox
+	// It'll can be to static cast to this base
+class BaseComponent
+{
+public:
+	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
+	void ChangeOrder(int num) { OrderlyRender = num; }
+	void ChangeID(string ID);
+	void ChangeText(string Text) { this->Text = Text; }
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+
+	string GetText()
+	{
+		if (!Text.empty())
+			return Text;
+
+		return "";
+	}
+
+	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+	int getRenderOrder() { return OrderlyRender; }
+	// Only For map::find
+	string GetID() { return ID; }
+	vector<shared_ptr<AllTheComponent>> getComponents() { return Components; }
+private:
+	int OrderlyRender = 0, OrderlyRenderInDial = 0;
+	string Text = "";
+	const string ID;
+	vector<shared_ptr<AllTheComponent>> Components;
+};
+
+class Combobox: virtual public BaseComponent
 {
 private:
 	bool Combo(const char *label, int *currIndex, vector<string> &values)
@@ -132,12 +179,6 @@ private:
 	}
 
 public:
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeID(LPCSTR ID) { this->ID = ID; }
-
-	int getRenderOrder() { return OrderlyRender; }
-	LPCSTR GetID() { return ID; }
-
 	vector<string> GetItems() { return Items; }
 	void AddItem(string Item) { Items.push_back(Item); }
 
@@ -146,40 +187,26 @@ public:
 	string GetSelect() { return Items.at(selected); }
 	bool IsMouseSelected() { return Active; }
 
-	Combobox() {}
-	~Combobox() {}
-
 	void Render()
 	{
-		Combo(ID, &selected, Items);
+		Combo(GetText().c_str(), &selected, Items);
 		Active = ImGui::IsItemActive();
 	}
 private:
-	int OrderlyRender = 0, selected = 0;
-	LPCSTR ID = "";
+	int selected = 0;
 	bool Active = false;
-	vector<string> Items = { string("None") };
+	vector<string> Items = { "None" };
 };
-class Selectable
+class Selectable: virtual public BaseComponent
 {
 public:
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	int getRenderOrder() { return OrderlyRender; }
-	LPCSTR GetID() { return ID; }
 	bool GetSelect() { return selected; }
-
-	void ChangeID(LPCSTR ID) { this->ID = ID; }
-
-	Selectable() {}
-	~Selectable() {}
 
 	void Render()
 	{
-		ImGui::Selectable(ID, selected);
+		ImGui::Selectable(GetText().c_str(), selected);
 	}
 private:
-	int OrderlyRender = 0;
-	LPCSTR ID = "";
 	bool selected = false;
 };
 struct TabItem
@@ -187,139 +214,95 @@ struct TabItem
 	vector<string> Name;
 	vector<shared_ptr<AllTheComponent>> TabItemComp;
 };
-class Column
+class Column: virtual public BaseComponent
 {
 public:
 	int getCountColumn() { return CountColumn; }
-	int getRenderOrder() { return OrderlyRender; }
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-	LPCSTR GetID() { return ID; }
 	bool GetBorder() { return Border; }
 
-	shared_ptr<AllTheComponent> getComponent() { return Component; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
-
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
 	void ChangeCountColumn(int Count) { CountColumn = Count; }
-	void ChangeID(LPCSTR ID) { this->ID = ID; }
 
 	void SetBorder(bool Border) { this->Border = Border; }
 
+	Column() {}
 	Column(int CountColumn): CountColumn(CountColumn) {}
 
-	Column() {}
-	~Column() {}
-
 private:
-	int OrderlyRender = 0, OrderlyRenderInDial = 0, CountColumn = 0;
-	LPCSTR ID = "";
+	int CountColumn = 0;
 	bool Border = false;
-	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
-class Tab
+class Tab: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { IDTitle = Text; }
-	LPCSTR GetText() { return IDTitle.c_str(); }
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
-
 	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
 	void setCloseMidMouse(bool CloseMidMouse) { this->CloseMidMouse = CloseMidMouse; }
 	void setASelectNewTab(bool ASelectNewTab) { this->ASelectNewTab = ASelectNewTab; }
 
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-	vector<shared_ptr<TabItem>> getComponent() { return Component; }
+	vector<shared_ptr<TabItem>> getTabItem() { return TBItm; }
 
 	Tab() {}
-	~Tab() {}
-
-	Tab(LPCSTR IDTitle, bool DragTabs, bool ASelectNewTab, bool CloseMidMouse):
-		IDTitle(IDTitle), DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse) {}
+	Tab(string ID, bool DragTabs, bool ASelectNewTab, bool CloseMidMouse):
+		DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	int OrderlyRender = 0, OrderlyRenderInDial = 0;
-	string IDTitle = "";
 	bool DragTabs = false, ASelectNewTab = false, CloseMidMouse = false;
 	ImVec2 size = { 0.f, 0.f };
 
 	ImGuiTabBarFlags Flags = 0;
-
-	vector<shared_ptr<TabItem>> Component = { make_shared<TabItem>() };
+	vector<shared_ptr<TabItem>> TBItm;
 };
-class TreeNode
+class TreeNode: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { IDTitle = Text; }
-	LPCSTR GetText() { return IDTitle.c_str(); }
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
-
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-	int getRenderOrder() { return OrderlyRender; }
-
-	shared_ptr<AllTheComponent> getComponent() { return Component; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
-
 	TreeNode() {}
-	~TreeNode() {}
-
-	TreeNode(LPCSTR IDTitle, bool HasFlag = false): IDTitle(IDTitle), HasFlags(HasFlag) {}
+	TreeNode(string ID, bool HasFlag = false): HasFlags(HasFlag)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	int OrderlyRender = 0, OrderlyRenderInDial = 0;
-	string IDTitle = "";
 	bool HasFlags = false;
 
 	ImGuiTreeNodeFlags Flags = 0;
-
-	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
-class TextList
+class TextList: virtual public BaseComponent
 {
 private:
 	bool ListBox(const char *label, int *currIndex, vector<string> &values)
 	{
-		if (values.empty())
-			return false;
 		return ImGui::ListBox(label, currIndex, vector_getter, static_cast<void *>(&values), values.size());
 	}
 
 public:
-	void ChangeOrder(int num) { OrderlyRender = num; }
 	void addItem(string Item) { Items.push_back(Item); }
 	void setVisible(bool Visible) { IsVisible = Visible; }
-	void ChangeTitle(string Text) { IDTitle = Text; }
 
 	bool FindInItems(string Item)
 	{
 		for (size_t i = 0; i < Items.size(); i++)
 		{
-			if (strcmp(Items.at(i).c_str(), Item.c_str()) == 0)
+			if (Items.at(i) == Item)
 				return true;
 		}
 
 		return false;
 	}
 
-	TextList() {}
-	~TextList() {}
-
 	bool GetVisible() { return IsVisible; }
 	bool IsMouseSelected() { return Active; }
 
-	int getRenderOrder() { return OrderlyRender; }
-	LPCSTR GetTitle() { return IDTitle.c_str(); }
 	//	Current
 	int getSelectedIndx() { return Selected; }
 	//	Get Current Selected Index String
 	string getSelectedIndxString(int Index)
 	{
 		if (Items.empty() || (Index < 0 || Index >= (int)Items.size()))
-			return string("");
+			return string();
 			
 		return Items.at(Index);
 	}
@@ -330,55 +313,43 @@ public:
 	void Render()
 	{
 		if (IsVisible)
-			ListBox(IDTitle.c_str(), &Selected, Items);
+			ListBox(GetText().c_str(), &Selected, Items);
 
 		Active = ImGui::IsItemActive();
 	}
 
 private:
-	string IDTitle = "";
 	vector<string> Items;
 
-	int OrderlyRender = 0, Selected = -1;
+	int Selected = -1;
 	bool IsVisible = false, Active = false;
 };
-class _Separator
+class _Separator: virtual public BaseComponent
 {
 public:
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	int getRenderOrder() { return OrderlyRender; }
-
-	_Separator() {}
-	~_Separator() {}
-
 	void Render()
 	{
 		ImGui::Separator();
 	}
-private:
-	int OrderlyRender = 0;
 };
-class UnformatedText
+class UnformatedText: virtual public BaseComponent
 {
 public:
 	class ColorText
 	{
 	public:
 		ColorText() {}
-		~ColorText() {}
-
 		ColorText(Type type, string CText): type(type), CText(CText) {}
 
 		Type getType() { return type; }
 		string getText() { return CText; }
 	private:
-		Type type = Normal;
+		Type type = Type::Normal;
 		string CText = "";
-
 	};
 	vector<shared_ptr<ColorText>> clText;
 
-	void ClearText()
+	void ClearBuffer()
 	{
 		Buffer.clear();
 		clText.clear();
@@ -412,30 +383,20 @@ public:
 		return make_shared<ColorText>();
 	}
 
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	int getRenderOrder() { return OrderlyRender; }
-	LPCSTR getBuffer() { return Buffer.data()->c_str(); }
-
 	void addTextToBuffer(string Text)
 	{
 		Buffer.push_back(Text + string("\n"));
 	}
 
-	UnformatedText() {}
-	~UnformatedText() {}
-
 	void Render();
 private:
-	int OrderlyRender = 0;
 	vector<string> Buffer;
 };
-class IText
+
+class IText: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { this->Text = Text; }
 	void ChangeTextHint(string Text) { TextHint = Text; }
-	void ChangeTitle(string Text) { IDTitle = Text; }
-	void ChangeOrder(int num) { OrderlyRender = num; }
 
 	void setVisible(bool Visible) { IsVisible = Visible; }
 	void setHistory(bool History) { IsNeedHistory = History; }
@@ -445,54 +406,42 @@ public:
 	bool isPressDown() { return Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Down); }
 	bool isActive() { return Active; }
 
+	bool GetVisible() { return IsVisible; }
+	bool getTextChange() { return IsTextChange; }
+	bool getHistory() { return IsNeedHistory; }
 	string GetText()
 	{
 		if (!Text.empty())
 			return Text;
 
-		return string("");
+		return "";
 	}
 
-	string GetTitle() { return IDTitle; }
-
-	bool GetVisible() { return IsVisible; }
-	bool getTextChange() { return IsTextChange; }
-	int getRenderOrder() { return OrderlyRender; }
-
 	IText() {}
-	~IText() {}
-
-	IText(LPCSTR IDTitle, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
+	IText(string ID, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
 		bool EnterReturnsTrue = true, bool IsNeedHint = false):
-		IDTitle(IDTitle), IsVisible(IsVisible), IsNeedHistory(IsNeedHistory),
-		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue) {}
+		IsVisible(IsVisible), IsNeedHistory(IsNeedHistory),
+		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	string IDTitle = "", Text = "", TextHint = "";
+	string TextHint = "", Text = "";
 
 	bool IsVisible = false, IsNeedHistory = false,
 		NeedToUseTAB = false, EnterReturnsTrue = true,
 		IsTextChange = false, IsNeedHint = false,
 		Active = false;
-	int OrderlyRender = 0;
 
 	ImGuiInputTextFlags Flags = 0;
 };
-class ITextMulti
+class ITextMulti: virtual public BaseComponent
 {
 	struct ColorText;
 public:
-	enum Type
-	{
-		Normal = 0,
-		Information,
-		Error
-	} type = Normal;
-
-	void ChangeText(string Text) { this->Text.append(string(string("\n") + Text).c_str()); }
-	void ChangeTitle(string Text) { IDTitle = Text; }
-	void ChangeOrder(int num) { OrderlyRender = num; }
+	void ChangeText(string Text) { this->Text.append("\n" + Text); }
 
 	void setVisible(bool Visible) { IsVisible = Visible; }
 	void setReadOnly(bool ReadOnly) { this->ReadOnly = ReadOnly; }
@@ -512,8 +461,6 @@ public:
 		}
 	}
 
-	LPCSTR GetTitle() { return IDTitle.c_str(); }
-	LPCSTR GetText() { return Text.c_str(); }
 	void ClearText() 
 	{
 		Text.clear();
@@ -521,25 +468,23 @@ public:
 	}
 
 	bool GetVisible() { return IsVisible; }
-	int getRenderOrder() { return OrderlyRender; }
 
 	ITextMulti() {}
-	~ITextMulti() {}
-
-	ITextMulti(LPCSTR IDTitle, bool IsVisible, bool ReadOnly = false, bool IsCtrlNewLine = false):
-		IDTitle(IDTitle), IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
-	{}
+	ITextMulti(string ID, bool IsVisible, bool ReadOnly = false, bool IsCtrlNewLine = false):
+		IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	string IDTitle = "", Text = "";
+	string Text = "";
 	bool IsVisible = false, ReadOnly = false, IsCtrlNewLine = false;
-	int OrderlyRender = 0;
 
 	ImGuiInputTextFlags Flags = 0;
 	struct ColorText
 	{
-		Type type = Normal;
+		Type type = Type::Normal;
 		string str = "";
 
 		ColorText(Type type, string str): type(type), str(str) {}
@@ -547,150 +492,106 @@ private:
 
 	vector<ColorText> clText;
 };
-class Labels
+class Labels: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { IDTitle = Text; }
-	void ChangeOrder(int num) { OrderlyRender = num; }
-
 	void setVisible(bool Visible) { IsVisible = Visible; }
-
-	LPCSTR GetText() { return IDTitle.c_str(); }
-
-	bool GetVisible() { return IsVisible; }
-
-	int getRenderOrder() { return OrderlyRender; }
-
 	void SetColorText(ImVec4 Color)
 	{
 		this->Color = Color;
 		NeedToChangeColor = true;
 	}
 
-	Labels() {}
-	~Labels() {}
+	bool GetVisible() { return IsVisible; }
 
-	Labels(LPCSTR IDTitle, bool IsVisible): IDTitle(IDTitle), IsVisible(IsVisible) {}
+	Labels() {}
+	Labels(string ID, bool IsVisible): IsVisible(IsVisible)
+	{
+		ChangeID(ID);
+	}
 
 	void Render()
 	{
 		if (NeedToChangeColor)
 			ImGui::PushStyleColor(ImGuiCol_Text, Color);
 			
-		ImGui::Text(IDTitle.c_str());
+		ImGui::Text(GetText().c_str());
 
 		if (NeedToChangeColor)
 			ImGui::PopStyleColor();
 	}
 private:
-	string IDTitle = "";
 	bool IsVisible = false, NeedToChangeColor = false;
-	int OrderlyRender = 0;
 	ImVec4 Color = ImVec4(0.f, 0.f, 0.f, 1.f);
 };
-class Buttons
+class Buttons: virtual public BaseComponent
 {
 public:
-	void ChangeText(LPCSTR Text) { IDTitle = Text; }
-
-	LPCSTR GetText() { return IDTitle; }
-
 	bool GetVisible() { return IsVisible; }
-	int getRenderOrder() { return OrderlyRender; }
-
-	void ChangeOrder(int num) { OrderlyRender = num; }
 	void setVisible(bool Visible) { IsVisible = Visible; }
 
 	bool IsClicked() { return clicked; }
 
 	Buttons() {}
-	~Buttons() {}
-
-	Buttons(LPCSTR IDTitle, bool IsVisible): IDTitle(IDTitle), IsVisible(IsVisible) {}
+	Buttons(string ID, bool IsVisible): IsVisible(IsVisible)
+	{
+		ChangeID(ID);
+	}
 
 	void Render()
 	{
-		if (ImGui::Button(IDTitle))
+		if (ImGui::Button(GetText().c_str()))
 			clicked = true;
 		else
 			clicked = false;
 	}
 private:
-	LPCSTR IDTitle = "";
 	bool IsVisible = false, clicked = false;
-	int OrderlyRender = 0;
 };
-class CollapsingHeaders
+class CollapsingHeaders: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { IDTitle = Text; }
-	string GetText() { return IDTitle; }
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
-
 	void setCollapse(bool Collapse) { IsCollapse = Collapse; }
 	void setSelDefault(bool SelDef) { this->SelDef = SelDef; }
-
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-	int getRenderOrder() { return OrderlyRender; }
-
-	shared_ptr<AllTheComponent> getComponent() { return Component; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
 
 	bool Collapse() { return IsCollapse; }
 	
 	CollapsingHeaders() {}
-	~CollapsingHeaders() {}
-
-	CollapsingHeaders(LPCSTR IDTitle, bool SelDef, bool IsCollapse = true): IDTitle(IDTitle), SelDef(SelDef), IsCollapse(IsCollapse) {}
+	CollapsingHeaders(string ID, bool SelDef, bool IsCollapse = true): SelDef(SelDef), IsCollapse(IsCollapse)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	int OrderlyRender = 0, OrderlyRenderInDial = 0;
-	string IDTitle = "";
 	bool SelDef = false, IsCollapse = true;
 	ImGuiTreeNodeFlags Flags = 0;
-
-	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
-class Child
+class Child: virtual public BaseComponent
 {
 public:
-	void ChangeText(string Text) { IDTitle = Text; }
-	LPCSTR GetText() { return IDTitle.c_str(); }
-	void ChangeOrder(int num) { OrderlyRender = num; }
-	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
-
 	void setHScroll(bool HScroll) { IsHScroll = HScroll; }
 	void setSize(ImVec2 size) { this->size = size; }
 	void setBorder(bool Border) { IsBorder = Border; }
 
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-
-	shared_ptr<AllTheComponent> getComponent() { return Component; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
-
 	Child() {}
-	~Child() {}
-
-	Child(LPCSTR IDTitle, ImVec2 size, bool IsHScroll = false, bool IsBorder = false):
-		IDTitle(IDTitle), IsHScroll(IsHScroll), IsBorder(IsBorder), size(size) {}
+	Child(string ID, ImVec2 size, bool IsHScroll = false, bool IsBorder = false):
+		IsHScroll(IsHScroll), IsBorder(IsBorder), size(size)
+	{
+		ChangeID(ID);
+	}
 
 	void Render();
 private:
-	int OrderlyRender = 0, OrderlyRenderInDial = 0;
-	string IDTitle = "";
 	bool IsHScroll = false, IsBorder = false;
 	ImVec2 size = { 0.f, 0.f };
 
 	ImGuiTreeNodeFlags Flags = 0;
-
-	shared_ptr<AllTheComponent> Component = make_shared<AllTheComponent>();
 };
 class dialogs
 {
 public:
-	void ChangeTitle(LPCSTR Title) { IDTitle = Title; }
+	void ChangeTitle(string Title) { IDTitle = Title; }
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeSize(float W, float H) { SizeW = W; SizeH = H; }
 	void ChangePosition(float X, float Y, ImVec2 Pivot = { 0.f, 0.f })
@@ -720,10 +621,8 @@ public:
 	auto GetCurrentWindow() { return ImGui::GetCurrentWindow(); }
 
 	dialogs() {}
-	~dialogs() {}
-
-	dialogs(LPCSTR IDTitle): IDTitle(IDTitle) {}
-	dialogs(LPCSTR IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble,
+	dialogs(string IDTitle): IDTitle(IDTitle) {}
+	dialogs(string IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble,
 		bool IsCollapsible, int style, bool IsNeedBringToFont, bool IsFullScreen, float SizeW = 0.f, float SizeH = 0.f):
 		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), IsMoveble(IsMoveble),
 		IsResizeble(IsResizeble), IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont),
@@ -773,20 +672,17 @@ public:
 	HRESULT LoadXmlUI(string File);
 	void ProcessXML();
 
-	void ReloadXML(LPCSTR File);
+	void ReloadXML(string File);
 
-	void DisableDialog(LPCSTR IDDialog);
-	void EnableDialog(LPCSTR IDDialog);
+	void DisableDialog(string IDDialog);
+	void EnableDialog(string IDDialog);
 
-	shared_ptr<dialogs> getDialog(LPCSTR IDDialog);
+	shared_ptr<dialogs> getDialog(string IDDialog);
 
 	auto GetIO() { return &ImGui::GetIO(); }
 
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-	UI() {}
-	~UI() {}
 protected:
 	// **********
 	HRESULT hr = S_OK;
@@ -816,6 +712,7 @@ protected:
 	void XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, int &countComp);
 	void XMLPreparingTNode(shared_ptr<XMLDial> &InTNode, XMLNode *everything, int &countComp);
 	void XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &countComp);
+	void XMLPreparingColumn(shared_ptr<XMLDial> &InColumn, XMLNode *everything, int &countComp);
 	void XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *everything, int &countComp);
 
 	void GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode);
@@ -831,6 +728,7 @@ protected:
 	void GetParam(XMLElement *Nods, shared_ptr<Labels> &Label);
 	void GetParam(XMLElement *Nods, shared_ptr<IText> &Itext);
 	void GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul);
+	void GetParam(XMLElement *Nods, shared_ptr<UnformatedText> &UText);
 
 	void GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents, shared_ptr<XMLComponents> &SomeComponent);
 	void GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent, shared_ptr<XMLComponents> &SomeComponent);

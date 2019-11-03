@@ -73,7 +73,7 @@ bool Models::LoadFromFile(string Filename)
 	Application->getDevice()->CreateInputLayout(ied, 2, Buffer_blob.at(0)->GetBufferPointer(),
 		Buffer_blob.at(0)->GetBufferSize(), &pLayout);
 
-	pConstantBuffer = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0);
+	pConstantBuffer = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0, sizeof(cb));
 	position = Matrix::CreateTranslation(Vector3::One);
 
 	return true;
@@ -113,15 +113,10 @@ void Models::Render(Matrix View, Matrix Proj)
 	cb.mMVP = XMMatrixTranspose(WVP);
 	Application->getDeviceContext()->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &pConstantBuffer);
-	//7
 	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
-	//3
 	Application->getDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//1
 	Application->getDeviceContext()->IASetInputLayout(pLayout);
-	//5
 	Application->getDeviceContext()->VSSetShader(VS, 0, 0);
-	//6
 	Application->getDeviceContext()->PSSetShader(PS, 0, 0);
 
 	for (size_t i = 0; i < meshes.size(); i++)
@@ -343,23 +338,32 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 
 	return texture;
 }
+inline XMMATRIX XMMatrixRotationAxis1
+(
+	Vector3 Axis,
+	float     Angle
+)
+{
+	// assert(!XMVector3Equal(Axis, XMVectorZero()));
+	assert(!XMVector3IsInfinite(Axis));
+
+	//Vector3 Normal = XMVector3Normalize(Axis);
+	return XMMatrixRotationNormal(Axis, Angle);
+}
 
 void Models::setRotation(Vector3 rotaxis)
 {
-	if (rotaxis != Vector3::Zero)
-		rotate = XMMatrixRotationQuaternion(rotaxis);
+	rotate = XMMatrixRotationAxis1(rotaxis, 0.1f);
 }
 
 void Models::setScale(Vector3 Scale)
 {
-	if (Scale != Vector3::Zero)
-		scale = XMMatrixScalingFromVector(Scale);
+	scale = Matrix::CreateScale(Scale);
 }
 
 void Models::setPosition(Vector3 Pos)
 {
-	if (Pos != Vector3::Zero)
-		position = XMMatrixTranslationFromVector(Pos);
+	position = Matrix::CreateTranslation(Pos);
 }
 
 void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)

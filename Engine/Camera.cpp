@@ -54,10 +54,11 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 
 void Camera::Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx)
 {
-	if (C_CT.operator bool() && !NoTPPhysx)
+	if (C_CT.operator bool() && !NoTPPhysx && (NewPos != Vector3::Zero))
 		C_CT->getController()->setPosition(PxExtendedVec3(NewPos.x, NewPos.y, NewPos.z));
 
-	SetViewParams(NewPos, NewLook);
+	if (NewPos != Vector3::Zero)
+		SetViewParams(NewPos, NewLook);
 }
 
 void Camera::SetNumberOfFramesToSmoothMouseData(int nFrames)
@@ -74,6 +75,11 @@ Matrix Camera::GetViewMatrix() const
 Matrix Camera::GetProjMatrix() const
 {
 	return m_mProj;
+}
+
+Matrix Camera::GetRotMatrix() const
+{
+	return mCameraRot;
 }
 
 Vector3 Camera::GetLookAtPt() const
@@ -177,7 +183,7 @@ void Camera::UpdateMouseDelta()
 	m_vRotVelocity = m_vMouseDelta * m_fRotationScaler;
 }
 
-void Camera::UpdateVelocity(_In_ float fElapsedTime)
+void Camera::UpdateVelocity(float fElapsedTime)
 {
 	Vector3 vGamePadRightThumb = XMVectorSet(m_vGamePadRightThumb.x, -m_vGamePadRightThumb.z, 0, 0),
 
@@ -232,7 +238,7 @@ void Camera::Reset()
 	Teleport(m_vDefaultEye, m_vDefaultLookAt);
 }
 
-void Camera::FrameMove(_In_ float fElapsedTime)
+void Camera::FrameMove(float fElapsedTime)
 {
 	if (Application->getKeyboard()->GetState().LeftShift)
 #if defined (DEBUG)

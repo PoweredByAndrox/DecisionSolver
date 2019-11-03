@@ -12,6 +12,8 @@
 #include "DebugDraw.h"
 #include "Levels.h"
 #include "CutScene.h"
+#include "Camera.h"
+#include "Multiplayer.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -61,7 +63,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 	wnd.hInstance = hInstance;
 	wnd.hIcon = LoadIconW(hInstance, (LPCWSTR)IDI_ICON1);
 	wnd.hIconSm = wnd.hIcon;
-	wnd.hCursor = LoadCursorW(hInstance, IDC_ARROW);
+	wnd.hCursor = LoadCursorW(hInstance, (LPCWSTR)IDC_ARROW);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wnd.lpszClassName = L"WND_ENGINE";
 	wnd.cbSize = sizeof(WNDCLASSEXW);
@@ -185,7 +187,7 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 		SCD.BufferDesc.Width = WidthWindow;
 		SCD.BufferDesc.Height = HeightWindow;
 		SCD.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		SCD.BufferDesc.RefreshRate.Numerator = 60;
+		SCD.BufferDesc.RefreshRate.Numerator = 75;
 		SCD.BufferDesc.RefreshRate.Denominator = 1;
 		SCD.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		SCD.OutputWindow = hwnd;
@@ -332,15 +334,9 @@ void Engine::Render()
 
 		if (TrackerKeyboard.pressed.F3)
 			if (IsSimulation)
-			{
 				IsSimulation = false;
-				CScene->Pause();
-			}
 			else
 				IsSimulation = true;
-
-		//if (TrackerKeyboard.pressed.F5)
-		//	PhysX->AddNewActor(camera->GetEyePt(), Vector3::One, 1);
 
 		if (console.operator bool() && TrackerKeyboard.pressed.OemTilde)
 			console->OpenConsole();
@@ -358,10 +354,7 @@ void Engine::Render()
 			if (DrawCamSphere)
 				DrawCamSphere = false;
 			else
-			{
-				CScene->Start();
 				DrawCamSphere = true;
-			}
 	}
 	else if (gamepad->GetState(0).IsConnected())
 	{
@@ -412,7 +405,6 @@ void Engine::Render()
 	if (Level.operator bool())
 		Level->Update(camera->GetViewMatrix(), camera->GetProjMatrix(), frameTime);
 
-#if defined (DEBUG)
 	if (ui.operator bool())
 	{
 		::ShowCursor(false);
@@ -423,29 +415,30 @@ void Engine::Render()
 		if (Dial1.operator bool() && !Dial1->GetTitle().empty())
 		{
 			float CamPos[] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
-			Dial1->getComponents()->Label.front()->ChangeText(string((boost::format(
+			Dial1->getComponents()->FindComponentLabel("##SDKDIAL_MainLabel")->ChangeText(string((boost::format(
 				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"\
 					"Is Simulation PhysX : %b\nResolution Window: W:%f, H:%f\nFrameTime:%f"))
 				% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
 				getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y % frameTime).str()));
 
-			auto Comp = Dial1->getComponents()->CollpsHeader.back()->getComponent();
-			if (Sound.operator bool())
+			auto Comp = Dial1->getComponents()->FindComponentCHeader("##SDKDIAL_ClpSound")->getComponents().front();
+			auto Comb = Comp->FindComponentCombo("Select Track!");
+			if (Sound && Comp && Comb)
 			{
-				if (Comp->Btn.front()->IsClicked())
+				if (Comp->FindComponentBtn("##Track_Start")->IsClicked() && Comb->GetSelect() != "None")
 				{
-					Sound->PlayFile(Comp->combo.back()->GetSelect(), true);
+					Sound->PlayFile(Comb->GetSelect(), true);
 					Sound->doPlay();
 				}
-				if (Comp->Btn.at(1)->IsClicked())
+				if (Comp->FindComponentBtn("##Track_Stop")->IsClicked())
 					Sound->doStop();
-				if (Comp->Btn.back()->IsClicked())
+				if (Comp->FindComponentBtn("##Track_Pause")->IsClicked())
 					Sound->doPause();
 			}
 
-			if (Comp->combo.back()->IsMouseSelected())
+			if (Comb->IsMouseSelected())
 			{
-				Comp->combo.back()->ClearItems();
+				Comb->ClearItems();
 				FS->RescanFiles(_TypeOfFile::SOUNDS);
 				auto SoundFiles = FS->GetFileByType(_TypeOfFile::SOUNDS);
 
@@ -453,37 +446,62 @@ void Engine::Render()
 				{
 					string FNameWithoutExt = SoundFiles.at(i)->FileA;
 					deleteWord(FNameWithoutExt, SoundFiles.at(i)->ExtA);
-					Comp->combo.back()->AddItem(FNameWithoutExt);
+					Comb->AddItem(FNameWithoutExt);
 				}
 			}
+
 			Dial1->Render();
 		}
-		ToDo("PBAX: Reformat It ASs soon as possible (XD)")
 		auto Dial2 = ui->getDialog("List Of Game Objects");
 		if (Dial2.operator bool() && !Dial2->GetTitle().empty())
 		{
+			// Add struct with base params and add getComponent there
 			auto Comp = Dial2->getComponents();
-			auto Tab_Comp = Comp->Tabs.back()->getComponent().back();
-			if (strcmp(Comp->Btn.at(0)->GetText(), "Spawn a Phys Cube") == 0 && Comp->Btn.at(0)->IsClicked())
+			auto Tab_Comp = Comp->FindComponentTab("##LOGOS_Tab")->getComponents().front();
+			if (Comp->FindComponentBtn("##LOGOS_Spwn")->IsClicked())
 			{
 				PhysX->SpawnObject();
-			//	Tab_Comp->TabItemComp.back()->selectable.push_back(make_shared<Selectable>());
-			//	Tab_Comp->TabItemComp.back()->selectable.back()->ChangeID((string("Obj#") +
-			//		to_string(PhysX->GetPhysDynamicObject().size())).c_str());
+				//	Tab_Comp->TabItemComp.back()->selectable.push_back(make_shared<Selectable>());
+				//	Tab_Comp->TabItemComp.back()->selectable.back()->ChangeID((string("Obj#") +
+				//		to_string(PhysX->GetPhysDynamicObject().size())).c_str());
 			}
-			if (strcmp(Comp->Btn.at(1)->GetText(), "Clear a Phys Cube") == 0 && Comp->Btn.at(1)->IsClicked())
+			if (Comp->FindComponentBtn("#LOGOS_Clear")->IsClicked())
 				PhysX->ClearAllObj();
 
 			Dial2->Render();
 		}
 
-		if (ui->getDialog("Console").operator bool() && !ui->getDialog("Console")->GetTitle().empty())
+		auto DialCons = ui->getDialog("Console");
+		if (DialCons.operator bool() && !DialCons->GetTitle().empty())
 			console->Render();
 
+		//auto DialMP = ui->getDialog("MPConnection");
+		//if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
+		//{
+		//	auto Comp = DialMP->getComponents();
+		//	if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
+		//		MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
+		//			MPL->getCurrentUser()->getSocket(),
+		//			MPL->getCurrentUser()->getAddresStruct());
+		//	if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
+		//		MPL->getServer()->Create();
+		//	if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
+		//		MPL->Connect();
+		//	if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
+		//		MPL->getCurrentUser()->Disconnect();
+		//	if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
+		//		Comp->FindComponentITextMul("##MP_Chat")->ClearText();
+
+		//	MPL->Update();
+
+		//	//if (!str.empty())
+		//	//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
+
+		//	DialMP->Render();
+		//}
 		ui->FrameEnd();
 	}
-#endif
-
+	
 	SwapChain->Present(0, 0);
 }
 

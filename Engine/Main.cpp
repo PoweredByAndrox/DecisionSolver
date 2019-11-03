@@ -16,6 +16,8 @@
 
 #include "CutScene.h"
 
+#include "Multiplayer.h"
+
 shared_ptr<Engine> Application;
 #include "UI.h"
 
@@ -58,7 +60,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	Application->setCLua(make_shared<CLua>());
 
-#if defined (DEBUG)
 	//	// GUI!!!
 	Application->setUI(make_shared<UI>());
 	if (FAILED(Application->getUI()->Init()))
@@ -77,7 +78,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	Application->getUI()->getDialog("Console")->ChangeSize(
 		Application->getWorkAreaSize(Application->GetHWND()).x,
 		Application->getWorkAreaSize(Application->GetHWND()).y / 3);
-#endif
 
 	Application->setPhysics(make_shared<Physics>());
 	if (FAILED(Application->getPhysics()->Init()))
@@ -121,8 +121,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	Application->getCLua()->Init();
 
 	//	// Debug Draw!!!
-	Application->setDebugDraw(make_shared<DebugDraw>());
-	Application->getDebugDraw()->Init();
+	//Application->setDebugDraw(make_shared<DebugDraw>());
+	//Application->getDebugDraw()->Init();
 
 	//Application->setPick(make_shared<Picking>());
 	// ***********
@@ -135,6 +135,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"Levels: Init Failed!");
 		return 5;
 	}
+
+	//Application->setMultiplayer(make_shared<Multiplayer>());
+	//EngineTrace(Application->getMPL()->Init());
 
 	MSG msg = { 0 };
 	while (msg.message != WM_QUIT)

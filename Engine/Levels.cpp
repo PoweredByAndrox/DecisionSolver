@@ -187,9 +187,9 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 		if (it->GetRotation())
 			Model->setRotation(it->GetRotCord());
 
-		//OutputDebugStringA((boost::format("\nObj Pos: X:%f, Y:%f, Z:%f") %
-		//it->GetPositionCord().x % it->GetPositionCord().y %
-		//	it->GetPositionCord().z).str().c_str());
+		//OutputDebugStringA((boost::format("\nObj Rot: X:%f, Y:%f, Z:%f") %
+		//it->GetRotCord().x % it->GetRotCord().y %
+		//	it->GetRotCord().z).str().c_str());
 		UpdateLogic(Time, it);
 		Model->setPosition(it->GetPositionCord());
 		Model->Render(View, Proj);
@@ -245,8 +245,8 @@ void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
 			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
 			newRot = Vector3::Zero;
 		Obj->GetLogic()->Update(newPos, newRot);
-		Obj->SetRotationCoords(newRot);
-		Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
+		//Obj->SetRotationCoords(newRot);
+		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
 		Obj->SetPositionCoords(newPos);
 	}
 }

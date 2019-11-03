@@ -10,11 +10,6 @@
 #include "StepTimer.h"
 #include "resource.h"
 
-#define Never
-//#define NEEDED_DEBUG_INFO
-
-//#define ExceptionWhenEachError
-
 class DebugDraw;
 
 class CLua;
@@ -29,6 +24,7 @@ class Physics;
 class Picking;
 class Levels;
 class CutScene;
+class Multiplayer;
 class Engine
 {
 private:
@@ -89,6 +85,8 @@ private:
 	shared_ptr<Actor> mainActor;
 	shared_ptr<Physics> PhysX;
 	shared_ptr<Camera> camera;
+	// Multiplayer
+	shared_ptr<Multiplayer> MPL;
 	static shared_ptr<Mouse> mouse;
 	static shared_ptr<Keyboard> keyboard;
 	static shared_ptr<GamePad> gamepad;
@@ -137,6 +135,7 @@ public:
 	shared_ptr<StepTimer> getTimer() { return Timer; }
 
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
+	shared_ptr<Multiplayer> getMPL() { return MPL; }
 
 	void setUI(shared_ptr<UI> ui)
 	{
@@ -209,6 +208,11 @@ public:
 	{
 		if (!this->Level.operator bool())
 			this->Level = Level;
+	}
+	void setMultiplayer(shared_ptr<Multiplayer> MPL)
+	{
+		if (!this->MPL.operator bool())
+			this->MPL = MPL;
 	}
 	shared_ptr<Mouse> getMouse() { return mouse; }
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }

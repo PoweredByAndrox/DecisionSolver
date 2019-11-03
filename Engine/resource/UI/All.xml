@@ -2,17 +2,17 @@
 <!--<gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="18" brightness="0.8">
-	<Button text="Spawn a Phys Cube" visible="true"/>
-	<Button text="Clear a Phys Cube" visible="true"/>
-	<Tab text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
+	<Button id="#LOGOS_Spwn" text="Spawn a Phys Cube" visible="true"/>
+	<Button id="#LOGOS_Clear" text="Clear a Phys Cube" visible="true"/>
+	<Tab id="#LOGOS_Tab" text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
 	no_close_midle_mouse="false">
 		<TabItem text="Objects">
-			<TreeNode text="Phys Objects">
+			<TreeNode id="#LOGOS_PhysObj" text="Phys Objects">
 				<Selectable id="Obj#1"/>
 				<Column count="2" id="ColumnPhObj" border="false">
- 				<Button text="Play Logic" visible="true"/>
+					<Button text="Play Logic" visible="true"/>
 					<Button text="Stop Logic" visible="true"/>
- 				<Label text="3D Pos:" visible="true"/>
+					<Label text="3D Pos:" visible="true"/>
 					<Label text="Distantion (ToCam):" visible="true"/>
 					<Label text="Direction:" visible="true"/>
 				</Column>
@@ -21,25 +21,38 @@ font="capture-it" sizefont="18" brightness="0.8">
 	</Tab>
 </gui>
 -->
+<gui id="MPConnection" width="820" height="420" open="true" resize="true" 
+show_title="true" moveble="true" collapsible="false" bring_to_font="false"
+font="rodc" sizefont="22" brightness="0.9">
+	<InputText id="##MP_IText" text="Send A Message" visible="true" history="true" hint="true"
+	texthint="Send A Message Here"/>
+	<InputTextMultiline id="##MP_Chat" visible="true" text="##Chat" readonly="true"/>
+	<Button id="##MP_Send" text="Send" visible="true"/>
+	<Button id="##MP_CreateServer" text="Create Server" visible="true"/>
+	<Button id="##MP_Connect" text="Connect" visible="true"/>
+	<Button id="##MP_Disconnect" text="Disconnect" visible="true"/>
+	<Button id="##MP_Clear" text="Clear Chat" visible="true"/>
+</gui>
+
 <gui id="SDKDIAL" width="0" height="0" open="true" resize="true" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="24" brightness="0.9" fullscreene="false">
-	<Collapse text="Sound" seldefault="true" collapsible="true">
-		<Combo id="Select Track!" />
-		<Button text="Start!" visible="true"/>
-		<Button text="Stop!" visible="true"/>
-		<Button text="Pause!" visible="true"/>
+	<Collapse id="##SDKDIAL_ClpSound" text="Sound" seldefault="true" collapsible="true">
+		<Combo id="Select Track!"/>
+		<Button id="##Track_Start" text="Start!" visible="true"/>
+		<Button id="##Track_Stop" text="Stop!" visible="true"/>
+		<Button id="##Track_Pause" text="Pause!" visible="true"/>
 	</Collapse>
-	<Label text="A Simple Text!" visible="true"/>
+	<Label id="##SDKDIAL_MainLabel" text="A Simple Text!" visible="true"/>
 </gui>
 
 <gui id="Console" width="400" height="250" open="false" resize="false" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="true"
 font="capture-it" sizefont="24" brightness="0.9">
-	<InputText text="Input" visible="true" history="true" hint="true"
+	<InputText id="##Console_CmdIText" text="" visible="true" history="false" hint="true"
 	texthint="Input Command Here!"/>
-	<ListBox label="##ForHintCmd" visible="true"/>
+	<ListBox id="##HintCmd" label="##ForHintCmd" visible="true"/>
 	<ChildDialog id="ConsoleText" border="true" horizontal_scroll="true">
-		<UnformatedText/>
+		<UnformatedText id="##CText"/>
 	</ChildDialog>
 </gui>

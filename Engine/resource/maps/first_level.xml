@@ -4,14 +4,15 @@
 <scene>
 	<objects>
 	<!-- Name of Model also like an identifier --> 
-	<!--	<One id="v2colored_low">
+		<One id="CONVICT TUNNEL">
 			<pos>0,0,0</pos>
-			<scale>0.005,0.005,0.005</scale>
-		</One>-->
+			<scale>0.00005,0.00005,0.00005</scale>
+			<rotate>120.0,0.0,0.0</rotate>
+		</One>
 	<!-- If the name has a space then replace them with _ -->
-<!--  	<Two id="Test_phys_box">
-			<pos>5,0,0</pos>
+		<Two id="v2colored_low">
+			<pos>100,0,0</pos>
 			<scale>0.005,0.005,0.005</scale>
-		</Two> -->
+		</Two>
 	</objects>
 </scene>

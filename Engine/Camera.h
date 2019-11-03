@@ -44,11 +44,10 @@ public:
 	void SetNumberOfFramesToSmoothMouseData(int nFrames);
 	void SetResetCursorAfterMove(bool bResetCursorAfterMove) { m_bResetCursorAfterMove = bResetCursorAfterMove; }
 
-	void setDrawCursor(bool IsDraw) { ShowCursor(IsDraw); }
-
 	// Functions to get state
 	Matrix GetViewMatrix() const;
 	Matrix GetProjMatrix() const;
+	Matrix GetRotMatrix() const;
 	Vector3 GetLookAtPt() const;
 	float GetNearClip() const;
 	float GetFarClip() const;

@@ -30,8 +30,8 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	// Set Up The Logic
 	SetLogic(Logic);
 	// Set Up The Physic
-	Application->getPhysics()->_createTriMesh(model, false);
-	SetPH(Application->getPhysics()->GetPhysDynamicObject().back());
+	//Application->getPhysics()->_createTriMesh(model, false);
+	//SetPH(Application->getPhysics()->GetPhysDynamicObject().back());
 	this->type = type;
 
 	model->setPosition(PosCoords);
