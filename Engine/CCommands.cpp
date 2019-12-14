@@ -107,6 +107,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
 				FindComponentUText("##CText")->ClearBuffer();
 			File_system::ClearLogs();
+			History.push_back(cmd->TypedCmd);
 			return;
 		}
 		else if (contains(CMD, "dotorque"))

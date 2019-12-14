@@ -20,11 +20,13 @@ public:
 
 		TYPE type = (TYPE)NONE;
 
-		// Use For Load File (e.g. file name of model)
+		// Use To Load File (e.g. file name of model)
 		string ID_TEXT = "";
 
 		Vector3 PosCoords = Vector3::Zero;
 
+		const Vector3 ResetPos, ResetRot, ResetScl;
+		
 		bool HasScale = false;
 		Vector3 ScaleCoords = Vector3::Zero;
 
@@ -65,6 +67,13 @@ public:
 		Vector3 GetRotCord() { return RotationCoords; }
 		Vector3 GetScaleCord() { return ScaleCoords; }
 		Vector3 GetPositionCord() { return PosCoords; }
+		
+		// R means "Reset"
+		Vector3 GetRRot() { return ResetRot; }
+		// R means "Reset"
+		Vector3 GetRScale() { return ResetScl; }
+		// R means "Reset"
+		Vector3 GetRPos() { return ResetPos; }
 
 		shared_ptr<Models> GetModel() { return model; }
 		shared_ptr<SimpleLogic> GetLogic() { return Logic; }
@@ -77,6 +86,8 @@ public:
 			if (PH)
 				SAFE_release(PH);
 		}
+
+		bool RenderIt = true;
 	};
 
 	//void Update();

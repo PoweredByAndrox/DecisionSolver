@@ -153,18 +153,12 @@ void Physics::Simulation(float Timestep)
 	//Render
 	for (size_t i = 0; i < Cobes.size(); i++)
 	{
-		vector<PxQuat> aq;
-		vector<PxVec3> pos;
-		auto PhysObj = DynamicObjects;
-
-		for (size_t i1 = 0; i1 < PhysObj.size(); i1++)
+		for (auto it : DynCobes)
 		{
-			aq.push_back(PhysObj.at(i1)->getGlobalPose().q);
-			pos.push_back(PhysObj.at(i1)->getGlobalPose().p);
-
+			PxQuat aq = it->getGlobalPose().q;
+			PxVec3 pos = it->getGlobalPose().p;
 			Cobes.at(i)->Draw(Matrix::CreateFromQuaternion(
-				Quaternion(aq.at(i1).x, aq.at(i1).y, aq.at(i1).z, aq.at(i1).w)) *
-				Matrix::CreateTranslation(Vector3(pos.at(i1).x, pos.at(i1).y, pos.at(i1).z)),
+				Quaternion(aq.x, aq.y, aq.z, aq.w)) * Matrix::CreateTranslation(Vector3(pos.x, pos.y, pos.z)),
 				Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix(),
 				Colors::DarkSeaGreen, nullptr, Application->IsWireFrame());
 		}
@@ -180,11 +174,12 @@ void Physics::Simulation(float Timestep)
 			BoundingBox box;
 			box.Center = Vector3::Zero;
 			box.Extents = Vector3(100.f, 50.f, 100.f);
-			Application->getDebugDraw()->Draw(box, (Vector4)Colors::DarkGoldenrod);
+			//Application->getDebugDraw()->Draw(box, (Vector4)Colors::DarkGoldenrod);
 		}
 	}
 }
 
+ToDo("Replace Code Below To ConvexMesh")
 #include "Models.h"
 void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
 {
@@ -214,7 +209,7 @@ void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
 	TriMeshDesc.triangles.data = &(indies)[0];
 	if (!TriMeshDesc.isValid())
 	{
-		DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
+//		DebugTrace("Physics: TriMeshDesc.isValid failed.\n");
 		throw exception("TriMeshDesc.isValid == false!!!");
 		return;
 	}
@@ -232,7 +227,7 @@ void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
 	triangleMesh = gPhysics->createTriangleMesh(readBuffer);
 	if (!triangleMesh)
 	{
-		DebugTrace("PhysX->_createTriMesh: triangleMesh failed.\n");
+//		DebugTrace("PhysX->_createTriMesh: triangleMesh failed.\n");
 		throw exception("triangleMesh == nullptr!!!");
 		return;
 	}
@@ -258,8 +253,7 @@ void Physics::SpawnObject()
 	
 	gScene->addActor(*gBox);
 	Cobes.push_back(GeometricPrimitive::CreateCube(Application->getDeviceContext(), 5.f, false));
-
-	DynamicObjects.push_back(gBox);
+	DynCobes.push_back(gBox);
 }
 
 void Physics::Destroy()

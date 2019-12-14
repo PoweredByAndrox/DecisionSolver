@@ -47,7 +47,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	//	// FS (File System)!!!
 	Application->setFS(make_shared<File_system>());
 
-	if (FAILED(Application->Init(wstring(L"DecisionEngine"), hInstance)))
+	if (FAILED(Application->Init(string("DecisionEngine"), hInstance)))
 	{
 		Engine::LogError("wWinMain::Application->Init() is failed.",
 			"wWinMain::Application->Init() is failed!!!",
@@ -57,6 +57,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
+
+	Application->getCLua()->Init();
 
 	Application->setCLua(make_shared<CLua>());
 
@@ -106,9 +108,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		return 5;
 	}
 
-	//	// Cut Scene!!!
-	Application->setCScene(make_shared<CutScene>());
-
 	//	// Audio (Sound) Class!!!
 	Application->setSound(make_shared<Audio>());
 	if (FAILED(Application->getSound()->Init()))
@@ -117,8 +116,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"Sound: Something is wrong with Init Sound!");
 		return 5;
 	}
-
-	Application->getCLua()->Init();
 
 	//	// Debug Draw!!!
 	//Application->setDebugDraw(make_shared<DebugDraw>());

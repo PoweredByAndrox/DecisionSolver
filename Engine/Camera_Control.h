@@ -8,9 +8,6 @@
 class PhysCamera;
 class Camera_Control
 {
-private:
-	float booster(float camTargY, float somethingY, float Delta);
-
 protected:
 	PxBoxControllerDesc boxcDescActor;
 	PxCapsuleControllerDesc capscDescActor;
@@ -35,9 +32,5 @@ public:
 	void setTargKey(PxVec3 Vec3) { targetKeyDisplacement = Vec3; }
 
 	Vector3 getHeadPos() { return HeadPos; }
-	//~Camera_Control()
-	//{
-		//SAFE_release(C_Control);
-	//}
 };
 #endif

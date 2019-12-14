@@ -74,7 +74,10 @@ bool Models::LoadFromFile(string Filename)
 		Buffer_blob.at(0)->GetBufferSize(), &pLayout);
 
 	pConstantBuffer = Render_Buffer::CreateConstBuff(D3D11_USAGE::D3D11_USAGE_DEFAULT, 0, sizeof(cb));
-	position = Matrix::CreateTranslation(Vector3::One);
+	
+	//	TM->EndTime();
+	//Console::LogInfo((string("\nCreate Buffers And Shaders For Model Take:" + to_string(TM->GetResultTime().count())
+	//	+ string(" Seconds")).c_str()));
 
 	return true;
 }
@@ -108,9 +111,12 @@ bool Models::LoadFromAllModels()
 
 void Models::Render(Matrix View, Matrix Proj)
 {
-	Matrix WVP = (rotate * scale * position) * View * Proj;
 	ConstantBuffer cb;
-	cb.mMVP = XMMatrixTranspose(WVP);
+	auto Mrx = XMMatrixTranspose(scale) * XMMatrixTranspose(position) * XMMatrixTranspose(rotate);
+	cb.World = Mrx;
+	cb.View = XMMatrixTranspose(View);
+	cb.Proj = XMMatrixTranspose(Proj);
+
 	Application->getDeviceContext()->UpdateSubresource(pConstantBuffer, 0, nullptr, &cb, 0, 0);
 	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &pConstantBuffer);
 	Application->getDeviceContext()->PSSetSamplers(0, 1, &TexSamplerState);
@@ -175,7 +181,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 							&texture.TextureRes, &texture.TextureSHRes)))
 						{
 #if defined (DEBUG)
-							DebugTrace("Models::CreateDDSTextureFromFile() create failed");
+//							DebugTrace("Models::CreateDDSTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
 							throw exception("Create failed!!!");
@@ -189,7 +195,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 							&texture.TextureRes, &texture.TextureSHRes)))
 						{
 #if defined (DEBUG)
-							DebugTrace("Models::CreateWICTextureFromFile() create failed");
+//							DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
 							throw exception("Create failed!!!");
@@ -325,7 +331,7 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
 	{
 #if defined (DEBUG)
-		DebugTrace("Models::CreateWICTextureFromFile() create failed");
+//		DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
 		throw exception("Create failed!!!");

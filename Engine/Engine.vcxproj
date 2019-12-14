@@ -80,11 +80,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExcludePath>$(WindowsSDK_IncludePath);$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;%(PreprocessorDefinitions);WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link />
     <FxCompile>
@@ -99,7 +102,7 @@
     </FxCompile>
     <Link />
     <Link>
-      <AdditionalDependencies>Effects11d.lib;assimp-vc141-mtd.lib;tinyxml2d.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Effects11d.lib;assimp-vc141-mtd.lib;tinyxml2d.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -120,13 +123,14 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN;BOOST_AUTO_LINK_TAGGED;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -206,6 +210,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Render_Buffer.cpp" />
+    <ClCompile Include="SDKInterface.cpp" />
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="SimpleLogic.cpp" />
     <ClCompile Include="UI.cpp" />
@@ -247,6 +252,7 @@
     <ClInclude Include="Picking.h" />
     <ClInclude Include="Render_Buffer.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SDKInterface.h" />
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="SimpleLogic.h" />
     <ClInclude Include="UI.h" />

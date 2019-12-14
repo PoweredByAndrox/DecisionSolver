@@ -6,8 +6,6 @@
 #include "examples/imgui_impl_win32.h"
 #include "examples/imgui_impl_dx11.h"
 
-static shared_ptr<Render_Buffer> Buf = make_shared<Render_Buffer>();
-
 HRESULT UI::Init()
 {
 	IMGUI_CHECKVERSION();
@@ -26,27 +24,6 @@ HRESULT UI::Init()
 	IO.BackendFlags |= ImGuiBackendFlags_HasMouseCursors | ImGuiBackendFlags_HasSetMousePos;
 	IO.BackendPlatformName = "DecisionSolver";
 
-	//IO.KeyMap[ImGuiKey_Tab] = VK_TAB;
-	//IO.KeyMap[ImGuiKey_LeftArrow] = VK_LEFT;
-	//IO.KeyMap[ImGuiKey_RightArrow] = VK_RIGHT;
-	//IO.KeyMap[ImGuiKey_UpArrow] = VK_UP;
-	//IO.KeyMap[ImGuiKey_DownArrow] = VK_DOWN;
-	//IO.KeyMap[ImGuiKey_PageUp] = VK_PRIOR;
-	//IO.KeyMap[ImGuiKey_PageDown] = VK_NEXT;
-	//IO.KeyMap[ImGuiKey_Home] = VK_HOME;
-	//IO.KeyMap[ImGuiKey_End] = VK_END;
-	//IO.KeyMap[ImGuiKey_Insert] = VK_INSERT;
-	//IO.KeyMap[ImGuiKey_Delete] = VK_DELETE;
-	//IO.KeyMap[ImGuiKey_Backspace] = VK_BACK;
-	//IO.KeyMap[ImGuiKey_Space] = VK_SPACE;
-	//IO.KeyMap[ImGuiKey_Enter] = VK_RETURN;
-	//IO.KeyMap[ImGuiKey_Escape] = VK_ESCAPE;
-	//IO.KeyMap[ImGuiKey_A] = 'A';
-	//IO.KeyMap[ImGuiKey_C] = 'C';
-	//IO.KeyMap[ImGuiKey_V] = 'V';
-	//IO.KeyMap[ImGuiKey_X] = 'X';
-	//IO.KeyMap[ImGuiKey_Y] = 'Y';
-	//IO.KeyMap[ImGuiKey_Z] = 'Z';
 	ImGui_ImplWin32_Init(Application->GetHWND());
 	ImGui_ImplDX11_Init(Application->getDevice(), Application->getDeviceContext());
 
@@ -63,7 +40,6 @@ void dialogs::ChangeFont(string FontName, float SizePixel, float Brighten)
 	font_config->OversampleH = 3;
 	font_config->OversampleV = 1;
 	font_config->PixelSnapH = true;
-
 	Font = IO.Fonts->AddFontFromFileTTF(FontName.c_str(), SizePixel, font_config.get(),
 		IO.Fonts->GetGlyphRangesCyrillic());
 }
@@ -83,34 +59,6 @@ void UI::ResizeWnd()
 
 void UI::Begin()
 {
-	//ImGuiIO &io = ImGui::GetIO();
-	//IM_ASSERT(io.Fonts->IsBuilt() &&
-	//	"Font atlas not built! It is generally built by the renderer back-end."\
-	//	" Missing call to renderer _NewFrame() function?");
-
-	//RECT rect;
-	//::GetClientRect(Application->GetHWND(), &rect);
-	//io.DisplaySize = ImVec2((float)(rect.right - rect.left), (float)(rect.bottom - rect.top));
-
-	//INT64 current_time;
-	//::QueryPerformanceCounter((LARGE_INTEGER *)&current_time);
-	//io.DeltaTime = (float)(current_time - g_Time) / (float)g_TicksPerSecond;
-	//g_Time = current_time;
-
-	//io.KeyCtrl = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftControl);
-	//io.KeyShift = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftShift);
-	//io.KeyAlt = Application->getKeyboard()->GetState().IsKeyDown(DirectX::Keyboard::Keys::LeftAlt);
-	//io.KeySuper = false;
-
-	//UpdateMousePos();
-
-	//ImGuiMouseCursor mouse_cursor = io.MouseDrawCursor ? ImGuiMouseCursor_None : ImGui::GetMouseCursor();
-	//if (g_LastMouseCursor != mouse_cursor)
-	//{
-	//	g_LastMouseCursor = mouse_cursor;
-	//	UpdateMouseCursor();
-	//}
-
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -144,8 +92,7 @@ HRESULT UI::LoadXmlUI(string File)
 #endif
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(File, true, string("<!--"),
-		string("-->")).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(File, true).c_str()) > 0)
 	{
 		Engine::LogError("", (boost::format("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error ID: %s")
 			% to_string(doc->ErrorID())).str(),
@@ -171,7 +118,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto button = make_shared<Buttons>();
 		GetParam(Component->buttons.at(i)->ToElement(), button);
 		button->ChangeOrder(Component->IDbuttons.at(i));
-		DoneComponent->Btn.insert(make_pair(button->GetID(), button));
+		DoneComponent->Btn.push_back(make_pair(button->GetID(), button));
 	}
 	//	InputText
 	for (size_t i = 0; i < Component->IDtexts.size(); i++)
@@ -180,7 +127,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto itext = make_shared<IText>();
 		GetParam(Component->texts.at(i)->ToElement(), itext);
 		itext->ChangeOrder(Component->IDtexts.at(i));
-		DoneComponent->Itext.insert(make_pair(itext->GetID(), itext));
+		DoneComponent->Itext.push_back(make_pair(itext->GetID(), itext));
 	}
 	//	InputTextMultiline
 	for (size_t i = 0; i < Component->IDtextmuls.size(); i++)
@@ -189,7 +136,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto itextmul = make_shared<ITextMulti>();
 		GetParam(Component->textmuls.at(i)->ToElement(), itextmul);
 		itextmul->ChangeOrder(Component->IDtextmuls.at(i));
-		DoneComponent->Itextmul.insert(make_pair(itextmul->GetID(), itextmul));
+		DoneComponent->Itextmul.push_back(make_pair(itextmul->GetID(), itextmul));
 	}
 	//	Label
 	for (size_t i = 0; i < Component->IDlabels.size(); i++)
@@ -198,7 +145,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto label = make_shared<Labels>();
 		GetParam(Component->labels.at(i)->ToElement(), label);
 		label->ChangeOrder(Component->IDlabels.at(i));
-		DoneComponent->Label.insert(make_pair(label->GetID(), label));
+		DoneComponent->Label.push_back(make_pair(label->GetID(), label));
 	}
 	//	Combobox
 	for (size_t i = 0; i < Component->IDcombo.size(); i++)
@@ -207,7 +154,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto combo = make_shared<Combobox>();
 		GetParam(Component->combo.at(i)->ToElement(), combo);
 		combo->ChangeOrder(Component->IDcombo.at(i));
-		DoneComponent->combo.insert(make_pair(combo->GetID(), combo));
+		DoneComponent->combo.push_back(make_pair(combo->GetID(), combo));
 	}
 	//	Separator
 	for (size_t i = 0; i < Component->IDseparators.size(); i++)
@@ -215,7 +162,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		shared_ptr<_Separator> separator = make_shared<_Separator>();
 		separator->ChangeOrder(Component->IDseparators.at(i));
-		DoneComponent->separators.insert(make_pair(separator->GetID(), separator));
+		DoneComponent->separators.push_back(make_pair(separator->GetID(), separator));
 	}
 	//	UnformatedText
 	for (size_t i = 0; i < Component->IDutext.size(); i++)
@@ -224,7 +171,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
 		GetParam(Component->utext.at(i)->ToElement(), UText);
 		UText->ChangeOrder(Component->IDutext.at(i));
-		DoneComponent->UText.insert(make_pair(UText->GetID(), UText));
+		DoneComponent->UText.push_back(make_pair(UText->GetID(), UText));
 	}
 	//	Selectable
 	for (size_t i = 0; i < Component->IDselect.size(); i++)
@@ -233,7 +180,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		auto select = make_shared<Selectable>();
 		GetParam(Component->select.at(i)->ToElement(), select);
 		select->ChangeOrder(Component->IDselect.at(i));
-		DoneComponent->selectable.insert(make_pair(select->GetID(), select));
+		DoneComponent->selectable.push_back(make_pair(select->GetID(), select));
 	}
 	//	Collapse
 	for (size_t i = 0; i < Component->XMLCHead.size(); i++)
@@ -249,7 +196,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		cheader->ChangeOrderInDial(Component->CpsHead.back()->OrderlyRenderInDial);
 		cheader->ChangeOrder(Count);
 		cheader->setComponents(CHeader);
-		DoneComponent->CollpsHeader.insert(make_pair(cheader->GetID(), cheader));
+		DoneComponent->CollpsHeader.push_back(make_pair(cheader->GetID(), cheader));
 	}
 	//	ChildDialog
 	for (size_t i = 0; i < Component->XMLDChild.size(); i++)
@@ -265,7 +212,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		child->ChangeOrderInDial(Component->DialChild.back()->OrderlyRenderInDial);
 		child->ChangeOrder(Count);
 		child->setComponents(Childs);
-		DoneComponent->childs.insert(make_pair(child->GetID(), child));
+		DoneComponent->childs.push_back(make_pair(child->GetID(), child));
 	}
 	//	Tab
 	for (size_t i = 0; i < Component->XML_Tab.size(); i++)
@@ -281,7 +228,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		tab->ChangeOrderInDial(Component->_Tab.back()->OrderlyRenderInDial);
 		tab->ChangeOrder(Count);
 		tab->getTabItem().back()->TabItemComp.push_back(Tabs);
-		DoneComponent->Tabs.insert(make_pair(tab->GetID(), tab));
+		DoneComponent->Tabs.push_back(make_pair(tab->GetID(), tab));
 	}
 	//	TreeNode
 	for (size_t i = 0; i < Component->XML_TreeNode.size(); i++)
@@ -297,7 +244,7 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		TNode->ChangeOrderInDial(Component->_TreeNode.back()->OrderlyRenderInDial);
 		TNode->ChangeOrder(Count);
 		TNode->setComponents(tnode);
-		DoneComponent->TNode.insert(make_pair(TNode->GetID(), TNode));
+		DoneComponent->TNode.push_back(make_pair(TNode->GetID(), TNode));
 	}
 	//	Column
 	for (size_t i = 0; i < Component->XMLColumn.size(); i++)
@@ -305,15 +252,17 @@ void UI::WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllThe
 		CountOrder++;
 		int Count = 0;
 		auto column = make_shared<Column>();
-		shared_ptr<AllTheComponent> Columns = make_shared<AllTheComponent>();
-
-		WorkOnComponents(Component->_Column.back(), Columns, Count);
+		for (size_t i = 0; i < Component->_Column.size(); i++)
+		{
+			shared_ptr<AllTheComponent> Columns = make_shared<AllTheComponent>();
+			WorkOnComponents(Component->_Column.at(i), Columns, Count);
+			column->setComponents(Columns);
+		}
 		GetParam(Component->XMLColumn.at(i)->ToElement(), column);
 
 		column->ChangeOrderInDial(Component->_Column.back()->OrderlyRenderInDial);
 		column->ChangeOrder(Count);
-		column->setComponents(Columns);
-		DoneComponent->column.insert(make_pair(column->GetID(), column));
+		DoneComponent->column.push_back(make_pair(column->GetID(), column));
 	}
 }
 
@@ -924,6 +873,13 @@ void UI::GetParam(XMLNode *Nods, shared_ptr<Tab> &InTab)
 	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Nods->ToElement()->FirstAttribute());
 	for (;;)
 	{
+		if (strcmp(FirstAttr->Name(), "id") == 0)
+		{
+			InTab->ChangeID(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
 		if (strcmp(FirstAttr->Name(), "dragging_tabs") == 0)
 		{
 			InTab->setDragTabs(FirstAttr->BoolValue());
@@ -933,7 +889,7 @@ void UI::GetParam(XMLNode *Nods, shared_ptr<Tab> &InTab)
 		}
 		if (strcmp(FirstAttr->Name(), "text") == 0)
 		{
-			InTab->ChangeID(FirstAttr->Value());
+			InTab->ChangeText(FirstAttr->Value());
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
@@ -998,9 +954,16 @@ void UI::GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode)
 	XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Nods->ToElement()->FirstAttribute());
 	for (;;)
 	{
-		if (strcmp(FirstAttr->Name(), "text") == 0)
+		if (strcmp(FirstAttr->Name(), "id") == 0)
 		{
 			InTNode->ChangeID(FirstAttr->Value());
+			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+			if (!FirstAttr)
+				break;
+		}
+		if (strcmp(FirstAttr->Name(), "text") == 0)
+		{
+			InTNode->ChangeText(FirstAttr->Value());
 			FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 			if (!FirstAttr)
 				break;
@@ -1349,6 +1312,13 @@ void UI::GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents,
 				}
 				for (auto Three : SecondComponent)
 				{
+					auto Attr = Three->ToElement()->Name();
+					if (Attr && strcmp(Attr, "next") == 0)
+					{
+						SomeComponent->_Column.push_back(make_shared<XMLComponents>());
+						SomeComponent->_Column.back()->OrderlyRenderInDial++;
+						continue;
+					}
 					if (!Three->NoChildren())
 					{
 						vector<XMLNode *> Four = { Three };
@@ -1479,7 +1449,7 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 		CHeader->ChangeOrder(SomeComponent->CpsHead.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->getComponents()->CollpsHeader.insert(make_pair(CHeader->GetID(), CHeader));
+		RequiredComponent->getComponents()->CollpsHeader.push_back(make_pair(CHeader->GetID(), CHeader));
 	}
 	//	ChildDialog
 	for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
@@ -1498,7 +1468,7 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 		child->ChangeOrder(SomeComponent->DialChild.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->getComponents()->childs.insert(make_pair(child->GetID(), child));
+		RequiredComponent->getComponents()->childs.push_back(make_pair(child->GetID(), child));
 	}
 	// Tab
 	for (size_t i = 0; i < SomeComponent->XML_Tab.size(); i++)
@@ -1519,7 +1489,7 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 		tab->ChangeOrder(CountComp);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->getComponents()->Tabs.insert(make_pair(tab->GetID(), tab));
+		RequiredComponent->getComponents()->Tabs.push_back(make_pair(tab->GetID(), tab));
 	}
 	// TreeNode
 	for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
@@ -1538,7 +1508,7 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 		TNode->ChangeOrder(SomeComponent->_TreeNode.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->getComponents()->TNode.insert(make_pair(TNode->GetID(), TNode));
+		RequiredComponent->getComponents()->TNode.push_back(make_pair(TNode->GetID(), TNode));
 	}
 	// Column
 	for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
@@ -1550,14 +1520,16 @@ void UI::GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent,
 		GetParam(SomeComponent->XMLColumn.at(i), column);
 		column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
 
-		GetRecursionAdd(SomeComponent->_Column.at(i), tmpComponent, SomeComponent->_Column.at(i)->OrderlyRender);
-		column->setComponents(tmpComponent);
-		tmpComponent.reset();
-
+		for (size_t i = 0; i < SomeComponent->_Column.size(); i++)
+		{
+			GetRecursionAdd(SomeComponent->_Column.at(i), tmpComponent, SomeComponent->_Column.at(i)->OrderlyRender);
+			column->setComponents(tmpComponent);
+			tmpComponent.reset();
+		}
 		column->ChangeOrder(SomeComponent->_Column.at(i)->OrderlyRender);
 
 		RequiredComponent->ChangeOrder(SomeComponent->OrderlyRender);
-		RequiredComponent->getComponents()->column.insert(make_pair(column->GetID(), column));
+		RequiredComponent->getComponents()->column.push_back(make_pair(column->GetID(), column));
 	}
 }
 void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> &AllComponent,
@@ -1565,89 +1537,87 @@ void UI::GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<All
 {
 	shared_ptr<AllTheComponent> tmpComponent;
 
-	if (!SomeComponent->XMLDChild.empty())
-		for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
+	for (size_t i = 0; i < SomeComponent->XMLDChild.size(); i++)
+	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
+		auto child = make_shared<Child>();
+		WorkOnComponents(SomeComponent->DialChild.at(i), tmpComponent, Count);
+		child->setComponents(tmpComponent);
+		tmpComponent.reset();
+
+		GetParam(SomeComponent->XMLDChild.at(i)->ToElement(), child);
+		child->ChangeOrder(Count);
+		child->ChangeOrderInDial(SomeComponent->DialChild.at(i)->OrderlyRenderInDial);
+
+		AllComponent->childs.push_back(make_pair(child->GetID(), child));
+	}
+	for (size_t i = 0; i < SomeComponent->XML_Tab.size(); i++)
+	{
+		auto tab = make_shared<Tab>();
+		WorkOnComponents(SomeComponent->_Tab.at(i)->Component.back(),
+			tab->getTabItem().back()->TabItemComp.back(), Count);
+
+		GetParam(SomeComponent->XML_Tab.at(i)->ToElement(), tab);
+		tab->ChangeOrder(Count);
+		tab->ChangeOrderInDial(SomeComponent->_Tab.at(i)->OrderlyRenderInDial);
+
+		AllComponent->Tabs.push_back(make_pair(tab->GetID(), tab));
+	}
+	for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
+	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
+		auto treenode = make_shared<TreeNode>();
+		WorkOnComponents(SomeComponent->_TreeNode.at(i), tmpComponent, Count);
+		treenode->setComponents(tmpComponent);
+		tmpComponent.reset();
+
+		GetParam(SomeComponent->XML_TreeNode.at(i)->ToElement(), treenode);
+		treenode->ChangeOrder(Count);
+		treenode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->OrderlyRenderInDial);
+
+		AllComponent->TNode.push_back(make_pair(treenode->GetID(), treenode));
+	}
+	for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
+	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
+		auto collps = make_shared<CollapsingHeaders>();
+		WorkOnComponents(SomeComponent->CpsHead.at(i), tmpComponent, Count);
+		collps->setComponents(tmpComponent);
+		tmpComponent.reset();
+
+		GetParam(SomeComponent->XMLCHead.at(i)->ToElement(), collps);
+		collps->ChangeOrder(Count);
+		collps->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->OrderlyRenderInDial);
+
+		AllComponent->CollpsHeader.push_back(make_pair(collps->GetID(), collps));
+	}
+	for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
+	{
+		if (!tmpComponent.operator bool())
+			tmpComponent = make_shared<AllTheComponent>();
+
+		auto column = make_shared<Column>();
+		
+		for (size_t i = 0; i < SomeComponent->_Column.size(); i++)
 		{
-			if (!tmpComponent.operator bool())
-				tmpComponent = make_shared<AllTheComponent>();
-
-			auto child = make_shared<Child>();
-			WorkOnComponents(SomeComponent->DialChild.at(i), tmpComponent, Count);
-			child->setComponents(tmpComponent);
-			tmpComponent.reset();
-
-			GetParam(SomeComponent->XMLDChild.at(i)->ToElement(), child);
-			child->ChangeOrder(Count);
-			child->ChangeOrderInDial(SomeComponent->DialChild.at(i)->OrderlyRenderInDial);
-
-			AllComponent->childs.insert(make_pair(child->GetID(), child));
-		}
-	else if (!SomeComponent->XML_Tab.empty())
-		for (size_t i = 0; i < SomeComponent->XML_Tab.size(); i++)
-		{
-			auto tab = make_shared<Tab>();
-			WorkOnComponents(SomeComponent->_Tab.at(i)->Component.back(),
-				tab->getTabItem().back()->TabItemComp.back(), Count);
-
-			GetParam(SomeComponent->XML_Tab.at(i)->ToElement(), tab);
-			tab->ChangeOrder(Count);
-			tab->ChangeOrderInDial(SomeComponent->_Tab.at(i)->OrderlyRenderInDial);
-
-			AllComponent->Tabs.insert(make_pair(tab->GetID(), tab));
-		}
-	else if (!SomeComponent->XML_TreeNode.empty())
-		for (size_t i = 0; i < SomeComponent->XML_TreeNode.size(); i++)
-		{
-			if (!tmpComponent.operator bool())
-				tmpComponent = make_shared<AllTheComponent>();
-
-			auto treenode = make_shared<TreeNode>();
-			WorkOnComponents(SomeComponent->_TreeNode.at(i), tmpComponent, Count);
-			treenode->setComponents(tmpComponent);
-			tmpComponent.reset();
-
-			GetParam(SomeComponent->XML_TreeNode.at(i)->ToElement(), treenode);
-			treenode->ChangeOrder(Count);
-			treenode->ChangeOrderInDial(SomeComponent->_TreeNode.at(i)->OrderlyRenderInDial);
-
-			AllComponent->TNode.insert(make_pair(treenode->GetID(), treenode));
-		}
-	else if (!SomeComponent->XMLCHead.empty())
-		for (size_t i = 0; i < SomeComponent->XMLCHead.size(); i++)
-		{
-			if (!tmpComponent.operator bool())
-				tmpComponent = make_shared<AllTheComponent>();
-
-			auto collps = make_shared<CollapsingHeaders>();
-			WorkOnComponents(SomeComponent->CpsHead.at(i), tmpComponent, Count);
-			collps->setComponents(tmpComponent);
-			tmpComponent.reset();
-
-			GetParam(SomeComponent->XMLCHead.at(i)->ToElement(), collps);
-			collps->ChangeOrder(Count);
-			collps->ChangeOrderInDial(SomeComponent->CpsHead.at(i)->OrderlyRenderInDial);
-
-			AllComponent->CollpsHeader.insert(make_pair(collps->GetID(), collps));
-		}
-	else if (!SomeComponent->XMLColumn.empty())
-		for (size_t i = 0; i < SomeComponent->XMLColumn.size(); i++)
-		{
-			if (!tmpComponent.operator bool())
-				tmpComponent = make_shared<AllTheComponent>();
-
-			auto column = make_shared<Column>();
 			WorkOnComponents(SomeComponent->_Column.at(i), tmpComponent, Count);
 			column->setComponents(tmpComponent);
 			tmpComponent.reset();
-
-			GetParam(SomeComponent->XMLColumn.at(i)->ToElement(), column);
-			column->ChangeOrder(Count);
-			column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
-			
-			AllComponent->column.insert(make_pair(column->GetID(), column));
 		}
-	else
-		WorkOnComponents(SomeComponent, AllComponent, Count);
+		GetParam(SomeComponent->XMLColumn.at(i)->ToElement(), column);
+		column->ChangeOrder(Count);
+		column->ChangeOrderInDial(SomeComponent->_Column.at(i)->OrderlyRenderInDial);
+
+		AllComponent->column.push_back(make_pair(column->GetID(), column));
+	}
+
+	WorkOnComponents(SomeComponent, AllComponent, Count);
 }
 
 void UI::ProcessXML()
@@ -1829,6 +1799,14 @@ void UI::ProcessXML()
 				}
 				for (auto Two : SecondComponent)
 				{
+					auto Attr = Two->ToElement()->Name();
+					if (Attr && strcmp(Attr, "next") == 0)
+					{
+						XMLDialogs.at(i)->Components->_Column.push_back(make_shared<XMLComponents>());
+						XMLDialogs.at(i)->Components->_Column.back()->OrderlyRenderInDial++;
+						continue;
+					}
+
 					if (!Two->NoChildren()) // If We Need Recursion!
 						GetRecursion(SecondComponent, XMLDialogs.at(i)->Components->_Column.back()->OrderlyRender,
 							XMLDialogs.at(i)->Components->_Column.back());
@@ -1966,7 +1944,7 @@ void UI::ProcessXML()
 			auto btn = make_shared<Buttons>();
 			GetParam(XMLDialogs.at(IDDial)->Components->buttons.at(i)->ToElement(), btn);
 			btn->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDbuttons.at(i));
-			dialog.at(IDDial)->getComponents()->Btn.insert(make_pair(btn->GetID(), btn));
+			dialog.at(IDDial)->getComponents()->Btn.push_back(make_pair(btn->GetID(), btn));
 		}
 		//	InputText
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtexts.size(); i++)
@@ -1974,7 +1952,7 @@ void UI::ProcessXML()
 			auto text = make_shared<IText>();
 			GetParam(XMLDialogs.at(IDDial)->Components->texts.at(i)->ToElement(), text);
 			text->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtexts.at(i));
-			dialog.at(IDDial)->getComponents()->Itext.insert(make_pair(text->GetID(), text));
+			dialog.at(IDDial)->getComponents()->Itext.push_back(make_pair(text->GetID(), text));
 		}
 		//	InputTextMultiline
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtextmuls.size(); i++)
@@ -1982,7 +1960,7 @@ void UI::ProcessXML()
 			auto itextmul = make_shared<ITextMulti>();
 			GetParam(XMLDialogs.at(IDDial)->Components->textmuls.at(i)->ToElement(), itextmul);
 			itextmul->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtextmuls.at(i));
-			dialog.at(IDDial)->getComponents()->Itextmul.insert(make_pair(itextmul->GetID(), itextmul));
+			dialog.at(IDDial)->getComponents()->Itextmul.push_back(make_pair(itextmul->GetID(), itextmul));
 		}
 		//	Label
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDlabels.size(); i++)
@@ -1990,14 +1968,14 @@ void UI::ProcessXML()
 			auto label = make_shared<Labels>();
 			GetParam(XMLDialogs.at(IDDial)->Components->labels.at(i)->ToElement(), label);
 			label->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDlabels.at(i));
-			dialog.at(IDDial)->getComponents()->Label.insert(make_pair(label->GetID(), label));
+			dialog.at(IDDial)->getComponents()->Label.push_back(make_pair(label->GetID(), label));
 		}
 		//	Separator
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDseparators.size(); i++)
 		{
 			shared_ptr<_Separator> separator = make_shared<_Separator>();
 			separator->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDseparators.at(i));
-			dialog.at(IDDial)->getComponents()->separators.insert(make_pair(separator->GetID(), separator));
+			dialog.at(IDDial)->getComponents()->separators.push_back(make_pair(separator->GetID(), separator));
 		}
 		//	UnformatedText
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDutext.size(); i++)
@@ -2005,7 +1983,7 @@ void UI::ProcessXML()
 			shared_ptr<UnformatedText> UText = make_shared<UnformatedText>();
 			GetParam(XMLDialogs.at(IDDial)->Components->utext.at(i)->ToElement(), UText);
 			UText->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDutext.at(i));
-			dialog.at(IDDial)->getComponents()->UText.insert(make_pair(UText->GetID(), UText));
+			dialog.at(IDDial)->getComponents()->UText.push_back(make_pair(UText->GetID(), UText));
 		}
 		//	TextList
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDtlist.size(); i++)
@@ -2013,7 +1991,7 @@ void UI::ProcessXML()
 			auto tlist = make_shared<TextList>();
 			GetParam(XMLDialogs.at(IDDial)->Components->tlist.at(i)->ToElement(), tlist);
 			tlist->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDtlist.at(i));
-			dialog.at(IDDial)->getComponents()->TList.insert(make_pair(tlist->GetID(), tlist));
+			dialog.at(IDDial)->getComponents()->TList.push_back(make_pair(tlist->GetID(), tlist));
 		}
 		//	Combobox
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDcombo.size(); i++)
@@ -2021,7 +1999,7 @@ void UI::ProcessXML()
 			auto combo = make_shared<Combobox>();
 			GetParam(XMLDialogs.at(IDDial)->Components->combo.at(i)->ToElement(), combo);
 			combo->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDcombo.at(i));
-			dialog.at(IDDial)->getComponents()->combo.insert(make_pair(combo->GetID(), combo));
+			dialog.at(IDDial)->getComponents()->combo.push_back(make_pair(combo->GetID(), combo));
 		}
 		//	Selectable
 		for (size_t i = 0; i < XMLDialogs.at(IDDial)->Components->IDselect.size(); i++)
@@ -2029,7 +2007,7 @@ void UI::ProcessXML()
 			auto select = make_shared<Selectable>();
 			GetParam(XMLDialogs.at(IDDial)->Components->select.at(i)->ToElement(), select);
 			select->ChangeOrder(XMLDialogs.at(IDDial)->Components->IDselect.at(i));
-			dialog.at(IDDial)->getComponents()->selectable.insert(make_pair(select->GetID(), select));
+			dialog.at(IDDial)->getComponents()->selectable.push_back(make_pair(select->GetID(), select));
 		}
 
 		// Count of all the components only in dialog!
@@ -2248,192 +2226,186 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return false;
 }
 
-void CollapsingHeaders::Render()
+shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName, bool NeedLog)
 {
-	Flags = 0;
-	Flags = ImGuiTreeNodeFlags_CollapsingHeader;
-
-	if (SelDef)
-		Flags |= ImGuiTreeNodeFlags_Selected;
-
-	if (ImGui::CollapsingHeader(GetText().c_str(), &IsCollapse, Flags))
+	for (auto it : Btn)
 	{
-		int Count = getRenderOrder(), now = 0;
-
-		while (Count >= now)
-		{
-			getComponents().front()->RenderComponents(now);
-		}
+		if (it.first == CmpName)
+			return it.second;
 	}
-}
-
-shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName)
-{
-	auto Cmp = Btn.find(CmpName);
-	if (Cmp != Btn.end() && Cmp->second)
-		return Cmp->second;
-	else
-	{
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Buttons>();
-	}
+	return make_shared<Buttons>();
 }
 
-shared_ptr<Labels> AllTheComponent::FindComponentLabel(string CmpName)
+shared_ptr<Labels> AllTheComponent::FindComponentLabel(string CmpName, bool NeedLog)
 {
-	auto Cmp = Label.find(CmpName);
-	if (Cmp != Label.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : Label)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Labels>();
-	}
+	return make_shared<Labels>();
 }
 
-shared_ptr<ITextMulti> AllTheComponent::FindComponentITextMul(string CmpName)
+shared_ptr<ITextMulti> AllTheComponent::FindComponentITextMul(string CmpName, bool NeedLog)
 {
-	auto Cmp = Itextmul.find(CmpName);
-	if (Cmp != Itextmul.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : Itextmul)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<ITextMulti>();
-	}
+	return make_shared<ITextMulti>();
 }
 
-shared_ptr<IText> AllTheComponent::FindComponentIText(string CmpName)
+shared_ptr<IText> AllTheComponent::FindComponentIText(string CmpName, bool NeedLog)
 {
-	auto Cmp = Itext.find(CmpName);
-	if (Cmp != Itext.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : Itext)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<IText>();
-	}
+	return make_shared<IText>();
 }
 
-shared_ptr<UnformatedText> AllTheComponent::FindComponentUText(string CmpName)
+shared_ptr<UnformatedText> AllTheComponent::FindComponentUText(string CmpName, bool NeedLog)
 {
-	auto Cmp = UText.find(CmpName);
-	if (Cmp != UText.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : UText)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<UnformatedText>();
-	}
+	return make_shared<UnformatedText>();
 }
 
-shared_ptr<TextList> AllTheComponent::FindComponentTList(string CmpName)
+shared_ptr<TextList> AllTheComponent::FindComponentTList(string CmpName, bool NeedLog)
 {
-	auto Cmp = TList.find(CmpName);
-	if (Cmp != TList.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : TList)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<TextList>();
-	}
+	return make_shared<TextList>();
 }
 
-shared_ptr<Selectable> AllTheComponent::FindComponentSelectable(string CmpName)
+shared_ptr<Selectable> AllTheComponent::FindComponentSelectable(string CmpName, bool NeedLog)
 {
-	auto Cmp = selectable.find(CmpName);
-	if (Cmp != selectable.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : selectable)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Selectable>();
-	}
+	return make_shared<Selectable>();
 }
 
-shared_ptr<Combobox> AllTheComponent::FindComponentCombo(string CmpName)
+shared_ptr<Combobox> AllTheComponent::FindComponentCombo(string CmpName, bool NeedLog)
 {
-	auto Cmp = combo.find(CmpName);
-	if (Cmp != combo.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : combo)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Combobox>();
-	}
+	return make_shared<Combobox>();
 }
 
-shared_ptr<TreeNode> AllTheComponent::FindComponentTreeNode(string CmpName)
+shared_ptr<TreeNode> AllTheComponent::FindComponentTreeNode(string CmpName, bool NeedLog)
 {
-	auto Cmp = TNode.find(CmpName);
-	if (Cmp != TNode.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : TNode)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<TreeNode>();
-	}
+	return make_shared<TreeNode>();
 }
 
-shared_ptr<Tab> AllTheComponent::FindComponentTab(string CmpName)
+shared_ptr<Tab> AllTheComponent::FindComponentTab(string CmpName, bool NeedLog)
 {
-	auto Cmp = Tabs.find(CmpName);
-	if (Cmp != Tabs.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : Tabs)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Tab>();
-	}
+	return make_shared<Tab>();
 }
 
-shared_ptr<Child> AllTheComponent::FindComponentChild(string CmpName)
+shared_ptr<Child> AllTheComponent::FindComponentChild(string CmpName, bool NeedLog)
 {
-	auto Cmp = childs.find(CmpName);
-	if (Cmp != childs.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : childs)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<Child>();
-	}
+	return make_shared<Child>();
 }
 
-
-shared_ptr<CollapsingHeaders> AllTheComponent::FindComponentCHeader(string CmpName)
+shared_ptr<CollapsingHeaders> AllTheComponent::FindComponentCHeader(string CmpName, bool NeedLog)
 {
-	auto Cmp = CollpsHeader.find(CmpName);
-	if (Cmp != CollpsHeader.end() && Cmp->second)
-		return Cmp->second;
-	else
+	for (auto it : CollpsHeader)
 	{
+		if (it.first == CmpName)
+			return it.second;
+	}
+	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
-		return make_shared<CollapsingHeaders>();
+	return make_shared<CollapsingHeaders>();
+}
+
+shared_ptr<Column> AllTheComponent::FindComponentColumn(string CmpName, bool NeedLog)
+{
+	for (auto it : column)
+	{
+		if (it.first == CmpName)
+			return it.second;
 	}
+	if (NeedLog)
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+	return make_shared<Column>();
 }
 
 void dialogs::Render()
@@ -2553,7 +2525,7 @@ void TreeNode::Render()
 
 	if (!HasFlags)
 		Flags = ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_None;
-
+	ToDo("Add Some More Flags Upper")
 	if (ImGui::TreeNodeEx(GetText().c_str(), Flags))
 	{
 		int Count = getRenderOrder(), now = 0;
@@ -2597,7 +2569,11 @@ void ITextMulti::Render()
 		Flags |= ImGuiInputTextFlags_CtrlEnterForNewLine;
 
 	if (clText.empty())
-		ImGui::InputTextMultiline(GetText().c_str(), &GetText(), ImVec2(0, 0), Flags);
+	{
+		string str = "";
+		ImGui::InputTextMultiline(GetText().c_str(), &str, ImVec2(0, 0), Flags);
+		ChangeText(str);
+	}
 	else
 	{
 		for (size_t i = 0; i < clText.size(); i++)
@@ -2665,6 +2641,25 @@ void UnformatedText::Render()
 			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
 			ImGui::TextUnformatted(Buffer.at(i).c_str());
 			ImGui::PopStyleColor();
+		}
+	}
+}
+
+void CollapsingHeaders::Render()
+{
+	Flags = 0;
+	Flags = ImGuiTreeNodeFlags_CollapsingHeader;
+
+	if (SelDef)
+		Flags |= ImGuiTreeNodeFlags_Selected;
+
+	if (ImGui::CollapsingHeader(GetText().c_str(), &IsCollapse, Flags))
+	{
+		int Count = getRenderOrder(), now = 0;
+
+		while (Count >= now)
+		{
+			getComponents().front()->RenderComponents(now);
 		}
 	}
 }
@@ -2745,8 +2740,15 @@ void AllTheComponent::RenderComponents(int &now)
 	for (auto It : column)
 	{
 		if (It.second->getCountOrderRenderInDial() == now)
-			It.second->getComponents().front()->RenderColumn(It.second->getRenderOrder(),
-				It.second->getCountColumn(), It.second->GetText(), It.second->GetBorder());
+		{
+			for (auto Cmp : It.second->getComponents())
+			{
+				ImGui::NextColumn();
+				Cmp->RenderColumn(It.second->getRenderOrder(),
+					It.second->getCountColumn(), It.second->GetText(), It.second->GetBorder());
+				ImGui::NextColumn();
+			}
+		}
 	}
 
 	now++;
@@ -2756,11 +2758,11 @@ void AllTheComponent::RenderColumn(int OrderCount, int CountColumn, string IDCol
 {
 	ImGui::Columns(CountColumn, IDColumn.c_str(), border);
 	int now = 0;
+	ImGui::NextColumn();
 	while (OrderCount >= now)
 	{
-		ImGui::NextColumn();
+		//ImGui::NextColumn();
 		RenderComponents(now);
-		ImGui::NextColumn();
 	}
 
 	ImGui::Columns();
@@ -2769,4 +2771,366 @@ void AllTheComponent::RenderColumn(int OrderCount, int CountColumn, string IDCol
 void BaseComponent::ChangeID(string ID)
 {
 	const_cast<string &>(this->ID) = ID;
+}
+
+void BaseComponent::MergeComponents(shared_ptr<AllTheComponent> Component)
+{
+	for (size_t i = 0; i < Components.size(); i++)
+	{
+		for (auto it : Component->Btn)
+		{
+			Components.at(i)->Btn.push_back(it);
+		}
+		for (auto it : Component->childs)
+		{
+			Components.at(i)->childs.push_back(it);
+		}
+		for (auto it : Component->CollpsHeader)
+		{
+			Components.at(i)->CollpsHeader.push_back(it);
+		}
+		for (auto it : Component->column)
+		{
+			Components.at(i)->column.push_back(it);
+		}
+		for (auto it : Component->combo)
+		{
+			Components.at(i)->combo.push_back(it);
+		}
+		for (auto it : Component->Itext)
+		{
+			Components.at(i)->Itext.push_back(it);
+		}
+		for (auto it : Component->Itextmul)
+		{
+			Components.at(i)->Itextmul.push_back(it);
+		}
+		for (auto it : Component->Label)
+		{
+			Components.at(i)->Label.push_back(it);
+		}
+		for (auto it : Component->selectable)
+		{
+			Components.at(i)->selectable.push_back(it);
+		}
+		for (auto it : Component->separators)
+		{
+			Components.at(i)->separators.push_back(it);
+		}
+		for (auto it : Component->Tabs)
+		{
+			Components.at(i)->Tabs.push_back(it);
+		}
+		for (auto it : Component->TList)
+		{
+			Components.at(i)->TList.push_back(it);
+		}
+		for (auto it : Component->TNode)
+		{
+			Components.at(i)->TNode.push_back(it);
+		}
+		for (auto it : Component->UText)
+		{
+			Components.at(i)->UText.push_back(it);
+		}
+	}
+}
+
+shared_ptr<CollapsingHeaders> AllTheComponent::AddCollps(string ID)
+{
+	if (CollpsHeader.empty())
+	{
+		CollpsHeader.push_back(make_pair(ID, make_shared<CollapsingHeaders>(ID)));
+		column.back().second->setComponents(make_shared<AllTheComponent>());
+		return CollpsHeader.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentCHeader(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		CollpsHeader.push_back(make_pair(ID + to_string(CollpsHeader.size() + 1),
+			make_shared<CollapsingHeaders>(ID + to_string(CollpsHeader.size() + 1))));
+		return CollpsHeader.back().second;
+	}
+
+	CollpsHeader.push_back(make_pair(ID, make_shared<CollapsingHeaders>(ID)));
+	CollpsHeader.back().second->setComponents(make_shared<AllTheComponent>());
+	return CollpsHeader.back().second;
+}
+
+shared_ptr<Child> AllTheComponent::AddChild(string ID)
+{
+	if (childs.empty())
+	{
+		childs.push_back(make_pair(ID, make_shared<Child>(ID)));
+		childs.back().second->setComponents(make_shared<AllTheComponent>());
+		return childs.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentChild(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		childs.push_back(make_pair(ID + to_string(childs.size() + 1),
+			make_shared<Child>(ID + to_string(childs.size() + 1))));
+		return childs.back().second;
+	}
+
+	childs.push_back(make_pair(ID, make_shared<Child>(ID)));
+	childs.back().second->setComponents(make_shared<AllTheComponent>());
+	return childs.back().second;
+}
+
+shared_ptr<TreeNode> AllTheComponent::AddTNode(string ID)
+{
+	if (TNode.empty())
+	{
+		TNode.push_back(make_pair(ID, make_shared<TreeNode>(ID)));
+		TNode.back().second->setComponents(make_shared<AllTheComponent>());
+		return TNode.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentTreeNode(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		TNode.push_back(make_pair(ID + to_string(TNode.size() + 1),
+			make_shared<TreeNode>(ID + to_string(TNode.size() + 1))));
+		return TNode.back().second;
+	}
+
+	TNode.push_back(make_pair(ID, make_shared<TreeNode>(ID)));
+	TNode.back().second->setComponents(make_shared<AllTheComponent>());
+	return TNode.back().second;
+}
+
+shared_ptr<Tab> AllTheComponent::AddTab(string ID)
+{
+	if (Tabs.empty())
+	{
+		Tabs.push_back(make_pair(ID, make_shared<Tab>(ID)));
+		Tabs.back().second->setComponents(make_shared<AllTheComponent>());
+		return Tabs.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentTab(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		Tabs.push_back(make_pair(ID + to_string(Tabs.size() + 1),
+			make_shared<Tab>(ID + to_string(Tabs.size() + 1))));
+		return Tabs.back().second;
+	}
+
+	Tabs.push_back(make_pair(ID, make_shared<Tab>(ID)));
+	Tabs.back().second->setComponents(make_shared<AllTheComponent>());
+	return Tabs.back().second;
+}
+
+shared_ptr<Column> AllTheComponent::AddColumn(string ID)
+{
+	if (column.empty())
+	{
+		column.push_back(make_pair(ID, make_shared<Column>()));
+		column.back().second->setComponents(make_shared<AllTheComponent>());
+		return column.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentBtn(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		column.push_back(make_pair(ID + to_string(column.size() + 1),
+			make_shared<Column>()));
+		return column.back().second;
+	}
+
+	column.push_back(make_pair(ID, make_shared<Column>()));
+	column.back().second->setComponents(make_shared<AllTheComponent>());
+	return column.back().second;
+}
+
+shared_ptr<Selectable> AllTheComponent::AddSelectable(string ID)
+{
+	if (selectable.empty())
+	{
+		selectable.push_back(make_pair(ID, make_shared<Selectable>(ID)));
+		selectable.back().second->setComponents(make_shared<AllTheComponent>());
+		return selectable.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentBtn(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		selectable.push_back(make_pair(ID + to_string(selectable.size() + 1),
+			make_shared<Selectable>(ID + to_string(selectable.size() + 1))));
+		return selectable.back().second;
+	}
+
+	selectable.push_back(make_pair(ID, make_shared<Selectable>(ID)));
+	selectable.back().second->setComponents(make_shared<AllTheComponent>());
+	return selectable.back().second;
+}
+
+shared_ptr<Buttons> AllTheComponent::AddBtn(string ID)
+{
+	if (Btn.empty())
+	{
+		Btn.push_back(make_pair(ID, make_shared<Buttons>(ID)));
+		Btn.back().second->setComponents(make_shared<AllTheComponent>());
+		return Btn.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentBtn(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		Btn.push_back(make_pair(ID + to_string(Btn.size() + 1),
+			make_shared<Buttons>(ID + to_string(Btn.size() + 1))));
+		return Btn.back().second;
+	}
+
+	Btn.push_back(make_pair(ID, make_shared<Buttons>(ID)));
+	Btn.back().second->setComponents(make_shared<AllTheComponent>());
+	return Btn.back().second;
+}
+
+shared_ptr<TextList> AllTheComponent::AddTList(string ID)
+{
+	if (TList.empty())
+	{
+		TList.push_back(make_pair(ID, make_shared<TextList>(ID)));
+		TList.back().second->setComponents(make_shared<AllTheComponent>());
+		return TList.back().second;
+	}
+	
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentTList(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		TList.push_back(make_pair(ID + to_string(TList.size() + 1),
+			make_shared<TextList>(ID + to_string(TList.size() + 1))));
+		return TList.back().second;
+	}
+
+	TList.push_back(make_pair(ID, make_shared<TextList>(ID)));
+	TList.back().second->setComponents(make_shared<AllTheComponent>());
+	return TList.back().second;
+}
+
+shared_ptr<Combobox> AllTheComponent::AddCombo(string ID)
+{
+	if (combo.empty())
+	{
+		combo.push_back(make_pair(ID, make_shared<Combobox>(ID)));
+		combo.back().second->setComponents(make_shared<AllTheComponent>());
+		return combo.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentCombo(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		combo.push_back(make_pair(ID + to_string(combo.size() + 1),
+			make_shared<Combobox>(ID + to_string(combo.size() + 1))));
+		return combo.back().second;
+	}
+
+	combo.push_back(make_pair(ID, make_shared<Combobox>(ID)));
+	combo.back().second->setComponents(make_shared<AllTheComponent>());
+	return combo.back().second;
+}
+
+shared_ptr<Labels> AllTheComponent::AddLabel(string ID)
+{
+	if (Label.empty())
+	{
+		Label.push_back(make_pair(ID, make_shared<Labels>(ID)));
+		Label.back().second->setComponents(make_shared<AllTheComponent>());
+		return Label.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentLabel(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		Label.push_back(make_pair(ID + to_string(Label.size() + 1),
+			make_shared<Labels>(ID + to_string(Label.size() + 1))));
+		return Label.back().second;
+	}
+
+	Label.push_back(make_pair(ID, make_shared<Labels>(ID)));
+	Label.back().second->setComponents(make_shared<AllTheComponent>());
+	return Label.back().second;
+}
+
+shared_ptr<IText> AllTheComponent::AddIText(string ID)
+{
+	if (Itext.empty())
+	{
+		Itext.push_back(make_pair(ID, make_shared<IText>(ID)));
+		Itext.back().second->setComponents(make_shared<AllTheComponent>());
+		return Itext.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentIText(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		Itext.push_back(make_pair(ID + to_string(Itext.size() + 1),
+			make_shared<IText>(ID + to_string(Itext.size() + 1))));
+		return Itext.back().second;
+	}
+
+	Itext.push_back(make_pair(ID, make_shared<IText>(ID)));
+	Itext.back().second->setComponents(make_shared<AllTheComponent>());
+	return Itext.back().second;
+}
+
+shared_ptr<ITextMulti> AllTheComponent::AddITextMul(string ID)
+{
+	if (Itextmul.empty())
+	{
+		Itextmul.push_back(make_pair(ID, make_shared<ITextMulti>(ID)));
+		Itextmul.back().second->setComponents(make_shared<AllTheComponent>());
+		return Itextmul.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentITextMul(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		Itextmul.push_back(make_pair(ID + to_string(Itextmul.size() + 1),
+			make_shared<ITextMulti>(ID + to_string(Itextmul.size() + 1))));
+		return Itextmul.back().second;
+	}
+
+	Itextmul.push_back(make_pair(ID, make_shared<ITextMulti>(ID)));
+	Itextmul.back().second->setComponents(make_shared<AllTheComponent>());
+	return Itextmul.back().second;
+}
+
+shared_ptr<UnformatedText> AllTheComponent::AddUText(string ID)
+{
+	if (UText.empty())
+	{
+		UText.push_back(make_pair(ID, make_shared<UnformatedText>(ID)));
+		UText.back().second->setComponents(make_shared<AllTheComponent>());
+		return UText.back().second;
+	}
+
+	// Find the same ID and Change it to increase by #1
+	auto TheSameID = FindComponentUText(ID, false);
+	if (TheSameID && TheSameID->GetID() == ID)
+	{
+		UText.push_back(make_pair(ID + to_string(UText.size() + 1),
+			make_shared<UnformatedText>(ID + to_string(UText.size() + 1))));
+		return UText.back().second;
+	}
+
+	UText.push_back(make_pair(ID, make_shared<UnformatedText>(ID)));
+	UText.back().second->setComponents(make_shared<AllTheComponent>());
+	return UText.back().second;
 }

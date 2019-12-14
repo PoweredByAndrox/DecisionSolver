@@ -36,7 +36,7 @@ public:
 		m_vMinBoundary = pvMinBoundary;
 		m_vMaxBoundary = pvMaxBoundary;
 	}
-	void SetScalers(float fRotationScaler = 0.01f, float fMoveScaler = 5.0f)
+	void SetScalers(float fRotationScaler = 0.001f, float fMoveScaler = 6.0f)
 	{
 		m_fRotationScaler = fRotationScaler;
 		m_fMoveScaler = fMoveScaler;
@@ -51,7 +51,8 @@ public:
 	Vector3 GetLookAtPt() const;
 	float GetNearClip() const;
 	float GetFarClip() const;
-	float getMoveScale() const;
+	float getMoveScale();
+	float getRotateScale();
 protected:
 	void UpdateMouseDelta();
 	void UpdateVelocity(float fElapsedTime);

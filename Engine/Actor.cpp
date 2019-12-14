@@ -28,27 +28,27 @@ void Actor::Render(float Time)
 {
 	Update(Time);
 
-	auto P = Vector2::SmoothStep(Vector2(1.f, 0.f), Number, 10.f).x;
+	auto P = Vector2::SmoothStep(Vector2(Application->getframeTime(), 0.f), Number, 15.f).x;
 	Application->getCamera()->SetProjParams(P,
 		((float)Application->getWorkAreaSize(Application->GetHWND()).x /
 		(float)Application->getWorkAreaSize(Application->GetHWND()).y), 0.1f, 1000.f);
 
 	auto PosCCT = Application->getCamera()->GetCCT();
-	if (PosCCT.operator bool() && DrawCamSphere)
+	if (PosCCT.operator bool() && DrawCamSphere && Application->getDebugDraw())
 	{
-		BoundingSphere sphere(ToExtended(PosCCT->getController()->getPosition()), PosCCT->getController()->getRadius());
-		Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::DarkSlateBlue);
+		//BoundingSphere sphere(ToExtended(PosCCT->getController()->getPosition()), PosCCT->getController()->getRadius());
+		//Application->getDebugDraw()->Draw(sphere, (Vector4)Colors::DarkSlateBlue);
 	}
 
-	Number.Clamp(Vector2(0.1f, 0.f), Vector2(1.f, 0.f));
-	if (GetAsyncKeyState(0xBB))
+	Number.Clamp(Vector2(0.2f, 0.f), Vector2(1.f, 0.f));
+	if (Application->getKeyboard()->GetState().OemPlus)
 	{
-		Number.x += 0.005f;
+		Number.x -= 0.01f;
 		return;
 	}
-	else if (GetAsyncKeyState(0xBD))
+	else if (Application->getKeyboard()->GetState().OemMinus)
 	{
-		Number.x -= 0.005f;
+		Number.x += 0.01f;
 		return;
 	}
 }
@@ -59,7 +59,8 @@ HRESULT Actor::Init()
 	Application->getCamera()->SetResetCursorAfterMove(true);
 	Application->getCamera()->SetFreeMoveCam(true);
 	Application->getCamera()->SetDrag(true);
-	Application->getCamera()->Teleport(Vector3(5.5, 1.5, 0), Vector3(6, 0, 0));
+	Application->getCamera()->SetScalers();
+	//Application->getCamera()->Teleport(Vector3(5.5, 1.5, 0), Vector3(6, 0, 0));
 
 	InitClass = true;
 	return S_OK;

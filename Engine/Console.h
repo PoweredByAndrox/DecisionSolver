@@ -33,7 +33,7 @@ public:
 	shared_ptr<dialogs> getConsoleDial() { return Dialog; }
 	shared_ptr<Commands> getCmd() { return ProcessCommand; }
 
-	static void AddCmd(LPCSTR Text);
+	static void PushCMD(LPCSTR CMD);
 	static void LogError(string Msg);
 	static void LogInfo(string Msg);
 	static void LogNormal(string Msg);

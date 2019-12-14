@@ -19,8 +19,8 @@ void CLua::Init()
 	LuaState.open_libraries(lib::base, lib::package);
 
 	// Log Funtions (Console) !!!
-	LuaState["Engine"].get_or_create<table>().new_usertype<Console>("Console", "AddCmd",
-		&Console::AddCmd, "LogError", &Console::LogError, "LogInfo", &Console::LogInfo,
+	LuaState["Engine"].get_or_create<table>().new_usertype<Console>("Console", "PushCMD",
+		&Console::PushCMD, "LogError", &Console::LogError, "LogInfo", &Console::LogInfo,
 		"LogNormal", &Console::LogNormal);
 
 	// Audio System !!!
@@ -38,28 +38,31 @@ void CLua::Init()
 	// CutScene !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<CutScene>("CutScene", constructors<CutScene()>(),
 		//CutScene(Vector3, Vector3, float)>(),
-		"AddPoint", &CutScene::AddNewPoint, "Start", &CutScene::Start, "Update", &CutScene::Update);
+		"AddPoint", &CutScene::AddNewPoint, "Start", &CutScene::Start, "Update", &CutScene::Update,
+		"DeletePoints", &CutScene::Reset);
 
 	LuaState.new_usertype<Vector3>("vec3", constructors<Vector3(), Vector3(float, float, float),
 		void(float, float, float)>());
 
-	//// Keyboard !!!
-	//LuaState["Engine"].get_or_create<table>().new_usertype<Keyboard>("Keyboard", "IsKeyDown", &Engine::IsKeyboardDown,
-	//	"IsKeyUp", &Engine::IsKeyboardUp);
+	// Keyboard !!!
+	LuaState["Engine"].get_or_create<table>().new_usertype<Keyboard>("Keyboard", "IsKeyDown", &Engine::IsKeyboardDown,
+		"IsKeyUp", &Engine::IsKeyboardUp);
 
-	//// Mouse !!!
-	//Table_Engine.new_usertype<Mouse::>("Mouse", "IsKeyDown", &Engine::IsKeyDown,
-	//	"IsKeyUp", &Engine::IsKeyUp, "SetVisible", &Engine::SetVisibleMouse);
+	// Mouse !!!
+	LuaState["Engine"].get_or_create<table>().new_usertype<Mouse>("Mouse", "IsLeft", &Engine::IsMouseLeft,
+		"IsRight", &Engine::IsMouseRight, "SetVisible", &ShowCursor);
+
 	const string package_path = LuaState["package"]["path"];
 	LuaState["package"]["path"] = package_path + (!package_path.empty() ? ";" : "")
 		+ Application->getFS()->getPathFromType(_TypeOfFile::SCRIPTS) + "?.lua";
 
-	Reinit();
+	callFunction("main.lua", "initEverything", "");
 }
 
 void CLua::Reinit()
 {
 	callFunction("main.lua", "initEverything", "");
+	//Application->setCScene(make_shared<CutScene>(LuaState["CutScene_instance"]));
 }
 
 void CLua::Update()
@@ -91,7 +94,7 @@ void CLua::callFunction(string FileName, string Function, string params)
 			Console::LogError(string("Lua error: File: \"") + FileName + string("\" Doesn't Exist!"));
 			return;
 		}
-		LuaState.script_file(File);
+		LuaState.safe_script_file(File);
 		LuaState.get<sol::function>(Function.c_str()).template call<void>(params);
 	}
 	catch (error e)

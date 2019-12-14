@@ -7,14 +7,16 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 #include "Physics.h"
 #include "Camera.h"
+#include "UI.h"
 
-static vector<shared_ptr<GameObjects::Object>> Obj_other, Obj_npc;
+vector<shared_ptr<GameObjects::Object>> Levels::Obj_other, Levels::Obj_npc;
+vector<string> Levels::IDModels;
 
-HRESULT Levels::LoadXML(LPCSTR File)
+HRESULT Levels::LoadXML(string File)
 {
 	doc = make_shared<tinyxml2::XMLDocument>();
 
-	doc->LoadFile(File);
+	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() > 0)
 	{
 		Application->StackTrace(doc->ErrorStr());
@@ -22,7 +24,7 @@ HRESULT Levels::LoadXML(LPCSTR File)
 			"Levels: Something is wrong with Load XML File!");
 		return E_FAIL;
 	}
-	else if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true, string("<!--"), string("-->")).c_str()) > 0)
+	else if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true).c_str()) > 0)
 	{
 		Engine::LogError((boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
 			(boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
@@ -108,7 +110,7 @@ vector<shared_ptr<GameObjects::Object>> Levels::XMLPreparing(vector<XMLElement *
 		}
 
 		g_Obj.push_back(make_shared<GameObjects::Object>(ID_TEXT, ModelName, Logic, type, Pos, Scale, Rotate));
-
+		IDModels.push_back(ID_TEXT);
 		if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
 			break;
 
@@ -140,6 +142,13 @@ void Levels::Spawn(Vector3 pos, GameObjects::TYPE type)
 	default:
 		break;
 	}
+}
+
+void Levels::Reload_Level(string File)
+{
+	Obj_other.clear();
+	Obj_npc.clear();
+	LoadXML(File);
 }
 
 void Levels::ProcessXML()
@@ -178,18 +187,17 @@ void Levels::ProcessXML()
 #include "DebugDraw.h"
 void Levels::Update(Matrix View, Matrix Proj, float Time)
 {
-	// Objects
 	for (auto it : Obj_other)
 	{
+		if (!it->RenderIt)
+			continue;
+
 		auto Model = it->GetModel();
 		if (it->GetScale())
 			Model->setScale(it->GetScaleCord());
 		if (it->GetRotation())
 			Model->setRotation(it->GetRotCord());
 
-		//OutputDebugStringA((boost::format("\nObj Rot: X:%f, Y:%f, Z:%f") %
-		//it->GetRotCord().x % it->GetRotCord().y %
-		//	it->GetRotCord().z).str().c_str());
 		UpdateLogic(Time, it);
 		Model->setPosition(it->GetPositionCord());
 		Model->Render(View, Proj);
@@ -198,6 +206,9 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 	// NPC
 	for (auto it : Obj_npc)
 	{
+		if (!it->RenderIt)
+			continue;
+
 		auto Model = it->GetModel();
 		if (it->GetScale())
 			Model->setScale(it->GetScaleCord());
@@ -208,6 +219,9 @@ void Levels::Update(Matrix View, Matrix Proj, float Time)
 		Model->setPosition(it->GetPositionCord());
 		Model->Render(View, Proj);
 	}
+
+	//if (LOGO.operator bool() && !LOGO->GetTitle().empty())
+	//	LOGO->Render();
 }
 
 void Levels::Destroy()
@@ -226,7 +240,7 @@ void Levels::Destroy()
 	}
 }
 
-float Test1 = 0.0f, Test2 = 0.5f;
+float Test1 = 1.0f, Test2 = 3.0f;
 void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
 {
 	if (GetAsyncKeyState(VK_NUMPAD1))
@@ -240,12 +254,13 @@ void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
 		Test1 = 0.0f;
 		//if (GetAsyncKeyState(VK_NUMPAD5))
 		//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
-
-		Vector3 newPos = ConstrainToBoundary(Obj->GetPositionCord(),
-			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
-			newRot = Vector3::Zero;
+		
+		//Vector3 newPos = ConstrainToBoundary(Obj->GetPositionCord(),
+		//	Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
+		//	newRot = Vector3::Zero;
+		Vector3 newPos = Obj->GetPositionCord(), newRot = Obj->GetRotCord();
 		Obj->GetLogic()->Update(newPos, newRot);
-		//Obj->SetRotationCoords(newRot);
+		Obj->SetRotationCoords(newRot);
 		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
 		Obj->SetPositionCoords(newPos);
 	}
@@ -259,6 +274,5 @@ HRESULT Levels::Init()
 		EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
 	}
 
-	InitClass = true;
 	return S_OK;
 }

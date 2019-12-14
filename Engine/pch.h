@@ -24,15 +24,12 @@
 #include <sstream>
 
 #include <windows.h>
+#include <mmiscapi.h>
 
 // *********
 	/// DXTK
 #include "inc/GeometricPrimitive.h"
 #include <DirectXMath.h>
-
-	/// For ThrowIfFailed
-#include "Src/PlatformHelpers.h"
-// *********
 
 using namespace DirectX;
 

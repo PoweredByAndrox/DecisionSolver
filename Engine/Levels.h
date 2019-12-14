@@ -5,25 +5,26 @@
 
 #include "GameObjects.h"
 
+class dialogs;
 class Levels: public GameObjects
 {
 public:
 	HRESULT Init();
 
-	HRESULT LoadXML(LPCSTR File);
+	HRESULT LoadXML(string File);
 	void ProcessXML();
+	void Reload_Level(string File);
 
 	void Update(Matrix View, Matrix Proj, float Time);
 
 	void Destroy();
 
-	bool IsInit() { return InitClass; }
+	static vector<shared_ptr<GameObjects::Object>> Obj_other, Obj_npc;
+	static vector<string> IDModels;
 protected:
 	// **********
-	bool InitClass = false;
-
-	// **********
 	shared_ptr<tinyxml2::XMLDocument> doc;
+	shared_ptr<dialogs> LOGO;
 
 	// **********
 	vector<XMLNode *> Nods;

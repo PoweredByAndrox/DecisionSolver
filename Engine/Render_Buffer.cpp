@@ -24,7 +24,7 @@ ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithC
 		if (FAILED(Application->getDevice()->CreateInputLayout(L_Element_UI, numElements,
 			Buffer_blob->GetBufferPointer(), Buffer_blob->GetBufferSize(), &Layout)))
 		{
-			DebugTrace("Render_Buffer::CreateLayout()->CreateInputLayout() is failed");
+//			DebugTrace("Render_Buffer::CreateLayout()->CreateInputLayout() is failed");
 			throw exception("Create failed!!!");
 			return nullptr;
 		}
@@ -46,7 +46,7 @@ ID3D11InputLayout *Render_Buffer::CreateLayout(ID3DBlob *Buffer_blob, bool WithC
 		if (FAILED(Application->getDevice()->CreateInputLayout(L_Element_Model, numElements,
 			Buffer_blob->GetBufferPointer(), Buffer_blob->GetBufferSize(), &Layout)))
 		{
-			DebugTrace("Render_Buffer::CreateLayout()->CreateInputLayout() is failed");
+//			DebugTrace("Render_Buffer::CreateLayout()->CreateInputLayout() is failed");
 			throw exception("Create failed!!!");
 			return nullptr;
 		}
@@ -67,7 +67,7 @@ ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_US
 #if defined (DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
-		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
+//		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
 #endif
 	}
 
@@ -90,7 +90,7 @@ ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_US
 
 	if (FAILED(Application->getDevice()->CreateBuffer(&vertexBufferDesc, NeedVertice ? &vertexData : nullptr, &VB)))
 	{
-		DebugTrace("Render_Buffer::CreateVB()->CreateBuffer() is failed");
+//		DebugTrace("Render_Buffer::CreateVB()->CreateBuffer() is failed");
 		throw exception("Create failed!!!");
 		return nullptr;
 	}
@@ -108,7 +108,7 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_US
 #if defined (DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
-		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
+//		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
 #endif
 	}
 
@@ -130,7 +130,7 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_US
 	ID3D11Buffer *IB = nullptr;
 	if (FAILED(Application->getDevice()->CreateBuffer(&indexBufferDesc, NeedIndices ? &indexData : nullptr, &IB)))
 	{
-		DebugTrace("Render_Buffer::CreateIB()->CreateBuffer() is failed");
+//		DebugTrace("Render_Buffer::CreateIB()->CreateBuffer() is failed");
 		throw exception("Create failed!!!");
 		return nullptr;
 	}
@@ -152,7 +152,7 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 	ID3D11RasterizerState *RsWF = nullptr, *RsNoWF = nullptr;
 	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &RsWF)))
 	{
-		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
+//		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
 		throw exception("Create failed!!!");
 	}
 	WF_buff.push_back(RsWF);
@@ -166,7 +166,7 @@ vector<ID3D11RasterizerState *> Render_Buffer::CreateWF()
 
 	if (FAILED(Application->getDevice()->CreateRasterizerState(&RasterDesc, &RsNoWF)))
 	{
-		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
+//		DebugTrace("Render_Buffer::CreateWF()->CreateRasterizerState() is failed");
 		throw exception("Create failed!!!");
 	}
 	WF_buff.push_back(RsNoWF);
@@ -188,7 +188,7 @@ ID3D11Buffer *Render_Buffer::CreateConstBuff(D3D11_USAGE Usage, UINT CPUAccessFl
 	ID3D11Buffer *ConstBuff = nullptr;
 	if (FAILED(Application->getDevice()->CreateBuffer(&bd, NULL, &ConstBuff)))
 	{
-		DebugTrace("Render_Buffer::CreateConstBuff()->CreateBuffer() is failed");
+//		DebugTrace("Render_Buffer::CreateConstBuff()->CreateBuffer() is failed");
 		throw exception("Create failed!!!");
 		return nullptr;
 	}

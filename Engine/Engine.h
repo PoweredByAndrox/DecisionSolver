@@ -34,7 +34,8 @@ private:
 
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;
 	HRESULT hr = S_OK;
-	wstring NameWnd = L"", ClassWND = L"";
+	string NameWnd = "";
+	wstring ClassWND = L"";
 
 	float fps = 0.f, frameTime = 0.f;
 
@@ -100,7 +101,7 @@ private:
 #endif
 
 public:
-	HRESULT Init(wstring NameWnd, HINSTANCE hInstance);
+	HRESULT Init(string NameWnd, HINSTANCE hInstance);
 
 	void Render();
 	void Destroy();
@@ -111,12 +112,7 @@ public:
 
 	static HWND GetHWND() { return hwnd; }
 
-	wstring getNameWndW() { return NameWnd; }
-	string getNameWndA()
-	{
-		USES_CONVERSION;
-		return W2A(NameWnd.c_str());
-	}
+	string getNameWndA() { return NameWnd.c_str(); }
 
 	shared_ptr<File_system> getFS() { return FS; }
 	shared_ptr<Models> getModel() { return model; }
@@ -189,8 +185,7 @@ public:
 	}
 	void setCScene(shared_ptr<CutScene> CScene)
 	{
-		if (!this->CScene.operator bool())
-			this->CScene = CScene;
+		this->CScene = CScene;
 	}
 	void setPick(shared_ptr<Picking> Pick)
 	{
@@ -261,10 +256,10 @@ public:
 
 	static void LogError(string DebugText, string ExceptionText, string LogText);
 
-	//static bool IsKeyboardDown(Keyboard::Keys Key);
-	//static bool IsKeyboardUp(Keyboard::Keys Key);
-	//static bool IsMouseDown(Keyboard::Keys Key);
-	//static bool IsMouseUp(Keyboard::Keys Key);
+	static bool IsKeyboardDown(int Key);
+	static bool IsKeyboardUp(int Key);
+	static bool IsMouseLeft();
+	static bool IsMouseRight();
 private:
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;

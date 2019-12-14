@@ -85,11 +85,14 @@ public:
 	void setScale(Vector3 Scale);
 	void setPosition(Vector3 Pos);
 
+	Matrix getWorld() { return World; }
+
 	vector<shared_ptr<Mesh>> getMeshes() { return meshes; }
 
 	~Models() {}
 protected:
-	Matrix position = Matrix(), scale = Matrix(), rotate = Matrix();
+	Matrix World = Matrix(), position = Matrix(),
+		scale = Matrix(), rotate = Matrix();
 	ID3D11Buffer *pConstantBuffer = nullptr;
 
 	ID3D11InputLayout *pLayout = nullptr;
@@ -101,7 +104,7 @@ protected:
 #pragma pack(push, 1)
 	struct ConstantBuffer
 	{
-		Matrix mMVP = Matrix::Identity;
+		Matrix World = Matrix::Identity, View = Matrix::Identity, Proj = Matrix::Identity;
 	} cb;
 #pragma pack()
 

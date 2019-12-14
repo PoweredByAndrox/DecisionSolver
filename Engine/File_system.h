@@ -69,7 +69,7 @@ public:
 	vector<string> getFilesInFolder(string Folder);
 
 	// Work With Files
-	string getDataFromFile(string File, bool LineByline, string start, string end);
+	string getDataFromFile(string File, bool LineByline, string start = "<!--", string end = "-->");
 
 	vector<string> getDataFromFileVector(string File, bool LineByline);
 	bool ReadFileMemory(LPCSTR filename, size_t *FileSize, UCHAR **FilePtr);

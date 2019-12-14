@@ -42,39 +42,55 @@ class Combobox;
 
 struct AllTheComponent
 {
-	//  ID	    Pointer to Component
-	map<string, shared_ptr<Buttons>> Btn;
-	map<string, shared_ptr<Labels>> Label;
-	map<string, shared_ptr<ITextMulti>> Itextmul;
-	map<string, shared_ptr<IText>> Itext;
-	map<string, shared_ptr<_Separator>> separators;
-	map<string, shared_ptr<Column>> column;
-	map<string, shared_ptr<CollapsingHeaders>> CollpsHeader;
-	map<string, shared_ptr<Child>> childs;
-	map<string, shared_ptr<UnformatedText>> UText;
-	map<string, shared_ptr<TextList>> TList;
-	map<string, shared_ptr<TreeNode>> TNode;
-	map<string, shared_ptr<Tab>> Tabs;
-	map<string, shared_ptr<Selectable>> selectable;
-	map<string, shared_ptr<Combobox>> combo;
+	//			ID		Pointer to Component
+	vector<pair<string, shared_ptr<Buttons>>> Btn;
+	vector<pair<string, shared_ptr<Labels>>> Label;
+	vector<pair<string, shared_ptr<ITextMulti>>> Itextmul;
+	vector<pair<string, shared_ptr<IText>>> Itext;
+	vector<pair<string, shared_ptr<_Separator>>> separators;
+	vector<pair<string, shared_ptr<Column>>> column;
+	vector<pair<string, shared_ptr<CollapsingHeaders>>> CollpsHeader;
+	vector<pair<string, shared_ptr<Child>>> childs;
+	vector<pair<string, shared_ptr<UnformatedText>>> UText;
+	vector<pair<string, shared_ptr<TextList>>> TList;
+	vector<pair<string, shared_ptr<TreeNode>>> TNode;
+	vector<pair<string, shared_ptr<Tab>>> Tabs;
+	vector<pair<string, shared_ptr<Selectable>>> selectable;
+	vector<pair<string, shared_ptr<Combobox>>> combo;
 
-	shared_ptr<Buttons> FindComponentBtn(string CmpName);
-	shared_ptr<Labels> FindComponentLabel(string CmpName);
-	shared_ptr<ITextMulti> FindComponentITextMul(string CmpName);
-	shared_ptr<IText> FindComponentIText(string CmpName);
-	shared_ptr<UnformatedText> FindComponentUText(string CmpName);
-	shared_ptr<TextList> FindComponentTList(string CmpName);
-	shared_ptr<Selectable> FindComponentSelectable(string CmpName);
-	shared_ptr<Combobox> FindComponentCombo(string CmpName);
+	shared_ptr<Buttons> FindComponentBtn(string CmpName, bool NeedLog = true);
+	shared_ptr<Labels> FindComponentLabel(string CmpName, bool NeedLog = true);
+	shared_ptr<ITextMulti> FindComponentITextMul(string CmpName, bool NeedLog = true);
+	shared_ptr<IText> FindComponentIText(string CmpName, bool NeedLog = true);
+	shared_ptr<UnformatedText> FindComponentUText(string CmpName, bool NeedLog = true);
+	shared_ptr<TextList> FindComponentTList(string CmpName, bool NeedLog = true);
+	shared_ptr<Selectable> FindComponentSelectable(string CmpName, bool NeedLog = true);
+	shared_ptr<Combobox> FindComponentCombo(string CmpName, bool NeedLog = true);
+	shared_ptr<Column> FindComponentColumn(string CmpName, bool NeedLog);
 
 	// For Recursive
-	shared_ptr<TreeNode> FindComponentTreeNode(string CmpName);
-	shared_ptr<Tab> FindComponentTab(string CmpName);
-	shared_ptr<Child> FindComponentChild(string CmpName);
-	shared_ptr<CollapsingHeaders> FindComponentCHeader(string CmpName);
+	shared_ptr<TreeNode> FindComponentTreeNode(string CmpName, bool NeedLog = true);
+	shared_ptr<Tab> FindComponentTab(string CmpName, bool NeedLog = true);
+	shared_ptr<Child> FindComponentChild(string CmpName, bool NeedLog = true);
+	shared_ptr<CollapsingHeaders> FindComponentCHeader(string CmpName, bool NeedLog = true);
+
+	shared_ptr<CollapsingHeaders> AddCollps(string ID);
+	shared_ptr<Child> AddChild(string ID);
+	shared_ptr<TreeNode> AddTNode(string ID);
+	shared_ptr<Tab> AddTab(string ID);
+	shared_ptr<Column> AddColumn(string ID);
+	shared_ptr<Selectable> AddSelectable(string ID);
+
+	shared_ptr<Buttons> AddBtn(string ID);
+	shared_ptr<TextList> AddTList(string ID);
+	shared_ptr<Combobox> AddCombo(string ID);
+	shared_ptr<Labels> AddLabel(string ID);
+	shared_ptr<IText> AddIText(string ID);
+	shared_ptr<ITextMulti> AddITextMul(string ID);
+	shared_ptr<UnformatedText> AddUText(string ID);
 
 	void RenderComponents(int &now);
-	void RenderColumn(int OrderCount, int CountColumn, string IDColumn = "", bool border = true);
+	void RenderColumn(int OrderCount = 0, int CountColumn = 1, string IDColumn = "", bool border = true);
 };
 struct XMLComponents;
 struct TItem
@@ -148,20 +164,15 @@ public:
 	void ChangeText(string Text) { this->Text = Text; }
 	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
 
-	string GetText()
-	{
-		if (!Text.empty())
-			return Text;
+	void MergeComponents(shared_ptr<AllTheComponent> Component);
 
-		return "";
-	}
+	const string GetText() { return Text; }
 
-	int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
-	int getRenderOrder() { return OrderlyRender; }
-	// Only For map::find
-	string GetID() { return ID; }
+	const int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
+	const int getRenderOrder() { return OrderlyRender; }
+	const string GetID() { return ID; }
 	vector<shared_ptr<AllTheComponent>> getComponents() { return Components; }
-private:
+protected:
 	int OrderlyRender = 0, OrderlyRenderInDial = 0;
 	string Text = "";
 	const string ID;
@@ -170,15 +181,16 @@ private:
 
 class Combobox: virtual public BaseComponent
 {
-private:
-	bool Combo(const char *label, int *currIndex, vector<string> &values)
+public:
+	static bool Combo(const char *label, int *currIndex, vector<string> &values)
 	{
 		if (values.empty())
 			return false;
 		return ImGui::Combo(label, currIndex, vector_getter, static_cast<void *>(&values), values.size());
 	}
 
-public:
+	Combobox() {}
+	Combobox(string ID) { ChangeID(ID); }
 	vector<string> GetItems() { return Items; }
 	void AddItem(string Item) { Items.push_back(Item); }
 
@@ -189,7 +201,7 @@ public:
 
 	void Render()
 	{
-		Combo(GetText().c_str(), &selected, Items);
+		Combo(Text.c_str(), &selected, Items);
 		Active = ImGui::IsItemActive();
 	}
 private:
@@ -200,11 +212,14 @@ private:
 class Selectable: virtual public BaseComponent
 {
 public:
+	Selectable() {}
+	Selectable(string ID) { ChangeID(ID); }
+
 	bool GetSelect() { return selected; }
 
 	void Render()
 	{
-		ImGui::Selectable(GetText().c_str(), selected);
+		ImGui::Selectable(Text.c_str(), selected);
 	}
 private:
 	bool selected = false;
@@ -217,16 +232,15 @@ struct TabItem
 class Column: virtual public BaseComponent
 {
 public:
+	Column() {}
+	Column(int CountColumn): CountColumn(CountColumn) {}
+
 	int getCountColumn() { return CountColumn; }
 	bool GetBorder() { return Border; }
 
 	void ChangeCountColumn(int Count) { CountColumn = Count; }
 
 	void SetBorder(bool Border) { this->Border = Border; }
-
-	Column() {}
-	Column(int CountColumn): CountColumn(CountColumn) {}
-
 private:
 	int CountColumn = 0;
 	bool Border = false;
@@ -241,7 +255,7 @@ public:
 	vector<shared_ptr<TabItem>> getTabItem() { return TBItm; }
 
 	Tab() {}
-	Tab(string ID, bool DragTabs, bool ASelectNewTab, bool CloseMidMouse):
+	Tab(string ID, bool DragTabs = false, bool ASelectNewTab = false, bool CloseMidMouse = false):
 		DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse)
 	{
 		ChangeID(ID);
@@ -253,7 +267,7 @@ private:
 	ImVec2 size = { 0.f, 0.f };
 
 	ImGuiTabBarFlags Flags = 0;
-	vector<shared_ptr<TabItem>> TBItm;
+	vector<shared_ptr<TabItem>> TBItm { make_shared<TabItem>() };
 };
 class TreeNode: virtual public BaseComponent
 {
@@ -272,13 +286,15 @@ private:
 };
 class TextList: virtual public BaseComponent
 {
-private:
-	bool ListBox(const char *label, int *currIndex, vector<string> &values)
+public:
+	static bool ListBox(const char *label, int *currIndex, vector<string> &values)
 	{
 		return ImGui::ListBox(label, currIndex, vector_getter, static_cast<void *>(&values), values.size());
 	}
 
-public:
+	TextList() {}
+	TextList(string ID) { ChangeID(ID); }
+
 	void addItem(string Item) { Items.push_back(Item); }
 	void setVisible(bool Visible) { IsVisible = Visible; }
 
@@ -313,7 +329,7 @@ public:
 	void Render()
 	{
 		if (IsVisible)
-			ListBox(GetText().c_str(), &Selected, Items);
+			ListBox(Text.c_str(), &Selected, Items);
 
 		Active = ImGui::IsItemActive();
 	}
@@ -335,6 +351,8 @@ public:
 class UnformatedText: virtual public BaseComponent
 {
 public:
+	UnformatedText() {}
+	UnformatedText(string ID) { this->ChangeID(ID); }
 	class ColorText
 	{
 	public:
@@ -342,7 +360,7 @@ public:
 		ColorText(Type type, string CText): type(type), CText(CText) {}
 
 		Type getType() { return type; }
-		string getText() { return CText; }
+		string GetText() { return CText; }
 	private:
 		Type type = Type::Normal;
 		string CText = "";
@@ -360,7 +378,7 @@ public:
 			// Check if we typed the same string
 		for (size_t i = 0; i < clText.size(); i++)
 		{
-			if (clText.at(i)->getText() == str)
+			if (clText.at(i)->GetText() == str)
 			{
 				addTextToBuffer(str);
 				return;
@@ -376,7 +394,7 @@ public:
 	{
 		for (size_t i = 0; i < clText.size(); i++)
 		{
-			if ((clText.at(i)->getText() + string("\n")) == Text)
+			if ((clText.at(i)->GetText() + string("\n")) == Text)
 				return clText.at(i);
 		}
 	
@@ -393,7 +411,7 @@ private:
 	vector<string> Buffer;
 };
 
-class IText: virtual public BaseComponent
+class IText: public BaseComponent
 {
 public:
 	void ChangeTextHint(string Text) { TextHint = Text; }
@@ -402,23 +420,14 @@ public:
 	void setHistory(bool History) { IsNeedHistory = History; }
 	void setHint(bool NeedHint) { IsNeedHint = NeedHint; }
 
-	bool isPressUp() { return Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Up); }
-	bool isPressDown() { return Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Down); }
 	bool isActive() { return Active; }
 
 	bool GetVisible() { return IsVisible; }
 	bool getTextChange() { return IsTextChange; }
 	bool getHistory() { return IsNeedHistory; }
-	string GetText()
-	{
-		if (!Text.empty())
-			return Text;
-
-		return "";
-	}
 
 	IText() {}
-	IText(string ID, bool IsVisible, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
+	IText(string ID, bool IsVisible = true, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
 		bool EnterReturnsTrue = true, bool IsNeedHint = false):
 		IsVisible(IsVisible), IsNeedHistory(IsNeedHistory),
 		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
@@ -428,7 +437,7 @@ public:
 
 	void Render();
 private:
-	string TextHint = "", Text = "";
+	string TextHint = "";
 
 	bool IsVisible = false, IsNeedHistory = false,
 		NeedToUseTAB = false, EnterReturnsTrue = true,
@@ -437,7 +446,7 @@ private:
 
 	ImGuiInputTextFlags Flags = 0;
 };
-class ITextMulti: virtual public BaseComponent
+class ITextMulti: public BaseComponent
 {
 	struct ColorText;
 public:
@@ -470,7 +479,7 @@ public:
 	bool GetVisible() { return IsVisible; }
 
 	ITextMulti() {}
-	ITextMulti(string ID, bool IsVisible, bool ReadOnly = false, bool IsCtrlNewLine = false):
+	ITextMulti(string ID, bool IsVisible = true, bool ReadOnly = false, bool IsCtrlNewLine = false):
 		IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
 	{
 		ChangeID(ID);
@@ -505,7 +514,7 @@ public:
 	bool GetVisible() { return IsVisible; }
 
 	Labels() {}
-	Labels(string ID, bool IsVisible): IsVisible(IsVisible)
+	Labels(string ID, bool IsVisible = true): IsVisible(IsVisible)
 	{
 		ChangeID(ID);
 	}
@@ -515,7 +524,7 @@ public:
 		if (NeedToChangeColor)
 			ImGui::PushStyleColor(ImGuiCol_Text, Color);
 			
-		ImGui::Text(GetText().c_str());
+		ImGui::Text(Text.c_str());
 
 		if (NeedToChangeColor)
 			ImGui::PopStyleColor();
@@ -533,14 +542,14 @@ public:
 	bool IsClicked() { return clicked; }
 
 	Buttons() {}
-	Buttons(string ID, bool IsVisible): IsVisible(IsVisible)
+	Buttons(string ID, bool IsVisible = true): IsVisible(IsVisible)
 	{
 		ChangeID(ID);
 	}
 
 	void Render()
 	{
-		if (ImGui::Button(GetText().c_str()))
+		if (ImGui::Button(Text.c_str()))
 			clicked = true;
 		else
 			clicked = false;
@@ -557,7 +566,8 @@ public:
 	bool Collapse() { return IsCollapse; }
 	
 	CollapsingHeaders() {}
-	CollapsingHeaders(string ID, bool SelDef, bool IsCollapse = true): SelDef(SelDef), IsCollapse(IsCollapse)
+	CollapsingHeaders(string ID, bool SelDef = false, bool IsCollapse = true): SelDef(SelDef),
+		IsCollapse(IsCollapse)
 	{
 		ChangeID(ID);
 	}
@@ -575,7 +585,7 @@ public:
 	void setBorder(bool Border) { IsBorder = Border; }
 
 	Child() {}
-	Child(string ID, ImVec2 size, bool IsHScroll = false, bool IsBorder = false):
+	Child(string ID, ImVec2 size = {0, 0}, bool IsHScroll = false, bool IsBorder = false) :
 		IsHScroll(IsHScroll), IsBorder(IsBorder), size(size)
 	{
 		ChangeID(ID);
@@ -683,6 +693,19 @@ public:
 
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	static void HelpMarker(const char* desc)
+	{
+		ImGui::TextDisabled("(?)");
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
 protected:
 	// **********
 	HRESULT hr = S_OK;
@@ -722,7 +745,7 @@ protected:
 	void GetParam(XMLNode *Nods, shared_ptr<Column> &column);
 	void GetParam(XMLNode *Nods, shared_ptr<Selectable> &select);
 
-	void GetParam(XMLElement *Nods, shared_ptr<Buttons>& btn);
+	void GetParam(XMLElement *Nods, shared_ptr<Buttons> &btn);
 	void GetParam(XMLElement *Nods, shared_ptr<TextList> &TList);
 	void GetParam(XMLElement *Nods, shared_ptr<Combobox> &Combo);
 	void GetParam(XMLElement *Nods, shared_ptr<Labels> &Label);

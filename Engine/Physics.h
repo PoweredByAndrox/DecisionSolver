@@ -71,6 +71,15 @@ public:
 	}
 
 	void SpawnObject();
+	void DestroyObj()
+	{
+		Cobes.clear();
+		while (!DynCobes.empty())
+		{
+			SAFE_release(DynCobes.at(0));
+			DynCobes.erase(DynCobes.begin());
+		}
+	}
 protected:
 	// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;
@@ -108,5 +117,6 @@ protected:
 	bool IsInitPhysX = false;
 
 	vector<shared_ptr<GeometricPrimitive>> Cobes;
+	vector<PxRigidDynamic *> DynCobes;
 };
 #endif // !__PHYSICS_H__

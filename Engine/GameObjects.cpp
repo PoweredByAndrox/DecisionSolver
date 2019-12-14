@@ -37,6 +37,10 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	model->setPosition(PosCoords);
 	this->PosCoords = PosCoords;
 
+	const_cast<Vector3 &>(ResetPos) = PosCoords;
+	const_cast<Vector3 &>(ResetRot) = RotationCoords;
+	const_cast<Vector3 &>(ResetScl) = ScaleCoords;
+
 	model->setRotation(RotationCoords);
 	this->RotationCoords = RotationCoords;
 	HasRotation = true;

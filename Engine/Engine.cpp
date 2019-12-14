@@ -14,6 +14,7 @@
 #include "CutScene.h"
 #include "Camera.h"
 #include "Multiplayer.h"
+#include "SDKInterface.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -37,6 +38,8 @@ shared_ptr<Mouse> Engine::mouse = make_shared<Mouse>();
 shared_ptr<Keyboard> Engine::keyboard = make_shared<Keyboard>();
 shared_ptr<GamePad> Engine::gamepad = make_shared<GamePad>();
 
+shared_ptr<SDKInterface> SDK = make_shared<SDKInterface>();
+
 WNDCLASSEXW wnd;
 
 XMVECTORF32 _Color[9] =
@@ -54,19 +57,19 @@ XMVECTORF32 _Color[9] =
 
 bool DrawGrid = true, DrawCamSphere;
 
-HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
+HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 {
 	this->hInstance = hInstance;
-	ZeroMemory(&wnd, sizeof(WNDCLASSEXW));
+	ZeroMemory(&wnd, sizeof(WNDCLASSEXA));
 	wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
 	wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
 	wnd.hInstance = hInstance;
-	wnd.hIcon = LoadIconW(hInstance, (LPCWSTR)IDI_ICON1);
+	wnd.hIcon = ::LoadIconA(hInstance, (LPCSTR)IDI_ICON1);
 	wnd.hIconSm = wnd.hIcon;
-	wnd.hCursor = LoadCursorW(hInstance, (LPCWSTR)IDC_ARROW);
+	wnd.hCursor = ::LoadCursorA(hInstance, (LPCSTR)IDC_ARROW);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wnd.lpszClassName = L"WND_ENGINE";
-	wnd.cbSize = sizeof(WNDCLASSEXW);
+	wnd.cbSize = sizeof(WNDCLASSEXA);
 
 	if (!::RegisterClassExW(&wnd))
 	{
@@ -75,11 +78,8 @@ HRESULT Engine::Init(wstring NameWnd, HINSTANCE hInstance)
 			"Engine: Something is wrong with create the main window class!");
 		return E_FAIL;
 	}
-	if (!(hwnd = CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE | WS_POPUP,
-		392 /*1024/2-120*/, 160 /*768-608*/, 1024, 768, NULL, NULL, hInstance, NULL)))
-
-		//if (!(hwnd = ::CreateWindowW(wnd.lpszClassName, NameWnd.c_str(), WS_MAXIMIZE
-		//	| WS_POPUP, 0, 0, 1024, 768, nullptr, nullptr, hInstance, nullptr)))
+	if (!(hwnd = ::CreateWindowA("WND_ENGINE", "DecisionSolver", WS_MAXIMIZE | WS_POPUP,
+		392, 160, 1024, 768, NULL, NULL, hInstance, NULL)))
 	{
 		LogError("Engine::Init->CreateWindow() Init is failed!",
 			"Engine::Init->CreateWindow() Init is failed!",
@@ -297,13 +297,8 @@ void Engine::Render()
 
 	frameTime = float(Timer->GetElapsedSeconds());
 
-	//if (frameTime >= 1.0f)
-	//	frameTime = 1.0f / 60.0f;
-	//else if (frameTime <= 0.5f)
-	//	Timer->SetFixedTimeStep(true);
-	//else
-	//	Timer->SetFixedTimeStep(false);
-
+	//Timer->SetFixedTimeStep(false);
+	//Timer->SetTargetElapsedSeconds(0.001f); // 0.2 == 5 FPS, 0.1 == 10FPS
 	fps = float(Timer->GetFramesPerSecond());
 	
 //	Console::LogInfo((boost::format("\nFramTime: %f\nFPS: %f") % frameTime % fps).str().c_str());
@@ -373,27 +368,39 @@ void Engine::Render()
 	}
 
 	lua->Update();
+	
+	if (TrackerKeyboard.pressed.F4 && CScene.operator bool())
+	{
+		CScene->Reset();
+		Console::PushCMD("reinit_lua");
+		CScene->Restart();
+		DrawGrid = true;
+	}
 
 	ClearRenderTarget();
 
+	if (ui.operator bool())
+		ui->Begin();
+
 	mainActor->Render(frameTime);
 
-	CScene->Update();
+	if (CScene.operator bool())
+		CScene->Update();
 
-	if (dDraw.operator bool())
-	{
-		if (DrawGrid)
-			dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
-			(Vector4)Colors::Teal);
-		if (Sound.operator bool())
-		{
-			BoundingSphere sphere;
-			sphere.Radius = 50.0f;
-			sphere.Center = Sound->getSoundPosition();
-			dDraw->Draw(sphere, (Vector4)Colors::Red);
-			Sound->Update();
-		}
-	}
+	//if (dDraw.operator bool())
+	//{
+	//	if (DrawGrid)
+	//		dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
+	//		(Vector4)Colors::Teal);
+	//	if (Sound.operator bool())
+	//	{
+	//		BoundingSphere sphere;
+	//		sphere.Radius = 50.0f;
+	//		sphere.Center = Sound->getSoundPosition();
+	//		dDraw->Draw(sphere, (Vector4)Colors::Red);
+	//		Sound->Update();
+	//	}
+	//}
 
 	PhysX->Simulation(frameTime);
 
@@ -407,19 +414,17 @@ void Engine::Render()
 
 	if (ui.operator bool())
 	{
-		::ShowCursor(false);
-
-		ui->Begin();
+		//::ShowCursor(false);
 
 		auto Dial1 = ui->getDialog("SDKDIAL");
 		if (Dial1.operator bool() && !Dial1->GetTitle().empty())
 		{
 			float CamPos[] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
 			Dial1->getComponents()->FindComponentLabel("##SDKDIAL_MainLabel")->ChangeText(string((boost::format(
-				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"\
+				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"
 					"Is Simulation PhysX : %b\nResolution Window: W:%f, H:%f\nFrameTime:%f"))
-				% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation %
-				getWorkAreaSize(hwnd).x % getWorkAreaSize(hwnd).y % frameTime).str()));
+				% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation % getWorkAreaSize(hwnd).x %
+				getWorkAreaSize(hwnd).y % frameTime).str()));
 
 			auto Comp = Dial1->getComponents()->FindComponentCHeader("##SDKDIAL_ClpSound")->getComponents().front();
 			auto Comb = Comp->FindComponentCombo("Select Track!");
@@ -452,24 +457,6 @@ void Engine::Render()
 
 			Dial1->Render();
 		}
-		auto Dial2 = ui->getDialog("List Of Game Objects");
-		if (Dial2.operator bool() && !Dial2->GetTitle().empty())
-		{
-			// Add struct with base params and add getComponent there
-			auto Comp = Dial2->getComponents();
-			auto Tab_Comp = Comp->FindComponentTab("##LOGOS_Tab")->getComponents().front();
-			if (Comp->FindComponentBtn("##LOGOS_Spwn")->IsClicked())
-			{
-				PhysX->SpawnObject();
-				//	Tab_Comp->TabItemComp.back()->selectable.push_back(make_shared<Selectable>());
-				//	Tab_Comp->TabItemComp.back()->selectable.back()->ChangeID((string("Obj#") +
-				//		to_string(PhysX->GetPhysDynamicObject().size())).c_str());
-			}
-			if (Comp->FindComponentBtn("#LOGOS_Clear")->IsClicked())
-				PhysX->ClearAllObj();
-
-			Dial2->Render();
-		}
 
 		auto DialCons = ui->getDialog("Console");
 		if (DialCons.operator bool() && !DialCons->GetTitle().empty())
@@ -491,17 +478,19 @@ void Engine::Render()
 		//		MPL->getCurrentUser()->Disconnect();
 		//	if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
 		//		Comp->FindComponentITextMul("##MP_Chat")->ClearText();
-
 		//	MPL->Update();
-
 		//	//if (!str.empty())
 		//	//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
-
 		//	DialMP->Render();
 		//}
-		ui->FrameEnd();
+
+		if (SDK)
+			SDK->Render();
 	}
 	
+	if (ui.operator bool())
+		ui->FrameEnd();
+
 	SwapChain->Present(0, 0);
 }
 
@@ -509,7 +498,7 @@ void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 {
 #if defined (DEBUG)
 	if (!DebugText.empty())
-		DebugTrace(DebugText.c_str());
+		OutputDebugStringA(DebugText.c_str());
 #endif
 #if defined (ExceptionWhenEachError)
 	if (!ExceptionText.empty())
@@ -730,9 +719,9 @@ float Engine::getframeTime()
 void Engine::StackTrace(LPCSTR Error)
 {
 #if defined (DEBUG)
-	DebugTrace("\n***********ERROR IN XML FILE***********\n");
-	DebugTrace(string(Error).c_str());
-	DebugTrace("\n***********ERROR IN XML FILE***********\n");
+	OutputDebugStringA("\n***********ERROR IN XML FILE***********\n");
+	OutputDebugStringA(string(Error).c_str());
+	OutputDebugStringA("\n***********ERROR IN XML FILE***********\n");
 #endif
 #if defined (ExceptionWhenEachError)
 	throw exception(string(string("ERROR IN XML FILE!\n") + Error).c_str());
@@ -792,34 +781,35 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return true;
 }
 
-//	Work with LUA Scripts (now don't work)
-//bool Engine::IsKeyboardDown(Keyboard::Keys Key)
-//{
-//	if (!keyboard.operator bool() && !keyboard->IsConnected())
-//		return false;
-//
-//	return keyboard->GetState().IsKeyDown(Key);
-//}
-//
-//bool Engine::IsKeyboardUp(Keyboard::Keys Key)
-//{
-//	if (!keyboard.operator bool() && !keyboard->IsConnected())
-//		return false;
-//
-//	return keyboard->GetState().IsKeyUp(Key);
-//}
-//bool Engine::IsMouseDown(Keyboard::Keys Key)
-//{
-//	if (!keyboard.operator bool() && !keyboard->IsConnected())
-//		return false;
-//
-//	return keyboard->GetState().IsKeyDown(Key);
-//}
-//
-//bool Engine::IsMouseUp(Keyboard::Keys Key)
-//{
-//	if (!mouse.operator bool() && !mouse->IsConnected())
-//		return false;
-//
-//	return mouse->GetState().(Key);
-//}
+//	Work with LUA Scripts
+bool Engine::IsKeyboardDown(int Key)
+{
+	if (!keyboard.operator bool() && !keyboard->IsConnected())
+		return false;
+
+	return keyboard->GetState().IsKeyDown((Keyboard::Keys)Key);
+}
+
+bool Engine::IsKeyboardUp(int Key)
+{
+	if (!keyboard.operator bool() && !keyboard->IsConnected())
+		return false;
+
+	return keyboard->GetState().IsKeyUp((Keyboard::Keys)Key);
+}
+
+bool Engine::IsMouseLeft()
+{
+	if (!mouse.operator bool() && !mouse->IsConnected())
+		return false;
+
+	return mouse->GetState().leftButton;
+}
+
+bool Engine::IsMouseRight()
+{
+	if (!mouse.operator bool() && !mouse->IsConnected())
+		return false;
+
+	return mouse->GetState().rightButton;
+}

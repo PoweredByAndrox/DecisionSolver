@@ -4,8 +4,7 @@
 #include "pch.h"
 
 #include "DXSDKAudio2.h"
-#include <X3DAudio.h>
-#include <mmsystem.h>
+#include "X3DAudio.h"
 
 class Audio
 {
@@ -62,8 +61,8 @@ public:
 	static void changeSoundVol(float Vol);
 	void changeSoundPan(float Pan);
 
-	void changeSoundPos(Vector3 pos) { this->pos = pos; }
-	Vector3 getSoundPosition() { return pos; }
+	void changeSoundPos(Vector3 pos) { this->pos = X3DAUDIO_VECTOR{ pos.x, pos.y, pos.z }; }
+	Vector3 getSoundPosition() { return Vector3(pos.x, pos.y, pos.z); }
 	Audio() {}
 	~Audio() {}
 
@@ -80,7 +79,7 @@ private:
 	static XAUDIO2_DEVICE_DETAILS DEVICE_Details;
 
 	X3DAUDIO_HANDLE X3DInstance;
-	X3DAUDIO_LISTENER Listener = { XMFLOAT3(0,0,0) };
+	X3DAUDIO_LISTENER Listener = { };
 	X3DAUDIO_CONE Listener_DirectionalCone;
 
 	X3DAUDIO_EMITTER Emitter;
@@ -89,7 +88,7 @@ private:
 
 	X3DAUDIO_DSP_SETTINGS DSPSettings;
 
-	Vector3 pos = Vector3::Zero;
+	X3DAUDIO_VECTOR pos = {};
 
 	DWORD dwCalcFlags = X3DAUDIO_CALCULATE_MATRIX | X3DAUDIO_CALCULATE_DOPPLER
 		| X3DAUDIO_CALCULATE_LPF_DIRECT /*| X3DAUDIO_CALCULATE_LPF_REVERB

@@ -7,6 +7,8 @@ extern shared_ptr<Engine> Application;
 #include "CutScene.h"
 #include "Camera.h"
 
+vector<CutScene::Point> CutScene::Points;
+
 void CutScene::AddNewPoint(Vector3 Pos, Vector3 Look, float Time)
 {
 	Points.push_back(Point(Pos, Look, Time));
@@ -24,15 +26,21 @@ void CutScene::Pause()
 	IsStart = false;
 }
 
-void CutScene::Reset()
+void CutScene::Restart()
 {
 	curPos = 0;
 	Application->getCamera()->Teleport(Points.at(curPos).Pos, Points.at(curPos).Look);
 }
 
+void CutScene::Reset()
+{
+	Points.clear();
+	curPos = 0;
+}
+
 void CutScene::Update()
 {
-	if (IsPause || Points.empty())
+	if (IsPause || Points.empty() || Points.size() <= (size_t)curPos)
 		return;
 
 	auto Cam = Application->getCamera();
@@ -41,9 +49,8 @@ void CutScene::Update()
 	Vector3 CamPos = Cam->GetEyePt(), CamLook = Cam->GetLookAtPt();
 
 	if (!XMVector3NearEqual(CamPos, CurrentPoint.Pos, Vector3(0.001f, 0.001f, 0.001f)))
-		ToDo("In Release It's Too Fast!!!")
-		Cam->Teleport(Vector3::SmoothStep(CamPos, CurrentPoint.Pos, CurrentPoint.Time),
-			Vector3::SmoothStep(CamLook, CurrentPoint.Look, CurrentPoint.Time));
+		Cam->Teleport(Vector3::SmoothStep( CamPos, CurrentPoint.Pos, Application->getframeTime() * CurrentPoint.Time),
+			Vector3::SmoothStep(CamLook, CurrentPoint.Look, Application->getframeTime() * CurrentPoint.Time));
 	else
 	{
 		curPos++;

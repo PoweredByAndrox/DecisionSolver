@@ -20,11 +20,13 @@ public:
 	void Reset();
 	void Update();
 
+	void Restart();
+
 	bool getIsStart() { return IsStart; }
 	bool getIsPause() { return IsPause; }
 	int getCurPos() { return curPos; }
+	static vector<Point> Points;
 private:
-	vector<Point> Points;
 	bool IsStart = false, IsPause = false;
 	int curPos = 0;
 };

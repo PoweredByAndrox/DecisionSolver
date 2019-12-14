@@ -62,14 +62,16 @@ void Console::Render()
 	auto text = IText->GetText();
 	auto History = ProcessCommand->getHistoryCommands();
 	auto TextList = Dialog->getComponents()->FindComponentTList("##HintCmd");
-	if (text.empty() && !(IText->isPressUp() || IText->isPressDown()))
+	ToDo("Change the following buttons to work with History in Console")
+		if (text.empty() && !Application->getTrackerKeyboard().pressed.Tab)
 	{
 		TextList->clearItems();
 		return;
 	}
 
 	// History
-	if (IText->getHistory() && !IText->isActive() && !History.empty() && (IText->isPressUp() || IText->isPressDown()))
+	if (IText->getHistory() && !IText->isActive() && !History.empty() &&
+		Application->getTrackerKeyboard().pressed.Tab)
 	{
 		int PosHistory = ProcessCommand->getPosHistory();
 		if (PosHistory == -1 || PosHistory >= (int)History.size())
@@ -139,7 +141,7 @@ void Console::OpenConsole()
 	}
 }
 
-void Console::AddCmd(LPCSTR Text)
+void Console::PushCMD(LPCSTR Text)
 {
 	if (!Text || !ProcessCommand.operator bool() || !Dialog.operator bool())
 		return;

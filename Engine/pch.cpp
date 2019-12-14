@@ -277,16 +277,24 @@ void ParseText(string &Text, Type type)
 	for (size_t i = 0; i < strs.size(); i++)
 	{
 		if (type == Type::Information)
-			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "))
-			+ (strs.size() - 1 == i ? string("\n\n") : "");
+		{
+			if (strs.at(i).empty())
+				continue;
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "));
+		}
 		else if (type == Type::Error)
-			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "))
-			+ (strs.size() - 1 == i ? string("\n\n") : "");
+		{
+			if (strs.at(i).empty())
+				continue;
+			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "));
+		}
 		else
-			if (strs.at(i) == "\n")
-				Text += "\n";
+		{
+			if (strs.at(i).empty())
+				continue;
 			else
-				Text += strs.at(i);
+				Text.insert(0, "\n" + strs.at(i));
+		}
 	}
 }
 

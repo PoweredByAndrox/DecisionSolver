@@ -10,6 +10,7 @@
 //*********************************************************
 
 #pragma once
+#include <chrono>
 
 // Helper class for animation and simulation timing.
 class StepTimer
@@ -113,37 +114,50 @@ public:
 
         UINT32 lastFrameCount = m_frameCount;
 
-        if (m_isFixedTimeStep)
-        {
-            // Fixed timestep update logic
+		if (m_isFixedTimeStep)
+		{
+			// Fixed timestep update logic
 
-            // If the app is running very close to the target elapsed time (within 1/4 of a millisecond) just clamp
-            // the clock to exactly match the target value. This prevents tiny and irrelevant errors
-            // from accumulating over time. Without this clamping, a game that requested a 60 fps
-            // fixed update, running with vsync enabled on a 59.94 NTSC display, would eventually
-            // accumulate enough tiny errors that it would drop a frame. It is better to just round 
-            // small deviations down to zero to leave things running smoothly.
+			// If the app is running very close to the target elapsed time (within 1/4 of a millisecond) just clamp
+			// the clock to exactly match the target value. This prevents tiny and irrelevant errors
+			// from accumulating over time. Without this clamping, a game that requested a 60 fps
+			// fixed update, running with vsync enabled on a 59.94 NTSC display, would eventually
+			// accumulate enough tiny errors that it would drop a frame. It is better to just round 
+			// small deviations down to zero to leave things running smoothly.
 
-            if (abs(static_cast<int>(timeDelta - m_targetElapsedTicks)) < TicksPerSecond / 4000)
-            {
-                timeDelta = m_targetElapsedTicks;
-            }
+			if (abs(static_cast<int>(timeDelta - m_targetElapsedTicks)) < TicksPerSecond / 4000)
+			{
+				timeDelta = m_targetElapsedTicks;
+			}
 
-            m_leftOverTicks += timeDelta;
+			m_leftOverTicks += timeDelta;
 
-            while (m_leftOverTicks >= m_targetElapsedTicks)
-            {
-                m_elapsedTicks = m_targetElapsedTicks;
-                m_totalTicks += m_targetElapsedTicks;
-                m_leftOverTicks -= m_targetElapsedTicks;
-                m_frameCount++;
+			while (m_leftOverTicks >= m_targetElapsedTicks)
+			{
+				m_elapsedTicks = m_targetElapsedTicks;
+				m_totalTicks += m_targetElapsedTicks;
+				m_leftOverTicks -= m_targetElapsedTicks;
+				m_frameCount++;
 
-                if (update)
-                {
-                    update();
-                }
-            }
-        }
+				if (update)
+				{
+					update();
+				}
+				if (m_targetElapsedTicks == 0)
+#if defined(DEBUG)
+				OutputDebugStringA("Maybe Endless Loop?");
+				if (MessageBoxA(0, "Maybe Endless Loop?\nTry to skip it?", "Warning", MB_YESNO) == MB_OK)
+					break;
+				else
+					continue;
+#else
+				if (MessageBoxA(0, "Maybe Endless Loop?\nTry to skip it?", "Warning", MB_YESNO) == MB_OK)
+					break;
+				else
+					continue;
+#endif
+			}
+		}
         else
         {
             // Variable timestep update logic.
@@ -172,6 +186,19 @@ public:
         }
     }
 
+	void BeginTime()
+	{
+		begin = std::chrono::high_resolution_clock::now();
+	}
+
+	void EndTime()
+	{
+		end = std::chrono::high_resolution_clock::now();
+	}
+	std::chrono::duration<float> GetResultTime()
+	{
+		return end - begin;
+	}
 private:
     // Source timing data uses QPC units.
     LARGE_INTEGER m_qpcFrequency;
@@ -192,4 +219,6 @@ private:
     // Members for configuring fixed timestep mode.
     bool m_isFixedTimeStep;
     UINT64 m_targetElapsedTicks;
+
+	chrono::time_point<chrono::steady_clock> begin, end;
 };

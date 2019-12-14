@@ -21,6 +21,37 @@ HRESULT Camera::Init(float W, float H, float FOV)
 	return S_OK;
 }
 
+XMMATRIX XMMatrixLookToLH_New(FXMVECTOR EyePosition, FXMVECTOR EyeDirectionOld, FXMVECTOR UpDirection)
+{
+	XMVECTOR EyeDirection = XMVectorSubtract(EyeDirectionOld, EyePosition);
+
+	assert(!XMVector3IsInfinite(EyeDirection));
+	assert(!XMVector3IsInfinite(UpDirection));
+
+	XMVECTOR R2 = XMVector3Normalize(EyeDirection);
+
+	XMVECTOR R0 = XMVector3Cross(UpDirection, R2);
+	R0 = XMVector3Normalize(R0);
+
+	XMVECTOR R1 = XMVector3Cross(R2, R0);
+
+	XMVECTOR NegEyePosition = XMVectorNegate(EyePosition);
+
+	XMVECTOR D0 = XMVector3Dot(R0, NegEyePosition);
+	XMVECTOR D1 = XMVector3Dot(R1, NegEyePosition);
+	XMVECTOR D2 = XMVector3Dot(R2, NegEyePosition);
+
+	XMMATRIX M;
+	M.r[0] = XMVectorSelect(D0, R0, g_XMSelect1110.v);
+	M.r[1] = XMVectorSelect(D1, R1, g_XMSelect1110.v);
+	M.r[2] = XMVectorSelect(D2, R2, g_XMSelect1110.v);
+	M.r[3] = g_XMIdentityR3.v;
+
+	M = XMMatrixTranspose(M);
+
+	return M;
+}
+
 void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 {
 	XMStoreFloat3(&m_vEye, vEyePt);
@@ -32,7 +63,7 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 		XMStoreFloat3(&m_vDefaultLookAt, vLookatPt);
 	}
 		// Calc the view matrix
-	m_mView = XMMatrixLookAtLH(vEyePt, vLookatPt, Vector3::Up);
+	m_mView = XMMatrixLookToLH_New(vEyePt, vLookatPt, Vector3::Up);
 
 	Vector3 zBasis;
 	zBasis = vLookatPt;
@@ -57,8 +88,7 @@ void Camera::Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx)
 	if (C_CT.operator bool() && !NoTPPhysx && (NewPos != Vector3::Zero))
 		C_CT->getController()->setPosition(PxExtendedVec3(NewPos.x, NewPos.y, NewPos.z));
 
-	if (NewPos != Vector3::Zero)
-		SetViewParams(NewPos, NewLook);
+	SetViewParams(NewPos, NewLook);
 }
 
 void Camera::SetNumberOfFramesToSmoothMouseData(int nFrames)
@@ -97,9 +127,14 @@ float Camera::GetFarClip() const
 	return m_fFarPlane;
 }
 
-float Camera::getMoveScale() const
+float Camera::getMoveScale()
 {
 	return m_fMoveScaler;
+}
+
+float Camera::getRotateScale()
+{
+	return m_fRotationScaler;
 }
 
 #include "Console.h"
@@ -199,7 +234,7 @@ void Camera::UpdateVelocity(float fElapsedTime)
 	vAccel = XMVector3Normalize(vAccel);
 
 		// Scale the acceleration vector
-	vAccel *= m_fMoveScaler;
+	vAccel *= (Application->getKeyboard()->GetState().LeftShift ? m_fMoveScaler + 15.f : m_fMoveScaler);
 
 	if (m_bMovementDrag)
 	{
@@ -240,18 +275,6 @@ void Camera::Reset()
 
 void Camera::FrameMove(float fElapsedTime)
 {
-	if (Application->getKeyboard()->GetState().LeftShift)
-#if defined (DEBUG)
-		SetScalers(0.010f, 6.0f * 15.0f);
-#else
-		SetScalers(0.0005f, 6.0f * 15.0f);
-#endif
-	else
-#if defined (DEBUG)
-		SetScalers(0.010f, 6.0f);
-#else
-		SetScalers(0.0005f, 6.0f);
-#endif
 	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Home))
 		Reset();
 
@@ -308,7 +331,7 @@ void Camera::FrameMove(float fElapsedTime)
 	m_vLookAt = vEye + vWorldAhead;
 
 		// Update the view matrix
-	m_mView = XMMatrixLookAtLH(vEye, m_vLookAt, vWorldUp);
+	m_mView = XMMatrixLookToLH_New(vEye, m_vLookAt, vWorldUp);
 
 	m_mCameraWorld = m_mView.Invert();
 }

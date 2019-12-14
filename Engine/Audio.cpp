@@ -17,6 +17,7 @@ vector<unique_ptr<Audio::AudioFile>> Audio::AFiles;
 XAUDIO2_VOICE_DETAILS Audio::VOICE_Details;
 XAUDIO2_DEVICE_DETAILS Audio::DEVICE_Details;
 
+ToDo("Error Hanging!")
 HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
 {
 	mmio = mmioOpenA(const_cast<LPSTR>(filename.c_str()), NULL, MMIO_READ);
@@ -27,7 +28,9 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 	riff.fccType = mmioFOURCC('W', 'A', 'V', 'E');
 	if (mmioDescend(mmio, &riff, NULL, MMIO_FINDRIFF) != MMSYSERR_NOERROR)
 	{
-		MessageBoxA(NULL, "This File Isn't a WAV File", "Error", MB_OK);
+		Engine::LogError("Audio: " + filename + ": Isn't a WAV File",
+			filename + ": Isn't a WAV File",
+			"Something is wrong with Audio: " + filename + ": Isn't a WAV File");
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
@@ -35,7 +38,9 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 
 	if (mmioDescend(mmio, &fmt, &riff, MMIO_FINDCHUNK) != MMSYSERR_NOERROR)
 	{
-		MessageBoxA(NULL, "This File Hasn't FMT", "Error", MB_OK);
+		Engine::LogError("Audio: " + filename + ": Hasn't a FMT",
+			filename + ": Hasn't a FMT",
+			"Something is wrong with Audio: " + filename + ": Hasn't a FMT");
 		return HRESULT_FROM_WIN32(GetLastError());
 	}
 
@@ -54,7 +59,6 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 			MessageBoxA(NULL, "DEF_FMT", "Error", MB_OK);
 			return false;
 		}
-
 	}
 
 	mmioAscend(mmio, &fmt, SEEK_SET);
@@ -64,7 +68,7 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 	if (mmioDescend(mmio, &data, &riff, MMIO_FINDCHUNK) != MMSYSERR_NOERROR)
 		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Has a Bad Data.")
 			% filename.c_str()).str(),
-			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File!");
+			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File! It Has a Bad Data");
 
 	pDataBuffer.resize(data.cksize);
 
@@ -72,7 +76,7 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 		mmio,
 		reinterpret_cast<HPSTR>(&pDataBuffer[0]), data.cksize) != (signed)data.cksize)
 		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Isn't a WAV File.") % filename).str(),
-			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File!");
+			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File! It Isn't a WAV File");
 
 	mmioClose(mmio, MMIO_FHOPEN);
 
@@ -199,8 +203,8 @@ void Audio::Update()
 
 	for (size_t i = 0; i < AFiles.size(); i++)
 	{
-		AFiles.at(i)->Update(pos, X3DInstance, Listener, Emitter, EmitterCone, DSPSettings,
-			dwCalcFlags);
+		AFiles.at(i)->Update(Vector3(pos.x, pos.y, pos.z), X3DInstance, Listener, Emitter, EmitterCone,
+			DSPSettings, dwCalcFlags);
 	}
 }
 

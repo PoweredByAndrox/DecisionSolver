@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<!-- The level has some objects (maybe two (or more) spaceships) -->
 <scene>
 	<objects>
 	<!-- Name of Model also like an identifier --> 
-		<One id="CONVICT TUNNEL">
+		<One id="v2colored_low">
 			<pos>0,0,0</pos>
-			<scale>0.00005,0.00005,0.00005</scale>
-			<rotate>120.0,0.0,0.0</rotate>
+			<scale>0.005,0.005,0.005</scale>
 		</One>
 	<!-- If the name has a space then replace them with _ -->
-		<Two id="v2colored_low">
+ 		<Two id="CONVICT TUNNEL">
 			<pos>100,0,0</pos>
 			<scale>0.005,0.005,0.005</scale>
 		</Two>

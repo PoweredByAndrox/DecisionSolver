@@ -20,9 +20,9 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName,
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
-	ThrowIfFailed(result = D3DX11CompileFromFileW(FileName->c_str(), NULL, NULL, 
+	result = D3DX11CompileFromFileW(FileName->c_str(), NULL, NULL, 
 		FunctionName->c_str(), VersionShader->c_str(), dwShaderFlags, NULL, NULL,
-		ppBlobOut, &pErrorBlob, NULL));
+		ppBlobOut, &pErrorBlob, NULL);
 	if (FAILED(result))
 	{
 		if (pErrorBlob)

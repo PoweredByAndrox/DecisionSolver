@@ -2,25 +2,24 @@
 <!--<gui id="List Of Game Objects" width="420" height="185" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="18" brightness="0.8">
-	<Button id="#LOGOS_Spwn" text="Spawn a Phys Cube" visible="true"/>
-	<Button id="#LOGOS_Clear" text="Clear a Phys Cube" visible="true"/>
-	<Tab id="#LOGOS_Tab" text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
+<Tab id="##LOGOS_Tab" text="#ListOfGObj" dragging_tabs="true" auto_select_new_tab="true"
 	no_close_midle_mouse="false">
-		<TabItem text="Objects">
-			<TreeNode id="#LOGOS_PhysObj" text="Phys Objects">
-				<Selectable id="Obj#1"/>
-				<Column count="2" id="ColumnPhObj" border="false">
-					<Button text="Play Logic" visible="true"/>
-					<Button text="Stop Logic" visible="true"/>
-					<Label text="3D Pos:" visible="true"/>
-					<Label text="Distantion (ToCam):" visible="true"/>
-					<Label text="Direction:" visible="true"/>
-				</Column>
+		<TabItem text="Game Objects">
+			<TreeNode id="##LOGOS_GObj" text="All Objects">
+				<TreeNode id="##LOGOS_LObjs" text="#0">
+					<Column count="2" id="ColumnGObj" border="true">
+						<Button id="##LOGOS_TNode_PlayLogic" text="Play Logic" visible="true"/> 
+						<Button id="##LOGOS_TNode_StopLogic" text="Stop Logic" visible="true"/>
+							<next/>
+						<Label id="##LOGOS_TNode_Pos" text="Pos: " visible="true"/>
+						<Label id="##LOGOS_TNode_Dist" text="Distantion (ToCam): " visible="true"/>
+						<Label id="##LOGOS_TNode_Direct" text="Direction: " visible="true"/>
+					</Column>
+				</TreeNode>
 			</TreeNode>
 		</TabItem>
 	</Tab>
-</gui>
--->
+</gui>-->
 <gui id="MPConnection" width="820" height="420" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="rodc" sizefont="22" brightness="0.9">
@@ -33,7 +32,6 @@ font="rodc" sizefont="22" brightness="0.9">
 	<Button id="##MP_Disconnect" text="Disconnect" visible="true"/>
 	<Button id="##MP_Clear" text="Clear Chat" visible="true"/>
 </gui>
-
 <gui id="SDKDIAL" width="0" height="0" open="true" resize="true" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="24" brightness="0.9" fullscreene="false">
@@ -45,11 +43,10 @@ font="capture-it" sizefont="24" brightness="0.9" fullscreene="false">
 	</Collapse>
 	<Label id="##SDKDIAL_MainLabel" text="A Simple Text!" visible="true"/>
 </gui>
-
 <gui id="Console" width="400" height="250" open="false" resize="false" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="true"
 font="capture-it" sizefont="24" brightness="0.9">
-	<InputText id="##Console_CmdIText" text="" visible="true" history="false" hint="true"
+	<InputText id="##Console_CmdIText" text="" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>
 	<ListBox id="##HintCmd" label="##ForHintCmd" visible="true"/>
 	<ChildDialog id="ConsoleText" border="true" horizontal_scroll="true">
