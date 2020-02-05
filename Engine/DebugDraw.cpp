@@ -16,6 +16,9 @@ extern shared_ptr<Engine> Application;
 #include "Camera.h"
 #include "Console.h"
 #include "DebugDraw.h"
+#include "Shaders.h"
+#include "File_system.h"
+#include "Render_Buffer.h"
 
 void DebugDraw::BaseRender::Render()
 {

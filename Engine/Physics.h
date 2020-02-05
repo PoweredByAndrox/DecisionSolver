@@ -70,7 +70,7 @@ public:
 		Cobes.clear();
 	}
 
-	void SpawnObject();
+	void SpawnObject(PxVec3 Pos = PxVec3(0.f, 0.f, 0.f));
 	void DestroyObj()
 	{
 		Cobes.clear();

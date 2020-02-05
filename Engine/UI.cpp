@@ -1,10 +1,18 @@
 #include "pch.h"
+#include <commdlg.h>
 
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
+#include "Render_Buffer.h"
 #include "UI.h"
 #include "Console.h"
+#include "File_system.h"
 
 #include "examples/imgui_impl_win32.h"
 #include "examples/imgui_impl_dx11.h"
+
+bool BaseComponent::OnlyRenderID = false;
 
 HRESULT UI::Init()
 {
@@ -81,7 +89,7 @@ HRESULT UI::LoadXmlUI(string File)
 	doc = make_shared<tinyxml2::XMLDocument>();
 
 	doc->LoadFile(File.c_str());
-	if (doc->ErrorID() > 0)
+	if (doc->ErrorID() != XML_SUCCESS)
 	{
 		Engine::LogError("", (boost::format("UI::LoatXmlUI() ErrorID > 0!\nReturn Error ID: %s") %
 			to_string(doc->ErrorID())).str(),
@@ -2224,6 +2232,63 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return false;
 	}
 	return false;
+}
+
+pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LPSTR FilterFilesExt, bool MultiSelect)
+{
+	char szFile[512];
+	pair<bool, vector<string>> RetVal;
+	
+	OPENFILENAMEA ofn;
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = Engine::GetHWND();
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = FilterFilesExt;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrTitle = NameOfWnd;
+	ofn.lpstrInitialDir = DirByDef;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT | (MultiSelect ? OFN_ALLOWMULTISELECT : 0);
+
+	if (GetOpenFileNameA(&ofn))
+		RetVal.first = true;
+	RetVal.second.push_back(string(szFile));
+
+	//OutputDebugStringA(("This Error Is: " + to_string(GetLastError())).c_str());
+	return RetVal;
+}
+
+pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LPSTR FilterFilesExt)
+{
+	char szFile[512];
+	pair<bool, vector<string>> RetVal;
+
+	OPENFILENAMEA Ofn;
+	ZeroMemory(&Ofn, sizeof(Ofn));
+	Ofn.lStructSize = sizeof(OPENFILENAMEA);
+	Ofn.hwndOwner = Engine::GetHWND();
+	Ofn.lpstrFile = szFile;
+	Ofn.lpstrFile[0] = '\0';
+	Ofn.nMaxFile = sizeof(szFile);
+	Ofn.lpstrFilter = FilterFilesExt;
+	Ofn.nFilterIndex = 1;
+	Ofn.lpstrTitle = NameOfWnd;
+	Ofn.lpstrInitialDir = DirByDef;
+	Ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	if (GetSaveFileNameA(&Ofn))
+		RetVal.first = true;
+	RetVal.second.push_back(string(szFile));
+
+	//OutputDebugStringA(("This Error Is: " + to_string(GetLastError())).c_str());
+	return RetVal;
+}
+
+void UI::SetRenderOnlyID(bool b)
+{
+	BaseComponent::SetOnlyRenderID(b);
 }
 
 shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName, bool NeedLog)

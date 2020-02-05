@@ -3,7 +3,6 @@
 #define __SIMPLELOGIC_H__
 #include "pch.h"
 
-class StepTimer;
 class SimpleLogic
 {
 public:

@@ -3,16 +3,10 @@
 #define __UI_H__
 #include "pch.h"
 
-#include "File_system.h"
 #include "tinyxml2.h"
 #include "imgui.h"
 
 using namespace tinyxml2;
-
-class Engine;
-extern shared_ptr<Engine> Application;
-#include "Engine.h"
-#include "Render_Buffer.h"
 
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui_internal.h"
@@ -154,7 +148,6 @@ struct XMLDial
 	XMLDial(XMLNode *dial): Dial(dial) {}
 };
 
-	// It'll can be to static cast to this base
 class BaseComponent
 {
 public:
@@ -164,9 +157,23 @@ public:
 	void ChangeText(string Text) { this->Text = Text; }
 	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
 
+	static void SetOnlyRenderID(bool b) { OnlyRenderID = b; }
+
 	void MergeComponents(shared_ptr<AllTheComponent> Component);
 
-	const string GetText() { return Text; }
+	const string GetText()
+	{
+		if (OnlyRenderID)
+		{
+			// Create a new string to remove "##" and render it normals
+			string NewString = ID;
+			int Found = string::npos;
+			if ((Found = NewString.find("#")) != string::npos)
+				NewString.erase(Found, 1);
+			return NewString;
+		}
+		return  Text;
+	}
 
 	const int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
 	const int getRenderOrder() { return OrderlyRender; }
@@ -174,6 +181,7 @@ public:
 	vector<shared_ptr<AllTheComponent>> getComponents() { return Components; }
 protected:
 	int OrderlyRender = 0, OrderlyRenderInDial = 0;
+	static bool OnlyRenderID;
 	string Text = "";
 	const string ID;
 	vector<shared_ptr<AllTheComponent>> Components;
@@ -201,7 +209,7 @@ public:
 
 	void Render()
 	{
-		Combo(Text.c_str(), &selected, Items);
+		Combo(GetText().c_str(), &selected, Items);
 		Active = ImGui::IsItemActive();
 	}
 private:
@@ -219,7 +227,7 @@ public:
 
 	void Render()
 	{
-		ImGui::Selectable(Text.c_str(), selected);
+		ImGui::Selectable(GetText().c_str(), selected);
 	}
 private:
 	bool selected = false;
@@ -329,7 +337,7 @@ public:
 	void Render()
 	{
 		if (IsVisible)
-			ListBox(Text.c_str(), &Selected, Items);
+			ListBox(GetText().c_str(), &Selected, Items);
 
 		Active = ImGui::IsItemActive();
 	}
@@ -524,7 +532,7 @@ public:
 		if (NeedToChangeColor)
 			ImGui::PushStyleColor(ImGuiCol_Text, Color);
 			
-		ImGui::Text(Text.c_str());
+		ImGui::Text(GetText().c_str());
 
 		if (NeedToChangeColor)
 			ImGui::PopStyleColor();
@@ -549,7 +557,7 @@ public:
 
 	void Render()
 	{
-		if (ImGui::Button(Text.c_str()))
+		if (ImGui::Button(GetText().c_str()))
 			clicked = true;
 		else
 			clicked = false;
@@ -694,7 +702,7 @@ public:
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	static void HelpMarker(const char* desc)
+	static void HelpMarker(const char *desc)
 	{
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered())
@@ -706,6 +714,20 @@ public:
 			ImGui::EndTooltip();
 		}
 	}
+
+	// Get Windows Default Dialog Open
+		// return pair::first bool when it clicks on the OK btn and pair::second vector<string>
+		// when has some path files are there
+	static pair<bool, vector<string>> GetWndDlgOpen(LPSTR DirByDef = "C://",
+		LPSTR NameOfWnd = "Dialog Open Files", LPSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0", bool MultiSelect = false);
+	// Get Windows Default Dialog Save
+		// return pair::first bool when it clicks on the OK btn and pair::second vector<string>
+		// when has some path files are there
+	static pair<bool, vector<string>> GetWndDlgSave(LPSTR DirByDef = "C://",
+		LPSTR NameOfWnd = "Dialog Save Files", LPSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0");
+
+	// Set All The Component's name to ID (Using for debug)
+	static void SetRenderOnlyID(bool b);
 protected:
 	// **********
 	HRESULT hr = S_OK;

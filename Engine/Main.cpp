@@ -28,7 +28,7 @@ shared_ptr<Actor> mActor;
 		//	e.g ERROR_FILE_NOT_FOUND
 
 ToDo("Unnecessary: Correct My English, Please)")
-ToDo("Use PxPreprocessor.h for Checking We Have x86 or x64")
+ToDo("Use PxPreprocessor.h for Check If We Have x86 or x64")
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -47,7 +47,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	//	// FS (File System)!!!
 	Application->setFS(make_shared<File_system>());
 
-	if (FAILED(Application->Init(string("DecisionEngine"), hInstance)))
+	if (FAILED(Application->Init("DecisionEngine", hInstance)))
 	{
 		Engine::LogError("wWinMain::Application->Init() is failed.",
 			"wWinMain::Application->Init() is failed!!!",
@@ -58,7 +58,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
 
-	Application->getCLua()->Init();
+	//Application->getCLua()->Init();
 
 	Application->setCLua(make_shared<CLua>());
 
@@ -70,16 +70,18 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"getUI()->Init() is failed!!!", "UI: Init Failed!");
 		return 5;
 	}
-
-	Application->getUI()->LoadXmlUI(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
+	Application->getUI()->LoadXmlUI(Application->getFS()->GetFile("All.xml")->PathA.c_str());
 
 	//	// Console Class!!!
 	Application->setConsole(make_shared<Console>());
 	Application->getConsole()->Init();
-	Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
-	Application->getUI()->getDialog("Console")->ChangeSize(
-		Application->getWorkAreaSize(Application->GetHWND()).x,
-		Application->getWorkAreaSize(Application->GetHWND()).y / 3);
+	if (Application->getUI().operator bool())
+	{
+		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
+		Application->getUI()->getDialog("Console")->ChangeSize(
+			Application->getWorkAreaSize(Application->GetHWND()).x,
+			Application->getWorkAreaSize(Application->GetHWND()).y / 3);
+	}
 
 	Application->setPhysics(make_shared<Physics>());
 	if (FAILED(Application->getPhysics()->Init()))
@@ -139,6 +141,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	MSG msg = { 0 };
 	while (msg.message != WM_QUIT)
 	{
+		Application->setMessage(msg);
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
@@ -154,10 +157,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	Application->getPhysics()->Destroy();
 
-#if defined (DEBUG)
 	if (Application->getUI().operator bool())
 		Application->getUI()->Destroy();
-#endif
+
 	if (Application->getSound().operator bool())
 		Application->getSound()->ReleaseAudio();
 	Application->Destroy();

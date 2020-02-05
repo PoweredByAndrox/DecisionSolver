@@ -3,9 +3,9 @@
 #define __CONSOLE__H_
 #include "pch.h"
 
-#include "UI.h"
 #include "CCommands.h"
 
+class dialogs;
 class Console
 {
 public:

@@ -7,6 +7,8 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 #include "Console.h"
 #include "Physics.h"
+#include "Models.h"
+#include "SimpleLogic.h"
 
 //void GameObjects::Update()
 //{
@@ -48,4 +50,18 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	model->setScale(ScaleCoords);
 	this->ScaleCoords = ScaleCoords;
 	HasScale = true;
+}
+
+void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> Logic)
+{
+	this->Logic = Logic;
+	this->Logic->Init();
+}
+
+void GameObjects::Object::Destroy()
+{
+	if (model.operator bool())
+		model->Release();
+	//if (PH)
+	//	SAFE_release(PH);
 }

@@ -271,7 +271,11 @@ void ParseText(string &Text, Type type)
 {
 	vector<string> strs;
 	deleteWord(Text, "\t", false, false, true);
+
+	if (contains(Text, "##")) return;
+	else if (!contains(Text, "\n")) Text.insert(0, "\n");
 	boost::split(strs, Text, boost::is_any_of("\n"));
+
 	Text.clear();
 
 	for (size_t i = 0; i < strs.size(); i++)
@@ -302,4 +306,17 @@ Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max)
 {
 	Pos.Clamp(Min, Max);
 	return Pos;
+}
+
+string ReplaceSymbols(string In)
+{
+	// Encrypt
+	for (size_t i = 0; i < Rus.size(); i++)
+	{
+		size_t Pos = string::npos;
+		if ((Pos = In.find(Rus.at(i))) != string::npos) // Find Needed Symbol To Replace It
+			In.replace(Pos, Eng.at(i).length(), Eng.at(i));
+	}
+
+	return In;
 }

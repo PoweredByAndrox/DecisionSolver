@@ -25,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test Things", "Test Things"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Strings In Boost", "..\Tests\Test Strings In Boost\Test Strings In Boost.vcxproj", "{9A92E577-938E-43CB-82B8-E267D3AD6036}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestReplaceCyrrilicSymbols", "..\Tests\TestReplaceCyrrilicSymbols\TestReplaceCyrrilicSymbols.vcxproj", "{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -70,6 +72,14 @@ Global
 		{9A92E577-938E-43CB-82B8-E267D3AD6036}.Release|x64.ActiveCfg = Release|x64
 		{9A92E577-938E-43CB-82B8-E267D3AD6036}.Release|x64.Build.0 = Release|x64
 		{9A92E577-938E-43CB-82B8-E267D3AD6036}.Release|x86.ActiveCfg = Release|Win32
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Debug|x64.ActiveCfg = Debug|x64
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Debug|x64.Build.0 = Debug|x64
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Debug|x86.ActiveCfg = Debug|Win32
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Debug|x86.Build.0 = Debug|Win32
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Release|x64.ActiveCfg = Release|x64
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Release|x64.Build.0 = Release|x64
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Release|x86.ActiveCfg = Release|Win32
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,6 +89,7 @@ Global
 		{E0B52AE7-E160-4D32-BF3F-910B785E5A8E} = {09ADFBBD-B467-41AD-999F-47BB86ED9703}
 		{9F316E83-5AE5-4939-A723-305A94F48005} = {9FAFE296-6270-4086-8AD1-C8A720EF11FA}
 		{9A92E577-938E-43CB-82B8-E267D3AD6036} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
+		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52DD52C6-4B5F-4111-B853-40E3A0B1A86B}

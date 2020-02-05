@@ -5,6 +5,7 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 #include "Console.h"
 #include "Camera.h"
+#include "File_system.h"
 
 #include "Audio.h"
 #include <wrl.h>

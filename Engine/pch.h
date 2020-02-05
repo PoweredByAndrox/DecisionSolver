@@ -120,3 +120,17 @@ enum Type
 };
 
 void ParseText(string &Text, Type type);
+
+const vector<string> Rus = {
+"à", "á", "â", "ã", "ä", "å", "¸", "æ", "ç", "è", "é",
+"ê", "ë", "ì", "í", "î", "ï", "ð", "ñ", "ò", "ó", "ô", "õ",
+"ö", "÷", "ø", "ù", "ú", "û", "ü", "ý", "þ", "ÿ"
+};
+
+const vector<string> Eng = {
+"a", "b", "v", "g", "d", "e", "yo", "zh", "z", "i", "j", "k",
+"l", "m", "n", "o", "p", "r", "s", "t", "u", "f", "h",
+"c", "ch", "sh", "shh", "'", "y", "._", "e-", "yu", "ya"
+};
+
+string ReplaceSymbols(string In);

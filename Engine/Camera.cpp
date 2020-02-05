@@ -273,10 +273,18 @@ void Camera::Reset()
 	Teleport(m_vDefaultEye, m_vDefaultLookAt);
 }
 
+#include "GrabThing.h"
+shared_ptr<GrabThing> GThing = make_shared<GrabThing>();
 void Camera::FrameMove(float fElapsedTime)
 {
 	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Home))
 		Reset();
+	else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::G))
+		GThing->Grab();
+	else if (Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Keys::F))
+		GThing->CheckType(-1);
+	else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::B))
+		GThing->Drop();
 
 		// Get keyboard/mouse/gamepad input
 	GetInput(m_bEnablePositionMovement, true);

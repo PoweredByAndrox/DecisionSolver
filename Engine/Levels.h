@@ -5,7 +5,6 @@
 
 #include "GameObjects.h"
 
-class dialogs;
 class Levels: public GameObjects
 {
 public:
@@ -23,8 +22,7 @@ public:
 	static vector<string> IDModels;
 protected:
 	// **********
-	shared_ptr<tinyxml2::XMLDocument> doc;
-	shared_ptr<dialogs> LOGO;
+	shared_ptr<tinyxml2::XMLDocument> doc = make_shared<tinyxml2::XMLDocument>();
 
 	// **********
 	vector<XMLNode *> Nods;

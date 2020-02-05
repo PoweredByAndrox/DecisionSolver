@@ -6,12 +6,15 @@ class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
 #include "File_system.h"
+#include "UI.h"
 
 shared_ptr<Commands> Console::ProcessCommand = make_shared<Commands>();
 shared_ptr<dialogs> Console::Dialog;
 
 HRESULT Console::Init()
 {
+	if (!Application->getUI().operator bool()) return E_FAIL;
+
 	Dialog = Application->getUI()->getDialog("Console");
 	if (!Dialog.operator bool() || Dialog->GetTitle().empty())
 	{

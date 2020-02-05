@@ -31,6 +31,7 @@ private:
 	static HWND hwnd;
 	bool WireFrame = false,
 		IsSimulation = false;
+	MSG msg = {};
 
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;
 	HRESULT hr = S_OK;
@@ -143,10 +144,10 @@ public:
 		if (!this->console.operator bool())
 			this->console = console;
 	}
-	void setFS(shared_ptr<File_system> Pick)
+	void setFS(shared_ptr<File_system> FS)
 	{
 		if (!this->FS.operator bool())
-			this->FS = Pick;
+			this->FS = FS;
 	}
 	void setModel(shared_ptr<Models> model)
 	{
@@ -212,6 +213,9 @@ public:
 	shared_ptr<Mouse> getMouse() { return mouse; }
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }
 	shared_ptr<GamePad> getGamepad() { return gamepad; }
+
+	void setMessage(MSG msg) { this->msg = msg; }
+	MSG getMessage() { return msg; }
 
 	ID3D11Device *getDevice();
 	ID3D11DeviceContext *getDeviceContext();

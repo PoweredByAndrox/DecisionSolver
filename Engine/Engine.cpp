@@ -15,6 +15,7 @@
 #include "Camera.h"
 #include "Multiplayer.h"
 #include "SDKInterface.h"
+#include "File_system.h"
 
 ID3D11Device *Engine::Device = nullptr;
 ID3D11DeviceContext *Engine::DeviceContext = nullptr;
@@ -357,17 +358,8 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
-	if (Sound.operator bool())
-	{
-		if (TrackerKeyboard.pressed.NumPad5)
-			Sound->doPlay();
-		if (TrackerKeyboard.pressed.NumPad6)
-			Sound->doStop();
-		if (TrackerKeyboard.pressed.NumPad7)
-			Sound->doPause();
-	}
-
-	lua->Update();
+	if (lua.operator bool())
+		lua->Update();
 	
 	if (TrackerKeyboard.pressed.F4 && CScene.operator bool())
 	{
@@ -444,7 +436,7 @@ void Engine::Render()
 			if (Comb->IsMouseSelected())
 			{
 				Comb->ClearItems();
-				FS->RescanFiles(_TypeOfFile::SOUNDS);
+				FS->RescanFilesByType(_TypeOfFile::SOUNDS);
 				auto SoundFiles = FS->GetFileByType(_TypeOfFile::SOUNDS);
 
 				for (size_t i = 0; i < SoundFiles.size(); i++)
@@ -505,7 +497,7 @@ void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 		throw exception(ExceptionText.c_str());
 #endif
 	if (!LogText.empty())
-		Console::LogError(LogText.c_str());
+		Console::LogError(LogText);
 }
 
 void Engine::Destroy()

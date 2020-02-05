@@ -41,18 +41,18 @@ bool Models::LoadFromFile(string Filename)
 	vector<ID3DBlob *> Buffer_blob;
 	vector<wstring> FileShaders =
 	{
-		Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW,
-		Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW
+		Application->getFS()->GetFile("VertexShader.hlsl")->PathW,
+		Application->getFS()->GetFile("PixelShader.hlsl")->PathW
 	};
 	vector<string> Functions =
 	{
-		string("Vertex_model_VS"),
-		string("Pixel_model_PS")
+		"Vertex_model_VS",
+		"Pixel_model_PS"
 	},
 		Version =
 	{
-		string("vs_4_0"),
-		string("ps_4_0")
+		"vs_4_0",
+		"ps_4_0"
 	};
 	vector<void *> Buffers = Shaders::CompileShaderFromFile(Buffer_blob =
 		Shaders::CreateShaderFromFile(FileShaders, Functions, Version));
@@ -175,7 +175,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 				{
 					PathTexture = textr->PathA;
 
-					if (FindSubStr(textr->ExtA, string(".dds")))
+					if (FindSubStr(textr->ExtA, ".dds"))
 					{
 						if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
 							&texture.TextureRes, &texture.TextureSHRes)))

@@ -1,5 +1,8 @@
 #include "pch.h"
 
+class Engine;
+extern shared_ptr<Engine> Application;
+#include "Engine.h"
 #include "CCommands.h"
 #include "CLua.h"
 #include "UI.h"
@@ -128,14 +131,14 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		}
 		else if (contains(CMD, "cleanphysbox"))
 			Application->getPhysics()->ClearAllObj();
-		else if (contains(CMD, "reinit_lua"))
-			CLua::Reinit();
+		//else if (contains(CMD, "reinit_lua"))
+		//	CLua::Reinit();
 	}
-	if (cmd->type == Command::TypeOfCommand::Lua)
-	{
-		if (contains(CMD, "exec_lua"))
-			Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
-	}
+	//if (cmd->type == Command::TypeOfCommand::Lua)
+	//{
+	//	if (contains(CMD, "exec_lua"))
+	//		Application->getCLua()->callFunction(cmd->S_One, cmd->S_Two, cmd->S_Three);
+	//}
 	if (cmd->type == Command::TypeOfCommand::WithParam)
 	{
 		if (contains(CMD, "changesize"))

@@ -7,28 +7,26 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 #include "Physics.h"
 #include "Camera.h"
-#include "UI.h"
+#include "Models.h"
+#include "SimpleLogic.h"
 
 vector<shared_ptr<GameObjects::Object>> Levels::Obj_other, Levels::Obj_npc;
 vector<string> Levels::IDModels;
 
-HRESULT Levels::LoadXML(string File)
+HRESULT Levels::LoadXML(string FileBuff)
 {
-	doc = make_shared<tinyxml2::XMLDocument>();
-
-	doc->LoadFile(File.c_str());
-	if (doc->ErrorID() > 0)
+	if (doc->Parse(FileBuff.c_str()) > 0)
 	{
 		Application->StackTrace(doc->ErrorStr());
 		Engine::LogError("Levels->LoadXML()::doc->LoadFile() == nullptr", "Levels->LoadXML()::doc->LoadFile() == nullptr",
 			"Levels: Something is wrong with Load XML File!");
 		return E_FAIL;
 	}
-	else if (doc->Parse(Application->getFS()->getDataFromFile(string(File), true).c_str()) > 0)
+	else if (doc->ErrorID() != XML_SUCCESS)
 	{
-		Engine::LogError((boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
-			(boost::format("Levels->LoadXML()::doc->Parse() returns: %s") % string(doc->ErrorStr())).str(),
-			(boost::format("Levels: Something is wrong with Load XML File!\nReturned: %s") % string(doc->ErrorStr())).str());
+		Engine::LogError("Levels->LoadXML()::doc->Parse() returns: " + string(doc->ErrorStr()),
+			"Levels->LoadXML()::doc->Parse() returns: " + string(doc->ErrorStr()),
+			"Levels: Something is wrong with Load XML File!\nReturned: " + string(doc->ErrorStr()));
 		return E_FAIL;
 	}
 
@@ -60,7 +58,7 @@ vector<shared_ptr<GameObjects::Object>> Levels::XMLPreparing(vector<XMLElement *
 			if (FirstAttr && strcmp(FirstAttr->Name(), "id") == 0)
 			{
 				ID_TEXT = FirstAttr->Value();
-				replaceAll(ID_TEXT, string(" "), string("_"));
+				replaceAll(ID_TEXT, " ", "_");
 				ModelName = FirstAttr->Value();
 
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
@@ -148,7 +146,8 @@ void Levels::Reload_Level(string File)
 {
 	Obj_other.clear();
 	Obj_npc.clear();
-	LoadXML(File);
+	// rework it!
+	//LoadXML(File);
 }
 
 void Levels::ProcessXML()
@@ -268,11 +267,11 @@ void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
 
 HRESULT Levels::Init()
 {
-	auto MapFiles = Application->getFS()->GetFileByType(_TypeOfFile::LEVELS);
-	for (size_t i = 0; i < MapFiles.size(); i++)
-	{
-		EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
-	}
+	//auto MapFiles = Application->getFS()->GetFileByType(_TypeOfFile::LEVELS);
+	//for (size_t i = 0; i < MapFiles.size(); i++)
+	//{
+	//	EngineTrace(LoadXML(MapFiles.at(i)->PathA.c_str()));
+	//}
 
 	return S_OK;
 }

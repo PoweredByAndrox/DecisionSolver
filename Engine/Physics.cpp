@@ -245,9 +245,9 @@ void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
 	}
 }
 
-void Physics::SpawnObject()
+void Physics::SpawnObject(PxVec3 Pos)
 {
-	gBox = PxCreateDynamic(*gPhysics, PxTransform(PxVec3(0.f, 0.f, 0.f)), PxBoxGeometry(PxVec3(5.f, 5.f, 5.f)), *gMaterial, 1.0f);
+	gBox = PxCreateDynamic(*gPhysics, PxTransform(Pos), PxBoxGeometry(PxVec3(5.f, 5.f, 5.f)), *gMaterial, 1.0f);
 
 	gBox->setMass(4.f);
 	

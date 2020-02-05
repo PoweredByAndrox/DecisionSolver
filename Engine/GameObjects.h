@@ -3,12 +3,8 @@
 #define __GAME_OBJECTS_H__
 #include "pch.h"
 
-#include "Physics.h"
-#include "Models.h"
-#include "Audio.h"
-#include "Engine.h"
-#include "SimpleLogic.h"
-
+class Models;
+class SimpleLogic;
 class GameObjects
 {
 public:
@@ -35,7 +31,7 @@ public:
 
 		shared_ptr<Models> model;
 		shared_ptr<SimpleLogic> Logic;
-		PxRigidDynamic *PH = nullptr;
+		//PxRigidDynamic *PH = nullptr;
 	public:
 		Object() {}
 		Object(string ID_TEXT, string ModelNameFile, shared_ptr<SimpleLogic> Logic,
@@ -54,8 +50,8 @@ public:
 
 		void SetModel(shared_ptr<Models> model) { this->model = model; }
 		void SetType(TYPE type) { this->type = type; }
-		void SetLogic(shared_ptr<SimpleLogic> Logic) { this->Logic = Logic; this->Logic->Init(); }
-		void SetPH(PxRigidDynamic *PH) { this->PH = PH; }
+		void SetLogic(shared_ptr<SimpleLogic> Logic);
+		//void SetPH(PxRigidDynamic *PH) { this->PH = PH; }
 
 		int GetID() { return ID; }
 		auto GetType() { return type; }
@@ -77,15 +73,9 @@ public:
 
 		shared_ptr<Models> GetModel() { return model; }
 		shared_ptr<SimpleLogic> GetLogic() { return Logic; }
-		PxRigidDynamic *GetPH() { return PH; }
+		//PxRigidDynamic *GetPH() { return PH; }
 
-		void Destroy()
-		{
-			if (model.operator bool())
-				model->Release();
-			if (PH)
-				SAFE_release(PH);
-		}
+		void Destroy();
 
 		bool RenderIt = true;
 	};
