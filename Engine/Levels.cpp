@@ -15,6 +15,7 @@ vector<string> Levels::IDModels;
 
 HRESULT Levels::LoadXML(string FileBuff)
 {
+	deleteWord(FileBuff, string("<!--"), string("-->"));
 	if (doc->Parse(FileBuff.c_str()) > 0)
 	{
 		Application->StackTrace(doc->ErrorStr());

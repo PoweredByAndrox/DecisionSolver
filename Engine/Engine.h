@@ -102,9 +102,24 @@ private:
 #endif
 
 public:
+/**
+ * @brief Initialized Here Window And DirectX
+ *
+ * @param NameWnd name window
+ * @param hInstance Instance of our window
+ *
+ * @return Init Function status of error codes
+ */
 	HRESULT Init(string NameWnd, HINSTANCE hInstance);
 
+/**
+ * @brief Render It Every Class
+ */
 	void Render();
+
+/**
+ * @brief Here's Releasing All Objects Of Window And DirectX
+ */
 	void Destroy();
 	static void Quit() { ::PostQuitMessage(0); }
 
@@ -230,6 +245,10 @@ public:
 	UINT getMsaaQuality() { return m4xMsaaQuality; }
 
 	void ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }
+	
+/**
+ * @brief Here's Clear Render Target For DirectX + Depth Stensil Also Clear
+ */
 	void ClearRenderTarget();
 	static HRESULT ResizeWindow(WPARAM wParam);
 
@@ -258,11 +277,37 @@ public:
 
 	auto getAllThreadGroup() { return ThreadGroups; }
 
+/**
+ * @brief Here's Error Handing All The Engine
+ *
+ * @param DebugText Debug Text If It's Debug Build
+ * @param ExceptionText Only If Defined "ExceptionWhenEachError"
+ * @param LogText It'll Write In Log File This Text
+ */
 	static void LogError(string DebugText, string ExceptionText, string LogText);
 
+/**
+ * @brief Here's Keybord Key Down Function For Lua
+ *
+ * @param Key Key Passed From Lua
+ */
 	static bool IsKeyboardDown(int Key);
+		
+/**
+ * @brief Here's Keybord Key Up Function For Lua
+ *
+ * @param Key Key Passed From Lua
+ */
 	static bool IsKeyboardUp(int Key);
+	
+/**
+ * @brief Here's Mouse Left Button Function For Lua
+ */
 	static bool IsMouseLeft();
+	
+/**
+ * @brief Here's Mouse Right Button Function For Lua
+ */
 	static bool IsMouseRight();
 private:
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

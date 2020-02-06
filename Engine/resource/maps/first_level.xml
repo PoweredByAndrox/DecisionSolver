@@ -3,9 +3,12 @@
 	<objects>
     <!-- Name of Model also like an identifier -->
     <!-- If the name has a space then replace them with _ -->
-    <One id="v2colored_low">
+		<One id="v2colored_low">
 			<pos>0,0,0</pos>
 			<scale>0.005,0.005,0.005</scale>
 		</One>
+		<Two id="ak47">
+			<pos>10,0,0</pos>
+		</Two>
 	</objects>
 </scene>

@@ -358,8 +358,8 @@ void Engine::Render()
 		TrackerGamepad.Update(state);
 	}
 
-	if (lua.operator bool())
-		lua->Update();
+	//if (lua.operator bool())
+	//	lua->Update();
 	
 	if (TrackerKeyboard.pressed.F4 && CScene.operator bool())
 	{
@@ -708,6 +708,11 @@ float Engine::getframeTime()
 	return frameTime;
 }
 
+/**
+ * @brief Here's Error Handing For XML Files
+ *
+ * @param Error Debug Text If It's Debug Build And Text To File (Log)
+ */
 void Engine::StackTrace(LPCSTR Error)
 {
 #if defined (DEBUG)
@@ -721,6 +726,14 @@ void Engine::StackTrace(LPCSTR Error)
 	Console::LogError(string("Engine: ERROR IN XML FILE!\n") + Error);
 }
 
+/**
+ * @brief Here's Update Messages From System To Window
+ *
+ * @param hWnd hWnd Window
+ * @param uMsg Message
+ * @param wParam Additional Param
+ * @param lParam Additional Param
+ */
 LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (Application->getUI().operator bool())

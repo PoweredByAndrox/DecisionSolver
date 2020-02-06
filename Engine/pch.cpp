@@ -1,5 +1,7 @@
 #include "pch.h"
 
+ToDo("Add Here Doc");
+
 bool FindSubStr(wstring context, wstring const from)
 {
 	if (context.empty() || from.empty())
