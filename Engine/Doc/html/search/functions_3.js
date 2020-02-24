@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['logerror',['LogError',['../class_engine.html#a395acf40d371f664608c3595b3a040af',1,'Engine']]]
+  ['getfloat3text',['getFloat3Text',['../pch_8h.html#a4f27ac6de92220923ea081943e8c3a61',1,'pch.cpp']]],
+  ['gettextfloat3',['getTextFloat3',['../pch_8h.html#a31bd40d3e2576f653ac723c2a32a3a82',1,'pch.cpp']]]
 ];

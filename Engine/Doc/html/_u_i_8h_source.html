@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -87,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#if !defined(__UI_H__)</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define __UI_H__</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;pch.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;tinyxml2.h&quot;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;imgui.h&quot;</span></div>
@@ -451,12 +452,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;    {</div>
 <div class="line"><a name="l00366"></a><span class="lineno">  366</span>&#160;    <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00367"></a><span class="lineno">  367</span>&#160;        <a class="code" href="class_unformated_text_1_1_color_text.html">ColorText</a>() {}</div>
-<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;        <a class="code" href="class_unformated_text_1_1_color_text.html">ColorText</a>(Type type, <span class="keywordtype">string</span> CText): type(type), CText(CText) {}</div>
+<div class="line"><a name="l00368"></a><span class="lineno">  368</span>&#160;        <a class="code" href="class_unformated_text_1_1_color_text.html">ColorText</a>(<a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type, <span class="keywordtype">string</span> CText): type(type), CText(CText) {}</div>
 <div class="line"><a name="l00369"></a><span class="lineno">  369</span>&#160;</div>
-<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;        Type getType() { <span class="keywordflow">return</span> type; }</div>
+<div class="line"><a name="l00370"></a><span class="lineno">  370</span>&#160;        <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> getType() { <span class="keywordflow">return</span> type; }</div>
 <div class="line"><a name="l00371"></a><span class="lineno">  371</span>&#160;        <span class="keywordtype">string</span> GetText() { <span class="keywordflow">return</span> CText; }</div>
 <div class="line"><a name="l00372"></a><span class="lineno">  372</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;        Type type = Type::Normal;</div>
+<div class="line"><a name="l00373"></a><span class="lineno">  373</span>&#160;        <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type = Type::Normal;</div>
 <div class="line"><a name="l00374"></a><span class="lineno">  374</span>&#160;        <span class="keywordtype">string</span> CText = <span class="stringliteral">&quot;&quot;</span>;</div>
 <div class="line"><a name="l00375"></a><span class="lineno">  375</span>&#160;    };</div>
 <div class="line"><a name="l00376"></a><span class="lineno">  376</span>&#160;    vector&lt;shared_ptr&lt;ColorText&gt;&gt; clText;</div>
@@ -467,7 +468,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00381"></a><span class="lineno">  381</span>&#160;        clText.clear();</div>
 <div class="line"><a name="l00382"></a><span class="lineno">  382</span>&#160;    }</div>
 <div class="line"><a name="l00383"></a><span class="lineno">  383</span>&#160;    vector&lt;shared_ptr&lt;ColorText&gt;&gt; getCLText() { <span class="keywordflow">return</span> clText; }</div>
-<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    <span class="keywordtype">void</span> AddCLText(Type type, <span class="keywordtype">string</span> str)</div>
+<div class="line"><a name="l00384"></a><span class="lineno">  384</span>&#160;    <span class="keywordtype">void</span> AddCLText(<a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type, <span class="keywordtype">string</span> str)</div>
 <div class="line"><a name="l00385"></a><span class="lineno">  385</span>&#160;    {</div>
 <div class="line"><a name="l00386"></a><span class="lineno">  386</span>&#160;            <span class="comment">// Check if we typed the same string</span></div>
 <div class="line"><a name="l00387"></a><span class="lineno">  387</span>&#160;        <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; clText.size(); i++)</div>
@@ -550,7 +551,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00464"></a><span class="lineno">  464</span>&#160;    <span class="keywordtype">void</span> setReadOnly(<span class="keywordtype">bool</span> ReadOnly) { this-&gt;ReadOnly = ReadOnly; }</div>
 <div class="line"><a name="l00465"></a><span class="lineno">  465</span>&#160;</div>
 <div class="line"><a name="l00466"></a><span class="lineno">  466</span>&#160;    vector&lt;ColorText&gt; getCLText() { <span class="keywordflow">return</span> clText; }</div>
-<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <span class="keywordtype">void</span> AddCLText(Type type, <span class="keywordtype">string</span> str)</div>
+<div class="line"><a name="l00467"></a><span class="lineno">  467</span>&#160;    <span class="keywordtype">void</span> AddCLText(<a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type, <span class="keywordtype">string</span> str)</div>
 <div class="line"><a name="l00468"></a><span class="lineno">  468</span>&#160;    {</div>
 <div class="line"><a name="l00469"></a><span class="lineno">  469</span>&#160;        <span class="keywordflow">if</span> (clText.empty())</div>
 <div class="line"><a name="l00470"></a><span class="lineno">  470</span>&#160;            clText.push_back(ColorText(type, str));</div>
@@ -587,10 +588,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00501"></a><span class="lineno">  501</span>&#160;    ImGuiInputTextFlags Flags = 0;</div>
 <div class="line"><a name="l00502"></a><span class="lineno">  502</span>&#160;    <span class="keyword">struct </span>ColorText</div>
 <div class="line"><a name="l00503"></a><span class="lineno">  503</span>&#160;    {</div>
-<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;        Type type = Type::Normal;</div>
+<div class="line"><a name="l00504"></a><span class="lineno">  504</span>&#160;        <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type = Type::Normal;</div>
 <div class="line"><a name="l00505"></a><span class="lineno">  505</span>&#160;        <span class="keywordtype">string</span> str = <span class="stringliteral">&quot;&quot;</span>;</div>
 <div class="line"><a name="l00506"></a><span class="lineno">  506</span>&#160;</div>
-<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;        ColorText(Type type, <span class="keywordtype">string</span> str): type(type), str(str) {}</div>
+<div class="line"><a name="l00507"></a><span class="lineno">  507</span>&#160;        ColorText(<a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type, <span class="keywordtype">string</span> str): type(type), str(str) {}</div>
 <div class="line"><a name="l00508"></a><span class="lineno">  508</span>&#160;    };</div>
 <div class="line"><a name="l00509"></a><span class="lineno">  509</span>&#160;</div>
 <div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;    vector&lt;ColorText&gt; clText;</div>
@@ -868,6 +869,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00782"></a><span class="lineno">  782</span>&#160;};</div>
 <div class="line"><a name="l00783"></a><span class="lineno">  783</span>&#160;<span class="preprocessor">#endif // !__UI_H__</span></div>
 <div class="ttc" id="struct_all_the_component_html"><div class="ttname"><a href="struct_all_the_component.html">AllTheComponent</a></div><div class="ttdef"><b>Definition:</b> UI.h:37</div></div>
+<div class="ttc" id="pch_8h_html_a1d1cfd8ffb84e947f82999c682b666a7"><div class="ttname"><a href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a></div><div class="ttdeci">Type</div><div class="ttdoc">Values that using in Loggin File And UI Console Text Colored. </div><div class="ttdef"><b>Definition:</b> pch.h:409</div></div>
 <div class="ttc" id="class_unformated_text_html"><div class="ttname"><a href="class_unformated_text.html">UnformatedText</a></div><div class="ttdef"><b>Definition:</b> UI.h:359</div></div>
 <div class="ttc" id="class_labels_html"><div class="ttname"><a href="class_labels.html">Labels</a></div><div class="ttdef"><b>Definition:</b> UI.h:512</div></div>
 <div class="ttc" id="class___separator_html"><div class="ttname"><a href="class___separator.html">_Separator</a></div><div class="ttdef"><b>Definition:</b> UI.h:351</div></div>
@@ -880,6 +882,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="class_dialogs_html"><div class="ttname"><a href="class_dialogs.html">Dialogs</a></div><div class="ttdef"><b>Definition:</b> Dialogs.h:8</div></div>
 <div class="ttc" id="classdialogs_html"><div class="ttname"><a href="classdialogs.html">dialogs</a></div><div class="ttdef"><b>Definition:</b> UI.h:609</div></div>
 <div class="ttc" id="class_selectable_html"><div class="ttname"><a href="class_selectable.html">Selectable</a></div><div class="ttdef"><b>Definition:</b> UI.h:220</div></div>
+<div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_collapsing_headers_html"><div class="ttname"><a href="class_collapsing_headers.html">CollapsingHeaders</a></div><div class="ttdef"><b>Definition:</b> UI.h:568</div></div>
 <div class="ttc" id="struct_tab_item_html"><div class="ttname"><a href="struct_tab_item.html">TabItem</a></div><div class="ttdef"><b>Definition:</b> UI.h:235</div></div>
 <div class="ttc" id="class_child_html"><div class="ttname"><a href="class_child.html">Child</a></div><div class="ttdef"><b>Definition:</b> UI.h:588</div></div>
@@ -895,7 +898,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

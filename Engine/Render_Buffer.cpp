@@ -64,7 +64,7 @@ ID3D11Buffer *Render_Buffer::CreateVB(UINT ByteWidth, bool NeedVertice, D3D11_US
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
 //		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");
@@ -105,7 +105,7 @@ ID3D11Buffer *Render_Buffer::CreateIB(WORD ByteWidth, bool NeedIndices, D3D11_US
 {
 	if (ByteWidth > uint64_t(D3D11_REQ_RESOURCE_SIZE_IN_MEGABYTES_EXPRESSION_A_TERM * 1024u * 1024u))
 	{
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		throw exception("VertexBuffer too large for DirectX 11");
 #elif defined(NDEBUG)
 //		DebugTrace("WARNING!!!\nVertexBuffer too large for DirectX 11");

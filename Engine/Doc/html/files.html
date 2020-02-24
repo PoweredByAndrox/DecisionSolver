@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li class="current"><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -85,41 +86,55 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 <div class="textblock">Here is a list of all documented files with brief descriptions:</div><div class="directory">
-<table class="directory">
-<tr id="row_0_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_actor_8h_source.html"><span class="icondoc"></span></a><b>Actor.h</b></td><td class="desc"></td></tr>
-<tr id="row_1_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_audio_8h_source.html"><span class="icondoc"></span></a><b>Audio.h</b></td><td class="desc"></td></tr>
-<tr id="row_2_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_camera_8h_source.html"><span class="icondoc"></span></a><b>Camera.h</b></td><td class="desc"></td></tr>
-<tr id="row_3_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_camera___control_8h_source.html"><span class="icondoc"></span></a><b>Camera_Control.h</b></td><td class="desc"></td></tr>
-<tr id="row_4_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_c_commands_8h_source.html"><span class="icondoc"></span></a><b>CCommands.h</b></td><td class="desc"></td></tr>
-<tr id="row_5_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_c_lua_8h_source.html"><span class="icondoc"></span></a><b>CLua.h</b></td><td class="desc"></td></tr>
-<tr id="row_6_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_console_8h_source.html"><span class="icondoc"></span></a><b>Console.h</b></td><td class="desc"></td></tr>
-<tr id="row_7_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_cut_scene_8h_source.html"><span class="icondoc"></span></a><b>CutScene.h</b></td><td class="desc"></td></tr>
-<tr id="row_8_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_debug_draw_8h_source.html"><span class="icondoc"></span></a><b>DebugDraw.h</b></td><td class="desc"></td></tr>
-<tr id="row_9_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_dialogs_8h_source.html"><span class="icondoc"></span></a><b>Dialogs.h</b></td><td class="desc"></td></tr>
-<tr id="row_10_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_engine_8h_source.html"><span class="icondoc"></span></a><b>Engine.h</b></td><td class="desc"></td></tr>
-<tr id="row_11_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_file__system_8h_source.html"><span class="icondoc"></span></a><b>File_system.h</b></td><td class="desc"></td></tr>
-<tr id="row_12_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_game_objects_8h_source.html"><span class="icondoc"></span></a><b>GameObjects.h</b></td><td class="desc"></td></tr>
-<tr id="row_13_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_grab_thing_8h_source.html"><span class="icondoc"></span></a><b>GrabThing.h</b></td><td class="desc"></td></tr>
-<tr id="row_14_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_levels_8h_source.html"><span class="icondoc"></span></a><b>Levels.h</b></td><td class="desc"></td></tr>
-<tr id="row_15_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_main_menu_8h_source.html"><span class="icondoc"></span></a><b>MainMenu.h</b></td><td class="desc"></td></tr>
-<tr id="row_16_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_models_8h_source.html"><span class="icondoc"></span></a><b>Models.h</b></td><td class="desc"></td></tr>
-<tr id="row_17_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_multiplayer_8h_source.html"><span class="icondoc"></span></a><b>Multiplayer.h</b></td><td class="desc"></td></tr>
-<tr id="row_18_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="pch_8h_source.html"><span class="icondoc"></span></a><b>pch.h</b></td><td class="desc"></td></tr>
-<tr id="row_19_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_phys_camera_8h_source.html"><span class="icondoc"></span></a><b>PhysCamera.h</b></td><td class="desc"></td></tr>
-<tr id="row_20_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_physics_8h_source.html"><span class="icondoc"></span></a><b>Physics.h</b></td><td class="desc"></td></tr>
-<tr id="row_21_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_picking_8h_source.html"><span class="icondoc"></span></a><b>Picking.h</b></td><td class="desc"></td></tr>
-<tr id="row_22_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_render___buffer_8h_source.html"><span class="icondoc"></span></a><b>Render_Buffer.h</b></td><td class="desc"></td></tr>
-<tr id="row_23_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="resource_8h_source.html"><span class="icondoc"></span></a><b>resource.h</b></td><td class="desc"></td></tr>
-<tr id="row_24_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_s_d_k_interface_8h_source.html"><span class="icondoc"></span></a><b>SDKInterface.h</b></td><td class="desc"></td></tr>
-<tr id="row_25_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_shaders_8h_source.html"><span class="icondoc"></span></a><b>Shaders.h</b></td><td class="desc"></td></tr>
-<tr id="row_26_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_simple_logic_8h_source.html"><span class="icondoc"></span></a><b>SimpleLogic.h</b></td><td class="desc"></td></tr>
-<tr id="row_27_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_u_i_8h_source.html"><span class="icondoc"></span></a><b>UI.h</b></td><td class="desc"></td></tr>
+<div class="levels">[detail level <span onclick="javascript:toggleLevel(1);">1</span><span onclick="javascript:toggleLevel(2);">2</span>]</div><table class="directory">
+<tr id="row_0_" class="even"><td class="entry"><span style="width:0px;display:inline-block;">&#160;</span><span id="arr_0_" class="arrow" onclick="toggleFolder('0_')">&#9660;</span><span id="img_0_" class="iconfopen" onclick="toggleFolder('0_')">&#160;</span><a class="el" href="dir_856524284ebe840938865dc061f982fb.html" target="_self">Include</a></td><td class="desc"></td></tr>
+<tr id="row_0_0_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="audiodefs_8h_source.html"><span class="icondoc"></span></a><b>audiodefs.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_1_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="comdecl_8h_source.html"><span class="icondoc"></span></a><b>comdecl.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_2_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_d3_d_x11_8h_source.html"><span class="icondoc"></span></a><b>D3DX11.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_3_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_d3_d_x11async_8h_source.html"><span class="icondoc"></span></a><b>D3DX11async.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_4_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_d3_d_x11core_8h_source.html"><span class="icondoc"></span></a><b>D3DX11core.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_5_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_d3_d_x11tex_8h_source.html"><span class="icondoc"></span></a><b>D3DX11tex.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_6_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_dx_err_8h_source.html"><span class="icondoc"></span></a><b>DxErr.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_7_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_d_x_s_d_k_audio2_8h_source.html"><span class="icondoc"></span></a><b>DXSDKAudio2.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_8_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_step_timer_8h_source.html"><span class="icondoc"></span></a><b>StepTimer.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_9_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_timer_8h_source.html"><span class="icondoc"></span></a><b>Timer.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_10_"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_x3_d_audio_8h_source.html"><span class="icondoc"></span></a><b>X3DAudio.h</b></td><td class="desc"></td></tr>
+<tr id="row_0_11_" class="even"><td class="entry"><span style="width:32px;display:inline-block;">&#160;</span><a href="_x_input_8h_source.html"><span class="icondoc"></span></a><b>XInput.h</b></td><td class="desc"></td></tr>
+<tr id="row_1_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_actor_8h_source.html"><span class="icondoc"></span></a><b>Actor.h</b></td><td class="desc"></td></tr>
+<tr id="row_2_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_audio_8h_source.html"><span class="icondoc"></span></a><b>Audio.h</b></td><td class="desc"></td></tr>
+<tr id="row_3_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_camera_8h_source.html"><span class="icondoc"></span></a><b>Camera.h</b></td><td class="desc"></td></tr>
+<tr id="row_4_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_camera___control_8h_source.html"><span class="icondoc"></span></a><b>Camera_Control.h</b></td><td class="desc"></td></tr>
+<tr id="row_5_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_c_commands_8h_source.html"><span class="icondoc"></span></a><b>CCommands.h</b></td><td class="desc"></td></tr>
+<tr id="row_6_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_c_lua_8h_source.html"><span class="icondoc"></span></a><b>CLua.h</b></td><td class="desc"></td></tr>
+<tr id="row_7_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_console_8h_source.html"><span class="icondoc"></span></a><b>Console.h</b></td><td class="desc"></td></tr>
+<tr id="row_8_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_cut_scene_8h_source.html"><span class="icondoc"></span></a><b>CutScene.h</b></td><td class="desc"></td></tr>
+<tr id="row_9_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_debug_draw_8h_source.html"><span class="icondoc"></span></a><b>DebugDraw.h</b></td><td class="desc"></td></tr>
+<tr id="row_10_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_dialogs_8h_source.html"><span class="icondoc"></span></a><b>Dialogs.h</b></td><td class="desc"></td></tr>
+<tr id="row_11_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_engine_8h_source.html"><span class="icondoc"></span></a><b>Engine.h</b></td><td class="desc"></td></tr>
+<tr id="row_12_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_file__system_8h_source.html"><span class="icondoc"></span></a><b>File_system.h</b></td><td class="desc"></td></tr>
+<tr id="row_13_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_game_objects_8h_source.html"><span class="icondoc"></span></a><b>GameObjects.h</b></td><td class="desc"></td></tr>
+<tr id="row_14_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_grab_thing_8h_source.html"><span class="icondoc"></span></a><b>GrabThing.h</b></td><td class="desc"></td></tr>
+<tr id="row_15_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_levels_8h_source.html"><span class="icondoc"></span></a><b>Levels.h</b></td><td class="desc"></td></tr>
+<tr id="row_16_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><span class="icondoc"></span><a class="el" href="main_8cpp.html" target="_self">main.cpp</a></td><td class="desc">Implements Init All The Classes And Have "Application" Variable For <a class="el" href="class_engine.html">Engine</a> </td></tr>
+<tr id="row_17_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_main_menu_8h_source.html"><span class="icondoc"></span></a><b>MainMenu.h</b></td><td class="desc"></td></tr>
+<tr id="row_18_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_models_8h_source.html"><span class="icondoc"></span></a><b>Models.h</b></td><td class="desc"></td></tr>
+<tr id="row_19_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_multiplayer_8h_source.html"><span class="icondoc"></span></a><b>Multiplayer.h</b></td><td class="desc"></td></tr>
+<tr id="row_20_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="pch_8h_source.html"><span class="icondoc"></span></a><a class="el" href="pch_8h.html" target="_self">pch.h</a></td><td class="desc">Declares the pch class </td></tr>
+<tr id="row_21_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_phys_camera_8h_source.html"><span class="icondoc"></span></a><b>PhysCamera.h</b></td><td class="desc"></td></tr>
+<tr id="row_22_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_physics_8h_source.html"><span class="icondoc"></span></a><b>Physics.h</b></td><td class="desc"></td></tr>
+<tr id="row_23_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_picking_8h_source.html"><span class="icondoc"></span></a><b>Picking.h</b></td><td class="desc"></td></tr>
+<tr id="row_24_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_render___buffer_8h_source.html"><span class="icondoc"></span></a><b>Render_Buffer.h</b></td><td class="desc"></td></tr>
+<tr id="row_25_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="resource_8h_source.html"><span class="icondoc"></span></a><b>resource.h</b></td><td class="desc"></td></tr>
+<tr id="row_26_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_s_d_k_interface_8h_source.html"><span class="icondoc"></span></a><b>SDKInterface.h</b></td><td class="desc"></td></tr>
+<tr id="row_27_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_shaders_8h_source.html"><span class="icondoc"></span></a><b>Shaders.h</b></td><td class="desc"></td></tr>
+<tr id="row_28_" class="even"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_simple_logic_8h_source.html"><span class="icondoc"></span></a><b>SimpleLogic.h</b></td><td class="desc"></td></tr>
+<tr id="row_29_"><td class="entry"><span style="width:16px;display:inline-block;">&#160;</span><a href="_u_i_8h_source.html"><span class="icondoc"></span></a><b>UI.h</b></td><td class="desc"></td></tr>
 </table>
 </div><!-- directory -->
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:46:00 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:26 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

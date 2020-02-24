@@ -16,7 +16,7 @@
       <ConformanceMode>false</ConformanceMode>
       <WarningLevel>Level3</WarningLevel>
       <BasicRuntimeChecks>StackFrameRuntimeCheck</BasicRuntimeChecks>
-      <PreprocessorDefinitions>IMGUI_DISABLE_WIN32_FUNCTIONS;BOOST_AUTO_LINK_TAGGED;ZLIB_WINAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;comctl32.lib;legacy_stdio_definitions.lib;Usp10.lib;lua51.lib;luaJIT.lib;X3DAudio.lib;d3d11.lib;d3dx11.lib;DxErr.lib;Dxgi.lib;DxGuid.lib;D3DCSX.lib;DirectXTK.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>

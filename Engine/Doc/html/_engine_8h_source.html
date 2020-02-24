@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -87,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#if !defined(__ENGINE_H__)</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define __ENGINE_H__</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;pch.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;Inc/Keyboard.h&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &lt;Inc/Mouse.h&gt;</span></div>
@@ -111,290 +112,293 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="keyword">class </span><a class="code" href="class_levels.html">Levels</a>;</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">class </span><a class="code" href="class_cut_scene.html">CutScene</a>;</div>
 <div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="keyword">class </span><a class="code" href="class_multiplayer.html">Multiplayer</a>;</div>
-<div class="line"><a name="l00028"></a><span class="lineno"><a class="line" href="class_engine.html">   28</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_engine.html">Engine</a></div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;{</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keyword">static</span> HWND hwnd;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordtype">bool</span> WireFrame = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;        IsSimulation = <span class="keyword">false</span>;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    MSG msg = {};</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    HRESULT hr = S_OK;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keywordtype">string</span> NameWnd = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;    wstring ClassWND = L<span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">float</span> fps = 0.f, frameTime = 0.f;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keyword">static</span> ID3D11Device *Device;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keyword">static</span> ID3D11DeviceContext *DeviceContext;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keyword">static</span> ID3D11Device1 *Device1;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keyword">static</span> ID3D11DeviceContext1 *DeviceContext1;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keyword">static</span> IDXGISwapChain *SwapChain;</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keyword">static</span> IDXGISwapChain1 *SwapChain1;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">static</span> ID3D11RenderTargetView *RenderTargetView;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keyword">static</span> ID3D11Texture2D *DepthStencil;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    ID3D11DepthStencilState *m_depthStencilState = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">static</span> ID3D11DepthStencilView *DepthStencilView;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keyword">static</span> IDXGIFactory1 *dxgiFactory;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <span class="keyword">static</span> IDXGIFactory2 *dxgiFactory2;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="class_engine.html">   32</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_engine.html">Engine</a></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;{</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    <span class="keyword">static</span> HWND hwnd;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    <span class="keywordtype">bool</span> WireFrame = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;        IsSimulation = <span class="keyword">false</span>;</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    MSG msg = {};</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    HRESULT hr = S_OK;</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordtype">string</span> NameWnd = <span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    wstring ClassWND = L<span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keywordtype">float</span> fps = 0.f, frameTime = 0.f;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keyword">static</span> ID3D11Device *Device;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keyword">static</span> ID3D11DeviceContext *DeviceContext;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">static</span> ID3D11Device1 *Device1;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <span class="keyword">static</span> ID3D11DeviceContext1 *DeviceContext1;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">static</span> IDXGISwapChain *SwapChain;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="keyword">static</span> IDXGISwapChain1 *SwapChain1;</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="keyword">static</span> ID3D11RenderTargetView *RenderTargetView;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keyword">static</span> ID3D11Texture2D *DepthStencil;</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    ID3D11DepthStencilState *m_depthStencilState = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    D3D_FEATURE_LEVEL *featureLevel = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="keyword">static</span> DXGI_SWAP_CHAIN_DESC SCD;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">static</span> DXGI_SWAP_CHAIN_DESC1 SCD1;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="keyword">static</span> D3D11_TEXTURE2D_DESC descDepth;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    <span class="keyword">static</span> D3D11_VIEWPORT vp;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    D3D11_RASTERIZER_DESC rasterDesc;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    ID3D11RasterizerState *RsWF = <span class="keyword">nullptr</span>, *RsNoWF = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    DXGI_ADAPTER_DESC pDesc;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    UINT m4xMsaaQuality = 0ul;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">#if defined(NEEDED_DEBUG_INFO)</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    ID3D11Debug *debug = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="keyword">static</span> ID3D11DepthStencilView *DepthStencilView;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="keyword">static</span> IDXGIFactory1 *dxgiFactory;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="keyword">static</span> IDXGIFactory2 *dxgiFactory2;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    D3D_FEATURE_LEVEL *featureLevel = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    <span class="keyword">static</span> DXGI_SWAP_CHAIN_DESC SCD;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">static</span> DXGI_SWAP_CHAIN_DESC1 SCD1;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="keyword">static</span> D3D11_TEXTURE2D_DESC descDepth;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">static</span> D3D11_VIEWPORT vp;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    D3D11_RASTERIZER_DESC rasterDesc;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    ID3D11RasterizerState *RsWF = <span class="keyword">nullptr</span>, *RsNoWF = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    DXGI_ADAPTER_DESC pDesc;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    UINT m4xMsaaQuality = 0ul;</div>
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;    shared_ptr&lt;File_system&gt; FS;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    shared_ptr&lt;Models&gt; model;</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    shared_ptr&lt;Audio&gt; Sound;</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;    shared_ptr&lt;Console&gt; console;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    shared_ptr&lt;UI&gt; ui;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    shared_ptr&lt;CLua&gt; lua;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    shared_ptr&lt;CutScene&gt; CScene;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    shared_ptr&lt;Picking&gt; Pick;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    <span class="comment">//shared_ptr&lt;Frustum&gt; frustum;</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    shared_ptr&lt;Levels&gt; Level;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    shared_ptr&lt;Actor&gt; mainActor;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    shared_ptr&lt;Physics&gt; PhysX;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    shared_ptr&lt;Camera&gt; camera;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="comment">// Multiplayer</span></div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    shared_ptr&lt;Multiplayer&gt; MPL;</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;Mouse&gt; mouse;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;Keyboard&gt; keyboard;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;GamePad&gt; gamepad;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    shared_ptr&lt;StepTimer&gt; Timer = make_shared&lt;StepTimer&gt;();</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    shared_ptr&lt;DebugDraw&gt; dDraw;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="preprocessor">#if defined(NEEDED_DEBUG_INFO)</span></div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;    ID3D11Debug *debug = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    shared_ptr&lt;File_system&gt; FS;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    shared_ptr&lt;Models&gt; model;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    shared_ptr&lt;Audio&gt; Sound;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    shared_ptr&lt;Console&gt; console;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;    shared_ptr&lt;UI&gt; ui;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    shared_ptr&lt;CLua&gt; lua;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    shared_ptr&lt;CutScene&gt; CScene;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    shared_ptr&lt;Picking&gt; Pick;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="comment">//shared_ptr&lt;Frustum&gt; frustum;</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    shared_ptr&lt;Levels&gt; Level;</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    shared_ptr&lt;Actor&gt; mainActor;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    shared_ptr&lt;Physics&gt; PhysX;</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    shared_ptr&lt;Camera&gt; camera;</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    <span class="comment">// Multiplayer</span></div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    shared_ptr&lt;Multiplayer&gt; MPL;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;Mouse&gt; mouse;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;Keyboard&gt; keyboard;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="keyword">static</span> shared_ptr&lt;GamePad&gt; gamepad;</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="preprocessor">#if defined(Never_MainMenu)</span></div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;    shared_ptr&lt;MainMenu&gt; Menu = make_unique&lt;MainMenu&gt;();</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    shared_ptr&lt;StepTimer&gt; <a class="code" href="class_timer.html">Timer</a> = make_shared&lt;StepTimer&gt;();</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;</div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    shared_ptr&lt;DebugDraw&gt; dDraw;</div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    HRESULT <a class="code" href="class_engine.html#a52ddeb2b53776f6419944eee76e269e7">Init</a>(<span class="keywordtype">string</span> NameWnd, HINSTANCE hInstance);</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#acde70aed0043e2e2091d0bb6cce8e3c1">Render</a>();</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#aaa92f059235842e9dfa81e89dc717d0a">Destroy</a>();</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> Quit() { ::PostQuitMessage(0); }</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;    <a class="code" href="class_engine.html">Engine</a>() {}</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    ~<a class="code" href="class_engine.html">Engine</a>() {}</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="keyword">static</span> HWND GetHWND() { <span class="keywordflow">return</span> hwnd; }</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    <span class="keywordtype">string</span> getNameWndA() { <span class="keywordflow">return</span> NameWnd.c_str(); }</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;<span class="preprocessor">#if defined(Never_MainMenu)</span></div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    shared_ptr&lt;MainMenu&gt; Menu = make_unique&lt;MainMenu&gt;();</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    HRESULT <a class="code" href="class_engine.html#a52ddeb2b53776f6419944eee76e269e7">Init</a>(<span class="keywordtype">string</span> NameWnd, HINSTANCE hInstance);</div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#acde70aed0043e2e2091d0bb6cce8e3c1">Render</a>();</div>
+<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#aaa92f059235842e9dfa81e89dc717d0a">Destroy</a>();</div>
+<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> Quit() { ::PostQuitMessage(0); }</div>
+<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;</div>
+<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <a class="code" href="class_engine.html">Engine</a>() {}</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;    ~<a class="code" href="class_engine.html">Engine</a>() {}</div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    shared_ptr&lt;File_system&gt; getFS() { <span class="keywordflow">return</span> FS; }</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;    shared_ptr&lt;Models&gt; getModel() { <span class="keywordflow">return</span> model; }</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    shared_ptr&lt;Audio&gt; getSound() { <span class="keywordflow">return</span> Sound; }</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;    shared_ptr&lt;UI&gt; getUI() { <span class="keywordflow">return</span> ui; }</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    shared_ptr&lt;Picking&gt; getPick() { <span class="keywordflow">return</span> Pick; }</div>
-<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    <span class="comment">//shared_ptr&lt;Frustum&gt; getFrustum() { return frustum; }</span></div>
-<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    shared_ptr&lt;Levels&gt; getLevel() { <span class="keywordflow">return</span> Level; }</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;    shared_ptr&lt;Actor&gt; getActor() { <span class="keywordflow">return</span> mainActor; }</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    shared_ptr&lt;Physics&gt; getPhysics() { <span class="keywordflow">return</span> PhysX; }</div>
-<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    shared_ptr&lt;Camera&gt; getCamera() { <span class="keywordflow">return</span> camera; }</div>
-<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    shared_ptr&lt;Console&gt; getConsole() { <span class="keywordflow">return</span> console; }</div>
-<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    shared_ptr&lt;CLua&gt; getCLua() { <span class="keywordflow">return</span> lua; }</div>
-<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    shared_ptr&lt;CutScene&gt; getCScene() { <span class="keywordflow">return</span> CScene; }</div>
-<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    shared_ptr&lt;StepTimer&gt; getTimer() { <span class="keywordflow">return</span> Timer; }</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;</div>
-<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    shared_ptr&lt;DebugDraw&gt; getDebugDraw() { <span class="keywordflow">return</span> dDraw; }</div>
-<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;    shared_ptr&lt;Multiplayer&gt; getMPL() { <span class="keywordflow">return</span> MPL; }</div>
-<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;</div>
-<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;    <span class="keywordtype">void</span> setUI(shared_ptr&lt;UI&gt; ui)</div>
-<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    {</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;ui.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;            this-&gt;ui = ui;</div>
-<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    }</div>
-<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    <span class="keywordtype">void</span> setConsole(shared_ptr&lt;Console&gt; console)</div>
-<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;    {</div>
-<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;console.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;            this-&gt;console = console;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    }</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    <span class="keywordtype">void</span> setFS(shared_ptr&lt;File_system&gt; FS)</div>
-<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;    {</div>
-<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;FS.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;            this-&gt;FS = FS;</div>
-<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    }</div>
-<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    <span class="keywordtype">void</span> setModel(shared_ptr&lt;Models&gt; model)</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;    {</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;model.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;            this-&gt;model = model;</div>
-<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    }</div>
-<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    <span class="keywordtype">void</span> setCamera(shared_ptr&lt;Camera&gt; camera)</div>
-<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;    {</div>
-<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;camera.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;            this-&gt;camera = camera;</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    }</div>
-<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    <span class="keywordtype">void</span> setActor(shared_ptr&lt;Actor&gt; mainActor)</div>
-<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;    {</div>
-<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;mainActor.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;            this-&gt;mainActor = mainActor;</div>
-<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    }</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    <span class="keywordtype">void</span> setSound(shared_ptr&lt;Audio&gt; Sound)</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;    {</div>
-<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Sound.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;            this-&gt;Sound = Sound;</div>
-<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    }</div>
-<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    <span class="keywordtype">void</span> setPhysics(shared_ptr&lt;Physics&gt; PhysX)</div>
-<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;    {</div>
-<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;PhysX.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;            this-&gt;PhysX = PhysX;</div>
-<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    }</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    <span class="keywordtype">void</span> setDebugDraw(shared_ptr&lt;DebugDraw&gt; dDraw)</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;    {</div>
-<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;dDraw.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;            this-&gt;dDraw = dDraw;</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    }</div>
-<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    <span class="keywordtype">void</span> setCLua(shared_ptr&lt;CLua&gt; lua)</div>
-<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;    {</div>
-<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;lua.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;            this-&gt;lua = lua;</div>
-<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    }</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    <span class="keywordtype">void</span> setCScene(shared_ptr&lt;CutScene&gt; CScene)</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;    {</div>
-<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;        this-&gt;CScene = CScene;</div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    <span class="keyword">static</span> HWND GetHWND() { <span class="keywordflow">return</span> hwnd; }</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keywordtype">string</span> getNameWndA() { <span class="keywordflow">return</span> NameWnd.c_str(); }</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;    shared_ptr&lt;File_system&gt; getFS() { <span class="keywordflow">return</span> FS; }</div>
+<div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;    shared_ptr&lt;Models&gt; getModel() { <span class="keywordflow">return</span> model; }</div>
+<div class="line"><a name="l00139"></a><span class="lineno">  139</span>&#160;    shared_ptr&lt;Audio&gt; getSound() { <span class="keywordflow">return</span> Sound; }</div>
+<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;    shared_ptr&lt;UI&gt; getUI() { <span class="keywordflow">return</span> ui; }</div>
+<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;    shared_ptr&lt;Picking&gt; getPick() { <span class="keywordflow">return</span> Pick; }</div>
+<div class="line"><a name="l00142"></a><span class="lineno">  142</span>&#160;    <span class="comment">//shared_ptr&lt;Frustum&gt; getFrustum() { return frustum; }</span></div>
+<div class="line"><a name="l00143"></a><span class="lineno">  143</span>&#160;    shared_ptr&lt;Levels&gt; getLevel() { <span class="keywordflow">return</span> Level; }</div>
+<div class="line"><a name="l00144"></a><span class="lineno">  144</span>&#160;    shared_ptr&lt;Actor&gt; getActor() { <span class="keywordflow">return</span> mainActor; }</div>
+<div class="line"><a name="l00145"></a><span class="lineno">  145</span>&#160;    shared_ptr&lt;Physics&gt; getPhysics() { <span class="keywordflow">return</span> PhysX; }</div>
+<div class="line"><a name="l00146"></a><span class="lineno">  146</span>&#160;    shared_ptr&lt;Camera&gt; getCamera() { <span class="keywordflow">return</span> camera; }</div>
+<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;    shared_ptr&lt;Console&gt; getConsole() { <span class="keywordflow">return</span> console; }</div>
+<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;    shared_ptr&lt;CLua&gt; getCLua() { <span class="keywordflow">return</span> lua; }</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;    shared_ptr&lt;CutScene&gt; getCScene() { <span class="keywordflow">return</span> CScene; }</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;</div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;    shared_ptr&lt;StepTimer&gt; getTimer() { <span class="keywordflow">return</span> Timer; }</div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;</div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;    shared_ptr&lt;DebugDraw&gt; getDebugDraw() { <span class="keywordflow">return</span> dDraw; }</div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;    shared_ptr&lt;Multiplayer&gt; getMPL() { <span class="keywordflow">return</span> MPL; }</div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;</div>
+<div class="line"><a name="l00156"></a><span class="lineno">  156</span>&#160;    <span class="keywordtype">void</span> setUI(shared_ptr&lt;UI&gt; ui)</div>
+<div class="line"><a name="l00157"></a><span class="lineno">  157</span>&#160;    {</div>
+<div class="line"><a name="l00158"></a><span class="lineno">  158</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;ui.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00159"></a><span class="lineno">  159</span>&#160;            this-&gt;ui = ui;</div>
+<div class="line"><a name="l00160"></a><span class="lineno">  160</span>&#160;    }</div>
+<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;    <span class="keywordtype">void</span> setConsole(shared_ptr&lt;Console&gt; console)</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;    {</div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;console.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;            this-&gt;console = console;</div>
+<div class="line"><a name="l00165"></a><span class="lineno">  165</span>&#160;    }</div>
+<div class="line"><a name="l00166"></a><span class="lineno">  166</span>&#160;    <span class="keywordtype">void</span> setFS(shared_ptr&lt;File_system&gt; FS)</div>
+<div class="line"><a name="l00167"></a><span class="lineno">  167</span>&#160;    {</div>
+<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;FS.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;            this-&gt;FS = FS;</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;    }</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;    <span class="keywordtype">void</span> setModel(shared_ptr&lt;Models&gt; model)</div>
+<div class="line"><a name="l00172"></a><span class="lineno">  172</span>&#160;    {</div>
+<div class="line"><a name="l00173"></a><span class="lineno">  173</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;model.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;            this-&gt;model = model;</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;    }</div>
+<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;    <span class="keywordtype">void</span> setCamera(shared_ptr&lt;Camera&gt; camera)</div>
+<div class="line"><a name="l00177"></a><span class="lineno">  177</span>&#160;    {</div>
+<div class="line"><a name="l00178"></a><span class="lineno">  178</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;camera.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00179"></a><span class="lineno">  179</span>&#160;            this-&gt;camera = camera;</div>
+<div class="line"><a name="l00180"></a><span class="lineno">  180</span>&#160;    }</div>
+<div class="line"><a name="l00181"></a><span class="lineno">  181</span>&#160;    <span class="keywordtype">void</span> setActor(shared_ptr&lt;Actor&gt; mainActor)</div>
+<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;    {</div>
+<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;mainActor.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00184"></a><span class="lineno">  184</span>&#160;            this-&gt;mainActor = mainActor;</div>
+<div class="line"><a name="l00185"></a><span class="lineno">  185</span>&#160;    }</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;    <span class="keywordtype">void</span> setSound(shared_ptr&lt;Audio&gt; Sound)</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;    {</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Sound.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00189"></a><span class="lineno">  189</span>&#160;            this-&gt;Sound = Sound;</div>
+<div class="line"><a name="l00190"></a><span class="lineno">  190</span>&#160;    }</div>
+<div class="line"><a name="l00191"></a><span class="lineno">  191</span>&#160;    <span class="keywordtype">void</span> setPhysics(shared_ptr&lt;Physics&gt; PhysX)</div>
+<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;    {</div>
+<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;PhysX.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;            this-&gt;PhysX = PhysX;</div>
+<div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;    }</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;    <span class="keywordtype">void</span> setDebugDraw(shared_ptr&lt;DebugDraw&gt; dDraw)</div>
+<div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;    {</div>
+<div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;dDraw.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;            this-&gt;dDraw = dDraw;</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;    }</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keywordtype">void</span> setCLua(shared_ptr&lt;CLua&gt; lua)</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;    {</div>
+<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;lua.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00204"></a><span class="lineno">  204</span>&#160;            this-&gt;lua = lua;</div>
 <div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;    }</div>
-<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="keywordtype">void</span> setPick(shared_ptr&lt;Picking&gt; Pick)</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="keywordtype">void</span> setCScene(shared_ptr&lt;CutScene&gt; CScene)</div>
 <div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;    {</div>
-<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Pick.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;            this-&gt;Pick = Pick;</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    }</div>
-<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    <span class="comment">/*</span></div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;<span class="comment">    void setFrustum(shared_ptr&lt;Frustum&gt; frustum)</span></div>
-<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;<span class="comment">    {</span></div>
-<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;<span class="comment">        if (!this-&gt;frustum.operator bool())</span></div>
-<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;<span class="comment">            this-&gt;frustum = frustum;</span></div>
-<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;<span class="comment">    }</span></div>
-<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="comment">    */</span></div>
-<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    <span class="keywordtype">void</span> setLevel(shared_ptr&lt;Levels&gt; Level)</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;    {</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Level.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;            this-&gt;Level = Level;</div>
-<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    }</div>
-<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    <span class="keywordtype">void</span> setMultiplayer(shared_ptr&lt;Multiplayer&gt; MPL)</div>
-<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;    {</div>
-<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;MPL.operator <span class="keywordtype">bool</span>())</div>
-<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;            this-&gt;MPL = MPL;</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    }</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    shared_ptr&lt;Mouse&gt; getMouse() { <span class="keywordflow">return</span> mouse; }</div>
-<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    shared_ptr&lt;Keyboard&gt; getKeyboard() { <span class="keywordflow">return</span> keyboard; }</div>
-<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    shared_ptr&lt;GamePad&gt; getGamepad() { <span class="keywordflow">return</span> gamepad; }</div>
-<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;</div>
-<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    <span class="keywordtype">void</span> setMessage(MSG msg) { this-&gt;msg = msg; }</div>
-<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    MSG getMessage() { <span class="keywordflow">return</span> msg; }</div>
-<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;</div>
-<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;    ID3D11Device *getDevice();</div>
-<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    ID3D11DeviceContext *getDeviceContext();</div>
-<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    IDXGISwapChain *getSwapChain();</div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;    ID3D11RenderTargetView *getTargetView();</div>
-<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;</div>
-<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    DXGI_SWAP_CHAIN_DESC getSwapChainDesc() { <span class="keywordflow">return</span> SCD; }</div>
-<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    DXGI_SWAP_CHAIN_DESC1 getSwapChainDesc1() { <span class="keywordflow">return</span> SCD1; }</div>
-<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    D3D11_TEXTURE2D_DESC getDescDepth() { <span class="keywordflow">return</span> descDepth; }</div>
-<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;    D3D11_VIEWPORT getViewPort() { <span class="keywordflow">return</span> vp; }</div>
-<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;</div>
-<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    UINT getMsaaQuality() { <span class="keywordflow">return</span> m4xMsaaQuality; }</div>
-<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    <span class="keywordtype">void</span> ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;    </div>
-<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a0efd90dfc7e6fdcb2929f3ec36a215e0">ClearRenderTarget</a>();</div>
-<div class="line"><a name="l00253"></a><span class="lineno">  253</span>&#160;    <span class="keyword">static</span> HRESULT ResizeWindow(WPARAM wParam);</div>
-<div class="line"><a name="l00254"></a><span class="lineno">  254</span>&#160;</div>
-<div class="line"><a name="l00255"></a><span class="lineno">  255</span>&#160;    <span class="keywordtype">bool</span> IsWireFrame() { <span class="keywordflow">return</span> WireFrame; }</div>
-<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    ID3D11RasterizerState *GetWireFrame() { <span class="keywordflow">return</span> RsWF; }</div>
-<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    ID3D11RasterizerState *GetNormalFrame() { <span class="keywordflow">return</span> RsNoWF; }</div>
-<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;    <span class="keywordtype">void</span> SetWireFrame(<span class="keywordtype">bool</span> WF) { WireFrame = WF; }</div>
-<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;</div>
-<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <span class="keywordtype">bool</span> IsSimulatePhysics() { <span class="keywordflow">return</span> IsSimulation; }</div>
-<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    <span class="keywordtype">void</span> SetPausePhysics(<span class="keywordtype">bool</span> Pause) { IsSimulation = Pause; }</div>
-<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;    <span class="keywordtype">float</span> getFPS() { <span class="keywordflow">return</span> fps; }</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keyword">static</span> POINT getWorkAreaSize(HWND hwnd);</div>
-<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;</div>
-<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;    <span class="keywordtype">float</span> getframeTime();</div>
-<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;</div>
-<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;<span class="preprocessor">#if defined(Never_MainMenu)</span></div>
-<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;    shared_ptr&lt;MainMenu&gt; getMainMenu() { <span class="keywordflow">return</span> Menu; }</div>
-<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00208"></a><span class="lineno">  208</span>&#160;        this-&gt;CScene = CScene;</div>
+<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;    }</div>
+<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;    <span class="keywordtype">void</span> setPick(shared_ptr&lt;Picking&gt; Pick)</div>
+<div class="line"><a name="l00211"></a><span class="lineno">  211</span>&#160;    {</div>
+<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Pick.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00213"></a><span class="lineno">  213</span>&#160;            this-&gt;Pick = Pick;</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;    }</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;    <span class="comment">/*</span></div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;<span class="comment">    void setFrustum(shared_ptr&lt;Frustum&gt; frustum)</span></div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;<span class="comment">    {</span></div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;<span class="comment">        if (!this-&gt;frustum.operator bool())</span></div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="comment">            this-&gt;frustum = frustum;</span></div>
+<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;<span class="comment">    }</span></div>
+<div class="line"><a name="l00221"></a><span class="lineno">  221</span>&#160;<span class="comment">    */</span></div>
+<div class="line"><a name="l00222"></a><span class="lineno">  222</span>&#160;    <span class="keywordtype">void</span> setLevel(shared_ptr&lt;Levels&gt; Level)</div>
+<div class="line"><a name="l00223"></a><span class="lineno">  223</span>&#160;    {</div>
+<div class="line"><a name="l00224"></a><span class="lineno">  224</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;Level.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00225"></a><span class="lineno">  225</span>&#160;            this-&gt;Level = Level;</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;    }</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    <span class="keywordtype">void</span> setMultiplayer(shared_ptr&lt;Multiplayer&gt; MPL)</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;    {</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;        <span class="keywordflow">if</span> (!this-&gt;MPL.operator <span class="keywordtype">bool</span>())</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;            this-&gt;MPL = MPL;</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;    }</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    shared_ptr&lt;Mouse&gt; getMouse() { <span class="keywordflow">return</span> mouse; }</div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;    shared_ptr&lt;Keyboard&gt; getKeyboard() { <span class="keywordflow">return</span> keyboard; }</div>
+<div class="line"><a name="l00234"></a><span class="lineno">  234</span>&#160;    shared_ptr&lt;GamePad&gt; getGamepad() { <span class="keywordflow">return</span> gamepad; }</div>
+<div class="line"><a name="l00235"></a><span class="lineno">  235</span>&#160;</div>
+<div class="line"><a name="l00236"></a><span class="lineno">  236</span>&#160;    <span class="keywordtype">void</span> setMessage(MSG msg) { this-&gt;msg = msg; }</div>
+<div class="line"><a name="l00237"></a><span class="lineno">  237</span>&#160;    MSG getMessage() { <span class="keywordflow">return</span> msg; }</div>
+<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;</div>
+<div class="line"><a name="l00239"></a><span class="lineno">  239</span>&#160;    ID3D11Device *getDevice();</div>
+<div class="line"><a name="l00240"></a><span class="lineno">  240</span>&#160;    ID3D11DeviceContext *getDeviceContext();</div>
+<div class="line"><a name="l00241"></a><span class="lineno">  241</span>&#160;    IDXGISwapChain *getSwapChain();</div>
+<div class="line"><a name="l00242"></a><span class="lineno">  242</span>&#160;    ID3D11RenderTargetView *getTargetView();</div>
+<div class="line"><a name="l00243"></a><span class="lineno">  243</span>&#160;</div>
+<div class="line"><a name="l00244"></a><span class="lineno">  244</span>&#160;    DXGI_SWAP_CHAIN_DESC getSwapChainDesc() { <span class="keywordflow">return</span> SCD; }</div>
+<div class="line"><a name="l00245"></a><span class="lineno">  245</span>&#160;    DXGI_SWAP_CHAIN_DESC1 getSwapChainDesc1() { <span class="keywordflow">return</span> SCD1; }</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;    D3D11_TEXTURE2D_DESC getDescDepth() { <span class="keywordflow">return</span> descDepth; }</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    D3D11_VIEWPORT getViewPort() { <span class="keywordflow">return</span> vp; }</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;</div>
+<div class="line"><a name="l00249"></a><span class="lineno">  249</span>&#160;    UINT getMsaaQuality() { <span class="keywordflow">return</span> m4xMsaaQuality; }</div>
+<div class="line"><a name="l00250"></a><span class="lineno">  250</span>&#160;</div>
+<div class="line"><a name="l00251"></a><span class="lineno">  251</span>&#160;    <span class="keywordtype">void</span> ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }</div>
+<div class="line"><a name="l00252"></a><span class="lineno">  252</span>&#160;    </div>
+<div class="line"><a name="l00256"></a><span class="lineno">  256</span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a0efd90dfc7e6fdcb2929f3ec36a215e0">ClearRenderTarget</a>();</div>
+<div class="line"><a name="l00257"></a><span class="lineno">  257</span>&#160;    <span class="keyword">static</span> HRESULT ResizeWindow(WPARAM wParam);</div>
+<div class="line"><a name="l00258"></a><span class="lineno">  258</span>&#160;</div>
+<div class="line"><a name="l00259"></a><span class="lineno">  259</span>&#160;    <span class="keywordtype">bool</span> IsWireFrame() { <span class="keywordflow">return</span> WireFrame; }</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    ID3D11RasterizerState *GetWireFrame() { <span class="keywordflow">return</span> RsWF; }</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;    ID3D11RasterizerState *GetNormalFrame() { <span class="keywordflow">return</span> RsNoWF; }</div>
+<div class="line"><a name="l00262"></a><span class="lineno">  262</span>&#160;    <span class="keywordtype">void</span> SetWireFrame(<span class="keywordtype">bool</span> WF) { WireFrame = WF; }</div>
+<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;</div>
+<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;    <span class="keywordtype">bool</span> IsSimulatePhysics() { <span class="keywordflow">return</span> IsSimulation; }</div>
+<div class="line"><a name="l00265"></a><span class="lineno">  265</span>&#160;    <span class="keywordtype">void</span> SetPausePhysics(<span class="keywordtype">bool</span> Pause) { IsSimulation = Pause; }</div>
+<div class="line"><a name="l00266"></a><span class="lineno">  266</span>&#160;</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;    <span class="keywordtype">float</span> getFPS() { <span class="keywordflow">return</span> fps; }</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keyword">static</span> POINT getWorkAreaSize(HWND hwnd);</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;</div>
+<div class="line"><a name="l00270"></a><span class="lineno">  270</span>&#160;    <span class="keywordtype">float</span> getframeTime();</div>
 <div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;</div>
-<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a12c8db47e7d5fd54365f51db6e3e9555">StackTrace</a>(LPCSTR Error);</div>
-<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;</div>
-<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;    Mouse::ButtonStateTracker getTrackerMouse() { <span class="keywordflow">return</span> TrackerMouse; }</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;    Keyboard::KeyboardStateTracker getTrackerKeyboard() { <span class="keywordflow">return</span> TrackerKeyboard; }</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;    GamePad::ButtonStateTracker getTracherGamepad() { <span class="keywordflow">return</span> TrackerGamepad; }</div>
-<div class="line"><a name="l00277"></a><span class="lineno">  277</span>&#160;</div>
-<div class="line"><a name="l00278"></a><span class="lineno">  278</span>&#160;    <span class="keyword">auto</span> getAllThreadGroup() { <span class="keywordflow">return</span> ThreadGroups; }</div>
-<div class="line"><a name="l00279"></a><span class="lineno">  279</span>&#160;</div>
-<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a395acf40d371f664608c3595b3a040af">LogError</a>(<span class="keywordtype">string</span> DebugText, <span class="keywordtype">string</span> ExceptionText, <span class="keywordtype">string</span> LogText);</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;<span class="preprocessor">#if defined(Never_MainMenu)</span></div>
+<div class="line"><a name="l00273"></a><span class="lineno">  273</span>&#160;    shared_ptr&lt;MainMenu&gt; getMainMenu() { <span class="keywordflow">return</span> Menu; }</div>
+<div class="line"><a name="l00274"></a><span class="lineno">  274</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;</div>
+<div class="line"><a name="l00281"></a><span class="lineno">  281</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a12c8db47e7d5fd54365f51db6e3e9555">StackTrace</a>(LPCSTR Error);</div>
+<div class="line"><a name="l00282"></a><span class="lineno">  282</span>&#160;</div>
+<div class="line"><a name="l00283"></a><span class="lineno">  283</span>&#160;    Mouse::ButtonStateTracker getTrackerMouse() { <span class="keywordflow">return</span> TrackerMouse; }</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    Keyboard::KeyboardStateTracker getTrackerKeyboard() { <span class="keywordflow">return</span> TrackerKeyboard; }</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;    GamePad::ButtonStateTracker getTracherGamepad() { <span class="keywordflow">return</span> TrackerGamepad; }</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    <span class="keyword">auto</span> getAllThreadGroup() { <span class="keywordflow">return</span> ThreadGroups; }</div>
 <div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;</div>
-<div class="line"><a name="l00294"></a><span class="lineno">  294</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a5acf89ad1391b37dc538a106f1457621">IsKeyboardDown</a>(<span class="keywordtype">int</span> Key);</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;        </div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a99145a3b7ab4fa7287b073d4a7f74e8e">IsKeyboardUp</a>(<span class="keywordtype">int</span> Key);</div>
-<div class="line"><a name="l00302"></a><span class="lineno">  302</span>&#160;    </div>
-<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">IsMouseLeft</a>();</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;    </div>
-<div class="line"><a name="l00311"></a><span class="lineno">  311</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">IsMouseRight</a>();</div>
-<div class="line"><a name="l00312"></a><span class="lineno">  312</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00313"></a><span class="lineno">  313</span>&#160;    <span class="keyword">static</span> LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);</div>
-<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;    <span class="keyword">using</span> ButtonState = Mouse::ButtonStateTracker::ButtonState;</div>
-<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    Mouse::ButtonStateTracker TrackerMouse;</div>
-<div class="line"><a name="l00316"></a><span class="lineno">  316</span>&#160;    Keyboard::KeyboardStateTracker TrackerKeyboard;</div>
-<div class="line"><a name="l00317"></a><span class="lineno">  317</span>&#160;    GamePad::ButtonStateTracker TrackerGamepad;</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;    shared_ptr&lt;boost::thread_group&gt; ThreadGroups;</div>
-<div class="line"><a name="l00320"></a><span class="lineno">  320</span>&#160;    HINSTANCE hInstance;</div>
-<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;};</div>
-<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;<span class="preprocessor">#endif // __ENGINE_H__</span></div>
-<div class="ttc" id="class_engine_html_aaa92f059235842e9dfa81e89dc717d0a"><div class="ttname"><a href="class_engine.html#aaa92f059235842e9dfa81e89dc717d0a">Engine::Destroy</a></div><div class="ttdeci">void Destroy()</div><div class="ttdoc">Here&#39;s Releasing All Objects Of Window And DirectX. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:503</div></div>
-<div class="ttc" id="class_engine_html_a395acf40d371f664608c3595b3a040af"><div class="ttname"><a href="class_engine.html#a395acf40d371f664608c3595b3a040af">Engine::LogError</a></div><div class="ttdeci">static void LogError(string DebugText, string ExceptionText, string LogText)</div><div class="ttdoc">Here&#39;s Error Handing All The Engine. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:489</div></div>
-<div class="ttc" id="class_engine_html_a0efd90dfc7e6fdcb2929f3ec36a215e0"><div class="ttname"><a href="class_engine.html#a0efd90dfc7e6fdcb2929f3ec36a215e0">Engine::ClearRenderTarget</a></div><div class="ttdeci">void ClearRenderTarget()</div><div class="ttdoc">Here&#39;s Clear Render Target For DirectX + Depth Stensil Also Clear. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:574</div></div>
+<div class="line"><a name="l00296"></a><span class="lineno">  296</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> <a class="code" href="class_engine.html#a395acf40d371f664608c3595b3a040af">LogError</a>(<span class="keywordtype">string</span> DebugText, <span class="keywordtype">string</span> ExceptionText, <span class="keywordtype">string</span> LogText);</div>
+<div class="line"><a name="l00297"></a><span class="lineno">  297</span>&#160;</div>
+<div class="line"><a name="l00305"></a><span class="lineno">  305</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a5acf89ad1391b37dc538a106f1457621">IsKeyboardDown</a>(<span class="keywordtype">int</span> Key);</div>
+<div class="line"><a name="l00306"></a><span class="lineno">  306</span>&#160;        </div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a99145a3b7ab4fa7287b073d4a7f74e8e">IsKeyboardUp</a>(<span class="keywordtype">int</span> Key);</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;    </div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">IsMouseLeft</a>();</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;    </div>
+<div class="line"><a name="l00328"></a><span class="lineno">  328</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">bool</span> <a class="code" href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">IsMouseRight</a>();</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00338"></a><span class="lineno">  338</span>&#160;    <span class="keyword">static</span> LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);</div>
+<div class="line"><a name="l00339"></a><span class="lineno">  339</span>&#160;    <span class="keyword">using</span> ButtonState = Mouse::ButtonStateTracker::ButtonState;</div>
+<div class="line"><a name="l00340"></a><span class="lineno">  340</span>&#160;    Mouse::ButtonStateTracker TrackerMouse;</div>
+<div class="line"><a name="l00341"></a><span class="lineno">  341</span>&#160;    Keyboard::KeyboardStateTracker TrackerKeyboard;</div>
+<div class="line"><a name="l00342"></a><span class="lineno">  342</span>&#160;    GamePad::ButtonStateTracker TrackerGamepad;</div>
+<div class="line"><a name="l00343"></a><span class="lineno">  343</span>&#160;</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    shared_ptr&lt;boost::thread_group&gt; ThreadGroups;</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;    HINSTANCE hInstance;</div>
+<div class="line"><a name="l00346"></a><span class="lineno">  346</span>&#160;};</div>
+<div class="line"><a name="l00347"></a><span class="lineno">  347</span>&#160;<span class="preprocessor">#endif // __ENGINE_H__</span></div>
+<div class="ttc" id="class_timer_html"><div class="ttname"><a href="class_timer.html">Timer</a></div><div class="ttdef"><b>Definition:</b> Timer.h:18</div></div>
+<div class="ttc" id="class_engine_html_aaa92f059235842e9dfa81e89dc717d0a"><div class="ttname"><a href="class_engine.html#aaa92f059235842e9dfa81e89dc717d0a">Engine::Destroy</a></div><div class="ttdeci">void Destroy()</div><div class="ttdoc">Here&#39;s Releasing All Objects Of Window And DirectX. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:504</div></div>
+<div class="ttc" id="class_engine_html_a395acf40d371f664608c3595b3a040af"><div class="ttname"><a href="class_engine.html#a395acf40d371f664608c3595b3a040af">Engine::LogError</a></div><div class="ttdeci">static void LogError(string DebugText, string ExceptionText, string LogText)</div><div class="ttdoc">Here&#39;s Error Handing All The Engine. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:490</div></div>
+<div class="ttc" id="class_engine_html_a0efd90dfc7e6fdcb2929f3ec36a215e0"><div class="ttname"><a href="class_engine.html#a0efd90dfc7e6fdcb2929f3ec36a215e0">Engine::ClearRenderTarget</a></div><div class="ttdeci">void ClearRenderTarget()</div><div class="ttdoc">Here&#39;s Clear Render Target For DirectX + Depth Stensil Also Clear. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:575</div></div>
 <div class="ttc" id="class_camera_html"><div class="ttname"><a href="class_camera.html">Camera</a></div><div class="ttdef"><b>Definition:</b> Camera.h:8</div></div>
 <div class="ttc" id="class_debug_draw_html"><div class="ttname"><a href="class_debug_draw.html">DebugDraw</a></div><div class="ttdef"><b>Definition:</b> DebugDraw.h:20</div></div>
 <div class="ttc" id="class_u_i_html"><div class="ttname"><a href="class_u_i.html">UI</a></div><div class="ttdef"><b>Definition:</b> UI.h:676</div></div>
-<div class="ttc" id="class_engine_html_a99145a3b7ab4fa7287b073d4a7f74e8e"><div class="ttname"><a href="class_engine.html#a99145a3b7ab4fa7287b073d4a7f74e8e">Engine::IsKeyboardUp</a></div><div class="ttdeci">static bool IsKeyboardUp(int Key)</div><div class="ttdoc">Here&#39;s Keybord Key Up Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:798</div></div>
+<div class="ttc" id="class_engine_html_a99145a3b7ab4fa7287b073d4a7f74e8e"><div class="ttname"><a href="class_engine.html#a99145a3b7ab4fa7287b073d4a7f74e8e">Engine::IsKeyboardUp</a></div><div class="ttdeci">static bool IsKeyboardUp(int Key)</div><div class="ttdoc">Here&#39;s Keybord Key Up Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:786</div></div>
 <div class="ttc" id="class_c_lua_html"><div class="ttname"><a href="class_c_lua.html">CLua</a></div><div class="ttdef"><b>Definition:</b> CLua.h:9</div></div>
 <div class="ttc" id="class_models_html"><div class="ttname"><a href="class_models.html">Models</a></div><div class="ttdef"><b>Definition:</b> Models.h:34</div></div>
-<div class="ttc" id="class_engine_html_ac9861e3b88bf057f7b0eef1c13a78858"><div class="ttname"><a href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">Engine::IsMouseLeft</a></div><div class="ttdeci">static bool IsMouseLeft()</div><div class="ttdoc">Here&#39;s Mouse Left Button Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:806</div></div>
+<div class="ttc" id="class_engine_html_ac9861e3b88bf057f7b0eef1c13a78858"><div class="ttname"><a href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">Engine::IsMouseLeft</a></div><div class="ttdeci">static bool IsMouseLeft()</div><div class="ttdoc">Here&#39;s Mouse Left Button Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:794</div></div>
 <div class="ttc" id="class_actor_html"><div class="ttname"><a href="class_actor.html">Actor</a></div><div class="ttdef"><b>Definition:</b> Actor.h:8</div></div>
+<div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_physics_html"><div class="ttname"><a href="class_physics.html">Physics</a></div><div class="ttdef"><b>Definition:</b> Physics.h:21</div></div>
-<div class="ttc" id="class_levels_html"><div class="ttname"><a href="class_levels.html">Levels</a></div><div class="ttdef"><b>Definition:</b> Levels.h:8</div></div>
+<div class="ttc" id="class_levels_html"><div class="ttname"><a href="class_levels.html">Levels</a></div><div class="ttdef"><b>Definition:</b> Levels.h:11</div></div>
 <div class="ttc" id="class_multiplayer_html"><div class="ttname"><a href="class_multiplayer.html">Multiplayer</a></div><div class="ttdef"><b>Definition:</b> Multiplayer.h:9</div></div>
 <div class="ttc" id="class_file__system_html"><div class="ttname"><a href="class_file__system.html">File_system</a></div><div class="ttdef"><b>Definition:</b> File_system.h:17</div></div>
 <div class="ttc" id="class_cut_scene_html"><div class="ttname"><a href="class_cut_scene.html">CutScene</a></div><div class="ttdef"><b>Definition:</b> CutScene.h:6</div></div>
 <div class="ttc" id="class_console_html"><div class="ttname"><a href="class_console.html">Console</a></div><div class="ttdef"><b>Definition:</b> Console.h:9</div></div>
 <div class="ttc" id="class_engine_html_acde70aed0043e2e2091d0bb6cce8e3c1"><div class="ttname"><a href="class_engine.html#acde70aed0043e2e2091d0bb6cce8e3c1">Engine::Render</a></div><div class="ttdeci">void Render()</div><div class="ttdoc">Render It Every Class. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:294</div></div>
-<div class="ttc" id="class_engine_html_a5acf89ad1391b37dc538a106f1457621"><div class="ttname"><a href="class_engine.html#a5acf89ad1391b37dc538a106f1457621">Engine::IsKeyboardDown</a></div><div class="ttdeci">static bool IsKeyboardDown(int Key)</div><div class="ttdoc">Here&#39;s Keybord Key Down Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:790</div></div>
+<div class="ttc" id="class_engine_html_a5acf89ad1391b37dc538a106f1457621"><div class="ttname"><a href="class_engine.html#a5acf89ad1391b37dc538a106f1457621">Engine::IsKeyboardDown</a></div><div class="ttdeci">static bool IsKeyboardDown(int Key)</div><div class="ttdoc">Here&#39;s Keybord Key Down Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:778</div></div>
 <div class="ttc" id="class_picking_html"><div class="ttname"><a href="class_picking.html">Picking</a></div><div class="ttdef"><b>Definition:</b> Picking.h:47</div></div>
-<div class="ttc" id="class_engine_html_a12c8db47e7d5fd54365f51db6e3e9555"><div class="ttname"><a href="class_engine.html#a12c8db47e7d5fd54365f51db6e3e9555">Engine::StackTrace</a></div><div class="ttdeci">static void StackTrace(LPCSTR Error)</div><div class="ttdoc">Here&#39;s Error Handing For XML Files. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:716</div></div>
+<div class="ttc" id="class_engine_html_a12c8db47e7d5fd54365f51db6e3e9555"><div class="ttname"><a href="class_engine.html#a12c8db47e7d5fd54365f51db6e3e9555">Engine::StackTrace</a></div><div class="ttdeci">static void StackTrace(LPCSTR Error)</div><div class="ttdoc">Here&#39;s Error Handing For XML Files. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:712</div></div>
 <div class="ttc" id="class_engine_html_a52ddeb2b53776f6419944eee76e269e7"><div class="ttname"><a href="class_engine.html#a52ddeb2b53776f6419944eee76e269e7">Engine::Init</a></div><div class="ttdeci">HRESULT Init(string NameWnd, HINSTANCE hInstance)</div><div class="ttdoc">Initialized Here Window And DirectX. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:61</div></div>
-<div class="ttc" id="class_engine_html"><div class="ttname"><a href="class_engine.html">Engine</a></div><div class="ttdef"><b>Definition:</b> Engine.h:28</div></div>
-<div class="ttc" id="class_engine_html_a6b3cbee036749a576eac7c2b16e4c528"><div class="ttname"><a href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">Engine::IsMouseRight</a></div><div class="ttdeci">static bool IsMouseRight()</div><div class="ttdoc">Here&#39;s Mouse Right Button Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:814</div></div>
+<div class="ttc" id="class_engine_html"><div class="ttname"><a href="class_engine.html">Engine</a></div><div class="ttdef"><b>Definition:</b> Engine.h:32</div></div>
+<div class="ttc" id="class_engine_html_a6b3cbee036749a576eac7c2b16e4c528"><div class="ttname"><a href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">Engine::IsMouseRight</a></div><div class="ttdeci">static bool IsMouseRight()</div><div class="ttdoc">Here&#39;s Mouse Right Button Function For Lua. </div><div class="ttdef"><b>Definition:</b> Engine.cpp:802</div></div>
 <div class="ttc" id="class_audio_html"><div class="ttname"><a href="class_audio.html">Audio</a></div><div class="ttdef"><b>Definition:</b> Audio.h:9</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

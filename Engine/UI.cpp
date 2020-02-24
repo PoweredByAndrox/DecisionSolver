@@ -95,7 +95,7 @@ HRESULT UI::LoadXmlUI(string File)
 			to_string(doc->ErrorID())).str(),
 			(boost::format("UI: Something is wrong with load XML File!\nReturn Error Text: %s"\
 				"\nErrorID(see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
 		return E_FAIL;
@@ -106,7 +106,7 @@ HRESULT UI::LoadXmlUI(string File)
 			% to_string(doc->ErrorID())).str(),
 			(boost::format("UI: Something is wrong with Parse XML File!\nReturn Error Text: %s"
 				"\nErrorID (see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		Engine::StackTrace(doc->ErrorStr());
 #endif
 		return E_FAIL;
@@ -2234,11 +2234,13 @@ LRESULT UI::MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return false;
 }
 
+#pragma warning(disable: 4129)
 pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LPSTR FilterFilesExt, bool MultiSelect)
 {
-	char szFile[512];
-	pair<bool, vector<string>> RetVal;
-	
+	char szFile[1024];
+	pair<bool, vector<string>> RetVal = make_pair(true, vector<string>());
+	DWORD dwError = 0;
+
 	OPENFILENAMEA ofn;
 	ZeroMemory(&ofn, sizeof(ofn));
 	ofn.lStructSize = sizeof(ofn);
@@ -2250,39 +2252,120 @@ pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LP
 	ofn.nFilterIndex = 1;
 	ofn.lpstrTitle = NameOfWnd;
 	ofn.lpstrInitialDir = DirByDef;
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT | (MultiSelect ? OFN_ALLOWMULTISELECT : 0);
+	ofn.Flags = OFN_EXPLORER | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_OVERWRITEPROMPT |
+		(MultiSelect ? OFN_ALLOWMULTISELECT : 0);
 
-	if (GetOpenFileNameA(&ofn))
-		RetVal.first = true;
-	RetVal.second.push_back(string(szFile));
+	if (!GetOpenFileNameA(&ofn))
+	{
+		dwError = CommDlgExtendedError();
+		RetVal.first = false;
+	}
 
-	//OutputDebugStringA(("This Error Is: " + to_string(GetLastError())).c_str());
+	// Check for the error
+	if (dwError != 0)
+	{
+		Engine::LogError("UI::GetWndDlgOpen Error Is: " + to_string(dwError), string(__FILE__) + to_string(__LINE__),
+			"Something is wrong with Open File Dialog. It returns: " + to_string(dwError));
+		return RetVal;
+	}
+
+	if (!RetVal.first) return RetVal;
+
+	RetVal.first = true;
+
+	if (path(string(szFile)).has_extension())
+	{
+		RetVal.second.push_back(string(szFile));
+		return RetVal;
+	}
+
+	if (MultiSelect)
+	{
+		// Add path first
+		RetVal.second.push_back(string(szFile) + "\\");
+		int FileOffset = ofn.nFileOffset;
+		for (;;)
+		{
+			// Add it to massive of files (like path\File.ext)
+			RetVal.second.push_back(RetVal.second.front() +
+				string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset])));
+			// Count the next file by offset from previous file (path - next offs file) + 1
+			FileOffset += (RetVal.second.back().size() - RetVal.second.front().size()) + 1;
+			if (ofn.lpstrFile[FileOffset] == '\0') // If the next no file
+			{
+				// Delete path from front (useless store it)
+				RetVal.second.erase(RetVal.second.begin());
+				break;
+			}
+		}
+	}
+	else
+		RetVal.second.push_back(string(szFile));
+
 	return RetVal;
 }
 
+ToDo("Check IT!!!");
 pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LPSTR FilterFilesExt)
 {
-	char szFile[512];
-	pair<bool, vector<string>> RetVal;
+	char szFile[1024];
+	pair<bool, vector<string>> RetVal = make_pair(true, vector<string>());
+	DWORD dwError = 0;
 
-	OPENFILENAMEA Ofn;
-	ZeroMemory(&Ofn, sizeof(Ofn));
-	Ofn.lStructSize = sizeof(OPENFILENAMEA);
-	Ofn.hwndOwner = Engine::GetHWND();
-	Ofn.lpstrFile = szFile;
-	Ofn.lpstrFile[0] = '\0';
-	Ofn.nMaxFile = sizeof(szFile);
-	Ofn.lpstrFilter = FilterFilesExt;
-	Ofn.nFilterIndex = 1;
-	Ofn.lpstrTitle = NameOfWnd;
-	Ofn.lpstrInitialDir = DirByDef;
-	Ofn.Flags = OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+	OPENFILENAMEA ofn;
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(OPENFILENAMEA);
+	ofn.hwndOwner = Engine::GetHWND();
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = FilterFilesExt;
+	ofn.nFilterIndex = 1;
+	ofn.lpstrTitle = NameOfWnd;
+	ofn.lpstrInitialDir = DirByDef;
+	ofn.Flags = OFN_EXPLORER | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
 
-	if (GetSaveFileNameA(&Ofn))
-		RetVal.first = true;
-	RetVal.second.push_back(string(szFile));
+	if (GetSaveFileNameA(&ofn))
+	{
+		dwError = CommDlgExtendedError();
+		RetVal.first = false;
+	}
 
-	//OutputDebugStringA(("This Error Is: " + to_string(GetLastError())).c_str());
+	// Check for the error
+	if (dwError != 0)
+	{
+		Engine::LogError("UI::GetWndDlgSave Error Is: " + to_string(dwError), string(__FILE__) + to_string(__LINE__),
+			"Something is wrong with Save File Dialog. It returns: " + to_string(dwError));
+		return RetVal;
+	}
+
+	if (!RetVal.first) return RetVal;
+
+	RetVal.first = true;
+
+	if (path(string(szFile)).has_extension())
+	{
+		RetVal.second.push_back(string(szFile));
+		return RetVal;
+	}
+
+	RetVal.second.push_back(string(szFile) + "\\");
+	int FileOffset = ofn.nFileOffset;
+	for (;;)
+	{
+		// Add it to massive of files (like path\File.ext)
+		RetVal.second.push_back(RetVal.second.front() +
+			string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset])));
+		// Count the next file by offset from previous file (path - next offs file) + 1
+		FileOffset += (RetVal.second.back().size() - RetVal.second.front().size()) + 1;
+		if (ofn.lpstrFile[FileOffset] == '\0') // If the next no file
+		{
+			// Delete path from front (useless store it)
+			RetVal.second.erase(RetVal.second.begin());
+			break;
+		}
+	}
+
 	return RetVal;
 }
 

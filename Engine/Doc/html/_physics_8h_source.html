@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -87,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#ifndef __PHYSICS_H__</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define __PHYSICS_H__</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;pch.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;PxPhysicsAPI.h&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
@@ -117,7 +118,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordtype">void</span> AddForce(PxRigidDynamic *RigDyn, PxVec3 Vec3, PxForceMode::Enum ForceMode) { RigDyn-&gt;addForce(Vec3, ForceMode); }</div>
 <div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="comment">//  void CreateJoint(PxRigidDynamic *RigDyn1, PxRigidDynamic *RigDyn2, PxVec3 OffSet)</span></div>
 <div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="comment">//  {</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">//#if defined (DEBUG)</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="comment">//#if defined (_DEBUG)</span></div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="comment">//      PxFixedJoint *distanceJoint = PxFixedJointCreate(*gPhysics, RigDyn1, PxTransform(OffSet), RigDyn2, PxTransform(-OffSet));</span></div>
 <div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">//      distanceJoint-&gt;setProjectionLinearTolerance(0.5f);</span></div>
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="comment">//#endif</span></div>
@@ -141,7 +142,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    PxPhysics *getPhysics() { <span class="keywordflow">if</span> (gPhysics) <span class="keywordflow">return</span> gPhysics; <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    PxMaterial *getMaterial() { <span class="keywordflow">if</span> (gMaterial) <span class="keywordflow">return</span> gMaterial; <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    PxRigidDynamic *getActrCamera() { <span class="keywordflow">if</span> (gActorCamera) <span class="keywordflow">return</span> gActorCamera; <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">#if defined (DEBUG)</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">#if defined (_DEBUG)</span></div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    PxPvdSceneClient *getClientPVD() { <span class="keywordflow">if</span> (pvdClient) <span class="keywordflow">return</span> pvdClient; <span class="keywordflow">return</span> <span class="keyword">nullptr</span>; }</div>
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    PxControllerManager *getContrlManager() { <span class="keywordflow">return</span> ControllerManager; }</div>
@@ -150,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    {</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keywordflow">while</span> (!DynamicObjects.empty())</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        {</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;            SAFE_release(DynamicObjects.at(0));</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;            <a class="code" href="pch_8h.html#ad5b1b451dbf0249da2ebd1a56cf03dcf">SAFE_release</a>(DynamicObjects.at(0));</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;            DynamicObjects.erase(DynamicObjects.begin());</div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        }</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        Cobes.clear();</div>
@@ -162,7 +163,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        Cobes.clear();</div>
 <div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <span class="keywordflow">while</span> (!DynCobes.empty())</div>
 <div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        {</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            SAFE_release(DynCobes.at(0));</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            <a class="code" href="pch_8h.html#ad5b1b451dbf0249da2ebd1a56cf03dcf">SAFE_release</a>(DynCobes.at(0));</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            DynCobes.erase(DynCobes.begin());</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        }</div>
 <div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;    }</div>
@@ -179,7 +180,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    PxRigidStatic *gPlane = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    PxRigidDynamic *gBox = <span class="keyword">nullptr</span>, *gActorCamera = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    PxCooking *gCooking = <span class="keyword">nullptr</span>;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="preprocessor">#if defined (DEBUG)</span></div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;<span class="preprocessor">#if defined (_DEBUG)</span></div>
 <div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;    PxPvd *gPvd = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    PxPvdSceneClient *pvdClient = <span class="keyword">nullptr</span>;</div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    PxPvdTransport *transport = <span class="keyword">nullptr</span>;</div>
@@ -209,11 +210,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="namespacephysx_html"><div class="ttname"><a href="namespacephysx.html">physx</a></div></div>
 <div class="ttc" id="class_simple_logic_html"><div class="ttname"><a href="class_simple_logic.html">SimpleLogic</a></div><div class="ttdef"><b>Definition:</b> SimpleLogic.h:6</div></div>
 <div class="ttc" id="class_models_html"><div class="ttname"><a href="class_models.html">Models</a></div><div class="ttdef"><b>Definition:</b> Models.h:34</div></div>
+<div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_physics_html"><div class="ttname"><a href="class_physics.html">Physics</a></div><div class="ttdef"><b>Definition:</b> Physics.h:21</div></div>
+<div class="ttc" id="pch_8h_html_ad5b1b451dbf0249da2ebd1a56cf03dcf"><div class="ttname"><a href="pch_8h.html#ad5b1b451dbf0249da2ebd1a56cf03dcf">SAFE_release</a></div><div class="ttdeci">#define SAFE_release(p)</div><div class="ttdoc">A macro that defines safe release. </div><div class="ttdef"><b>Definition:</b> pch.h:132</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

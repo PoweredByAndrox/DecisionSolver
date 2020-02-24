@@ -1,7 +1,5 @@
 #include "pch.h"
 
-ToDo("Add Here Doc");
-
 bool FindSubStr(wstring context, wstring const from)
 {
 	if (context.empty() || from.empty())
@@ -287,19 +285,24 @@ void ParseText(string &Text, Type type)
 			if (strs.at(i).empty())
 				continue;
 			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[INFO] " : "[INFO] "));
+			Text += "\n";
 		}
 		else if (type == Type::Error)
 		{
 			if (strs.at(i).empty())
 				continue;
 			Text += strs.at(i).insert(0, (strs.size() >= 2 && i >= 1 ? "\n[ERROR] " : "[ERROR] "));
+			Text += "\n";
 		}
 		else
 		{
 			if (strs.at(i).empty())
 				continue;
 			else
+			{
 				Text.insert(0, "\n" + strs.at(i));
+				Text += "\n";
+			}
 		}
 	}
 }

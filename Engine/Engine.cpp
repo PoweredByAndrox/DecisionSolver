@@ -92,7 +92,7 @@ HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 	ClassWND = wnd.lpszClassName;
 
 	UINT createDeviceFlags = 0;
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
@@ -298,6 +298,7 @@ void Engine::Render()
 
 	frameTime = float(Timer->GetElapsedSeconds());
 
+	//frameTime = frameTime * 10.4; // Add Some Lags For Test
 	//Timer->SetFixedTimeStep(false);
 	//Timer->SetTargetElapsedSeconds(0.001f); // 0.2 == 5 FPS, 0.1 == 10FPS
 	fps = float(Timer->GetFramesPerSecond());
@@ -402,7 +403,7 @@ void Engine::Render()
 #endif
 
 	if (Level.operator bool())
-		Level->Update(camera->GetViewMatrix(), camera->GetProjMatrix(), frameTime);
+		Level->Update();
 
 	if (ui.operator bool())
 	{
@@ -424,7 +425,7 @@ void Engine::Render()
 			{
 				if (Comp->FindComponentBtn("##Track_Start")->IsClicked() && Comb->GetSelect() != "None")
 				{
-					Sound->PlayFile(Comb->GetSelect(), true);
+					Sound->PlayFile(Comb->GetSelect(), false, true);
 					Sound->doPlay();
 				}
 				if (Comp->FindComponentBtn("##Track_Stop")->IsClicked())
@@ -441,8 +442,8 @@ void Engine::Render()
 
 				for (size_t i = 0; i < SoundFiles.size(); i++)
 				{
-					string FNameWithoutExt = SoundFiles.at(i)->FileA;
-					deleteWord(FNameWithoutExt, SoundFiles.at(i)->ExtA);
+					string FNameWithoutExt = SoundFiles.at(i).first->FileA;
+					deleteWord(FNameWithoutExt, SoundFiles.at(i).first->ExtA);
 					Comb->AddItem(FNameWithoutExt);
 				}
 			}
@@ -454,27 +455,27 @@ void Engine::Render()
 		if (DialCons.operator bool() && !DialCons->GetTitle().empty())
 			console->Render();
 
-		//auto DialMP = ui->getDialog("MPConnection");
-		//if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
-		//{
-		//	auto Comp = DialMP->getComponents();
-		//	if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
-		//		MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
-		//			MPL->getCurrentUser()->getSocket(),
-		//			MPL->getCurrentUser()->getAddresStruct());
-		//	if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
-		//		MPL->getServer()->Create();
-		//	if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
-		//		MPL->Connect();
-		//	if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
-		//		MPL->getCurrentUser()->Disconnect();
-		//	if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
-		//		Comp->FindComponentITextMul("##MP_Chat")->ClearText();
-		//	MPL->Update();
-		//	//if (!str.empty())
-		//	//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
-		//	DialMP->Render();
-		//}
+		auto DialMP = ui->getDialog("MPConnection");
+		if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
+		{
+			auto Comp = DialMP->getComponents();
+			if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
+				MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
+					MPL->getCurrentUser()->getSocket(),
+					MPL->getCurrentUser()->getAddresStruct());
+			if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
+				MPL->getServer()->Create();
+			if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
+				MPL->Connect();
+			if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
+				MPL->getCurrentUser()->Disconnect();
+			if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
+				Comp->FindComponentITextMul("##MP_Chat")->ClearText();
+			//MPL->Update();
+			//if (!str.empty())
+			//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
+			DialMP->Render();
+		}
 
 		if (SDK)
 			SDK->Render();
@@ -488,7 +489,7 @@ void Engine::Render()
 
 void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 {
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	if (!DebugText.empty())
 		OutputDebugStringA(DebugText.c_str());
 #endif
@@ -708,14 +709,9 @@ float Engine::getframeTime()
 	return frameTime;
 }
 
-/**
- * @brief Here's Error Handing For XML Files
- *
- * @param Error Debug Text If It's Debug Build And Text To File (Log)
- */
 void Engine::StackTrace(LPCSTR Error)
 {
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	OutputDebugStringA("\n***********ERROR IN XML FILE***********\n");
 	OutputDebugStringA(string(Error).c_str());
 	OutputDebugStringA("\n***********ERROR IN XML FILE***********\n");
@@ -726,14 +722,6 @@ void Engine::StackTrace(LPCSTR Error)
 	Console::LogError(string("Engine: ERROR IN XML FILE!\n") + Error);
 }
 
-/**
- * @brief Here's Update Messages From System To Window
- *
- * @param hWnd hWnd Window
- * @param uMsg Message
- * @param wParam Additional Param
- * @param lParam Additional Param
- */
 LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (Application->getUI().operator bool())

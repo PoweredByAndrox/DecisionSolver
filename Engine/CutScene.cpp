@@ -49,7 +49,7 @@ void CutScene::Update()
 	Vector3 CamPos = Cam->GetEyePt(), CamLook = Cam->GetLookAtPt();
 
 	if (!XMVector3NearEqual(CamPos, CurrentPoint.Pos, Vector3(0.001f, 0.001f, 0.001f)))
-		Cam->Teleport(Vector3::SmoothStep( CamPos, CurrentPoint.Pos, Application->getframeTime() * CurrentPoint.Time),
+		Cam->Teleport(Vector3::SmoothStep(CamPos, CurrentPoint.Pos, Application->getframeTime() * CurrentPoint.Time),
 			Vector3::SmoothStep(CamLook, CurrentPoint.Look, Application->getframeTime() * CurrentPoint.Time));
 	else
 	{

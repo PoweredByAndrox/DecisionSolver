@@ -9,16 +9,6 @@
 class Multiplayer
 {
 public:
-	struct Cobes
-	{
-		Vector3 Pos = Vector3::Zero, Rotate = Vector3::Zero;
-		Matrix View, Proj;
-		void Render();
-	};
-
-	static void MatToStr(Matrix Thing, string &str);
-	static void StrToMat(Matrix &Thing, string str);
-
 	class Server;
 	class Client
 	{

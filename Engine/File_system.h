@@ -38,7 +38,7 @@ private:
 
 			_TypeOfFile TypeOfFile;
 		};
-		vector<shared_ptr<File>>
+		vector<pair<shared_ptr<File>, string/*IDPath*/>>
 			Models,
 			Textures,
 			Levels,
@@ -71,7 +71,7 @@ private:
 		void SaveFile(path file);
 
 		void SaveCurrProj();
-		void SetCurProject(path file);
+		void SetCurProject(path File);
 		void CheckForSameFile(path Path);
 	private:
 		void Resort(bool Greater = true);
@@ -91,9 +91,9 @@ public:
 	// Function if need to rescan files
 	void RescanFilesByType(_TypeOfFile T);
 
-	shared_ptr<AllFile::File> GetFile(string file);
-	shared_ptr<AllFile::File> GetFileByType(string file);
-	vector<shared_ptr<AllFile::File>> GetFileByType(_TypeOfFile T);
+	shared_ptr<AllFile::File> GetFile(path File);
+	shared_ptr<AllFile::File> AddFile(path File);
+	vector<pair<shared_ptr<AllFile::File>, string>> GetFileByType(_TypeOfFile T);
 
 	//********
 	vector<wstring> getFilesInFolder(wstring Folder);
@@ -108,7 +108,8 @@ public:
 	vector<string> getDataFromFileVector(string File, bool LineByline);
 	bool ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FilePtr);
 
-	_TypeOfFile GetTypeFile(string file);
+	_TypeOfFile GetTypeFileByExt(path File);
+	shared_ptr<AllFile::File> GetFileByPath(path File);
 
 	static void CreateLog();
 	static void AddTextToLog(string Text, Type type);
@@ -119,8 +120,8 @@ public:
 
 	auto getLogFName() { return LogFName; }
 
-	auto static GetCurrentPath() { return p; }
-	string static GetCurPath() { return p.string(); }
+	auto static GetCurrentPath() { return WorkDir; }
+	string static GetCurPath() { return WorkDir.string(); }
 
 	string getPathFromType(_TypeOfFile T);
 
@@ -129,9 +130,13 @@ public:
 	auto GetProjects() { return Projects; }
 	void CreateProject(path CurrFile = "") { Projects = make_shared<ProjectFile>(CurrFile); }
 protected:
-	static path p;
+	static path WorkDir;
+	string WorkDirSourcesA;
+	wstring WorkDirSourcesW;
 	shared_ptr<AllFile> Files = make_shared<AllFile>();
 
 	static path LogFName;
+
+	shared_ptr<File_system::AllFile::File> Find(path File);
 };
 #endif // !__FILE_SYSTEM_H__

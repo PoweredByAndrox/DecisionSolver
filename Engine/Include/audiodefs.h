@@ -124,32 +124,6 @@ typedef const WAVEFORMATEXTENSIBLE *PCWAVEFORMATEXTENSIBLE, *LPCWAVEFORMATEXTENS
 
 #endif
 
-#ifndef WAVE_FORMAT_ADPCM  // Microsoft Adaptive Differental PCM
-
-    // Replicate the Microsoft ADPCM type definitions from mmreg.h.
-
-    typedef struct adpcmcoef_tag
-    {
-        short iCoef1;
-        short iCoef2;
-    } ADPCMCOEFSET;
-
-    #pragma warning(push)
-    #pragma warning(disable:4200)  // Disable zero-sized array warnings
-
-    typedef struct adpcmwaveformat_tag {
-        WAVEFORMATEX wfx;
-        WORD wSamplesPerBlock;
-        WORD wNumCoef;
-        ADPCMCOEFSET aCoef[];  // Always 7 coefficient pairs for MS ADPCM
-    } ADPCMWAVEFORMAT;
-
-    #pragma warning(pop)
-
-    #define WAVE_FORMAT_ADPCM 0x0002
-
-#endif
-
 // Other frequently used format tags
 
 #ifndef WAVE_FORMAT_UNKNOWN
@@ -193,71 +167,6 @@ typedef const WAVEFORMATEXTENSIBLE *PCWAVEFORMATEXTENSIBLE, *LPCWAVEFORMATEXTENS
  *  defines these macros without preprocessor guards.
  *
  ***************************************************************************/
-
-#ifdef __cplusplus // uuid() and __uuidof() are only available in C++
-
-    #ifndef KSDATAFORMAT_SUBTYPE_PCM
-        struct __declspec(uuid("00000001-0000-0010-8000-00aa00389b71")) KSDATAFORMAT_SUBTYPE_PCM_STRUCT;
-        #define KSDATAFORMAT_SUBTYPE_PCM __uuidof(KSDATAFORMAT_SUBTYPE_PCM_STRUCT)
-    #endif
-
-    #ifndef KSDATAFORMAT_SUBTYPE_ADPCM
-        struct __declspec(uuid("00000002-0000-0010-8000-00aa00389b71")) KSDATAFORMAT_SUBTYPE_ADPCM_STRUCT;
-        #define KSDATAFORMAT_SUBTYPE_ADPCM __uuidof(KSDATAFORMAT_SUBTYPE_ADPCM_STRUCT)
-    #endif
-
-    #ifndef KSDATAFORMAT_SUBTYPE_IEEE_FLOAT
-        struct __declspec(uuid("00000003-0000-0010-8000-00aa00389b71")) KSDATAFORMAT_SUBTYPE_IEEE_FLOAT_STRUCT;
-        #define KSDATAFORMAT_SUBTYPE_IEEE_FLOAT __uuidof(KSDATAFORMAT_SUBTYPE_IEEE_FLOAT_STRUCT)
-    #endif
-
-#endif
-
-
-/**************************************************************************
- *
- *  Speaker positions used in the WAVEFORMATEXTENSIBLE dwChannelMask field.
- *
- ***************************************************************************/
-
-#ifndef SPEAKER_FRONT_LEFT
-    #define SPEAKER_FRONT_LEFT            0x00000001
-    #define SPEAKER_FRONT_RIGHT           0x00000002
-    #define SPEAKER_FRONT_CENTER          0x00000004
-    #define SPEAKER_LOW_FREQUENCY         0x00000008
-    #define SPEAKER_BACK_LEFT             0x00000010
-    #define SPEAKER_BACK_RIGHT            0x00000020
-    #define SPEAKER_FRONT_LEFT_OF_CENTER  0x00000040
-    #define SPEAKER_FRONT_RIGHT_OF_CENTER 0x00000080
-    #define SPEAKER_BACK_CENTER           0x00000100
-    #define SPEAKER_SIDE_LEFT             0x00000200
-    #define SPEAKER_SIDE_RIGHT            0x00000400
-    #define SPEAKER_TOP_CENTER            0x00000800
-    #define SPEAKER_TOP_FRONT_LEFT        0x00001000
-    #define SPEAKER_TOP_FRONT_CENTER      0x00002000
-    #define SPEAKER_TOP_FRONT_RIGHT       0x00004000
-    #define SPEAKER_TOP_BACK_LEFT         0x00008000
-    #define SPEAKER_TOP_BACK_CENTER       0x00010000
-    #define SPEAKER_TOP_BACK_RIGHT        0x00020000
-    #define SPEAKER_RESERVED              0x7FFC0000
-    #define SPEAKER_ALL                   0x80000000
-    #define _SPEAKER_POSITIONS_
-#endif
-
-#ifndef SPEAKER_STEREO
-    #define SPEAKER_MONO             (SPEAKER_FRONT_CENTER)
-    #define SPEAKER_STEREO           (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT)
-    #define SPEAKER_2POINT1          (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY)
-    #define SPEAKER_SURROUND         (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_BACK_CENTER)
-    #define SPEAKER_QUAD             (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)
-    #define SPEAKER_4POINT1          (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)
-    #define SPEAKER_5POINT1          (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT)
-    #define SPEAKER_7POINT1          (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_FRONT_LEFT_OF_CENTER | SPEAKER_FRONT_RIGHT_OF_CENTER)
-    #define SPEAKER_5POINT1_SURROUND (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT)
-    #define SPEAKER_7POINT1_SURROUND (SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT | SPEAKER_SIDE_LEFT  | SPEAKER_SIDE_RIGHT)
-#endif
-
-
 #pragma pack(pop)
 
 #endif // #ifndef __AUDIODEFS_INCLUDED__

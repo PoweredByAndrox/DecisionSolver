@@ -10,8 +10,8 @@ extern shared_ptr<Engine> Application;
 #include "Models.h"
 #include "SimpleLogic.h"
 
-vector<shared_ptr<GameObjects::Object>> Levels::Obj_other, Levels::Obj_npc;
-vector<string> Levels::IDModels;
+//vector<shared_ptr<GameObjects::Object>> Levels::Obj_other, Levels::Obj_npc;
+//vector<string> Levels::IDModels;
 
 HRESULT Levels::LoadXML(string FileBuff)
 {
@@ -109,7 +109,7 @@ vector<shared_ptr<GameObjects::Object>> Levels::XMLPreparing(vector<XMLElement *
 		}
 
 		g_Obj.push_back(make_shared<GameObjects::Object>(ID_TEXT, ModelName, Logic, type, Pos, Scale, Rotate));
-		IDModels.push_back(ID_TEXT);
+		//IDModels.push_back(ID_TEXT);
 		if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
 			break;
 
@@ -145,8 +145,8 @@ void Levels::Spawn(Vector3 pos, GameObjects::TYPE type)
 
 void Levels::Reload_Level(string File)
 {
-	Obj_other.clear();
-	Obj_npc.clear();
+	//Obj_other.clear();
+	//Obj_npc.clear();
 	// rework it!
 	//LoadXML(File);
 }
@@ -172,7 +172,7 @@ void Levels::ProcessXML()
 			return;
 
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
-		Obj_other = XMLPreparing(Attrib);
+		//Obj_other = XMLPreparing(Attrib);
 	}
 	else if (strcmp(cache.c_str(), "npc") == 0)
 	{
@@ -180,90 +180,58 @@ void Levels::ProcessXML()
 			return;
 
 		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
-		Obj_npc = XMLPreparing(Attrib);
+		//Obj_npc = XMLPreparing(Attrib);
 	}
 }
 
 #include "DebugDraw.h"
-void Levels::Update(Matrix View, Matrix Proj, float Time)
+void Levels::Update()
 {
-	for (auto it : Obj_other)
-	{
-		if (!it->RenderIt)
-			continue;
+	MainChild->Update();
+}
 
-		auto Model = it->GetModel();
-		if (it->GetScale())
-			Model->setScale(it->GetScaleCord());
-		if (it->GetRotation())
-			Model->setRotation(it->GetRotCord());
+void Levels::Add(_TypeOfFile T, string PathModel)
+{
+	shared_ptr<Node> nd = make_shared<Node>();
 
-		UpdateLogic(Time, it);
-		Model->setPosition(it->GetPositionCord());
-		Model->Render(View, Proj);
-	}
+	nd->ID = path(PathModel).filename().string();
+	nd->GM = make_shared<GameObjects::Object>(nd->ID, PathModel, 
+		nullptr, OBJECTS_Dyn, Vector3::Zero, Vector3::One, Vector3::Zero);
+	MainChild->AddNewNode(nd);
+}
 
-	// NPC
-	for (auto it : Obj_npc)
-	{
-		if (!it->RenderIt)
-			continue;
+void Levels::AddTo(string ID, shared_ptr<SimpleLogic> Logic)
+{
+	auto Obj = MainChild->getNodeByID(ID);
+	if (Obj.operator bool() && !Obj->ID.empty())
+		Obj->GM->SetLogic(Logic);
+}
 
-		auto Model = it->GetModel();
-		if (it->GetScale())
-			Model->setScale(it->GetScaleCord());
-		if (it->GetRotation())
-			Model->setRotation(it->GetRotCord());
+void Levels::AddTo(shared_ptr<Node> nd, shared_ptr<SimpleLogic> Logic)
+{
+	if (nd.operator bool() && !nd->ID.empty())
+		nd->GM->SetLogic(Logic);
+}
 
-		//it->SetPositionCoords(UpdateLogic(Time, it));
-		Model->setPosition(it->GetPositionCord());
-		Model->Render(View, Proj);
-	}
-
-	//if (LOGO.operator bool() && !LOGO->GetTitle().empty())
-	//	LOGO->Render();
+void Levels::Remove(string ID)
+{
+	MainChild->DeleteNode(ID);
 }
 
 void Levels::Destroy()
 {
-	while (!Obj_other.empty())
-	{
-		Obj_other.front()->GetModel()->Release();
-		Obj_other.front()->Destroy();
-		Obj_other.erase(Obj_other.begin());
-	}
-	while (!Obj_npc.empty())
-	{
-		Obj_npc.front()->GetModel()->Release();
-		Obj_npc.front()->Destroy();
-		Obj_npc.erase(Obj_npc.begin());
-	}
-}
-
-float Test1 = 1.0f, Test2 = 3.0f;
-void Levels::UpdateLogic(float Time, shared_ptr<GameObjects::Object> &Obj)
-{
-	if (GetAsyncKeyState(VK_NUMPAD1))
-		Test2 += 0.05f;
-	if (GetAsyncKeyState(VK_NUMPAD2))
-		Test2 -= 0.05f;
-
-	Test1 += Time;
-	if (Test1 >= Test2)
-	{
-		Test1 = 0.0f;
-		//if (GetAsyncKeyState(VK_NUMPAD5))
-		//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
-		
-		//Vector3 newPos = ConstrainToBoundary(Obj->GetPositionCord(),
-		//	Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
-		//	newRot = Vector3::Zero;
-		Vector3 newPos = Obj->GetPositionCord(), newRot = Obj->GetRotCord();
-		Obj->GetLogic()->Update(newPos, newRot);
-		Obj->SetRotationCoords(newRot);
-		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
-		Obj->SetPositionCoords(newPos);
-	}
+	//while (!Obj_other.empty())
+	//{
+	//	Obj_other.front()->GetModel()->Release();
+	//	Obj_other.front()->Destroy();
+	//	Obj_other.erase(Obj_other.begin());
+	//}
+	//while (!Obj_npc.empty())
+	//{
+	//	Obj_npc.front()->GetModel()->Release();
+	//	Obj_npc.front()->Destroy();
+	//	Obj_npc.erase(Obj_npc.begin());
+	//}
 }
 
 HRESULT Levels::Init()
@@ -275,4 +243,57 @@ HRESULT Levels::Init()
 	//}
 
 	return S_OK;
+}
+
+void Levels::Child::AddNewNode(shared_ptr<Node> ND)
+{
+	for (auto It: Nodes)
+	{
+		if (It->ID == ND->ID)
+			ND->ID = "$" + ND->ID;
+	}
+	Nodes.push_back(ND);
+}
+
+void Levels::Child::DeleteNode(string ID)
+{
+	for (size_t i = 0; i < Nodes.size(); i++)
+	{
+		if (ID == Nodes.at(i)->ID)
+		{
+			//Nodes.at(i)->GM->Destroy();
+			Nodes.erase(Nodes.begin() + i);
+		}
+	}
+}
+
+void Levels::Child::Update()
+{
+	for (size_t i = 0; i < Nodes.size(); i++)
+	{
+		auto it = Nodes.at(i)->GM;
+		if (!it->RenderIt)
+			continue;
+
+		auto Model = it->GetModel();
+		if (it->GetScale())
+			Model->setScale(it->GetScaleCord());
+		if (it->GetRotation())
+			Model->setRotation(it->GetRotCord());
+
+		it->UpdateLogic(Application->getframeTime());
+		Model->setPosition(it->GetPositionCord());
+		Model->Render(Application->getCamera()->GetViewMatrix(), Application->getCamera()->GetProjMatrix());
+	}
+}
+
+shared_ptr<Levels::Node> Levels::Child::getNodeByID(string ID)
+{
+	for (auto it : Nodes)
+	{
+		if (ID == it->ID)
+			return it;
+	}
+
+	return make_shared<Node>();
 }

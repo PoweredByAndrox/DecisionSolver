@@ -1,9 +1,13 @@
+/**
+ * \file	main.cpp.
+ *
+ * \brief	Implements Init All The Classes And Have "Application" Variable For Engine
+ */
+
 #include "pch.h"
 
 #include "Engine.h"
-
 #include "DebugDraw.h"
-
 #include "File_system.h"
 #include "Render_Buffer.h"
 #include "Camera.h"
@@ -13,22 +17,38 @@
 #include "Physics.h"
 #include "Picking.h"
 #include "Levels.h"
-
 #include "CutScene.h"
-
 #include "Multiplayer.h"
-
-shared_ptr<Engine> Application;
 #include "UI.h"
-
-shared_ptr<Actor> mActor;
-
 #include "CLua.h"
+
+/** \brief	The application */
+shared_ptr<Engine> Application;
+
 	// winerror.h 
 		//	e.g ERROR_FILE_NOT_FOUND
 
+///< .
 ToDo("Unnecessary: Correct My English, Please)")
 ToDo("Use PxPreprocessor.h for Check If We Have x86 or x64")
+
+/**
+ * \fn	int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
+ *
+ * \brief \mainpage Everything Has Started Here. The Following Function Inits Each Class.
+ *
+ * \author	PBAX
+ * \date	17.02.2020
+ *
+ * \param 	hInstance	 	The instance.
+ * \param 	hPrevInstance	The previous instance.
+ * \param 	lpCmdLine	 	The command line.
+ * \param 	nCmdShow	 	The command show.
+ *
+ * \returns	A WINAPI.
+ * \see Engine
+ */
+
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
 	UNREFERENCED_PARAMETER(hPrevInstance);
@@ -135,8 +155,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		return 5;
 	}
 
-	//Application->setMultiplayer(make_shared<Multiplayer>());
-	//EngineTrace(Application->getMPL()->Init());
+	Application->setMultiplayer(make_shared<Multiplayer>());
+	EngineTrace(Application->getMPL()->Init());
 
 	MSG msg = { 0 };
 	while (msg.message != WM_QUIT)
@@ -166,3 +186,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 
 	return 0;
 }
+
+/**
+// End of main.cpp
+ */

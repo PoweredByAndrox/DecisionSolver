@@ -25,6 +25,10 @@ class Picking;
 class Levels;
 class CutScene;
 class Multiplayer;
+
+/*!
+ * \class Engine Contains All The Classes
+ */
 class Engine
 {
 private:
@@ -102,23 +106,23 @@ private:
 #endif
 
 public:
-/**
- * @brief Initialized Here Window And DirectX
+/*!
+ * \brief Initialized Here Window And DirectX
  *
- * @param NameWnd name window
- * @param hInstance Instance of our window
+ * \param ##1 name window
+ * \param ##2 Instance of our window
  *
- * @return Init Function status of error codes
+ * \return Init Function status of error codes
  */
 	HRESULT Init(string NameWnd, HINSTANCE hInstance);
 
-/**
- * @brief Render It Every Class
+/*!
+ * \brief Render It Every Class
  */
 	void Render();
 
-/**
- * @brief Here's Releasing All Objects Of Window And DirectX
+/*!
+ * \brief Here's Releasing All Objects Of Window And DirectX
  */
 	void Destroy();
 	static void Quit() { ::PostQuitMessage(0); }
@@ -246,8 +250,8 @@ public:
 
 	void ChangeColorBuffer(XMVECTORF32 Color) { _ColorBuffer = Color; }
 	
-/**
- * @brief Here's Clear Render Target For DirectX + Depth Stensil Also Clear
+/*!
+ * \brief Here's Clear Render Target For DirectX + Depth Stensil Also Clear
  */
 	void ClearRenderTarget();
 	static HRESULT ResizeWindow(WPARAM wParam);
@@ -269,6 +273,11 @@ public:
 	shared_ptr<MainMenu> getMainMenu() { return Menu; }
 #endif
 
+/*!
+ * \brief Here's Error Handing For XML Files
+ *
+ * \param ##1 Error Debug Text If It's Debug Build And Text To File (Log)
+ */
 	static void StackTrace(LPCSTR Error);
 
 	Mouse::ButtonStateTracker getTrackerMouse() { return TrackerMouse; }
@@ -277,39 +286,55 @@ public:
 
 	auto getAllThreadGroup() { return ThreadGroups; }
 
-/**
- * @brief Here's Error Handing All The Engine
+/*!
+ * \brief Here's Error Handing All The Engine
  *
- * @param DebugText Debug Text If It's Debug Build
- * @param ExceptionText Only If Defined "ExceptionWhenEachError"
- * @param LogText It'll Write In Log File This Text
+ * \param ##1 Debug Text If It's Debug Build
+ * \param ##2 Only Works If Defined "ExceptionWhenEachError"
+ * \param ##3 It'll Write In Log File This Text
  */
 	static void LogError(string DebugText, string ExceptionText, string LogText);
 
-/**
- * @brief Here's Keybord Key Down Function For Lua
+/*!
+ * \brief Here's Keybord Key Down Function For Lua
  *
- * @param Key Key Passed From Lua
- */
+ * \param ##1 Key Passed From Lua
+ *
+ * \return bool If It Was Down
+*/
 	static bool IsKeyboardDown(int Key);
 		
-/**
- * @brief Here's Keybord Key Up Function For Lua
+/*!
+ * \brief Here's Keybord Key Up Function For Lua
  *
- * @param Key Key Passed From Lua
+ * \param ##1 Key Passed From Lua
+ *
+ * \return bool If It Was Up
  */
 	static bool IsKeyboardUp(int Key);
 	
-/**
- * @brief Here's Mouse Left Button Function For Lua
+/*!
+ * \brief Here's Mouse Left Button Function For Lua
+ *
+ * \return bool If It Clicked Left
  */
 	static bool IsMouseLeft();
 	
-/**
- * @brief Here's Mouse Right Button Function For Lua
- */
+/*!
+ * \brief Here's Mouse Right Button Function For Lua
+ *
+ * \return bool If It Clicked Right
+*/
 	static bool IsMouseRight();
 private:
+/*!
+ * \brief Here's Update Messages From System To Window
+ *
+ * \param ##1 Handle Current Window
+ * \param ##2 Message
+ * \param ##3 Additional Param
+ * \param ##4 Additional Param
+ */
 	static LRESULT WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	using ButtonState = Mouse::ButtonStateTracker::ButtonState;
 	Mouse::ButtonStateTracker TrackerMouse;

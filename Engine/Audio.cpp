@@ -8,15 +8,19 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 
 #include "Audio.h"
-#include <wrl.h>
 
 IXAudio2MasteringVoice *master = nullptr;
-Microsoft::WRL::ComPtr<IXAudio2> audio;
-XAUDIO2_VOICE_STATE pVoiceState;
+XAUDIO2_VOICE_STATE pVoiceState = {};
+IXAudio2 *Audio::pXAudio2 = nullptr;
 
-vector<unique_ptr<Audio::AudioFile>> Audio::AFiles;
-XAUDIO2_VOICE_DETAILS Audio::VOICE_Details;
-XAUDIO2_DEVICE_DETAILS Audio::DEVICE_Details;
+XAUDIO2_VOICE_DETAILS Audio::VOICE_Details = {};
+XAUDIO2_DEVICE_DETAILS Audio::DEVICE_Details = {};
+
+shared_ptr<Audio::Listerner> Audio::Lnr;
+vector<pair<shared_ptr<Audio::Source>, string>> Audio::Src;
+
+X3DAUDIO_HANDLE Audio::X3DInstance = {};
+X3DAUDIO_DSP_SETTINGS Audio::DSPSettings = {};
 
 ToDo("Error Hanging!")
 HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
@@ -78,7 +82,7 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 		reinterpret_cast<HPSTR>(&pDataBuffer[0]), data.cksize) != (signed)data.cksize)
 		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Isn't a WAV File.") % filename).str(),
 			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File! It Isn't a WAV File");
-
+	
 	mmioClose(mmio, MMIO_FHOPEN);
 
 	buffer.AudioBytes = pDataBuffer.size();
@@ -91,11 +95,13 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 {
 	SecureZeroMemory(&buffer, sizeof(buffer));
 	SecureZeroMemory(&WaveFormEx, sizeof(WaveFormEx));
-	SecureZeroMemory(&wfx, sizeof(wfx));
 
 	EngineTrace(loadWAVFile(FName, wfx, buffer));
 
-	EngineTrace(audio->CreateSourceVoice(&source, &WaveFormEx));
+	if (Repeat)
+		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
+
+	EngineTrace(pXAudio2->CreateSourceVoice(&source, &WaveFormEx));
 
 	source->Stop();
 	source->FlushSourceBuffers();
@@ -103,117 +109,126 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 	return S_OK;
 }
 
-void Audio::AudioFile::Update(Vector3 pos, X3DAUDIO_HANDLE X3DInstance, X3DAUDIO_LISTENER Listener,
-	X3DAUDIO_EMITTER Emitter, X3DAUDIO_CONE EmitterCone, X3DAUDIO_DSP_SETTINGS DSPSettings, DWORD dwCalcFlags)
+void Audio::AudioFile::Update()
 {
 	source->SetOutputMatrix(NULL, DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount,
 		DSPSettings.pMatrixCoefficients);
 	source->SetFrequencyRatio(DSPSettings.DopplerFactor);
 
+#if defined(_DEBUG)
 	source->GetState(&pVoiceState);
+#endif
 }
+
 HRESULT Audio::Init()
 {
-	SecureZeroMemory(&Listener, sizeof(X3DAUDIO_LISTENER));
-	SecureZeroMemory(&Listener_DirectionalCone, sizeof(X3DAUDIO_CONE));
-	SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
-	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
-	SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
+	if (InitSoundSystem) return S_OK;
+
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
+	EngineTrace(XAudio2Create(&pXAudio2));
 
-	EngineTrace(XAudio2Create(&audio));
-
-	EngineTrace(audio->CreateMasteringVoice(&master));
+	EngineTrace(pXAudio2->CreateMasteringVoice(&master));
 
 	master->GetVoiceDetails(&VOICE_Details);
-	audio->GetDeviceDetails(0, &DEVICE_Details);
+	pXAudio2->GetDeviceDetails(0, &DEVICE_Details);
 
 	X3DAudioInitialize(DEVICE_Details.OutputFormat.dwChannelMask, X3DAUDIO_SPEED_OF_SOUND, X3DInstance);
-
-	auto SoundFiles = Application->getFS()->GetFileByType(_TypeOfFile::SOUNDS);
-	for (size_t i = 0; i < SoundFiles.size(); i++)
-	{
-		AFiles.push_back(make_unique<AudioFile>(SoundFiles.at(i)->PathA, VOICE_Details.InputChannels));
-	}
-
-	Listener_DirectionalCone.InnerAngle = X3DAUDIO_PI * 5.0f / 6.0f;
-	Listener_DirectionalCone.OuterAngle = X3DAUDIO_PI * 11.0f / 6.0f;
-	Listener_DirectionalCone.InnerVolume = 1.0f;
-	Listener_DirectionalCone.OuterVolume = 0.75f;
-	Listener_DirectionalCone.OuterLPF = 0.25f;
-	Listener_DirectionalCone.InnerReverb = 0.708f;
-	Listener_DirectionalCone.OuterReverb = 1.0f;
-	Listener.pCone = &Listener_DirectionalCone;
+	if (!Lnr.operator bool()) Lnr = make_shared<Listerner>();
 
 	InitSoundSystem = true;
 
 	return S_OK;
 }
 
-void Audio::Update()
+void Audio::AddNewFile(string File, bool Repeat)
 {
-	if (!X3DInstance)
+	if (File.empty()) return;
+	if (Src.empty())
+	{
+		Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, Repeat),
+			path(File).filename().string()));
+		Src.back().first->Init();
+		return;
+	}
+	for (auto It: Src)
+	{
+		if (path(File).filename().string() != It.second)
+		{
+			Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, Repeat),
+				path(File).filename().string()));
+			Src.back().first->Init();
+		}
+	}
+}
+
+void Audio::DeleteSound(string ID)
+{
+	if (ID.empty()) return;
+	for (size_t i = 0; i < Src.size(); i++)
+	{
+		if (path(ID).filename().string() != Src.at(i).second)
+		{
+			Src.at(i).first->Destroy();
+			Src.erase(Src.begin() + i);
+		}
+	}
+}
+
+void Audio::AddNewFile(vector<string> Files, bool Repeat)
+{
+	for (auto File: Files)
+	{
+		if (File.empty()) continue;
+		if (Src.empty())
+		{
+			Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, Repeat),
+				path(File).filename().string()));
+			Src.back().first->Init();
+			return;
+		}
+		for (auto It: Src)
+		{
+			if (path(File).filename().string() != It.second)
+			{
+				Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, Repeat),
+					path(File).filename().string()));
+				Src.back().first->Init();
+			}
+		}
+	}
+}
+
+void Audio::Update(Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp)
+{
+	if (!X3DInstance || Src.empty() || !Lnr.operator bool()
+		|| !Lnr->GetListener())
 		return;
 
+#if defined(_DEBUG)
 	master->GetVoiceDetails(&VOICE_Details);
+#endif
 
-	Vector3
-		Eye = Application->getCamera()->GetEyePt(),
-		WorldAhead = Application->getCamera()->GetWorldAhead(),
-		WorldUp = Application->getCamera()->GetWorldUp();
-	X3DAUDIO_VECTOR
-		posCam = { Eye.x, Eye.y, Eye.z },
-		WAh = { WorldAhead.x, WorldAhead.y, WorldAhead.z },
-		WUp = { WorldUp.x, WorldUp.y, WorldUp.z };
-
-	Listener.OrientFront = WAh;
-	Listener.OrientTop = WUp;
-	Listener.Position = posCam;
-
-	Emitter.Position = pos;
-	EmitterCone.OuterVolume = 1.0f;
-	EmitterCone.OuterLPF = 1.0f;
-	EmitterCone.OuterReverb = 1.0f;
-	Emitter.pCone = &EmitterCone;
-
-	Emitter.InnerRadius = 50.f;
-	Emitter.InnerRadiusAngle = 1.0f;
-	Emitter.pVolumeCurve = (X3DAUDIO_DISTANCE_CURVE *)&X3DAudioDefault_LinearCurve;
-
-	Emitter.ChannelCount = VOICE_Details.InputChannels;
-	Emitter.ChannelRadius = 1.0f;
-	Emitter.CurveDistanceScaler = 50.f;
-	float EmitterAzimuths[1] = { 0.0f };
-	Emitter.pChannelAzimuths = EmitterAzimuths;
-
-	Emitter.Position = { 0, 0, 0 };
-	Emitter.OrientFront = { 0, 0, 1 };
-	Emitter.OrientTop = { 0, 1, 0 };
-
-	DSPSettings.SrcChannelCount = DSPSettings.DstChannelCount = Emitter.ChannelCount;
-
-	if (!DSPSettings.pMatrixCoefficients)
+	for (auto ASrc: Src)
 	{
-		DSPSettings.pMatrixCoefficients =
-			new FLOAT32[DSPSettings.SrcChannelCount * DSPSettings.DstChannelCount];
-		memset(DSPSettings.pMatrixCoefficients, 0,
-			sizeof(FLOAT32) * (DSPSettings.SrcChannelCount * DSPSettings.DstChannelCount));
-	}
+		Lnr->Update(CamPos, CamAhead, CamUp);
 
-	X3DAudioCalculate(X3DInstance, &Listener, &Emitter, dwCalcFlags, &DSPSettings);
+		if (!ASrc.first || !ASrc.first->GetEmitter()) return;
 
-	for (size_t i = 0; i < AFiles.size(); i++)
-	{
-		AFiles.at(i)->Update(Vector3(pos.x, pos.y, pos.z), X3DInstance, Listener, Emitter, EmitterCone,
-			DSPSettings, dwCalcFlags);
+		ASrc.first->Update();
+
+		DSPSettings.SrcChannelCount = 2; DSPSettings.DstChannelCount = DEVICE_Details.OutputFormat.Format.nChannels;
+
+		X3DAudioCalculate(X3DInstance, Lnr->GetListener(), ASrc.first->GetEmitter(), ASrc.first->GetCalcFlags(),
+			&DSPSettings);
+		ASrc.first->GetAUDFile()->Update();
 	}
 }
 
 void Audio::doPlay()
 {
-	for (size_t i = 0; i < AFiles.size(); i++)
+	for (auto It: Src)
 	{
-		AFiles.at(i)->getSOURCE()->Start();
+		It.first->Play();
 	}
 }
 
@@ -225,54 +240,46 @@ void Audio::AudioFile::Destroy()
 	//	SubMix = nullptr;
 	//}
 	if (source)
-	{
 		source->DestroyVoice();
-		source = nullptr;
-	}
 
 	SecureZeroMemory(&buffer, sizeof(XAUDIO2_BUFFER));
-	SecureZeroMemory(&wfx, sizeof(WAVEFORMATEXTENSIBLE));
+	SecureZeroMemory(&WaveFormEx, sizeof(WAVEFORMATEX));
 }
 
 void Audio::ReleaseAudio()
 {
-	SAFE_DELETE(DSPSettings.pMatrixCoefficients);
-
+	SAFE_DELETE_ARRAY(DSPSettings.pMatrixCoefficients);
 	doStop();
-	for (size_t i = 0; i < AFiles.size(); i++)
-	{
-		AFiles.at(i)->Destroy();
-	}
 	//if (g_audioState.pSubmixVoice)
 	//{
 	//	g_audioState.pSubmixVoice->DestroyVoice();
 	//	g_audioState.pSubmixVoice = NULL;
 	//}
+	for (size_t i = 0; i < Src.size(); i++)
+	{
+		Src.at(i).first->Stop();
+		Src.at(i).first->Destroy();
+	}
+	Src.clear();
 
 	if (master)
-	{
 		master->DestroyVoice();
-		master = nullptr;
-	}
 
-	if (audio)
-	{
-		audio->StopEngine();
-		audio = nullptr;
-	}
+	if (pXAudio2)
+		pXAudio2->StopEngine();
 
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
-	SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
-	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
-	SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
+	//SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
+	//SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
+	//SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
 }
 
 void Audio::changeSoundVol(float Vol)
 {
-	for (size_t i = 0; i < AFiles.size(); i++)
-	{
-		AFiles.at(i)->getSOURCE()->SetVolume(Vol);
-	}
+	//for (size_t i = 0; i < AFiles.size(); i++)
+	//{
+	//	AFiles.at(i)->getSOURCE()->SetVolume(Vol);
+	//}
 }
 
 void Audio::changeSoundPan(float Pan)
@@ -281,7 +288,7 @@ void Audio::changeSoundPan(float Pan)
 	//	sound.at(i)->SetPan(Pan);
 }
 
-void Audio::PlayFile(string File, bool NeedFind)
+void Audio::PlayFile(string File, bool RepeatIt, bool NeedFind)
 {
 	if (File.empty())
 	{
@@ -291,47 +298,156 @@ void Audio::PlayFile(string File, bool NeedFind)
 		return;
 	}
 
-	for (size_t i = 0; i < AFiles.size(); i++)
+	for (auto It: Src)
 	{
-		AFiles.at(i)->Destroy();
+		It.first->Stop();
+		It.first->Destroy();
 	}
-	AFiles.clear();
+	Src.clear();
 
 	if (NeedFind)
 	{
 		auto SoundFile = Application->getFS()->GetFile(File);
 		if (SoundFile.operator bool())
-			AFiles.push_back(make_unique<AudioFile>(SoundFile->PathA, VOICE_Details.InputChannels));
+		{
+			Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, RepeatIt),
+				path(File).filename().string()));
+			Src.back().first->Init();
+		}
 	}
 	else // If We Have A Full Path To File!!!
-		AFiles.push_back(make_unique<AudioFile>(File, VOICE_Details.InputChannels));
+	{
+		Src.push_back(make_pair(make_shared<Source>(File, VOICE_Details.InputChannels, RepeatIt),
+			path(File).filename().string()));
+		Src.back().first->Init();
+	}
 }
 
 void Audio::doPause()
 {
-	for (size_t i = 0; i < AFiles.size(); i++)
+	for (auto It: Src)
 	{
-		UINT isPlay = pVoiceState.BuffersQueued;
-		if (AFiles.at(i)->getSOURCE() && isPlay != 0)
-			AFiles.at(i)->getSOURCE()->Stop();
+		It.first->Pause();
 	}
-
-	//for (size_t i = 0; i < sound.size(); i++)
-	//	sound.at(i)->Pause();
-}
-
-void Audio::doResume()
-{
-	//for (size_t i = 0; i < sound.size(); i++)
-	//	sound.at(i)->Resume();
 }
 
 void Audio::doStop()
 {
-	for (size_t i = 0; i < AFiles.size(); i++)
+	for (auto It: Src)
 	{
-		AFiles.at(i)->getSOURCE()->Stop();
-		AFiles.at(i)->getSOURCE()->FlushSourceBuffers();
-		AFiles.at(i)->getSOURCE()->SubmitSourceBuffer(AFiles.at(i)->getBUFFER(), nullptr);
+		It.first->Stop();
 	}
+}
+
+void Audio::Listerner::Init()
+{
+	SecureZeroMemory(&Listener, sizeof(X3DAUDIO_LISTENER));
+	SecureZeroMemory(&Listener_DirectionalCone, sizeof(X3DAUDIO_CONE));
+
+	Listener_DirectionalCone.InnerAngle = X3DAUDIO_PI * 5.0f / 6.0f;
+	Listener_DirectionalCone.OuterAngle = X3DAUDIO_PI * 11.0f / 6.0f;
+	Listener_DirectionalCone.InnerVolume = 1.0f;
+	Listener_DirectionalCone.OuterVolume = 0.75f;
+	Listener_DirectionalCone.OuterLPF = 0.25f;
+	Listener_DirectionalCone.InnerReverb = 0.708f;
+	Listener_DirectionalCone.OuterReverb = 1.0f;
+	Listener.pCone = &Listener_DirectionalCone;
+}
+
+void Audio::Listerner::Update(Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp)
+{
+	Listener.OrientFront = X3DAUDIO_VECTOR{ CamAhead.x, CamAhead.y, CamAhead.z };
+	Listener.OrientTop = X3DAUDIO_VECTOR{ CamUp.x, CamUp.y, CamUp.z };
+	Listener.Position = X3DAUDIO_VECTOR{ CamPos.x, CamPos.y, CamPos.z };
+}
+
+Audio::Source::Source(string FName, int Channels, bool Repeat)
+{
+	AUDFile = make_shared<AudioFile>(FName, Channels, Repeat);
+	Init();
+}
+
+void Audio::Source::Init()
+{
+	SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
+	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
+	DSPSettings.pMatrixCoefficients = new FLOAT32[VOICE_Details.InputChannels * VOICE_Details.InputChannels];
+
+	//SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
+}
+
+void Audio::Source::Update()
+{
+	EmitterCone.OuterVolume = 1.0f;
+	EmitterCone.OuterLPF = 1.0f;
+	EmitterCone.OuterReverb = 1.0f;
+	Emitter.pCone = &EmitterCone;
+
+	Emitter.InnerRadius = 25.f;
+	Emitter.InnerRadiusAngle = 1.0f;
+	Emitter.pVolumeCurve = (X3DAUDIO_DISTANCE_CURVE *)&X3DAudioDefault_LinearCurve;
+
+	Emitter.ChannelCount = DSPSettings.SrcChannelCount;
+	Emitter.ChannelRadius = 1.0f;
+	Emitter.CurveDistanceScaler = 30.f;
+	float EmitterAzimuths[1] = { 0.0f };
+	Emitter.pChannelAzimuths = EmitterAzimuths;
+
+	Emitter.Position = pos;
+	Emitter.OrientFront = { 0, 0, 1 };
+	Emitter.OrientTop = { 0, 1, 0 };
+}
+
+HRESULT Audio::Source::Play()
+{
+	HRESULT Code = S_OK;
+	EngineTrace(Code = AUDFile->getSOURCE()->Start());
+	if (Code == S_OK)
+	{
+		isPause = false;
+		isPlay = true;
+	}
+
+	return Code;
+}
+
+HRESULT Audio::Source::Pause()
+{
+	ToDo("Do Play Or Pause This");
+	HRESULT Code = S_OK;
+	UINT isPlay = pVoiceState.BuffersQueued;
+	if (AUDFile->getSOURCE() && isPlay != 0) // If It's not Playing
+	{
+		EngineTrace(Code = AUDFile->getSOURCE()->Stop());
+		if (Code == S_OK)
+		{
+			isPause = true;
+			isPlay = false;
+		}
+	}
+
+	return Code;
+}
+
+HRESULT Audio::Source::Stop()
+{
+	HRESULT Code = S_OK;
+	EngineTrace(Code = AUDFile->getSOURCE()->Stop());
+	AUDFile->getSOURCE()->FlushSourceBuffers();
+	AUDFile->getSOURCE()->SubmitSourceBuffer(AUDFile->getBUFFER(), nullptr);
+	if (Code == S_OK)
+	{
+		isPause = false;
+		isPlay = false;
+	}
+
+	return Code;
+}
+
+void Audio::Source::Destroy()
+{
+	SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
+	SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
+
+	AUDFile->Destroy();
 }

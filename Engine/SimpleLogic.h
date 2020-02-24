@@ -29,7 +29,7 @@ public:
 		LogicMode TestState;
 	};
 
-	void Init();
+	SimpleLogic();
 	void Update(Vector3 &Pos, Vector3 &Rot);
 
 	void Restart() { Progress = 0; }

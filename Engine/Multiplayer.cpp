@@ -17,60 +17,10 @@ shared_ptr<Multiplayer::Server> Multiplayer::Serv = make_shared<Multiplayer::Ser
 shared_ptr<Multiplayer::Client> Multiplayer::CurrentUser;
 SOCKET Multiplayer::Client::Sock;
 
-static vector<shared_ptr<Multiplayer::Cobes>> Cobe;
-
 #include <thread>
 #include <WS2tcpip.h>
 #include <mutex>
 mutex g_lock;
-
-void Multiplayer::MatToStr(Matrix Thing, string & str)
-{
-	str += to_string(Thing._11);
-	str += "," + to_string(Thing._12);
-	str += "," + to_string(Thing._13);
-	str += "," + to_string(Thing._14);
-
-	str += "," + to_string(Thing._21);
-	str += "," + to_string(Thing._22);
-	str += "," + to_string(Thing._23);
-	str += "," + to_string(Thing._24);
-
-	str += "," + to_string(Thing._31);
-	str += "," + to_string(Thing._32);
-	str += "," + to_string(Thing._33);
-	str += "," + to_string(Thing._34);
-
-	str += "," + to_string(Thing._41);
-	str += "," + to_string(Thing._42);
-	str += "," + to_string(Thing._43);
-	str += "," + to_string(Thing._44);
-}
-
-void Multiplayer::StrToMat(Matrix & Thing, string str)
-{
-	vector<string> mat;
-	boost::split(mat, str, boost::is_any_of(","));
-	Thing._11 = (float)atof(mat.at(0).c_str());
-	Thing._12 = (float)atof(mat.at(1).c_str());
-	Thing._13 = (float)atof(mat.at(2).c_str());
-	Thing._14 = (float)atof(mat.at(3).c_str());
-
-	Thing._21 = (float)atof(mat.at(4).c_str());
-	Thing._22 = (float)atof(mat.at(5).c_str());
-	Thing._23 = (float)atof(mat.at(6).c_str());
-	Thing._24 = (float)atof(mat.at(7).c_str());
-
-	Thing._31 = (float)atof(mat.at(8).c_str());
-	Thing._32 = (float)atof(mat.at(9).c_str());
-	Thing._33 = (float)atof(mat.at(10).c_str());
-	Thing._34 = (float)atof(mat.at(11).c_str());
-
-	Thing._41 = (float)atof(mat.at(12).c_str());
-	Thing._42 = (float)atof(mat.at(13).c_str());
-	Thing._43 = (float)atof(mat.at(14).c_str());
-	Thing._44 = (float)atof(mat.at(15).c_str());
-}
 
 HRESULT Multiplayer::Init()
 {
@@ -96,10 +46,6 @@ void Multiplayer::Destroy()
 void Multiplayer::Update()
 {
 	//Multiplayer::Client::Update();
-	for (size_t i = 0; i < Cobe.size(); i++)
-	{
-		Cobe.at(i)->Render();
-	}
 }
 
 #include "Camera.h"
@@ -116,13 +62,13 @@ DWORD WINAPI Multiplayer::Client::Update(LPVOID lpThreadParameter)
 	{
 		if (iResult == SOCKET_ERROR)
 		{
-			int error = WSAGetLastError();
+			int error = ::WSAGetLastError();
 			if (error != WSAEWOULDBLOCK)
-				throw exception("HERE!!!");
+				Engine::LogError("shutdown failed with error: " + to_string(::WSAGetLastError()),
+					string(__FILE__) + ": " + to_string(__LINE__), "shutdown failed with error: " + to_string(::WSAGetLastError()));
 		}
 
 		Tmp = buffer;
-		auto ObjCam = Application->getCamera();
 
 		if (contains(Tmp, "Login=true"))
 		{
@@ -137,35 +83,6 @@ DWORD WINAPI Multiplayer::Client::Update(LPVOID lpThreadParameter)
 		//		"MP: The server denied you to log in!", "MP: The server denied you to log in!");
 		//	g_lock.unlock();
 		//}
-
-		else if (contains(Tmp, "|") && !Cobe.empty() && ObjCam.operator bool())
-		{
-			Vector3 tmpP = Vector3::Zero, tmpR = Vector3::Zero;
-			vector<float> Pos, Rot;
-			vector<string> strs;
-
-			boost::split(strs, Tmp, boost::is_any_of("|"));
-
-			getFloat3Text(strs.at(1), ",", Pos);
-			getFloat3Text(strs.at(2), ",", Rot);
-
-			tmpP.x = Pos.at(0);
-			tmpP.y = Pos.at(1);
-			tmpP.z = Pos.at(2);
-
-			tmpR.x = Rot.at(0);
-			tmpR.y = Rot.at(1);
-			tmpR.z = Rot.at(2);
-
-			Cobe.at(atoi(strs.at(0).c_str()))->Pos = tmpP;
-			Cobe.at(atoi(strs.at(0).c_str()))->Rotate = tmpR;
-
-			string Matrixes = to_string(CurrentUser->getID()) + "|";
-			MatToStr(ObjCam->GetViewMatrix(), Matrixes);
-			Matrixes += '|';
-			MatToStr(ObjCam->GetProjMatrix(), Matrixes);
-			Send(Matrixes, CurrentUser->getSocket());
-		}
 	}
 }
 DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
@@ -181,9 +98,10 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 		{
 			if (iResult == SOCKET_ERROR)
 			{
-				int error = WSAGetLastError();
+				int error = ::WSAGetLastError();
 				if (error != WSAEWOULDBLOCK)
-					throw exception("HERE!!!");
+					Engine::LogError("shutdown failed with error: " + to_string(::WSAGetLastError()),
+						string(__FILE__) + ": " + to_string(__LINE__), "shutdown failed with error: " + to_string(::WSAGetLastError()));
 			}
 
 			Tmp = buffer;
@@ -212,17 +130,16 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 					if (Send("Login=true|ID=" + to_string(slot), Serv->getSock(), from))
 					{
 						g_lock.lock();
-						//auto DialMP = Application->getUI()->getDialog("MPConnection");
-						//if (DialMP.operator bool())
-						//{
-						//	string IP = ((boost::format("%s.%s.%s.%s") % to_string(from.sin_addr.S_un.S_un_b.s_b1)
-						//		% to_string(from.sin_addr.S_un.S_un_b.s_b2) % to_string(from.sin_addr.S_un.S_un_b.s_b3)
-						//		% to_string(from.sin_addr.S_un.S_un_b.s_b4)).str());
-						//	DialMP->getComponents()->Itextmul.back()->AddCLText(Type::Information,
-						//		(boost::format("The user ID = %d, IP = %s, Port = %s.\nConnection Successful!")
-						//			% slot %IP % to_string(from.sin_port)).str());
-						//}
-						Cobe.push_back(make_shared<Cobes>());
+						auto DialMP = Application->getUI()->getDialog("MPConnection");
+						if (DialMP.operator bool())
+						{
+							string IP = ((boost::format("%s.%s.%s.%s") % to_string(from.sin_addr.S_un.S_un_b.s_b1)
+								% to_string(from.sin_addr.S_un.S_un_b.s_b2) % to_string(from.sin_addr.S_un.S_un_b.s_b3)
+								% to_string(from.sin_addr.S_un.S_un_b.s_b4)).str());
+							DialMP->getComponents()->Itextmul.back().second->AddCLText(Type::Information,
+								(boost::format("The user ID = %d, IP = %s, Port = %s.\nConnection Successful!")
+									% slot %IP % to_string(from.sin_port)).str());
+						}
 
 						g_lock.unlock();
 
@@ -261,29 +178,8 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 				}
 				g_lock.unlock();
 			}
-			else if (contains(Tmp, "|"))
-			{
-				boost::split(strs, Tmp, boost::is_any_of("|"));
-				Matrix View, Proj;
-				StrToMat(View, strs.at(1));
-				StrToMat(Proj, strs.at(2));
-				Cobe.at(atoi(strs.at(0).c_str()))->View = View;
-				Cobe.at(atoi(strs.at(0).c_str()))->Proj = Proj;
-			}
 			OutputDebugStringA((boost::format("Bytes received: %d\n") % iResult).str().c_str());
 		}
-
-		if (!Cobe.empty())
-			for (size_t i = 0; i < Users.size(); i++)
-			{
-				string msg = to_string(i) + '|';
-				Vector3 tmpP = Cobe.at(i)->Pos, tmpR = Cobe.at(i)->Rotate;
-				getTextFloat3(msg, ",", vector<float> {tmpP.x, tmpP.y, tmpP.z});
-				msg += '|';
-				getTextFloat3(msg, ",", vector<float> {tmpR.x, tmpR.y, tmpR.z});
-
-				Send(msg, Serv->getSock(), Users.at(i)->getAddresStruct());
-			}
 	}
 	return 0;
 }
@@ -301,9 +197,10 @@ string Multiplayer::Receive(string msg, SOCKET Sock)
 		{
 			if (iResult == SOCKET_ERROR)
 			{
-				int error = WSAGetLastError();
+				int error = ::WSAGetLastError();
 				if (error != WSAEWOULDBLOCK)
-					throw exception("HERE!!!");
+					Engine::LogError("failed with error: " + to_string(::WSAGetLastError()),
+						string(__FILE__) + ": " + to_string(__LINE__), "shutdown failed with error: " + to_string(::WSAGetLastError()));
 			}
 
 			Tmp = buffer;
@@ -341,8 +238,6 @@ bool Multiplayer::Send(string MSG, SOCKET sock, sockaddr_in some_addr)
 		Engine::LogError("MP: SendTo Is Fail!!!", "MP: SendTo Is Fail!!!",
 			(boost::format("MP: Something is wrong with Client SendTo message.\nError Code: %d")
 				% WSAGetLastError()).str());
-		throw exception("HERE!!!");
-
 		return false;
 	}
 	else
@@ -380,19 +275,19 @@ bool Multiplayer::Client::Connect()
 		return false;
 	}
 
-	Sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	Sock = ::socket(AF_INET, SOCK_STREAM, NULL);
 	if (Sock == INVALID_SOCKET)
 	{
 		int i = WSAGetLastError();
 
-		//printf("accept failed with error: %d\n", ::WSAGetLastError());
+		Engine::LogError("accept failed with error: " + to_string(::WSAGetLastError()),
+			string(__FILE__) + ": " + to_string(__LINE__), "accept failed with error: " + to_string(::WSAGetLastError()));
 		::closesocket(Sock);
 		Destroy();
-		throw exception("HERE!!!");
 		return false;
 	}
 
-	Send("Log in", Sock);
+//	Send("Log in", Sock);
 	return true;
 }
 
@@ -409,15 +304,15 @@ void Multiplayer::Server::Create()
 	
 	int iResult;
 
-	Sock = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	Sock = ::socket(AF_INET, SOCK_STREAM, NULL);
 	if (Sock == INVALID_SOCKET)
 	{
 		int i = WSAGetLastError();
 		::closesocket(Sock);
-
-		printf("socket failed with error: %ld\n", ::WSAGetLastError());
+		
+		Engine::LogError("socket failed with error: " + to_string(::WSAGetLastError()),
+			string(__FILE__) + ": " + to_string(__LINE__), "socket failed with error: " + to_string(::WSAGetLastError()));
 		Destroy();
-		throw exception("HERE!!!");
 	}
 
 	ZeroMemory(&Server, sizeof(Server));
@@ -430,10 +325,10 @@ void Multiplayer::Server::Create()
 	{
 		int i = WSAGetLastError();
 
-		printf("bind failed with error: %d\n", ::WSAGetLastError());
+		Engine::LogError("bind failed with error: " + to_string(::WSAGetLastError()),
+			string(__FILE__) + ": " + to_string(__LINE__), "bind failed with error: " + to_string(::WSAGetLastError()));
 		::closesocket(Sock);
 		Destroy();
-		throw exception("HERE!!!");
 	}
 
 	u_long enabled = 1;
@@ -453,10 +348,10 @@ void Multiplayer::Client::Disconnect()
 	{
 		int i = WSAGetLastError();
 
-		printf("shutdown failed with error: %d\n", ::WSAGetLastError());
+		Engine::LogError("shutdown failed with error: " + to_string(::WSAGetLastError()),
+			string(__FILE__) + ": " + to_string(__LINE__), "shutdown failed with error: " + to_string(::WSAGetLastError()));
 		::closesocket(Sock);
 		Destroy();
-		throw exception("HERE!!!");
 	}
 
 	::closesocket(Sock);
@@ -464,7 +359,7 @@ void Multiplayer::Client::Disconnect()
 
 void Multiplayer::Server::AddUser(shared_ptr<Multiplayer::Client> usr)
 {
-	if (Users.empty() || Users.size() < MAX_PLAYERS)
+	if (Users.empty() || Users.size() <= MAX_PLAYERS)
 	{
 		auto NewClient = make_shared<Client>();
 		if (NewClient.operator bool() && NewClient->Connect())
@@ -478,12 +373,4 @@ void Multiplayer::Server::AddUser(shared_ptr<Multiplayer::Client> usr)
 	else
 		Engine::LogError("MP: Server is full",
 			"MP: Server is full", "MP: The server has maximum players now. Please, try later)");
-}
-
-void Multiplayer::Cobes::Render()
-{
-	auto P = GeometricPrimitive::CreateCube(Application->getDeviceContext(), 5.f, false);
-	auto objCam = Application->getCamera();
-	P->Draw(/*Matrix::CreateTranslation(Rotate) **/ Matrix::CreateTranslation(View.Translation()),
-		View, Proj, Colors::DarkSeaGreen, nullptr, Application->IsWireFrame());
 }

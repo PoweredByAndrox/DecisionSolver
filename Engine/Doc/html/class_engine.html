@@ -72,7 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -145,7 +145,7 @@ shared_ptr&lt; <a class="el" href="class_c_lua.html">CLua</a> &gt;&#160;</td><td
 shared_ptr&lt; <a class="el" href="class_cut_scene.html">CutScene</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getCScene</b> ()</td></tr>
 <tr class="separator:a7d5a685083a66fb501f7744ea28f2909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21a9790d5fd0ef4ebb8bbff5f44bc54f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21a9790d5fd0ef4ebb8bbff5f44bc54f"></a>
-shared_ptr&lt; StepTimer &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getTimer</b> ()</td></tr>
+shared_ptr&lt; <a class="el" href="class_step_timer.html">StepTimer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getTimer</b> ()</td></tr>
 <tr class="separator:a21a9790d5fd0ef4ebb8bbff5f44bc54f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a67020367e7cd62e8bcc33313f0c3788b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a67020367e7cd62e8bcc33313f0c3788b"></a>
 shared_ptr&lt; <a class="el" href="class_debug_draw.html">DebugDraw</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getDebugDraw</b> ()</td></tr>
@@ -307,16 +307,16 @@ static POINT&#160;</td><td class="memItemRight" valign="bottom"><b>getWorkAreaSi
 <tr class="memitem:a99145a3b7ab4fa7287b073d4a7f74e8e"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_engine.html#a99145a3b7ab4fa7287b073d4a7f74e8e">IsKeyboardUp</a> (int Key)</td></tr>
 <tr class="memdesc:a99145a3b7ab4fa7287b073d4a7f74e8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here's Keybord Key Up Function For Lua.  <a href="#a99145a3b7ab4fa7287b073d4a7f74e8e">More...</a><br /></td></tr>
 <tr class="separator:a99145a3b7ab4fa7287b073d4a7f74e8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac9861e3b88bf057f7b0eef1c13a78858"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac9861e3b88bf057f7b0eef1c13a78858"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">IsMouseLeft</a> ()</td></tr>
-<tr class="memdesc:ac9861e3b88bf057f7b0eef1c13a78858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here's Mouse Left Button Function For Lua. <br /></td></tr>
+<tr class="memitem:ac9861e3b88bf057f7b0eef1c13a78858"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_engine.html#ac9861e3b88bf057f7b0eef1c13a78858">IsMouseLeft</a> ()</td></tr>
+<tr class="memdesc:ac9861e3b88bf057f7b0eef1c13a78858"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here's Mouse Left Button Function For Lua.  <a href="#ac9861e3b88bf057f7b0eef1c13a78858">More...</a><br /></td></tr>
 <tr class="separator:ac9861e3b88bf057f7b0eef1c13a78858"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b3cbee036749a576eac7c2b16e4c528"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b3cbee036749a576eac7c2b16e4c528"></a>
-static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">IsMouseRight</a> ()</td></tr>
-<tr class="memdesc:a6b3cbee036749a576eac7c2b16e4c528"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here's Mouse Right Button Function For Lua. <br /></td></tr>
+<tr class="memitem:a6b3cbee036749a576eac7c2b16e4c528"><td class="memItemLeft" align="right" valign="top">static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_engine.html#a6b3cbee036749a576eac7c2b16e4c528">IsMouseRight</a> ()</td></tr>
+<tr class="memdesc:a6b3cbee036749a576eac7c2b16e4c528"><td class="mdescLeft">&#160;</td><td class="mdescRight">Here's Mouse Right Button Function For Lua.  <a href="#a6b3cbee036749a576eac7c2b16e4c528">More...</a><br /></td></tr>
 <tr class="separator:a6b3cbee036749a576eac7c2b16e4c528"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Member Function Documentation</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>The Classes </p>
+</div><h2 class="groupheader">Member Function Documentation</h2>
 <a class="anchor" id="a52ddeb2b53776f6419944eee76e269e7"></a>
 <div class="memitem">
 <div class="memproto">
@@ -344,8 +344,8 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Initialized Here Window And DirectX. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">NameWnd</td><td>name window </td></tr>
-    <tr><td class="paramname">hInstance</td><td>Instance of our window</td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#1</td><td>name window </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#2</td><td>Instance of our window</td></tr>
   </table>
   </dd>
 </dl>
@@ -378,10 +378,11 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Here's Keybord Key Down Function For Lua. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">Key</td><td>Key Passed From Lua </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#1</td><td>Key Passed From Lua</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>bool If It Was Down </dd></dl>
 
 </div>
 </div>
@@ -410,10 +411,63 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Here's Keybord Key Up Function For Lua. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">Key</td><td>Key Passed From Lua </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#1</td><td>Key Passed From Lua</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>bool If It Was Up </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ac9861e3b88bf057f7b0eef1c13a78858"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Engine::IsMouseLeft </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Here's Mouse Left Button Function For Lua. </p>
+<dl class="section return"><dt>Returns</dt><dd>bool If It Clicked Left </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="a6b3cbee036749a576eac7c2b16e4c528"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool Engine::IsMouseRight </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Here's Mouse Right Button Function For Lua. </p>
+<dl class="section return"><dt>Returns</dt><dd>bool If It Clicked Right </dd></dl>
 
 </div>
 </div>
@@ -458,9 +512,9 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Here's Error Handing All The <a class="el" href="class_engine.html">Engine</a>. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">DebugText</td><td>Debug Text If It's Debug Build </td></tr>
-    <tr><td class="paramname">ExceptionText</td><td>Only If Defined "ExceptionWhenEachError" </td></tr>
-    <tr><td class="paramname">LogText</td><td>It'll Write In Log File This Text </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#1</td><td>Debug Text If It's Debug Build </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#2</td><td>Only Works If Defined "ExceptionWhenEachError" </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#3</td><td>It'll Write In Log File This Text </td></tr>
   </table>
   </dd>
 </dl>
@@ -492,7 +546,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Here's Error Handing For XML Files. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">Error</td><td>Debug Text If It's Debug Build And Text To File (Log) </td></tr>
+    <tr><td class="paramtype"></td><td class="paramname">#1</td><td>Error Debug Text If It's Debug Build And Text To File (Log) </td></tr>
   </table>
   </dd>
 </dl>
@@ -506,7 +560,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:58 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:25 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

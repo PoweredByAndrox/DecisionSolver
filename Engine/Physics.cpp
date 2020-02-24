@@ -23,7 +23,7 @@ HRESULT Physics::Init()
 		return E_FAIL;
 	}
 
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	gPvd = PxCreatePvd(*gFoundation);
 	if (!gPvd)
 	{
@@ -47,7 +47,7 @@ HRESULT Physics::Init()
 	gPvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 #endif
 	gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, PxTolerancesScale(), true,
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		gPvd
 #else
 		nullptr
@@ -62,7 +62,7 @@ HRESULT Physics::Init()
 	}
 
 	PxInitExtensions(*gPhysics,
-#if defined (DEBUG)
+#if defined (_DEBUG)
 		gPvd
 #else
 		nullptr
@@ -95,7 +95,7 @@ HRESULT Physics::Init()
 		return E_FAIL;
 	}
 
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	pvdClient = gScene->getScenePvdClient();
 	if (pvdClient)
 	{
@@ -260,7 +260,7 @@ void Physics::Destroy()
 {
 	ClearAllObj();
 
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	if (gPvd)
 	{
 		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())

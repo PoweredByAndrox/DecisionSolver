@@ -77,18 +77,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
-    <CustomBuildAfterTargets>Clean</CustomBuildAfterTargets>
-    <CustomBuildBeforeTargets>
-    </CustomBuildBeforeTargets>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+    <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ExcludePath>$(WindowsSDK_IncludePath);$(ExcludePath)</ExcludePath>
+    <CustomBuildAfterTargets>
+    </CustomBuildAfterTargets>
+    <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;IMGUI_DISABLE_WIN32_FUNCTIONS;BOOST_AUTO_LINK_TAGGED;ZLIB_WINAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -109,17 +112,16 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
-      <Command>
-copy "$(ProjectDir)dlls\lua\*.dll" "$(TargetDir)"
+      <Command>copy "$(ProjectDir)dlls\lua\*.dll" "$(TargetDir)"
 copy "$(ProjectDir)dlls\physx\$(Configuration)\*.dll" "$(TargetDir)"
 copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
 copy "$(ProjectDir)..\submodules\ZLIB\$(Configuration)\*.dll" "$(TargetDir)"
 copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
 copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir)"</Command>
-      <Outputs>$(SolutionDir)$(ProjectName).zip;%(Outputs)</Outputs>
       <Inputs>$(ProjectDir)dlls\lua;$(ProjectDir)dlls\physx\$(Configuration);$(ProjectDir)..\submodules\tinyXML2\$(Configuration);$(ProjectDir)..\submodules\ZLIB\$(Configuration);$(ProjectDir)..\submodules\Assimp\bin\$(Configuration);%(Inputs)</Inputs>
       <TreatOutputAsContent>true</TreatOutputAsContent>
       <RootFolder>$(TargetDir)</RootFolder>
+      <Outputs>$(SolutionDir)$(ProjectName).zip;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>
@@ -144,24 +146,29 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN;BOOST_AUTO_LINK_TAGGED;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN;BOOST_AUTO_LINK_TAGGED;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;ZLIB_WINAPI;IMGUI_DISABLE_WIN32_FUNCTIONS;SOL_STRINGS_ARE_NUMBERS</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\lz4\$(ConfigurationName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
-    <PostBuildEvent>
-      <Command>copy $(ProjectDir)dlls\lua\*.dll $(TargetDir)
-&amp;&amp; copy $(ProjectDir)dlls\physx\$(Configuration)\*.dll $(TargetDir)
-&amp;&amp; copy $(ProjectDir)..submodules\tinyXML2\$(Configuration)\*.dll $(TargetDir)
-&amp;&amp; copy $(ProjectDir)..submodules\ZLIB\$(Configuration)\*.dll $(TargetDir)
-&amp;&amp; copy $(ProjectDir)..submodules\tinyXML2\$(Configuration)\*.dll $(TargetDir)
-&amp;&amp; copy $(ProjectDir)..submodules\Assimp\bin\$(Configuration)\*.dll $(TargetDir)</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
+    <CustomBuildStep>
+      <Command>copy "$(ProjectDir)dlls\lua\*.dll" "$(TargetDir)"
+copy "$(ProjectDir)dlls\physx\$(Configuration)\*.dll" "$(TargetDir)"
+copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
+copy "$(ProjectDir)..\submodules\ZLIB\$(Configuration)\*.dll" "$(TargetDir)"
+copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
+copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir)"</Command>
+      <Inputs>$(ProjectDir)dlls\lua;$(ProjectDir)dlls\physx\$(Configuration);$(ProjectDir)..\submodules\tinyXML2\$(Configuration);$(ProjectDir)..\submodules\ZLIB\$(Configuration);$(ProjectDir)..\submodules\Assimp\bin\$(Configuration);%(Inputs)</Inputs>
+      <TreatOutputAsContent>true</TreatOutputAsContent>
+      <RootFolder>$(TargetDir)</RootFolder>
+      <Outputs>$(SolutionDir)$(ProjectName).zip;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -228,9 +235,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Multiplayer.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="Multiplayer.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -248,6 +253,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClCompile Include="Shaders.cpp" />
     <ClCompile Include="SimpleLogic.cpp" />
     <ClCompile Include="UI.cpp" />
+    <ClCompile Include="WASAPICapture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Audio.h" />
@@ -281,9 +287,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="Multiplayer.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="Multiplayer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="PhysCamera.h" />
     <ClInclude Include="Physics.h" />
@@ -294,6 +298,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClInclude Include="Shaders.h" />
     <ClInclude Include="SimpleLogic.h" />
     <ClInclude Include="UI.h" />
+    <ClInclude Include="WASAPICapture.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\shaders\PixelShader.hlsl">

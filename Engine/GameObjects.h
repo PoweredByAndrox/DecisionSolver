@@ -28,6 +28,8 @@ public:
 
 		bool HasRotation = false;
 		Vector3 RotationCoords = Vector3::Zero;
+		
+		float Test1 = 1.0f, Test2 = 3.0f;
 
 		shared_ptr<Models> model;
 		shared_ptr<SimpleLogic> Logic;
@@ -74,6 +76,8 @@ public:
 		shared_ptr<Models> GetModel() { return model; }
 		shared_ptr<SimpleLogic> GetLogic() { return Logic; }
 		//PxRigidDynamic *GetPH() { return PH; }
+
+		void UpdateLogic(float Time);
 
 		void Destroy();
 

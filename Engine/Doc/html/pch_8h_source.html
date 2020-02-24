@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -84,452 +85,172 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">pch.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span> </div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &lt;direct.h&gt;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="preprocessor">#include &lt;tchar.h&gt;</span></div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &quot;boost/thread.hpp&quot;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &quot;boost/thread/scoped_thread.hpp&quot;</span></div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;</div>
-<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;d3dcompiler.h&gt;</span></div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &quot;d3dx11.h&quot;</span></div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;dxgi1_2.h&gt;</span></div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &lt;d3d11_1.h&gt;</span></div>
-<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#include &quot;DxErr.h&quot;</span></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="comment">// Included for use USES_CONVERSION (for A2W, W2A)</span></div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &lt;AtlConv.h&gt;</span></div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="preprocessor">#pragma warning(disable:4995)</span></div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &lt;sstream&gt;</span></div>
+<a href="pch_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &lt;stdio.h&gt;</span> </div>
+<div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;<span class="preprocessor">#include &lt;direct.h&gt;</span></div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;tchar.h&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;</div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="preprocessor">#include &quot;boost/thread.hpp&quot;</span></div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &quot;boost/thread/scoped_thread.hpp&quot;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="preprocessor">#include &lt;d3dcompiler.h&gt;</span></div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;<span class="preprocessor">#include &quot;d3dx11.h&quot;</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="preprocessor">#include &lt;dxgi1_2.h&gt;</span></div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;</div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="preprocessor">#include &lt;d3d11_1.h&gt;</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;<span class="preprocessor">#include &quot;DxErr.h&quot;</span></div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#include &lt;windows.h&gt;</span></div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &lt;mmiscapi.h&gt;</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;    <span class="comment">// Included for use USES_CONVERSION (for A2W, W2A)</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;<span class="preprocessor">#include &lt;AtlConv.h&gt;</span></div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="comment">// *********</span></div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="comment"></span><span class="preprocessor">#include &quot;inc/GeometricPrimitive.h&quot;</span></div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#include &lt;DirectXMath.h&gt;</span></div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespace_direct_x.html">DirectX</a>;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;<span class="preprocessor">#pragma warning(disable:4995)</span></div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#include &lt;sstream&gt;</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#include &lt;windows.h&gt;</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;<span class="preprocessor">#include &lt;mmiscapi.h&gt;</span></div>
 <div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">#include &lt;inc/SimpleMath.h&gt;</span></div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespace_direct_x_1_1_simple_math.html">DirectX::SimpleMath</a>;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacestd.html">std</a>;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#include &quot;tinyxml2.h&quot;</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacetinyxml2.html">tinyxml2</a>;</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="comment">// *********</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="comment"></span><span class="preprocessor">#include &quot;inc/GeometricPrimitive.h&quot;</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#include &lt;DirectXMath.h&gt;</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespace_direct_x.html">DirectX</a>;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#include &quot;d3dx11effect.h&quot;</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#if defined (DEBUG)</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">    #include &lt;d3d11sdklayers.h&gt;</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="comment">// For Debug!!!</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#define MacroStr(x) #x</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#define MacroStr2(x) MacroStr(x)</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#define ToDo(desc) __pragma(message(__FILE__ &quot;(&quot; MacroStr2(__LINE__) &quot;): &quot; #desc))</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#if !defined (SAFE_DELETE)</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">    #define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="preprocessor">#if !defined (SAFE_DELETE_ARRAY)</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">    #define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p); (p) = nullptr; } }</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="preprocessor">#if !defined (SAFE_RELEASE)</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">    #define SAFE_RELEASE(p) { if (p) { (p)-&gt;Release(); (p) = nullptr; } }</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="preprocessor">    #define SAFE_release(p) { if (p) { (p)-&gt;release(); (p) = nullptr; } }</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="preprocessor">#if !defined (EngineTrace)</span></div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="preprocessor">    #define EngineTrace(x) \</span></div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="preprocessor">{ \</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="preprocessor">    HRESULT hr = (x); \</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="preprocessor">    if (FAILED(hr)) \</span></div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="preprocessor">        return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \</span></div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="preprocessor">} </span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">#if !defined (V_RETURN)</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="preprocessor">    #define V_RETURN(x) \</span></div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;<span class="preprocessor">{ \</span></div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;<span class="preprocessor">    HRESULT hr = (x); \</span></div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="preprocessor">    if (FAILED(hr)) \</span></div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;<span class="preprocessor">        return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \</span></div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;<span class="preprocessor">}</span></div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="keywordtype">bool</span> FindSubStr(wstring context, wstring <span class="keyword">const</span> from);</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;<span class="keywordtype">bool</span> FindSubStr(<span class="keywordtype">string</span> context, <span class="keywordtype">string</span> <span class="keyword">const</span> from);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="keywordtype">void</span> replaceAll(wstring &amp;context, wstring <span class="keyword">const</span> &amp;from, wstring <span class="keyword">const</span> &amp;to, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="keywordtype">void</span> replaceAll(wstring &amp;context, wstring <span class="keyword">const</span> &amp;from, wstring <span class="keyword">const</span> &amp;to, wstring <span class="keyword">const</span> &amp;also, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#include &lt;inc/SimpleMath.h&gt;</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespace_direct_x_1_1_simple_math.html">DirectX::SimpleMath</a>;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacestd.html">std</a>;</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#include &quot;tinyxml2.h&quot;</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacetinyxml2.html">tinyxml2</a>;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#include &quot;d3dx11effect.h&quot;</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#if defined (_DEBUG)</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">    #include &lt;d3d11sdklayers.h&gt;</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="comment">// For Debug!!!</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="preprocessor">#define MacroStr(x) #x</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">#define MacroStr2(x) MacroStr(x)</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">   71</a></span>&#160;<span class="preprocessor">#define ToDo(desc) __pragma(message(__FILE__ &quot;(&quot; MacroStr2(__LINE__) &quot;): &quot; #desc))</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">#if !defined (SAFE_DELETE)</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
+<div class="line"><a name="l00086"></a><span class="lineno"><a class="line" href="pch_8h.html#a9bbcd82e77c41df827c09759def05c9a">   86</a></span>&#160;<span class="preprocessor">    #define SAFE_DELETE(p) { if (p) { delete (p); (p) = nullptr; } }</span></div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="preprocessor">#if !defined (SAFE_DELETE_ARRAY)</span></div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="keywordtype">void</span> replaceAll(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;from, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;to, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="keywordtype">void</span> replaceAll(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;from, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;to, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;also, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;<span class="keywordtype">void</span> deleteWord(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;what, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>, <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;<span class="keywordtype">void</span> deleteWord(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">char</span> <span class="keyword">const</span> what, <span class="keywordtype">char</span> <span class="keyword">const</span> OnWhat, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="keywordtype">void</span> deleteWord(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> start, <span class="keywordtype">string</span> <span class="keyword">const</span> end, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">true</span>);</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="keyword">enum</span> ModeProcessString { UntilTheBegin = 0, UntilTheEnd };</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="keywordtype">void</span> deleteWord(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> start, ModeProcessString <span class="keyword">const</span> mode, <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>,</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">true</span>);</div>
+<div class="line"><a name="l00101"></a><span class="lineno"><a class="line" href="pch_8h.html#a506b3685b3eb05aac751f9e14cbed93b">  101</a></span>&#160;<span class="preprocessor">    #define SAFE_DELETE_ARRAY(p) { if (p) { delete[] (p); (p) = nullptr; } }</span></div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;<span class="preprocessor">#if !defined (SAFE_RELEASE)</span></div>
 <div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;<span class="keywordtype">void</span> getFloat3Text(<span class="keywordtype">string</span> context, <span class="keywordtype">string</span> Char2Split, vector&lt;float&gt; &amp;Float3);</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;<span class="keywordtype">void</span> getTextFloat3(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> Char2Split, vector&lt;float&gt; Float3);</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;<span class="preprocessor">#include &lt;boost/algorithm/string.hpp&gt;</span></div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespaceboost_1_1algorithm.html">boost::algorithm</a>;</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="preprocessor">#include &lt;boost/format.hpp&gt;</span></div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="keyword">enum</span> Type</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;{</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;    Normal = 0,</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    Information,</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;    Error</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;};</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="keywordtype">void</span> ParseText(<span class="keywordtype">string</span> &amp;Text, Type type);</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="keyword">const</span> vector&lt;string&gt; Rus = {</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;<span class="stringliteral">&quot;‡ , &quot;·", &quot;‚", &quot;„", &quot;‰", &quot;Â", &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;· , &quot;‚", &quot;„", &quot;‰", &quot;Â", &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;‚ , &quot;„", &quot;‰", &quot;Â", &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;„ , &quot;‰", &quot;Â", &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;‰ , &quot;Â", &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Â , &quot;∏&quot;, &quot;Ê", &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;∏&quot;</span>, <span class="stringliteral">&quot;Ê , &quot;Á", &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Á , &quot;Ë", &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ë , &quot;È",
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;È ,
-&quot;Í", &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>,</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;<span class="stringliteral">&quot;Í , &quot;Î", &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Î , &quot;Ï", &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ï , &quot;Ì", &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ì , &quot;Ó", &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ó , &quot;Ô", &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ô , &quot;", &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot; , &quot;Ò", &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ò , &quot;Ú", &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ú , &quot;Û", &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Û , &quot;Ù", &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;Ù , &quot;ı",
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;ı ,
-&quot;ˆ", &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>,</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="stringliteral">&quot;ˆ , &quot;˜", &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˜ , &quot;¯", &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;¯ , &quot;˘", &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˘ , &quot;˙", &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˙ , &quot;˚", &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˚ , &quot;¸", &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;¸ , &quot;˝", &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˝ , &quot;˛&quot;, &quot;ˇ&quot;
-};
-
-const vector&lt;string&gt; Eng = {
-&quot;a&quot;, &quot;b&quot;, &quot;v&quot;, &quot;g&quot;, &quot;d&quot;, &quot;e&quot;, &quot;yo&quot;, &quot;zh&quot;, &quot;z&quot;, &quot;i&quot;, &quot;j&quot;, &quot;k&quot;,
-&quot;l&quot;, &quot;m&quot;, &quot;n&quot;, &quot;o&quot;, &quot;p&quot;, &quot;r&quot;, &quot;s&quot;, &quot;t&quot;, &quot;u&quot;, &quot;f&quot;, &quot;h&quot;,
-&quot;c&quot;, &quot;ch&quot;, &quot;sh&quot;, &quot;shh&quot;, &quot;&#39;&quot;, &quot;y&quot;, &quot;._&quot;, &quot;e-&quot;, &quot;yu&quot;, &quot;ya&quot;
-};
-
-string ReplaceSymbols(string In);&quot;</span>, <span class="stringliteral">&quot;˛&quot;</span>, <span class="stringliteral">&quot;ˇ&quot;</span></div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;};</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;<span class="keyword">const</span> vector&lt;string&gt; Eng = {</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="stringliteral">&quot;a&quot;</span>, <span class="stringliteral">&quot;b&quot;</span>, <span class="stringliteral">&quot;v&quot;</span>, <span class="stringliteral">&quot;g&quot;</span>, <span class="stringliteral">&quot;d&quot;</span>, <span class="stringliteral">&quot;e&quot;</span>, <span class="stringliteral">&quot;yo&quot;</span>, <span class="stringliteral">&quot;zh&quot;</span>, <span class="stringliteral">&quot;z&quot;</span>, <span class="stringliteral">&quot;i&quot;</span>, <span class="stringliteral">&quot;j&quot;</span>, <span class="stringliteral">&quot;k&quot;</span>,</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;<span class="stringliteral">&quot;l&quot;</span>, <span class="stringliteral">&quot;m&quot;</span>, <span class="stringliteral">&quot;n&quot;</span>, <span class="stringliteral">&quot;o&quot;</span>, <span class="stringliteral">&quot;p&quot;</span>, <span class="stringliteral">&quot;r&quot;</span>, <span class="stringliteral">&quot;s&quot;</span>, <span class="stringliteral">&quot;t&quot;</span>, <span class="stringliteral">&quot;u&quot;</span>, <span class="stringliteral">&quot;f&quot;</span>, <span class="stringliteral">&quot;h&quot;</span>,</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="stringliteral">&quot;c&quot;</span>, <span class="stringliteral">&quot;ch&quot;</span>, <span class="stringliteral">&quot;sh&quot;</span>, <span class="stringliteral">&quot;shh&quot;</span>, <span class="stringliteral">&quot;&#39;&quot;</span>, <span class="stringliteral">&quot;y&quot;</span>, <span class="stringliteral">&quot;._&quot;</span>, <span class="stringliteral">&quot;e-&quot;</span>, <span class="stringliteral">&quot;yu&quot;</span>, <span class="stringliteral">&quot;ya&quot;</span></div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;};</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;<span class="keywordtype">string</span> ReplaceSymbols(<span class="keywordtype">string</span> In);</div>
+<div class="line"><a name="l00116"></a><span class="lineno"><a class="line" href="pch_8h.html#a6038f7bdb274c2e159988a57dedbf93d">  116</a></span>&#160;<span class="preprocessor">    #define SAFE_RELEASE(p) { if (p) { (p)-&gt;Release(); (p) = nullptr; } }</span></div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;</div>
+<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;<span class="preprocessor">#if !defined (SAFE_release)</span></div>
+<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;</div>
+<div class="line"><a name="l00132"></a><span class="lineno"><a class="line" href="pch_8h.html#ad5b1b451dbf0249da2ebd1a56cf03dcf">  132</a></span>&#160;<span class="preprocessor">    #define SAFE_release(p) { if (p) { (p)-&gt;release(); (p) = nullptr; } }</span></div>
+<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;<span class="preprocessor">#if !defined (EngineTrace)</span></div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;</div>
+<div class="line"><a name="l00148"></a><span class="lineno"><a class="line" href="pch_8h.html#ae687732fcbe9def9b0dc6aa6f7eeed9d">  148</a></span>&#160;<span class="preprocessor">    #define EngineTrace(x) \</span></div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;<span class="preprocessor">    { \</span></div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;<span class="preprocessor">        HRESULT hr = (x); \</span></div>
+<div class="line"><a name="l00151"></a><span class="lineno">  151</span>&#160;<span class="preprocessor">        if (FAILED(hr)) \</span></div>
+<div class="line"><a name="l00152"></a><span class="lineno">  152</span>&#160;<span class="preprocessor">            return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \</span></div>
+<div class="line"><a name="l00153"></a><span class="lineno">  153</span>&#160;<span class="preprocessor">    } </span></div>
+<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;</div>
+<div class="line"><a name="l00170"></a><span class="lineno">  170</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="pch_8h.html#a9928f08c2a7b9be1c004e1d42317ed0d">FindSubStr</a>(wstring context, wstring <span class="keyword">const</span> from);</div>
+<div class="line"><a name="l00171"></a><span class="lineno">  171</span>&#160;</div>
+<div class="line"><a name="l00186"></a><span class="lineno">  186</span>&#160;<span class="keywordtype">bool</span> <a class="code" href="pch_8h.html#a9928f08c2a7b9be1c004e1d42317ed0d">FindSubStr</a>(<span class="keywordtype">string</span> context, <span class="keywordtype">string</span> <span class="keyword">const</span> from);</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;</div>
+<div class="line"><a name="l00205"></a><span class="lineno">  205</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a4fd8128f4d1b7e78697496419c9ec2e7">replaceAll</a>(wstring &amp;context, wstring <span class="keyword">const</span> &amp;from, wstring <span class="keyword">const</span> &amp;to, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00206"></a><span class="lineno">  206</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00207"></a><span class="lineno">  207</span>&#160;</div>
+<div class="line"><a name="l00226"></a><span class="lineno">  226</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a4fd8128f4d1b7e78697496419c9ec2e7">replaceAll</a>(wstring &amp;context, wstring <span class="keyword">const</span> &amp;from, wstring <span class="keyword">const</span> &amp;to, wstring <span class="keyword">const</span> &amp;also, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;</div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a4fd8128f4d1b7e78697496419c9ec2e7">replaceAll</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;from, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;to, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;</div>
+<div class="line"><a name="l00267"></a><span class="lineno">  267</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a4fd8128f4d1b7e78697496419c9ec2e7">replaceAll</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;from, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;to, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;also, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00268"></a><span class="lineno">  268</span>&#160;    <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00269"></a><span class="lineno">  269</span>&#160;</div>
+<div class="line"><a name="l00286"></a><span class="lineno">  286</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#adb9c3d5c1f2d9983d353affb95709137">deleteWord</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> &amp;what, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>, <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00287"></a><span class="lineno">  287</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00288"></a><span class="lineno">  288</span>&#160;</div>
+<div class="line"><a name="l00303"></a><span class="lineno">  303</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#adb9c3d5c1f2d9983d353affb95709137">deleteWord</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">char</span> <span class="keyword">const</span> what, <span class="keywordtype">char</span> <span class="keyword">const</span> OnWhat, <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00304"></a><span class="lineno">  304</span>&#160;</div>
+<div class="line"><a name="l00321"></a><span class="lineno">  321</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#adb9c3d5c1f2d9983d353affb95709137">deleteWord</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> start, <span class="keywordtype">string</span> <span class="keyword">const</span> end, <span class="keywordtype">bool</span> OneTime = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00322"></a><span class="lineno">  322</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">true</span>);</div>
+<div class="line"><a name="l00323"></a><span class="lineno">  323</span>&#160;</div>
+<div class="line"><a name="l00330"></a><span class="lineno"><a class="line" href="pch_8h.html#a6d676d244b2b1a17bc0eaafd4a692865">  330</a></span>&#160;<span class="keyword">enum</span> <a class="code" href="pch_8h.html#a6d676d244b2b1a17bc0eaafd4a692865">ModeProcessString</a> { UntilTheBegin = 0, UntilTheEnd };</div>
+<div class="line"><a name="l00331"></a><span class="lineno">  331</span>&#160;</div>
+<div class="line"><a name="l00348"></a><span class="lineno">  348</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#adb9c3d5c1f2d9983d353affb95709137">deleteWord</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> <span class="keyword">const</span> start, <a class="code" href="pch_8h.html#a6d676d244b2b1a17bc0eaafd4a692865">ModeProcessString</a> <span class="keyword">const</span> mode, <span class="keywordtype">bool</span> FindInEnd = <span class="keyword">false</span>,</div>
+<div class="line"><a name="l00349"></a><span class="lineno">  349</span>&#160;    <span class="keywordtype">bool</span> AlsoDeleteSpace = <span class="keyword">true</span>);</div>
+<div class="line"><a name="l00350"></a><span class="lineno">  350</span>&#160;</div>
+<div class="line"><a name="l00364"></a><span class="lineno">  364</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a4f27ac6de92220923ea081943e8c3a61">getFloat3Text</a>(<span class="keywordtype">string</span> context, <span class="keywordtype">string</span> Char2Split, vector&lt;float&gt; &amp;Float3);</div>
+<div class="line"><a name="l00365"></a><span class="lineno">  365</span>&#160;</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a31bd40d3e2576f653ac723c2a32a3a82">getTextFloat3</a>(<span class="keywordtype">string</span> &amp;context, <span class="keywordtype">string</span> Char2Split, vector&lt;float&gt; Float3);</div>
+<div class="line"><a name="l00380"></a><span class="lineno">  380</span>&#160;</div>
+<div class="line"><a name="l00396"></a><span class="lineno">  396</span>&#160;Vector3 <a class="code" href="pch_8h.html#acbd6100c86481cf510b2c873d7feb5a3">ConstrainToBoundary</a>(Vector3 Pos, Vector3 Min, Vector3 Max);</div>
+<div class="line"><a name="l00397"></a><span class="lineno">  397</span>&#160;</div>
+<div class="line"><a name="l00398"></a><span class="lineno">  398</span>&#160;<span class="preprocessor">#include &lt;boost/algorithm/string.hpp&gt;</span></div>
+<div class="line"><a name="l00399"></a><span class="lineno">  399</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespaceboost_1_1algorithm.html">boost::algorithm</a>;</div>
+<div class="line"><a name="l00400"></a><span class="lineno">  400</span>&#160;</div>
+<div class="line"><a name="l00401"></a><span class="lineno">  401</span>&#160;<span class="preprocessor">#include &lt;boost/format.hpp&gt;</span></div>
+<div class="line"><a name="l00402"></a><span class="lineno">  402</span>&#160;</div>
+<div class="line"><a name="l00409"></a><span class="lineno"><a class="line" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">  409</a></span>&#160;<span class="keyword">enum</span> <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a></div>
+<div class="line"><a name="l00410"></a><span class="lineno">  410</span>&#160;{</div>
+<div class="line"><a name="l00411"></a><span class="lineno">  411</span>&#160;    Normal = 0,</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;    Information,</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;    Error</div>
+<div class="line"><a name="l00414"></a><span class="lineno">  414</span>&#160;};</div>
+<div class="line"><a name="l00415"></a><span class="lineno">  415</span>&#160;</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;<span class="keywordtype">void</span> <a class="code" href="pch_8h.html#a6da67b5e415baf436be151cbac566a04">ParseText</a>(<span class="keywordtype">string</span> &amp;Text, <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type);</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;</div>
+<div class="line"><a name="l00431"></a><span class="lineno"><a class="line" href="pch_8h.html#abd3fa2b463b614f6c84d852df00925f2">  431</a></span>&#160;<span class="keyword">const</span> vector&lt;string&gt; <a class="code" href="pch_8h.html#abd3fa2b463b614f6c84d852df00925f2">Rus</a> = {</div>
+<div class="line"><a name="l00432"></a><span class="lineno">  432</span>&#160;<span class="stringliteral">&quot;–∞&quot;</span>, <span class="stringliteral">&quot;–±&quot;</span>, <span class="stringliteral">&quot;–≤&quot;</span>, <span class="stringliteral">&quot;–≥&quot;</span>, <span class="stringliteral">&quot;–¥&quot;</span>, <span class="stringliteral">&quot;–µ&quot;</span>, <span class="stringliteral">&quot;—ë&quot;</span>, <span class="stringliteral">&quot;–∂&quot;</span>, <span class="stringliteral">&quot;–∑&quot;</span>, <span class="stringliteral">&quot;–∏&quot;</span>, <span class="stringliteral">&quot;–π&quot;</span>,</div>
+<div class="line"><a name="l00433"></a><span class="lineno">  433</span>&#160;<span class="stringliteral">&quot;–∫&quot;</span>, <span class="stringliteral">&quot;–ª&quot;</span>, <span class="stringliteral">&quot;–º&quot;</span>, <span class="stringliteral">&quot;–Ω&quot;</span>, <span class="stringliteral">&quot;–æ&quot;</span>, <span class="stringliteral">&quot;–ø&quot;</span>, <span class="stringliteral">&quot;—Ä&quot;</span>, <span class="stringliteral">&quot;—Å&quot;</span>, <span class="stringliteral">&quot;—Ç&quot;</span>, <span class="stringliteral">&quot;—É&quot;</span>, <span class="stringliteral">&quot;—Ñ&quot;</span>, <span class="stringliteral">&quot;—Ö&quot;</span>,</div>
+<div class="line"><a name="l00434"></a><span class="lineno">  434</span>&#160;<span class="stringliteral">&quot;—Ü&quot;</span>, <span class="stringliteral">&quot;—á&quot;</span>, <span class="stringliteral">&quot;—à&quot;</span>, <span class="stringliteral">&quot;—â&quot;</span>, <span class="stringliteral">&quot;—ä&quot;</span>, <span class="stringliteral">&quot;—ã&quot;</span>, <span class="stringliteral">&quot;—å&quot;</span>, <span class="stringliteral">&quot;—ç&quot;</span>, <span class="stringliteral">&quot;—é&quot;</span>, <span class="stringliteral">&quot;—è&quot;</span></div>
+<div class="line"><a name="l00435"></a><span class="lineno">  435</span>&#160;};</div>
+<div class="line"><a name="l00436"></a><span class="lineno">  436</span>&#160;</div>
+<div class="line"><a name="l00438"></a><span class="lineno"><a class="line" href="pch_8h.html#adb8576a8022a555bd02b202a1b0e32fa">  438</a></span>&#160;<span class="keyword">const</span> vector&lt;string&gt; <a class="code" href="pch_8h.html#adb8576a8022a555bd02b202a1b0e32fa">Eng</a> = {</div>
+<div class="line"><a name="l00439"></a><span class="lineno">  439</span>&#160;<span class="stringliteral">&quot;a&quot;</span>, <span class="stringliteral">&quot;b&quot;</span>, <span class="stringliteral">&quot;v&quot;</span>, <span class="stringliteral">&quot;g&quot;</span>, <span class="stringliteral">&quot;d&quot;</span>, <span class="stringliteral">&quot;e&quot;</span>, <span class="stringliteral">&quot;yo&quot;</span>, <span class="stringliteral">&quot;zh&quot;</span>, <span class="stringliteral">&quot;z&quot;</span>, <span class="stringliteral">&quot;i&quot;</span>, <span class="stringliteral">&quot;j&quot;</span>, <span class="stringliteral">&quot;k&quot;</span>,</div>
+<div class="line"><a name="l00440"></a><span class="lineno">  440</span>&#160;<span class="stringliteral">&quot;l&quot;</span>, <span class="stringliteral">&quot;m&quot;</span>, <span class="stringliteral">&quot;n&quot;</span>, <span class="stringliteral">&quot;o&quot;</span>, <span class="stringliteral">&quot;p&quot;</span>, <span class="stringliteral">&quot;r&quot;</span>, <span class="stringliteral">&quot;s&quot;</span>, <span class="stringliteral">&quot;t&quot;</span>, <span class="stringliteral">&quot;u&quot;</span>, <span class="stringliteral">&quot;f&quot;</span>, <span class="stringliteral">&quot;h&quot;</span>,</div>
+<div class="line"><a name="l00441"></a><span class="lineno">  441</span>&#160;<span class="stringliteral">&quot;c&quot;</span>, <span class="stringliteral">&quot;ch&quot;</span>, <span class="stringliteral">&quot;sh&quot;</span>, <span class="stringliteral">&quot;shh&quot;</span>, <span class="stringliteral">&quot;&#39;&quot;</span>, <span class="stringliteral">&quot;y&quot;</span>, <span class="stringliteral">&quot;._&quot;</span>, <span class="stringliteral">&quot;e-&quot;</span>, <span class="stringliteral">&quot;yu&quot;</span>, <span class="stringliteral">&quot;ya&quot;</span></div>
+<div class="line"><a name="l00442"></a><span class="lineno">  442</span>&#160;};</div>
+<div class="line"><a name="l00443"></a><span class="lineno">  443</span>&#160;</div>
+<div class="line"><a name="l00457"></a><span class="lineno">  457</span>&#160;<span class="keywordtype">string</span> <a class="code" href="pch_8h.html#a92ac0e0182cfd7eee0cd5ae1554dd1d7">ReplaceSymbols</a>(<span class="keywordtype">string</span> In);</div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;</div>
 <div class="ttc" id="namespace_direct_x_html"><div class="ttname"><a href="namespace_direct_x.html">DirectX</a></div></div>
+<div class="ttc" id="pch_8h_html_a1d1cfd8ffb84e947f82999c682b666a7"><div class="ttname"><a href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a></div><div class="ttdeci">Type</div><div class="ttdoc">Values that using in Loggin File And UI Console Text Colored. </div><div class="ttdef"><b>Definition:</b> pch.h:409</div></div>
 <div class="ttc" id="namespace_direct_x_1_1_simple_math_html"><div class="ttname"><a href="namespace_direct_x_1_1_simple_math.html">SimpleMath</a></div></div>
 <div class="ttc" id="namespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div></div>
 <div class="ttc" id="namespacetinyxml2_html"><div class="ttname"><a href="namespacetinyxml2.html">tinyxml2</a></div></div>
+<div class="ttc" id="pch_8h_html_acbd6100c86481cf510b2c873d7feb5a3"><div class="ttname"><a href="pch_8h.html#acbd6100c86481cf510b2c873d7feb5a3">ConstrainToBoundary</a></div><div class="ttdeci">Vector3 ConstrainToBoundary(Vector3 Pos, Vector3 Min, Vector3 Max)</div><div class="ttdoc">Constrain to boundary Vector3 Pos. </div><div class="ttdef"><b>Definition:</b> pch.cpp:305</div></div>
+<div class="ttc" id="pch_8h_html_a6d676d244b2b1a17bc0eaafd4a692865"><div class="ttname"><a href="pch_8h.html#a6d676d244b2b1a17bc0eaafd4a692865">ModeProcessString</a></div><div class="ttdeci">ModeProcessString</div><div class="ttdoc">Values that represent mode for deleting Word Function. </div><div class="ttdef"><b>Definition:</b> pch.h:330</div></div>
+<div class="ttc" id="pch_8h_html_a4fd8128f4d1b7e78697496419c9ec2e7"><div class="ttname"><a href="pch_8h.html#a4fd8128f4d1b7e78697496419c9ec2e7">replaceAll</a></div><div class="ttdeci">void replaceAll(wstring &amp;context, wstring const &amp;from, wstring const &amp;to, bool OneTime=false, bool FindInEnd=false, bool AlsoDeleteSpace=false)</div><div class="ttdoc">Replace all (Astring) </div><div class="ttdef"><b>Definition:</b> pch.cpp:29</div></div>
+<div class="ttc" id="pch_8h_html_adb9c3d5c1f2d9983d353affb95709137"><div class="ttname"><a href="pch_8h.html#adb9c3d5c1f2d9983d353affb95709137">deleteWord</a></div><div class="ttdeci">void deleteWord(string &amp;context, string const &amp;what, bool OneTime=false, bool FindInEnd=false, bool AlsoDeleteSpace=false)</div><div class="ttdoc">Deletes the word. </div><div class="ttdef"><b>Definition:</b> pch.cpp:166</div></div>
+<div class="ttc" id="pch_8h_html_a6da67b5e415baf436be151cbac566a04"><div class="ttname"><a href="pch_8h.html#a6da67b5e415baf436be151cbac566a04">ParseText</a></div><div class="ttdeci">void ParseText(string &amp;Text, Type type)</div><div class="ttdoc">Parse text. </div><div class="ttdef"><b>Definition:</b> pch.cpp:270</div></div>
+<div class="ttc" id="pch_8h_html_abd3fa2b463b614f6c84d852df00925f2"><div class="ttname"><a href="pch_8h.html#abd3fa2b463b614f6c84d852df00925f2">Rus</a></div><div class="ttdeci">const vector&lt; string &gt; Rus</div><div class="ttdoc">Massive Cyrillic Characters For Converted. </div><div class="ttdef"><b>Definition:</b> pch.h:431</div></div>
+<div class="ttc" id="pch_8h_html_a4f27ac6de92220923ea081943e8c3a61"><div class="ttname"><a href="pch_8h.html#a4f27ac6de92220923ea081943e8c3a61">getFloat3Text</a></div><div class="ttdeci">void getFloat3Text(string context, string Char2Split, vector&lt; float &gt; &amp;Float3)</div><div class="ttdoc">Function That Converts From String To Vector3 (Massive) </div><div class="ttdef"><b>Definition:</b> pch.cpp:252</div></div>
+<div class="ttc" id="pch_8h_html_a9928f08c2a7b9be1c004e1d42317ed0d"><div class="ttname"><a href="pch_8h.html#a9928f08c2a7b9be1c004e1d42317ed0d">FindSubStr</a></div><div class="ttdeci">bool FindSubStr(wstring context, wstring const from)</div><div class="ttdoc">Searches for the first sub Wstring. </div><div class="ttdef"><b>Definition:</b> pch.cpp:3</div></div>
+<div class="ttc" id="pch_8h_html_adb8576a8022a555bd02b202a1b0e32fa"><div class="ttname"><a href="pch_8h.html#adb8576a8022a555bd02b202a1b0e32fa">Eng</a></div><div class="ttdeci">const vector&lt; string &gt; Eng</div><div class="ttdoc">Massive English Characters For Converted. </div><div class="ttdef"><b>Definition:</b> pch.h:438</div></div>
+<div class="ttc" id="pch_8h_html_a31bd40d3e2576f653ac723c2a32a3a82"><div class="ttname"><a href="pch_8h.html#a31bd40d3e2576f653ac723c2a32a3a82">getTextFloat3</a></div><div class="ttdeci">void getTextFloat3(string &amp;context, string Char2Split, vector&lt; float &gt; Float3)</div><div class="ttdoc">Function That Converts Vector3 (Massive) To String. </div><div class="ttdef"><b>Definition:</b> pch.cpp:262</div></div>
 <div class="ttc" id="namespaceboost_1_1algorithm_html"><div class="ttname"><a href="namespaceboost_1_1algorithm.html">algorithm</a></div></div>
+<div class="ttc" id="pch_8h_html_a92ac0e0182cfd7eee0cd5ae1554dd1d7"><div class="ttname"><a href="pch_8h.html#a92ac0e0182cfd7eee0cd5ae1554dd1d7">ReplaceSymbols</a></div><div class="ttdeci">string ReplaceSymbols(string In)</div><div class="ttdoc">Replace Cyrillic Characters To English. </div><div class="ttdef"><b>Definition:</b> pch.cpp:311</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

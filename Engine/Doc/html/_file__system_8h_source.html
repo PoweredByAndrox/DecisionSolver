@@ -62,6 +62,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div><!-- top -->
@@ -70,7 +71,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -87,7 +88,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#if !defined(__FILE_SYSTEM_H__)</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define __FILE_SYSTEM_H__</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;pch.h&quot;</span></div>
+<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;boost/filesystem.hpp&quot;</span></div>
@@ -150,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <span class="keyword">auto</span> GetRecent() { <span class="keywordflow">return</span> RecentFiles; }</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keyword">auto</span> GetCurrentProject() { <span class="keywordflow">return</span> CurrentProj; }</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        ToDo(<span class="stringliteral">&quot;Add To Open Proj File Itself (From Recent)&quot;</span>);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <a class="code" href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">ToDo</a>(<span class="stringliteral">&quot;Add To Open Proj File Itself (From Recent)&quot;</span>);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <span class="keywordtype">void</span> OpenFile(path file);</div>
 <div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <span class="comment">// &quot;Save As&quot; Means Save In Another File Path</span></div>
@@ -197,7 +198,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    _TypeOfFile GetTypeFile(<span class="keywordtype">string</span> file);</div>
 <div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> CreateLog();</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> AddTextToLog(<span class="keywordtype">string</span> Text, Type type);</div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> AddTextToLog(<span class="keywordtype">string</span> Text, <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type);</div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> OpenLog();</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> ClearLogs();</div>
 <div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;</div>
@@ -221,18 +222,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">static</span> path LogFName;</div>
 <div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;};</div>
 <div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;<span class="preprocessor">#endif // !__FILE_SYSTEM_H__</span></div>
+<div class="ttc" id="pch_8h_html_a1d1cfd8ffb84e947f82999c682b666a7"><div class="ttname"><a href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a></div><div class="ttdeci">Type</div><div class="ttdoc">Values that using in Loggin File And UI Console Text Colored. </div><div class="ttdef"><b>Definition:</b> pch.h:409</div></div>
 <div class="ttc" id="namespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div></div>
+<div class="ttc" id="pch_8h_html_a5ef1f637168d0a8cc1f2919056ae4615"><div class="ttname"><a href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">ToDo</a></div><div class="ttdeci">#define ToDo(desc)</div><div class="ttdoc">A macro that defines to do. </div><div class="ttdef"><b>Definition:</b> pch.h:71</div></div>
 <div class="ttc" id="class_models_html"><div class="ttname"><a href="class_models.html">Models</a></div><div class="ttdef"><b>Definition:</b> Models.h:34</div></div>
 <div class="ttc" id="class_dialogs_html"><div class="ttname"><a href="class_dialogs.html">Dialogs</a></div><div class="ttdef"><b>Definition:</b> Dialogs.h:8</div></div>
 <div class="ttc" id="struct_file__system_1_1_all_file_1_1_file_html"><div class="ttname"><a href="struct_file__system_1_1_all_file_1_1_file.html">File_system::AllFile::File</a></div><div class="ttdef"><b>Definition:</b> File_system.h:23</div></div>
+<div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_shaders_html"><div class="ttname"><a href="class_shaders.html">Shaders</a></div><div class="ttdef"><b>Definition:</b> Shaders.h:6</div></div>
-<div class="ttc" id="class_levels_html"><div class="ttname"><a href="class_levels.html">Levels</a></div><div class="ttdef"><b>Definition:</b> Levels.h:8</div></div>
+<div class="ttc" id="class_levels_html"><div class="ttname"><a href="class_levels.html">Levels</a></div><div class="ttdef"><b>Definition:</b> Levels.h:11</div></div>
 <div class="ttc" id="namespaceboost_1_1filesystem_html"><div class="ttname"><a href="namespaceboost_1_1filesystem.html">filesystem</a></div></div>
 <div class="ttc" id="class_file__system_html"><div class="ttname"><a href="class_file__system.html">File_system</a></div><div class="ttdef"><b>Definition:</b> File_system.h:17</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

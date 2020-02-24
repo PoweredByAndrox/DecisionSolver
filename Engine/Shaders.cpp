@@ -16,7 +16,7 @@ HRESULT Shaders::CompileShaderFromFile(wstring *FileName, string *FunctionName,
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 
@@ -68,7 +68,7 @@ vector<ID3DBlob *> Shaders::CreateShaderFromFile(vector<wstring> FileName, vecto
 {
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
 
-#if defined (DEBUG)
+#if defined (_DEBUG)
 	dwShaderFlags |= D3DCOMPILE_DEBUG;
 #endif
 

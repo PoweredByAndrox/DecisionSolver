@@ -6,24 +6,26 @@ extern shared_ptr<Engine> Application;
 #include "Console.h"
 #include "File_system.h"
 
-path File_system::p = "";
+path File_system::WorkDir = "";
 static shared_ptr<boost::filesystem::ofstream> LogFile;
 path File_system::LogFName = "Engine.log";
 
 File_system::File_system()
 {
-	p = _wgetcwd(nullptr, 512);
-	if (p.empty())
+	WorkDir = _getcwd(nullptr, 1024);
+	if (WorkDir.empty())
 		Engine::LogError("File System::File_system Failed!",
 			"File System::File_system Failed!", "File System: Something is wrong with Get Resource Folder or Path!");
 
-	LogFName = p.string() + "\\" + LogFName.string();
+	WorkDir.swap(WorkDir.generic_path());
 
+	LogFName = WorkDir.generic_string() + 
+		((WorkDir.generic_string().back() == '/') ? "" : "/") + LogFName.string();
 	CreateLog();
 	ScanFiles();
 
 	//string buf = "";
-	//CompressFile(string("G:\\DecisionSolver\\Engine\\resource\\maps\\first_level.xml"), buf);
+	//CompressFile(string("G:/DecisionSolver/Engine/resource/maps/first_level.xml"), buf);
 }
 
 int GetMaxCompressedLen(int nLenSrc)
@@ -143,87 +145,94 @@ void File_system::ScanFiles()
 	if (!Files.operator bool())
 		Files = make_shared<AllFile>();
 
+	WorkDirSourcesA = WorkDir.generic_string() + ((WorkDir.generic_string().back() == '/')
+		? "resource/"
+		: "/resource/");
+	WorkDirSourcesW = WorkDir.generic_wstring() + ((WorkDir.generic_wstring().back() == L'/')
+		? L"resource/"
+		: L"/resource/");
+
 	int i = 0;
-	auto file = getFilesInFolder("", true, true);
+	auto file = getFilesInFolder(WorkDirSourcesA, true, true);
 	for (size_t i = 0; i < file.size(); i++)
 	{
 		string someFile = file.at(i),
 			ext = extension(someFile);
 		auto Fname = path(someFile);
-		auto type = GetTypeFile(someFile);
+		auto type = GetTypeFileByExt(someFile);
 		switch (type)
 		{
 		case MODELS:
-			Files->Models.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Models.back()->ExtW = Fname.extension().wstring();
-			Files->Models.back()->FileW = Fname.filename().wstring();
-			Files->Models.back()->PathW = Fname.wstring().c_str();
+			Files->Models.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Models.back().first->ExtW = Fname.extension().wstring();
+			Files->Models.back().first->FileW = Fname.filename().wstring();
+			Files->Models.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case TEXTURES:
-			Files->Textures.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Textures.back()->ExtW = Fname.extension().wstring();
-			Files->Textures.back()->FileW = Fname.filename().wstring();
-			Files->Textures.back()->PathW = Fname.wstring().c_str();
+			Files->Textures.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Textures.back().first->ExtW = Fname.extension().wstring();
+			Files->Textures.back().first->FileW = Fname.filename().wstring();
+			Files->Textures.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case LEVELS:
-			Files->Levels.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Levels.back()->ExtW = Fname.extension().wstring();
-			Files->Levels.back()->FileW = Fname.filename().wstring();
-			Files->Levels.back()->PathW = Fname.wstring().c_str();
+			Files->Levels.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Levels.back().first->ExtW = Fname.extension().wstring();
+			Files->Levels.back().first->FileW = Fname.filename().wstring();
+			Files->Levels.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case DIALOGS:
-			Files->Dialogs.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Dialogs.back()->ExtW = Fname.extension().wstring();
-			Files->Dialogs.back()->FileW = Fname.filename().wstring();
-			Files->Dialogs.back()->PathW = Fname.wstring().c_str();
+			Files->Dialogs.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Dialogs.back().first->ExtW = Fname.extension().wstring();
+			Files->Dialogs.back().first->FileW = Fname.filename().wstring();
+			Files->Dialogs.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SOUNDS:
-			Files->Sounds.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Sounds.back()->ExtW = Fname.extension().wstring();
-			Files->Sounds.back()->FileW = Fname.filename().wstring();
-			Files->Sounds.back()->PathW = Fname.wstring().c_str();
+			Files->Sounds.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Sounds.back().first->ExtW = Fname.extension().wstring();
+			Files->Sounds.back().first->FileW = Fname.filename().wstring();
+			Files->Sounds.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SHADERS:
-			Files->Shaders.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Shaders.back()->ExtW = Fname.extension().wstring();
-			Files->Shaders.back()->FileW = Fname.filename().wstring();
-			Files->Shaders.back()->PathW = Fname.wstring().c_str();
+			Files->Shaders.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Shaders.back().first->ExtW = Fname.extension().wstring();
+			Files->Shaders.back().first->FileW = Fname.filename().wstring();
+			Files->Shaders.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case UIS:
-			Files->Uis.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Uis.back()->ExtW = Fname.extension().wstring();
-			Files->Uis.back()->FileW = Fname.filename().wstring();
-			Files->Uis.back()->PathW = Fname.wstring().c_str();
+			Files->Uis.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Uis.back().first->ExtW = Fname.extension().wstring();
+			Files->Uis.back().first->FileW = Fname.filename().wstring();
+			Files->Uis.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SCRIPTS:
-			Files->Scripts.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Scripts.back()->ExtW = Fname.extension().wstring();
-			Files->Scripts.back()->FileW = Fname.filename().wstring();
-			Files->Scripts.back()->PathW = Fname.wstring().c_str();
+			Files->Scripts.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Scripts.back().first->ExtW = Fname.extension().wstring();
+			Files->Scripts.back().first->FileW = Fname.filename().wstring();
+			Files->Scripts.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case FONTS:
-			Files->Fonts.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->Fonts.back()->ExtW = Fname.extension().wstring();
-			Files->Fonts.back()->FileW = Fname.filename().wstring();
-			Files->Fonts.back()->PathW = Fname.wstring().c_str();
+			Files->Fonts.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->Fonts.back().first->ExtW = Fname.extension().wstring();
+			Files->Fonts.back().first->FileW = Fname.filename().wstring();
+			Files->Fonts.back().first->PathW = Fname.wstring().c_str();
 			break;
 		default:
 			if (contains(Fname.filename().string(), "proj")) continue;
 
-			Files->None.push_back(make_shared<AllFile::File>(someFile, ext,
-				Fname.filename().string(), (size_t)file_size(Fname), type));
-			Files->None.back()->ExtW = Fname.extension().wstring();
-			Files->None.back()->FileW = Fname.filename().wstring();
-			Files->None.back()->PathW = Fname.wstring().c_str();
+			Files->None.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
+			Files->None.back().first->ExtW = Fname.extension().wstring();
+			Files->None.back().first->FileW = Fname.filename().wstring();
+			Files->None.back().first->PathW = Fname.wstring().c_str();
 			break;
 		}
 	}
@@ -238,37 +247,52 @@ void File_system::RescanFilesByType(_TypeOfFile Type)
 	for (size_t i = 0; i < Files.size(); i++)
 	{
 		// If File Doesn't Exist
-		auto ThisFile = GetFileByType(Files.at(i));
+		auto ThisFile = GetFile(Files.at(i));
 		if (ThisFile->FileA.empty() || ThisFile->FileW.empty())
-			GetFile(Files.at(i));
+			AddFile(Files.at(i));
 	}
 }
 
-_TypeOfFile File_system::GetTypeFile(string file)
+_TypeOfFile File_system::GetTypeFileByExt(path File)
 {
-	auto F = path(file);
-	if (F.extension().string() == ".obj" || F.extension().string() == ".3ds")
+	if (File.extension().string() == ".obj" || File.extension().string() == ".3ds")
 		return MODELS;
-	else if (F.extension().string() == ".hlsl" || F.extension().string() == ".fx"
-		|| F.extension().string() == ".vs" || F.extension().string() == ".ps")
+	else if (File.extension().string() == ".hlsl" || File.extension().string() == ".fx"
+		|| File.extension().string() == ".vs" || File.extension().string() == ".ps")
 		return SHADERS;
-	else if (F.extension().string() == ".dds" || F.extension().string() == ".png"
-		|| F.extension().string() == ".bmp" || F.extension().string() == ".mtl"
-		|| F.extension().string() == ".jpg")
+	else if (File.extension().string() == ".dds" || File.extension().string() == ".png"
+		|| File.extension().string() == ".bmp" || File.extension().string() == ".mtl"
+		|| File.extension().string() == ".jpg")
 		return TEXTURES;
-	else if (F.extension().string() == ".wav")
+	else if (File.extension().string() == ".wav")
 		return SOUNDS;
-	else if (F.extension().string() == ".lua")
+	else if (File.extension().string() == ".lua")
 		return SCRIPTS;
-	else if (F.extension().string() == ".ttf")
+	else if (File.extension().string() == ".ttf")
 		return FONTS;
-	else if (F.extension().string() == ".xml")
+	else if (File.extension().string() == ".xml")
 	{
-		if (FindSubStr(F.string(), "UI"))
+		if (!File.has_branch_path() && !File.has_parent_path() && !File.has_root_directory() &&
+			!File.has_root_name() && !File.has_root_path() && File.has_filename())
+		{
+			string WExt = File.string();
+			deleteWord(WExt, File.extension().string());
+			auto Obj = Find(WExt);
+			to_lower(Obj->PathA);
+			if (contains(Obj->PathA, "ui"))
+				return UIS;
+			if (contains(Obj->PathA, "maps"))
+				return LEVELS;
+			if (contains(Obj->PathA, "text"))
+				return DIALOGS;
+		}
+		string lower = File.string();
+		to_lower(lower);
+		if (contains(lower, "ui"))
 			return UIS;
-		if (FindSubStr(F.string(), "maps"))
+		if (contains(lower, "maps"))
 			return LEVELS;
-		else
+		if (contains(lower, "text"))
 			return DIALOGS;
 	}
 	else
@@ -333,176 +357,221 @@ void File_system::ClearLogs()
 
 string File_system::getPathFromType(_TypeOfFile T)
 {
+	string New = WorkDirSourcesA + ((WorkDirSourcesA.back() == '/') ? "" : "/");
 	switch (T)
 	{
 	case MODELS:
-		return p.string() + "\\resource\\models\\";
+		return New + "models/";
 	case TEXTURES:
-		return p.string() + "\\resource\\textures\\";
+		return New + "textures/";
 	case LEVELS:
-		return p.string() + "\\resource\\maps\\";
+		return New + "maps/";
 	case DIALOGS:
-		return p.string() + "\\resource\\text\\";
+		return New + "text/";
 	case SOUNDS:
-		return p.string() + "\\resource\\sounds\\";
+		return New + "sounds/";
 	case SHADERS:
-		return p.string() + "\\resource\\shaders\\";
+		return New + "shaders/";
 	case UIS:
-		return p.string() + "\\resource\\ui\\";
+		return New + "ui/";
 	case SCRIPTS:
-		return p.string() + "\\resource\\scripts\\";
+		return New + "scripts/";
 	case FONTS:
-		return p.string() + "\\resource\\fonts\\";
+		return New + "ui/fonts/";
 	case NONE:
 		return "";
 	}
-	return "";
+
+	return New;
 }
 
-shared_ptr<File_system::AllFile::File> File_system::GetFileByType(string file)
+shared_ptr<File_system::AllFile::File> File_system::Find(path File)
 {
-	to_lower(file);
-	bool has_branch_path = path(file).has_branch_path();
-
-	switch (GetTypeFile(file))
+	shared_ptr<File_system::AllFile::File> NewObj = make_shared<File_system::AllFile::File>();
+	auto AllFiles = getFilesInFolder(WorkDirSourcesA, true, true);
+	for (size_t i = 0; i < AllFiles.size(); i++)
 	{
-	case MODELS:
-	{
-		for (size_t i = 0; i < Files->Models.size(); i++)
+		string Files = AllFiles.at(i);
+		to_lower(Files);
+		// Models
+		if (contains(Files, File.string() + ".obj"))
 		{
-			auto File = Files->Models.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Models.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::MODELS;
+			NewObj->ExtA = ".obj";
+		}
+		if (contains(Files, File.string() + ".3ds"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::MODELS;
+			NewObj->ExtA = ".3ds";
 		}
 
-		break;
-	}
-	case SHADERS:
-	{
-		for (size_t i = 0; i < Files->Shaders.size(); i++)
+		// Textures
+		else if (contains(Files, File.string() + ".dds"))
 		{
-			auto File = Files->Shaders.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Shaders.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+			NewObj->ExtA = ".dds";
+		}
+		else if (contains(Files, File.string() + ".png"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+			NewObj->ExtA = ".png";
+		}
+		else if (contains(Files, File.string() + ".bmp"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+			NewObj->ExtA = ".bmp";
+		}
+		else if (contains(Files, File.string() + ".jpg"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+			NewObj->ExtA = ".jpg";
 		}
 
-		break;
-	}
-	case TEXTURES:
-	{
-		for (size_t i = 0; i < Files->Textures.size(); i++)
+		// Shaders
+		else if (contains(Files, File.string() + ".hlsl"))
 		{
-			auto File = Files->Textures.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Textures.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+			NewObj->ExtA = ".hlsl";
+		}
+		else if (contains(Files, File.string() + ".fx"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+			NewObj->ExtA = ".fx";
+		}
+		else if (contains(Files, File.string() + ".vs"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+			NewObj->ExtA = ".vs";
+		}
+		else if (contains(Files, File.string() + ".ps"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+			NewObj->ExtA = ".ps";
 		}
 
-		break;
-	}
-	case SOUNDS:
-	{
-		for (size_t i = 0; i < Files->Sounds.size(); i++)
+		// Sounds
+		else if (contains(Files, File.string() + ".wav"))
 		{
-			auto File = Files->Sounds.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Sounds.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SOUNDS;
+			NewObj->ExtA = ".wav";
 		}
 
-		break;
-	}
-	case SCRIPTS:
-	{
-		for (size_t i = 0; i < Files->Scripts.size(); i++)
+		// Maps, UI and etc
+		else if (contains(Files, File.string() + ".xml"))
 		{
-			auto File = Files->Scripts.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Scripts.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+
+			if (contains(NewObj->FileA, "ui"))
+				NewObj->TypeOfFile = _TypeOfFile::UIS;
+			else if (contains(NewObj->FileA, "maps"))
+				NewObj->TypeOfFile = _TypeOfFile::LEVELS;
+			else if (contains(NewObj->FileA, "text"))
+				NewObj->TypeOfFile = _TypeOfFile::DIALOGS;
+			NewObj->ExtA = ".xml";
 		}
 
-		break;
-	}
-	case FONTS:
-	{
-		for (size_t i = 0; i < Files->Fonts.size(); i++)
+		// Scripts
+		else if (contains(Files, File.string() + ".lua"))
 		{
-			auto File = Files->Fonts.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Fonts.at(i);
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::SCRIPTS;
+			NewObj->ExtA = ".lua";
 		}
 
-		break;
-	}
-		// XML Files
-	case DIALOGS:
-	case UIS:
-	{
-		for (size_t i = 0; i < Files->Dialogs.size(); i++)
+		// Fonts
+		else if (contains(Files, File.string() + ".ttf"))
 		{
-			auto File = Files->Dialogs.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Dialogs.at(i);
-		}
-		for (size_t i = 0; i < Files->Uis.size(); i++)
-		{
-			auto File = Files->Uis.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Uis.at(i);
-		}
+			auto F = GetFileByPath(Files);
+			if (!F->FileA.empty() || !F->FileW.empty())
+				return F;
 
-		break;
-	}
-	case LEVELS:
-	{
-		for (size_t i = 0; i < Files->Levels.size(); i++)
-		{
-			auto File = Files->Levels.at(i);
-			string LowerA = has_branch_path ? File->PathA : File->FileA;
-			wstring LowerW = has_branch_path ? File->PathW : File->FileW;
-			to_lower(LowerA);
-			to_lower(LowerW);
-			if ((contains(LowerA, file)) || (contains(LowerW, file)))
-				return Files->Levels.at(i);
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::FONTS;
+			NewObj->ExtA = ".ttf";
 		}
-
-		break;
-	}
 	}
 
-	return make_shared<AllFile::File>();
+	return NewObj;
 }
-vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeOfFile T)
+
+vector<pair<shared_ptr<File_system::AllFile::File>, string>> File_system::GetFileByType(_TypeOfFile T)
 {
 	switch (T)
 	{
@@ -528,343 +597,227 @@ vector<shared_ptr<File_system::AllFile::File>> File_system::GetFileByType(_TypeO
 		return Files->None;
 	}
 
-	return vector<shared_ptr<File_system::AllFile::File>>();
+	return vector<pair<shared_ptr<File_system::AllFile::File>, string>>();
 }
 
-shared_ptr<File_system::AllFile::File> File_system::GetFile(string file)
+shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 {
-		// We make sure that file doesn't exist in our massive
-	auto F = GetFileByType(file);
-	if (!F->FileA.empty() || !F->FileW.empty())
-		return F;
+	string lower = File.string();
+	to_lower(lower);
 
-	bool has_branch_path = path(file).has_branch_path(), WasReplace = false;
-
-	if (!has_branch_path)
+	switch (GetTypeFileByExt(lower))
 	{
-		// Replace Chars For Not To Find an Extension File. It uses in Models to try to find an ID
-		string Cache = file;
-		replaceAll(file, ".", "_");
-		if (Cache != file)
-			WasReplace = true;
+	case MODELS:
+		for (auto it: Files->Models)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case TEXTURES:
+		for (auto it: Files->Textures)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case LEVELS:
+		for (auto it: Files->Levels)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case DIALOGS:
+		for (auto it: Files->Dialogs)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case SOUNDS:
+		for (auto it: Files->Sounds)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case SHADERS:
+		for (auto it: Files->Shaders)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case UIS:
+		for (auto it: Files->Uis)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case SCRIPTS:
+		for (auto it: Files->Scripts)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
+	case FONTS:
+		for (auto it: Files->Fonts)
+		{
+			to_lower(it.second);
+			if ((contains(it.second, lower)))
+				return it.first;
+		}
+		break;
 	}
 
-	if (!p.empty())
+	return shared_ptr<File_system::AllFile::File>();
+}
+
+shared_ptr<File_system::AllFile::File> File_system::GetFile(path File)
+{
+	if (File.empty()) return shared_ptr<File_system::AllFile::File>();
+	
+	File.swap(File.generic());
+	string Fname = File.generic_string();
+	to_lower(Fname);
+
+	// It means that we have the full-path like this "C:/SommePath/Somme.obj"
+	if (File.has_branch_path() && File.has_parent_path() && File.has_root_directory() &&
+		File.has_root_name() && File.has_root_path() && File.has_extension() && File.has_filename())
+		return GetFileByPath(Fname);
+
+	// It means that we have the path like this "Somme" or with full-path "C:/SommePath/Somme"
+	else if (File.has_filename())
 	{
-		string ResPath = p.string() + "\\resource\\",
-		extA = extension(file);
-		wstring extW = path(file).extension().wstring();
-
-		if (!has_branch_path)
-			if (WasReplace)
-				// Revert Chars For "Normal" Find a File. It uses in Models to try to find an ID 
-				replaceAll(file, "_", ".");
-
-		to_lower(extA);
-
-		// Getting File Without Ext!
-		if (extA.empty())
+		if (File.has_extension())
 		{
-			auto AllFiles = getFilesInFolder(ResPath, true, true);
-			for (size_t i = 0; i < AllFiles.size(); i++)
-			{
-				// Models
-				if (contains(AllFiles.at(i), file + ".obj"))
-				{
-					auto F = GetFileByType(file + ".obj");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				if (contains(AllFiles.at(i), file + ".3ds"))
-				{
-					auto F = GetFileByType(file + ".3ds");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
+			deleteWord(Fname, File.extension().string());
+			auto Obj = Find(Fname);
+			if (Obj->Size != 0)
+				return Obj;
 
-				// Textures
-				else if (contains(AllFiles.at(i), file + ".dds"))
-				{
-					auto F = GetFileByType(file + ".dds");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".png"))
-				{
-					auto F = GetFileByType(file + ".png");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".bmp"))
-				{
-					auto F = GetFileByType(file + ".bmp");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".jpg"))
-				{
-					auto F = GetFileByType(file + ".jpg");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Shaders
-				else if (contains(AllFiles.at(i), file + ".hlsl"))
-				{
-					auto F = GetFileByType(file + ".hlsl");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".fx"))
-				{
-					auto F = GetFileByType(file + ".fx");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".vs"))
-				{
-					auto F = GetFileByType(file + ".vs");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-				else if (contains(AllFiles.at(i), file + ".ps"))
-				{
-					auto F = GetFileByType(file + ".ps");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Sounds
-				else if (contains(AllFiles.at(i), file + ".wav"))
-				{
-					auto F = GetFileByType(file + ".wav");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Maps, UI and etc
-				else if (contains(AllFiles.at(i), file + ".xml"))
-				{
-					auto F = GetFileByType(file + ".xml");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Scripts
-				else if (contains(AllFiles.at(i), file + ".lua"))
-				{
-					auto F = GetFileByType(file + ".lua");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Fonts
-				else if (contains(AllFiles.at(i), file + ".ttf"))
-				{
-					auto F = GetFileByType(file + ".ttf");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-				// Project Files
-				else if (contains(AllFiles.at(i), file + ".proj"))
-				{
-					auto F = GetFileByType(file + ".proj");
-					if (!F->FileA.empty() || !F->FileW.empty())
-						return F;
-				}
-
-			}
 		}
-		if (!ResPath.empty())
+		auto Obj = Find(Fname);
+		if (Obj->Size != 0)
+			return Obj;
+	}
+
+	return AddFile(File);
+}
+shared_ptr<File_system::AllFile::File> File_system::AddFile(path File)
+{
+	if (File.empty() || !exists(File)) return shared_ptr<File_system::AllFile::File>();
+
+	_TypeOfFile T = NONE;
+	string PathFile, ext;
+
+	File.swap(File.generic());
+	string Fname = File.generic_string();
+	to_lower(Fname);
+
+	// It means that we have the path like this "Somme.obj"
+	if (!File.has_branch_path() && !File.has_parent_path() && !File.has_root_directory() &&
+		!File.has_root_name() && !File.has_root_path() && File.has_extension() && File.has_filename())
+	{
+		T = GetTypeFileByExt(Fname);
+		PathFile = getPathFromType(T) + Fname;
+		ext = File.extension().string();
+		to_lower(ext);
+	}
+
+	// It means that we have the path like this "Somme" or with full-path "C:/SommePath/Somme"
+	else if (!File.has_extension() && File.has_filename())
+	{
+		auto Obj = Find(Fname);
+		if (Obj->Size == 0)
 		{
-			if (extA == ".obj"
-				|| extA == ".3ds")
-			{
-				auto cache = getFilesInFolder(ResPath + "models\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Models.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), MODELS));
-						Files->Models.back()->PathW = path(cache.at(i)).wstring();
-						Files->Models.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Models.back()->ExtW = extW;
-						return Files->Models.back();
-					}
-				}
-			}
-			else if (extA == ".dds"
-				|| extA == ".png"
-				|| extA == ".bmp"
-				|| extA == ".jpg")
-			{
-				auto cache = getFilesInFolder(ResPath + "textures\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Textures.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), TEXTURES));
-						Files->Textures.back()->PathW = path(cache.at(i)).wstring();
-						Files->Textures.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Textures.back()->ExtW = extW;
-						return Files->Textures.back();
-					}
-				}
-			}
-			else if (extA == ".hlsl"
-				|| extA == ".fx"
-				|| extA == ".vs"
-				|| extA == ".ps")
-			{
-				auto cache = getFilesInFolder(ResPath + "shaders\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						auto filePath = has_branch_path ? path(cache.at(i)).string() :
-							path(cache.at(i)).filename().string();
-						if (filePath == file)
-						{
-							Files->Shaders.push_back(make_shared<AllFile::File>(cache.at(i),
-								extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), SHADERS));
-							Files->Shaders.back()->PathW = path(cache.at(i)).wstring();
-							Files->Shaders.back()->FileW = path(cache.at(i)).filename().wstring();
-							Files->Shaders.back()->ExtW = extW;
-							return Files->Shaders.back();
-						}
-					}
-				}
-			}
-			else if (extA == ".wav")
-			{
-				auto cache = getFilesInFolder(ResPath + "sounds\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Sounds.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), SOUNDS));
-						Files->Sounds.back()->PathW = path(cache.at(i)).wstring();
-						Files->Sounds.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Sounds.back()->ExtW = extW;
-						return Files->Sounds.back();
-					}
-				}
-			}
-			else if (extA == ".xml")
-			{
-				auto cache = getFilesInFolder(ResPath + "text\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						auto filePath = has_branch_path ? path(cache.at(i)).string() :
-							path(cache.at(i)).filename().string();
-						if (filePath == file)
-						{
-							Files->Dialogs.push_back(make_shared<AllFile::File>(cache.at(i),
-								extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), DIALOGS));
-							Files->Dialogs.back()->PathW = path(cache.at(i)).wstring();
-							Files->Dialogs.back()->FileW = path(cache.at(i)).filename().wstring();
-							Files->Dialogs.back()->ExtW = extW;
-							return Files->Dialogs.back();
-						}
-					}
-				}
-				cache = getFilesInFolder(ResPath + "UI\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						auto filePath = has_branch_path ? path(cache.at(i)).string() :
-							path(cache.at(i)).filename().string();
-						if (filePath == file)
-						{
-							Files->Uis.push_back(make_shared<AllFile::File>(cache.at(i),
-								extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), UIS));
-							Files->Uis.back()->PathW = path(cache.at(i)).wstring();
-							Files->Uis.back()->FileW = path(cache.at(i)).filename().wstring();
-							Files->Uis.back()->ExtW = extW;
-							return Files->Uis.back();
-						}
-					}
-				}
-				cache = getFilesInFolder(ResPath + "maps\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Levels.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), LEVELS));
-						Files->Levels.back()->PathW = path(cache.at(i)).wstring();
-						Files->Levels.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Levels.back()->ExtW = extW;
-						return Files->Levels.back();
-					}
-				}
-			}
-			else if (extA == ".lua")
-			{
-				auto cache = getFilesInFolder(ResPath + "scripts\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Scripts.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), SCRIPTS));
-						Files->Scripts.back()->PathW = path(cache.at(i)).wstring();
-						Files->Scripts.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Scripts.back()->ExtW = extW;
-						return Files->Scripts.back();
-					}
-				}
-			}
-			else if (extA == ".ttf")
-			{
-				auto cache = getFilesInFolder(ResPath + "fonts\\", true, true);
-				for (size_t i = 0; i < cache.size(); i++)
-				{
-					auto filePath = has_branch_path ? path(cache.at(i)).string() :
-						path(cache.at(i)).filename().string();
-					if (filePath == file)
-					{
-						Files->Fonts.push_back(make_shared<AllFile::File>(cache.at(i),
-							extA, path(cache.at(i)).filename().string(), (size_t)file_size(cache.at(i)), FONTS));
-						Files->Fonts.back()->PathW = path(cache.at(i)).wstring();
-						Files->Fonts.back()->FileW = path(cache.at(i)).filename().wstring();
-						Files->Fonts.back()->ExtW = extW;
-						return Files->Fonts.back();
-					}
-				}
-			}
+			T = Obj->TypeOfFile;
+			PathFile = Obj->PathA;
+			ext = Obj->ExtA;
 		}
 	}
-	else
-		Engine::LogError("File System::GetResPathA Failed!", "File System::GetResPathA Failed!",
-			"File System: Something is wrong with File System Function (GetResPathA)!");
 
-	// winerror.h 
-		//	e.g ERROR_FILE_NOT_FOUND
+	switch (T)
+	{
+	case MODELS:
+		Files->Models.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Models.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Models.back().first->FileW = File.filename().wstring();
+		Files->Models.back().first->PathW = path(PathFile).wstring();
+		break;
+	case TEXTURES:
+		Files->Textures.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Textures.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Textures.back().first->FileW = File.filename().wstring();
+		Files->Textures.back().first->PathW = path(PathFile).wstring();
+		break;
+	case LEVELS:
+		Files->Levels.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Levels.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Levels.back().first->FileW = File.filename().wstring();
+		Files->Levels.back().first->PathW = path(PathFile).wstring();
+		break;
+	case DIALOGS:
+		Files->Dialogs.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Dialogs.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Dialogs.back().first->FileW = File.filename().wstring();
+		Files->Dialogs.back().first->PathW = path(PathFile).wstring();
+		break;
+	case SOUNDS:
+		Files->Sounds.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Sounds.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Sounds.back().first->FileW = File.filename().wstring();
+		Files->Sounds.back().first->PathW = path(PathFile).wstring();
+		break;
+	case SHADERS:
+		Files->Shaders.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Shaders.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Shaders.back().first->FileW = File.filename().wstring();
+		Files->Shaders.back().first->PathW = path(PathFile).wstring();
+		break;
+	case UIS:
+		Files->Uis.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Uis.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Uis.back().first->FileW = File.filename().wstring();
+		Files->Uis.back().first->PathW = path(PathFile).wstring();
+		break;
+	case SCRIPTS:
+		Files->Scripts.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+			Fname, (size_t)file_size(PathFile), T), PathFile));
+		Files->Scripts.back().first->ExtW = path(PathFile).extension().wstring();
+		Files->Scripts.back().first->FileW = File.filename().wstring();
+		Files->Scripts.back().first->PathW = path(PathFile).wstring();
+		break;
+	case FONTS:
+		Files->Fonts.push_back(make_pair(make_shared<AllFile::File>(PathFile, File.extension().string(),
+			Fname, (size_t)file_size(File), T), PathFile));
+		Files->Fonts.back().first->ExtW = File.extension().wstring();
+		Files->Fonts.back().first->FileW = File.filename().wstring();
+		Files->Fonts.back().first->PathW = File.wstring().c_str();
+		break;
+	}
 
-	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n", "File: " + file + " not found\n",
-		"File: " + file + " not found\n");
-	return make_shared<File_system::AllFile::File>("", "", "", 0, _TypeOfFile::NONE);
+	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n", string(__FILE__) + ": " + to_string(__LINE__),
+		"File: " + Fname + " not found\n");
+	return make_shared<File_system::AllFile::File>();
 }
 
 vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bool onlyFile)
@@ -872,30 +825,30 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bo
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), (p.wstring() + L"\\resource\\").c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != NULL)
 		ResPath = Folder;	// If found
 	else
-		ResPath = p.wstring() + L"\\resource\\" + Folder;	// No!
+		ResPath = WorkDirSourcesW + Folder;	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			files.push_back(it->path().wstring());
+			files.push_back(it->path().generic_wstring());
 		}
 	else if (Recursive && onlyFile)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			files.push_back(it->path().wstring());
+			files.push_back(it->path().generic_wstring());
 		}
 	else if (onlyFile && !Recursive)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			files.push_back(it->path().wstring());
+			files.push_back(it->path().generic_wstring());
 		}
 	else if (!onlyFile && Recursive)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			files.push_back(it->path().wstring());
+			files.push_back(it->path().generic_wstring());
 		}
 
 	return files;
@@ -905,14 +858,14 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder)
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), (p.wstring() + L"\\resource\\").c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != NULL)
 		ResPath = Folder;	// If found
 	else
-		ResPath = p.wstring() + L"\\resource\\" + Folder;	// No!
+		ResPath = WorkDirSourcesW + Folder;	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
-		files.push_back(it->path().wstring());
+		files.push_back(it->path().generic_wstring());
 	}
 
 	return files;
@@ -922,36 +875,36 @@ vector<string> File_system::getFilesInFolder(string Folder, bool Recursive, bool
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), (p.string() + "\\resource\\").c_str()) != NULL)
+	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != NULL)
 		ResPath = Folder;	// If found
 	else
-		ResPath = p.string() + "\\resource\\" + Folder;	// No!
+		ResPath = WorkDirSourcesA + Folder;	// No!
 
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			auto str = it->path().string();
+			auto str = it->path().generic_string();
 			if (is_directory(str))
 				files.push_back(str);
 		}
 	else if (Recursive && onlyFile)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			auto str = it->path().string();
+			auto str = it->path().generic_string();
 			if (!is_directory(str))
 				files.push_back(str);
 		}
 	else if (onlyFile && !Recursive)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			auto str = it->path().string();
+			auto str = it->path().generic_string();
 			if (!is_directory(str))
 				files.push_back(str);
 		}
 	else if (!onlyFile && Recursive)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			auto str = it->path().string();
+			auto str = it->path().generic_string();
 			if (is_directory(str))
 				files.push_back(str);
 		}
@@ -963,14 +916,14 @@ vector<string> File_system::getFilesInFolder(string Folder)
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), (p.string() + "\\resource\\").c_str()) != NULL)
+	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != NULL)
 		ResPath = Folder;	// If found
 	else
-		ResPath = p.string() + "\\resource\\" + Folder;	// No!
+		ResPath = WorkDirSourcesA + Folder;	// No!
 
 	for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 	{
-		files.push_back(it->path().string());
+		files.push_back(it->path().generic_string());
 	}
 
 	return files;
@@ -1065,7 +1018,7 @@ bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FileP
 
 ToDo("Add Here Decompress File")
 #include "Levels.h"
-void File_system::ProjectFile::OpenFile(path file)
+void File_system::ProjectFile::OpenFile(path File)
 {
 	// Add Here Uncompress Algorytm File
 	// string buf = "";
@@ -1074,12 +1027,12 @@ void File_system::ProjectFile::OpenFile(path file)
 	
 	void *Buf = { 0 };
 	size_t n = 0;
-	Application->getFS()->ReadFileMemory(file.string().c_str(), &n, &Buf);
+	Application->getFS()->ReadFileMemory(File.string().c_str(), &n, &Buf);
 	Application->getLevel()->LoadXML(reinterpret_cast<char *>(Buf));
 }
 
 ToDo("Add Here Compress File")
-void File_system::ProjectFile::SaveFile(path file)
+void File_system::ProjectFile::SaveFile(path File)
 {
 }
 
@@ -1099,11 +1052,11 @@ void File_system::ProjectFile::SaveCurrProj()
 //	Application->getLevel()->getCurrent()->Save();
 }
 
-void File_system::ProjectFile::SetCurProject(path file)
+void File_system::ProjectFile::SetCurProject(path File)
 {
 	//CheckForSameFile(file);
-	RecentFiles.push_back({ (int)RecentFiles.size(), file });
-	CurrentProj = make_shared<path>(file);
+	RecentFiles.push_back({ (int)RecentFiles.size(), File });
+	CurrentProj = make_shared<path>(File);
 }
 
 void File_system::ProjectFile::Resort(bool Greater)

@@ -144,7 +144,7 @@ public:
 					update();
 				}
 				if (m_targetElapsedTicks == 0)
-#if defined(DEBUG)
+#if defined(_DEBUG)
 				OutputDebugStringA("Maybe Endless Loop?");
 				if (MessageBoxA(0, "Maybe Endless Loop?\nTry to skip it?", "Warning", MB_YESNO) == MB_OK)
 					break;

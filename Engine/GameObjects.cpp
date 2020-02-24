@@ -22,7 +22,6 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	// Set Up The IDs
 	this->ID_TEXT = ID_TEXT;
 	ID++;
-
 	// Set Up The Render Model
 	SetModel(make_shared<Models>(Application->getFS()->GetFile(ModelNameFile)->PathA));
 	if (!model.operator bool())
@@ -55,7 +54,30 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> Logic)
 {
 	this->Logic = Logic;
-	this->Logic->Init();
+}
+
+void GameObjects::Object::UpdateLogic(float Time)
+
+{
+	if (GetAsyncKeyState(VK_NUMPAD1))
+		Test2 += 0.5f;
+	if (GetAsyncKeyState(VK_NUMPAD2))
+		Test2 -= 0.5f;
+
+	Test1 += Time;
+	if (Test1 >= Test2)
+	{
+		Test1 = 0.0f;
+		//if (GetAsyncKeyState(VK_NUMPAD5))
+		//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
+
+		Vector3 newPos = ConstrainToBoundary(PosCoords,
+			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
+			newRot = Vector3::Zero;
+		if(Logic.operator bool() && !Logic->GetPoints().empty())
+			Logic->Update(PosCoords, RotationCoords);
+		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
+	}
 }
 
 void GameObjects::Object::Destroy()

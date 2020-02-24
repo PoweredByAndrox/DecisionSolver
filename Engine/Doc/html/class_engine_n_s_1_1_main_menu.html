@@ -72,7 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -164,21 +164,30 @@ auto&#160;</td><td class="memItemRight" valign="bottom"><b>GetIO</b> ()</td></tr
 <tr class="memitem:aa1f925a794abe01cbc71323eca253cf5 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa1f925a794abe01cbc71323eca253cf5"></a>
 HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>Init</b> ()</td></tr>
 <tr class="separator:aa1f925a794abe01cbc71323eca253cf5 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e3a60a274ac7622225ef7c00f9735b4 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e3a60a274ac7622225ef7c00f9735b4"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> ()</td></tr>
-<tr class="separator:a1e3a60a274ac7622225ef7c00f9735b4 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a23f3ad0c4b2d92bcd987b72a9d6cef18 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a23f3ad0c4b2d92bcd987b72a9d6cef18"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddNewFile</b> (string File, bool Repeat)</td></tr>
+<tr class="separator:a23f3ad0c4b2d92bcd987b72a9d6cef18 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd10426f55cc43dfb43200de9a2c6764 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afd10426f55cc43dfb43200de9a2c6764"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddNewFile</b> (vector&lt; string &gt; Files, bool Repeat)</td></tr>
+<tr class="separator:afd10426f55cc43dfb43200de9a2c6764 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a825a3e6d16d8c6b01ed64b95c32c6c4d inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a825a3e6d16d8c6b01ed64b95c32c6c4d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>DeleteSound</b> (string ID)</td></tr>
+<tr class="separator:a825a3e6d16d8c6b01ed64b95c32c6c4d inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af1faec04d8f3ce88cf8c54de6537cf96 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1faec04d8f3ce88cf8c54de6537cf96"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> (Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp)</td></tr>
+<tr class="separator:af1faec04d8f3ce88cf8c54de6537cf96 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97cb2bd86c7cfa30c47bcdd220577d0b inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97cb2bd86c7cfa30c47bcdd220577d0b"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>ReleaseAudio</b> ()</td></tr>
 <tr class="separator:a97cb2bd86c7cfa30c47bcdd220577d0b inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2ec32bcaf77e3097c2c3457038c1f63 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa2ec32bcaf77e3097c2c3457038c1f63"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>changeSoundPan</b> (float Pan)</td></tr>
 <tr class="separator:aa2ec32bcaf77e3097c2c3457038c1f63 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa6dd4ff096f8ca241ec2bf937d1ee80 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa6dd4ff096f8ca241ec2bf937d1ee80"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>changeSoundPos</b> (Vector3 pos)</td></tr>
-<tr class="separator:afa6dd4ff096f8ca241ec2bf937d1ee80 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac550dbfa1e1c5696eac05a0320652fe6 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac550dbfa1e1c5696eac05a0320652fe6"></a>
-Vector3&#160;</td><td class="memItemRight" valign="bottom"><b>getSoundPosition</b> ()</td></tr>
-<tr class="separator:ac550dbfa1e1c5696eac05a0320652fe6 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada240a1b4665981cfdb4601041a3e42c inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ada240a1b4665981cfdb4601041a3e42c"></a>
+vector&lt; pair&lt; shared_ptr&lt; Source &gt;, string &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getAllSources</b> ()</td></tr>
+<tr class="separator:ada240a1b4665981cfdb4601041a3e42c inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41c1f9af09b4d147647689d9fa25145a inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a41c1f9af09b4d147647689d9fa25145a"></a>
+shared_ptr&lt; Listerner &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>getListerner</b> ()</td></tr>
+<tr class="separator:a41c1f9af09b4d147647689d9fa25145a inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2dee0ce2b11cd35799cb6ab4b21faeb5 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2dee0ce2b11cd35799cb6ab4b21faeb5"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsInitSoundSystem</b> ()</td></tr>
 <tr class="separator:a2dee0ce2b11cd35799cb6ab4b21faeb5 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -254,9 +263,6 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>SetRenderOnlyI
 <tr class="memitem:a4171e7de3db76072006390d852b805e0 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4171e7de3db76072006390d852b805e0"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPause</b> ()</td></tr>
 <tr class="separator:a4171e7de3db76072006390d852b805e0 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a23f9aa3c41f8a0b23ef842fbf468938b inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a23f9aa3c41f8a0b23ef842fbf468938b"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doResume</b> ()</td></tr>
-<tr class="separator:a23f9aa3c41f8a0b23ef842fbf468938b inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cabffb7c39d5c9158d68b71ee6f1579 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9cabffb7c39d5c9158d68b71ee6f1579"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> ()</td></tr>
 <tr class="separator:a9cabffb7c39d5c9158d68b71ee6f1579 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -266,9 +272,9 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> ()<
 <tr class="memitem:a7281880127636e4132607c69ff6c8126 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7281880127636e4132607c69ff6c8126"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>changeSoundVol</b> (float Vol)</td></tr>
 <tr class="separator:a7281880127636e4132607c69ff6c8126 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7ddeddb3badf12a5ddc8537e5072402 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af7ddeddb3badf12a5ddc8537e5072402"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool NeedFind)</td></tr>
-<tr class="separator:af7ddeddb3badf12a5ddc8537e5072402 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a539c68c12b29f3f9efd5124d93d6ec1c inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a539c68c12b29f3f9efd5124d93d6ec1c"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool RepeatIt, bool NeedFind)</td></tr>
+<tr class="separator:a539c68c12b29f3f9efd5124d93d6ec1c inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_u_i"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_u_i')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_u_i.html">UI</a></td></tr>
 <tr class="memitem:a0dc833d3cdfbe91323b336cba0734fca inherit pro_methods_class_u_i"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0dc833d3cdfbe91323b336cba0734fca"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Gamepads</b> ()</td></tr>
@@ -359,7 +365,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateMouseCur
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:46:00 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:25 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

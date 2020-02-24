@@ -72,7 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Functions</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Macros</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Pages</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -84,8 +84,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- top -->
 <div class="header">
   <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
-<a href="#pub-static-attribs">Static Public Attributes</a> &#124;
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="#pro-static-methods">Static Protected Member Functions</a> &#124;
 <a href="#pro-attribs">Protected Attributes</a> &#124;
@@ -118,9 +118,24 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>ProcessXML</b> ()</td
 <tr class="memitem:a6857ab42fe7a28ef2c6161aa052927a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6857ab42fe7a28ef2c6161aa052927a4"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Reload_Level</b> (string File)</td></tr>
 <tr class="separator:a6857ab42fe7a28ef2c6161aa052927a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8305fd12d68d5e85774653d05027f8c9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8305fd12d68d5e85774653d05027f8c9"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> (Matrix View, Matrix Proj, float Time)</td></tr>
-<tr class="separator:a8305fd12d68d5e85774653d05027f8c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a75c6ac806f83f6e12290c36c748f748c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a75c6ac806f83f6e12290c36c748f748c"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> ()</td></tr>
+<tr class="separator:a75c6ac806f83f6e12290c36c748f748c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9d6414c2651e073138095ec041fcfab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af9d6414c2651e073138095ec041fcfab"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Add</b> (_TypeOfFile T, string PathModel)</td></tr>
+<tr class="separator:af9d6414c2651e073138095ec041fcfab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24efedd14b1f82e3e1dd8c8c0fc5326d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a24efedd14b1f82e3e1dd8c8c0fc5326d"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddTo</b> (string ID, shared_ptr&lt; <a class="el" href="class_simple_logic.html">SimpleLogic</a> &gt; Logic)</td></tr>
+<tr class="separator:a24efedd14b1f82e3e1dd8c8c0fc5326d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6f8b2211fb8fe887b414ff18e236c5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6f8b2211fb8fe887b414ff18e236c5e"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>AddTo</b> (shared_ptr&lt; Node &gt; nd, shared_ptr&lt; <a class="el" href="class_simple_logic.html">SimpleLogic</a> &gt; Logic)</td></tr>
+<tr class="separator:af6f8b2211fb8fe887b414ff18e236c5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3bb956837847f88cbc8abc749d46357a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3bb956837847f88cbc8abc749d46357a"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>Remove</b> (string ID)</td></tr>
+<tr class="separator:a3bb956837847f88cbc8abc749d46357a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af4a5baf4688bf4075dd2376bf0a84ba1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af4a5baf4688bf4075dd2376bf0a84ba1"></a>
+auto&#160;</td><td class="memItemRight" valign="bottom"><b>getChild</b> ()</td></tr>
+<tr class="separator:af4a5baf4688bf4075dd2376bf0a84ba1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a657dd862e596d2ce71bf43bb08e6efae"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a657dd862e596d2ce71bf43bb08e6efae"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Destroy</b> ()</td></tr>
 <tr class="separator:a657dd862e596d2ce71bf43bb08e6efae"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -132,23 +147,8 @@ auto&#160;</td><td class="memItemRight" valign="bottom"><b>getObjects</b> ()</td
 void&#160;</td><td class="memItemRight" valign="bottom"><b>setObject</b> (shared_ptr&lt; <a class="el" href="struct_game_objects_1_1_object.html">Object</a> &gt; Obj)</td></tr>
 <tr class="separator:a1e2ec787d859102fed3f48b42e3bd241 inherit pub_methods_class_game_objects"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
-Static Public Attributes</h2></td></tr>
-<tr class="memitem:a6117987bbef76d65db2381e51e7d56ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6117987bbef76d65db2381e51e7d56ee"></a>
-static vector&lt; shared_ptr&lt; <a class="el" href="struct_game_objects_1_1_object.html">GameObjects::Object</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Obj_other</b></td></tr>
-<tr class="separator:a6117987bbef76d65db2381e51e7d56ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00d946799b1a477e8c31eaac3a88cf6e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a00d946799b1a477e8c31eaac3a88cf6e"></a>
-static vector&lt; shared_ptr&lt; <a class="el" href="struct_game_objects_1_1_object.html">GameObjects::Object</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>Obj_npc</b></td></tr>
-<tr class="separator:a00d946799b1a477e8c31eaac3a88cf6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa81735be010840b6be9e64a29401908d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa81735be010840b6be9e64a29401908d"></a>
-static vector&lt; string &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>IDModels</b></td></tr>
-<tr class="separator:aa81735be010840b6be9e64a29401908d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a69af7b2e0a5f7bed8aabd4af18f89dad"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69af7b2e0a5f7bed8aabd4af18f89dad"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateLogic</b> (float Time, shared_ptr&lt; <a class="el" href="struct_game_objects_1_1_object.html">Object</a> &gt; &amp;Obj)</td></tr>
-<tr class="separator:a69af7b2e0a5f7bed8aabd4af18f89dad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56231ca68ab352147f5c53580b0bb34b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a56231ca68ab352147f5c53580b0bb34b"></a>
 vector&lt; shared_ptr&lt; <a class="el" href="struct_game_objects_1_1_object.html">GameObjects::Object</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><b>XMLPreparing</b> (vector&lt; XMLElement * &gt; Attrib)</td></tr>
 <tr class="separator:a56231ca68ab352147f5c53580b0bb34b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,7 +197,7 @@ Additional Inherited Members</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Feb 7 2020 04:45:58 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Feb 17 2020 18:46:25 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

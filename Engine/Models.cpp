@@ -89,7 +89,7 @@ bool Models::LoadFromAllModels()
 	{
 		importer = new Assimp::Importer;
 
-		pScene = importer->ReadFile(Files.at(i)->PathA.c_str(), 
+		pScene = importer->ReadFile(Files.at(i).first->PathA.c_str(),
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded 
 		| aiProcess_OptimizeMeshes | aiProcess_SortByPType | aiProcess_FindInvalidData
 		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
@@ -170,7 +170,9 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 				texture.TextureSHRes = getTextureFromModel(Scene, getTextureIndex(&str));
 			else
 			{
-				auto textr = Application->getFS()->GetFile(string(str.C_Str()));
+				string TName = str.C_Str();
+				to_lower(TName);
+				auto textr = Application->getFS()->GetFile(TName);
 				if (textr.operator bool())
 				{
 					PathTexture = textr->PathA;
@@ -180,7 +182,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 						if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
 							&texture.TextureRes, &texture.TextureSHRes)))
 						{
-#if defined (DEBUG)
+#if defined (_DEBUG)
 //							DebugTrace("Models::CreateDDSTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -194,7 +196,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 						if (FAILED(CreateWICTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
 							&texture.TextureRes, &texture.TextureSHRes)))
 						{
-#if defined (DEBUG)
+#if defined (_DEBUG)
 //							DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
@@ -330,7 +332,7 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (FAILED(CreateWICTextureFromMemory(Application->getDevice(),
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
 	{
-#if defined (DEBUG)
+#if defined (_DEBUG)
 //		DebugTrace("Models::CreateWICTextureFromFile() create failed");
 #endif
 #if defined (ExceptionWhenEachError)
