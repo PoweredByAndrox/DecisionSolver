@@ -94,7 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="textblock"><code>#include &quot;<a class="el" href="pch_8h_source.html">pch.h</a>&quot;</code><br />
 <code>#include &quot;Engine.h&quot;</code><br />
 <code>#include &quot;DebugDraw.h&quot;</code><br />
-<code>#include &quot;File_system.h&quot;</code><br />
+<code>#include &quot;<a class="el" href="_file__system_8h_source.html">File_system.h</a>&quot;</code><br />
 <code>#include &quot;Render_Buffer.h&quot;</code><br />
 <code>#include &quot;Camera.h&quot;</code><br />
 <code>#include &quot;Actor.h&quot;</code><br />
@@ -122,9 +122,6 @@ Functions</h2></td></tr>
 <tr class="memitem:ab901203d6f81616f45b614634d658926"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab901203d6f81616f45b614634d658926"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;Init(&quot;DecisionEngine&quot;, hInstance)))</td></tr>
 <tr class="separator:ab901203d6f81616f45b614634d658926"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d125072479aba9fa0ee6613940e2137"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d125072479aba9fa0ee6613940e2137"></a>
-<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setCLua</b> (make_shared&lt; <a class="el" href="class_c_lua.html">CLua</a> &gt;())</td></tr>
-<tr class="separator:a7d125072479aba9fa0ee6613940e2137"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a01420bedf149244aea18ae3c604e7158"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a01420bedf149244aea18ae3c604e7158"></a>
 <a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setUI</b> (make_shared&lt; <a class="el" href="class_u_i.html">UI</a> &gt;())</td></tr>
 <tr class="separator:a01420bedf149244aea18ae3c604e7158"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,30 +146,36 @@ Functions</h2></td></tr>
 <tr class="memitem:a8af5dfafbc17f2766a68bd0bc411c860"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8af5dfafbc17f2766a68bd0bc411c860"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getPhysics() -&gt;Init()))</td></tr>
 <tr class="separator:a8af5dfafbc17f2766a68bd0bc411c860"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abcbfb85f40f2a8e60299e497bf07e3c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abcbfb85f40f2a8e60299e497bf07e3c0"></a>
-<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setCamera</b> (make_shared&lt; <a class="el" href="class_camera.html">Camera</a> &gt;())</td></tr>
-<tr class="separator:abcbfb85f40f2a8e60299e497bf07e3c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a971926e53b8bdfa05bc7a40067f748"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4a971926e53b8bdfa05bc7a40067f748"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getCamera() -&gt;Init(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getWorkAreaSize(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;GetHWND()).x, <a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getWorkAreaSize(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;GetHWND()).y)))</td></tr>
-<tr class="separator:a4a971926e53b8bdfa05bc7a40067f748"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d5d74c6219d8786fafe978a0f4313fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d5d74c6219d8786fafe978a0f4313fb"></a>
-<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setActor</b> (make_shared&lt; <a class="el" href="class_actor.html">Actor</a> &gt;())</td></tr>
-<tr class="separator:a1d5d74c6219d8786fafe978a0f4313fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a46ba7574d077c4687e15370bbbf989e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46ba7574d077c4687e15370bbbf989e8"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getActor() -&gt;Init()))</td></tr>
-<tr class="separator:a46ba7574d077c4687e15370bbbf989e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6186479b5145ffa28d4b80ba9806d3da"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6186479b5145ffa28d4b80ba9806d3da"></a>
 <a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setSound</b> (make_shared&lt; <a class="el" href="class_audio.html">Audio</a> &gt;())</td></tr>
 <tr class="separator:a6186479b5145ffa28d4b80ba9806d3da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a216f1cb1ccfbe12af94fc3710cc00526"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a216f1cb1ccfbe12af94fc3710cc00526"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getSound() -&gt;Init()))</td></tr>
 <tr class="separator:a216f1cb1ccfbe12af94fc3710cc00526"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1d5d74c6219d8786fafe978a0f4313fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d5d74c6219d8786fafe978a0f4313fb"></a>
+<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setActor</b> (make_shared&lt; <a class="el" href="class_actor.html">Actor</a> &gt;())</td></tr>
+<tr class="separator:a1d5d74c6219d8786fafe978a0f4313fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46ba7574d077c4687e15370bbbf989e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a46ba7574d077c4687e15370bbbf989e8"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getActor() -&gt;Init()))</td></tr>
+<tr class="separator:a46ba7574d077c4687e15370bbbf989e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a161e315590447dc5fc65b181d0924c21"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a161e315590447dc5fc65b181d0924c21"></a>
 <a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setLevel</b> (make_shared&lt; <a class="el" href="class_levels.html">Levels</a> &gt;())</td></tr>
 <tr class="separator:a161e315590447dc5fc65b181d0924c21"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a86ef26cc7ae57c28613f8577c7e6ecac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a86ef26cc7ae57c28613f8577c7e6ecac"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>if</b> (FAILED(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getLevel() -&gt;Init()))</td></tr>
 <tr class="separator:a86ef26cc7ae57c28613f8577c7e6ecac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adca8d3bed5a8e211f0973dfef0cdbd46"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adca8d3bed5a8e211f0973dfef0cdbd46"></a>
+<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getFS</b> () -&gt; ReadFileMemory(<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getFS() -&gt;GetFile(string(&quot;first_level&quot;)) -&gt;PathA.c_str(),&amp;Size,&amp;Buff)</td></tr>
+<tr class="separator:adca8d3bed5a8e211f0973dfef0cdbd46"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c55f309ef34674cccf2c6fdf2a994ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9c55f309ef34674cccf2c6fdf2a994ba"></a>
+<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>getLevel</b> () -&gt; LoadXML(reinterpret_cast&lt; LPCSTR &gt;(Buff))</td></tr>
+<tr class="separator:a9c55f309ef34674cccf2c6fdf2a994ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca7cfadde3ece69ebaee5b3a5d1d581d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aca7cfadde3ece69ebaee5b3a5d1d581d"></a>
+<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>&#160;</td><td class="memItemRight" valign="bottom"><b>setMultiplayer</b> (make_shared&lt; <a class="el" href="class_multiplayer.html">Multiplayer</a> &gt;())</td></tr>
+<tr class="separator:aca7cfadde3ece69ebaee5b3a5d1d581d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab814d21b7265a8bc425afc4df970b909"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab814d21b7265a8bc425afc4df970b909"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>EngineTrace</b> (<a class="el" href="main_8cpp.html#a1fd123efa2221c6aedb1526364c57be7">Application</a>-&gt;getMPL() -&gt;Init())</td></tr>
+<tr class="separator:ab814d21b7265a8bc425afc4df970b909"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66fd81fe28784732af46c937a025b18d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a66fd81fe28784732af46c937a025b18d"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>while</b> (msg.message!=WM_QUIT)</td></tr>
 <tr class="separator:a66fd81fe28784732af46c937a025b18d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,6 +200,12 @@ HINSTANCE LPWSTR&#160;</td><td class="memItemRight" valign="bottom"><b>lpCmdLine
 <tr class="separator:aa1d713f16016ca07071e226d0fafbeaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2edf0e8b1f94f96f5c3df475abb85b00"><td class="memItemLeft" align="right" valign="top">HINSTANCE LPWSTR int&#160;</td><td class="memItemRight" valign="bottom"><b>nCmdShow</b></td></tr>
 <tr class="separator:a2edf0e8b1f94f96f5c3df475abb85b00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a8b01bd13021148fab81b829afffa25"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4a8b01bd13021148fab81b829afffa25"></a>
+size_t&#160;</td><td class="memItemRight" valign="bottom"><b>Size</b></td></tr>
+<tr class="separator:a4a8b01bd13021148fab81b829afffa25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a04974f89fe5a4c99d0299817928e8082"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a04974f89fe5a4c99d0299817928e8082"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>Buff</b></td></tr>
+<tr class="separator:a04974f89fe5a4c99d0299817928e8082"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac13bc459ae800248eabb652b9f6dc8ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac13bc459ae800248eabb652b9f6dc8ed"></a>
 MSG&#160;</td><td class="memItemRight" valign="bottom"><b>msg</b> = { 0 }</td></tr>
 <tr class="separator:ac13bc459ae800248eabb652b9f6dc8ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -224,7 +233,7 @@ MSG&#160;</td><td class="memItemRight" valign="bottom"><b>msg</b> = { 0 }</td></
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:53 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

@@ -7,8 +7,8 @@
 #include <Inc/Mouse.h>
 #include <Inc/GamePad.h>
 
-#include "StepTimer.h"
 #include "resource.h"
+#include "Timer.h"
 
 class DebugDraw;
 
@@ -35,6 +35,7 @@ private:
 	static HWND hwnd;
 	bool WireFrame = false,
 		IsSimulation = false;
+	static bool isQuit;
 	MSG msg = {};
 
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;
@@ -91,13 +92,13 @@ private:
 	shared_ptr<Actor> mainActor;
 	shared_ptr<Physics> PhysX;
 	shared_ptr<Camera> camera;
+	static shared_ptr<Timer> MainThread;
+
 	// Multiplayer
 	shared_ptr<Multiplayer> MPL;
 	static shared_ptr<Mouse> mouse;
 	static shared_ptr<Keyboard> keyboard;
 	static shared_ptr<GamePad> gamepad;
-
-	shared_ptr<StepTimer> Timer = make_shared<StepTimer>();
 
 	shared_ptr<DebugDraw> dDraw;
 
@@ -125,8 +126,9 @@ public:
  * \brief Here's Releasing All Objects Of Window And DirectX
  */
 	void Destroy();
-	static void Quit() { ::PostQuitMessage(0); }
+	static void Quit() { ::PostQuitMessage(0); isQuit = true; }
 
+	bool IsQuit() { return isQuit; }
 	Engine() {}
 	~Engine() {}
 
@@ -148,10 +150,9 @@ public:
 	shared_ptr<CLua> getCLua() { return lua; }
 	shared_ptr<CutScene> getCScene() { return CScene; }
 
-	shared_ptr<StepTimer> getTimer() { return Timer; }
-
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 	shared_ptr<Multiplayer> getMPL() { return MPL; }
+	shared_ptr<Timer> getMainThread() { return MainThread; };
 
 	void setUI(shared_ptr<UI> ui)
 	{
@@ -284,8 +285,6 @@ public:
 	Keyboard::KeyboardStateTracker getTrackerKeyboard() { return TrackerKeyboard; }
 	GamePad::ButtonStateTracker getTracherGamepad() { return TrackerGamepad; }
 
-	auto getAllThreadGroup() { return ThreadGroups; }
-
 /*!
  * \brief Here's Error Handing All The Engine
  *
@@ -341,7 +340,6 @@ private:
 	Keyboard::KeyboardStateTracker TrackerKeyboard;
 	GamePad::ButtonStateTracker TrackerGamepad;
 
-	shared_ptr<boost::thread_group> ThreadGroups;
 	HINSTANCE hInstance;
 };
 #endif // __ENGINE_H__

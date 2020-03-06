@@ -8,7 +8,7 @@ class SimpleLogic;
 class GameObjects
 {
 public:
-	enum TYPE { OBJECTS_Dyn = 1, NPC, ACTOR, OBJECTS_Stat, ETC, NONE };
+	enum TYPE { Model = 1, Sound_Obj, NONE };
 	struct Object
 	{
 	private:
@@ -29,7 +29,7 @@ public:
 		bool HasRotation = false;
 		Vector3 RotationCoords = Vector3::Zero;
 		
-		float Test1 = 1.0f, Test2 = 3.0f;
+		float Test1 = 1.0f, Test2 = 1.5f;
 
 		shared_ptr<Models> model;
 		shared_ptr<SimpleLogic> Logic;

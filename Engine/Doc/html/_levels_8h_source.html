@@ -92,7 +92,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
 <div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &quot;GameObjects.h&quot;</span></div>
 <div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;</div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">enum</span> _TypeOfFile;</div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="keyword">enum</span> <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a>;</div>
 <div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
 <div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="keyword">class </span><a class="code" href="class_simple_logic.html">SimpleLogic</a>;</div>
 <div class="line"><a name="l00011"></a><span class="lineno"><a class="line" href="class_levels.html">   11</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_levels.html">Levels</a>: <span class="keyword">public</span> <a class="code" href="class_game_objects.html">GameObjects</a></div>
@@ -124,13 +124,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">public</span>:</div>
 <div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    HRESULT Init();</div>
 <div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    HRESULT LoadXML(<span class="keywordtype">string</span> File);</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    HRESULT LoadXML(<span class="keywordtype">string</span> FileBuff);</div>
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keywordtype">void</span> ProcessXML();</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    <span class="keywordtype">void</span> Reload_Level(<span class="keywordtype">string</span> File);</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <span class="keywordtype">void</span> Update();</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keywordtype">void</span> Add(_TypeOfFile T, <span class="keywordtype">string</span> PathModel);</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keywordtype">void</span> Add(<a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> T, <span class="keywordtype">string</span> PathModel);</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="keywordtype">void</span> AddTo(<span class="keywordtype">string</span> ID, shared_ptr&lt;SimpleLogic&gt; Logic);</div>
 <div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    <span class="keywordtype">void</span> AddTo(shared_ptr&lt;Node&gt; nd, shared_ptr&lt;SimpleLogic&gt; Logic);</div>
 <div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keywordtype">void</span> Remove(<span class="keywordtype">string</span> ID);</div>
@@ -147,11 +147,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="comment">// **********</span></div>
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    vector&lt;XMLNode *&gt; Nods;</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    vector&lt;shared_ptr&lt;GameObjects::Object&gt;&gt; XMLPreparing(vector&lt;XMLElement *&gt; Attrib);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keywordtype">void</span> XMLPreparing(vector&lt;XMLElement *&gt; Attrib);</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    </div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> Spawn(Vector3 pos, GameObjects::TYPE type);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;};</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="preprocessor">#endif // !__LEVELS__H_</span></div>
+<div class="ttc" id="_file__system_8h_html_a367ca570b089d9a54d6b1d12b55ab146"><div class="ttname"><a href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a></div><div class="ttdeci">_TypeOfFile</div><div class="ttdoc">Values that represent type of files. </div><div class="ttdef"><b>Definition:</b> File_system.h:27</div></div>
 <div class="ttc" id="class_simple_logic_html"><div class="ttname"><a href="class_simple_logic.html">SimpleLogic</a></div><div class="ttdef"><b>Definition:</b> SimpleLogic.h:6</div></div>
 <div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_game_objects_html"><div class="ttname"><a href="class_game_objects.html">GameObjects</a></div><div class="ttdef"><b>Definition:</b> GameObjects.h:8</div></div>
@@ -159,7 +160,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:53 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

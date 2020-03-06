@@ -22,6 +22,8 @@
 #include "UI.h"
 #include "CLua.h"
 
+#include "Timer.h"
+
 /** \brief	The application */
 shared_ptr<Engine> Application;
 
@@ -78,9 +80,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
 
+	//Application->setCLua(make_shared<CLua>());
 	//Application->getCLua()->Init();
-
-	Application->setCLua(make_shared<CLua>());
 
 	//	// GUI!!!
 	Application->setUI(make_shared<UI>());
@@ -111,13 +112,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		return 5;
 	}
 
-	//	// Camera Class
-	Application->setCamera(make_shared<Camera>());
-	if (FAILED(Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x,
-		Application->getWorkAreaSize(Application->GetHWND()).y)))
+	//	// Audio (Sound) Class!!!
+	Application->setSound(make_shared<Audio>());
+	if (FAILED(Application->getSound()->Init()))
 	{
-		Engine::LogError("wWinMain::getCamera()->Init() Failed.",
-			"getCamera()->Init() Failed!!!", "Camera: Init Failed!");
+		Engine::LogError("wWinMain::getSound()->Init() Failed.", "getSound()->Init() Failed!!!",
+			"Sound: Something is wrong with Init Sound!");
 		return 5;
 	}
 
@@ -127,15 +127,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	{
 		Engine::LogError("wWinMain::getActor()->Init() Failed.", "getActor()->Init() Failed!!!",
 			"Actor: Init Failed!");
-		return 5;
-	}
-
-	//	// Audio (Sound) Class!!!
-	Application->setSound(make_shared<Audio>());
-	if (FAILED(Application->getSound()->Init()))
-	{
-		Engine::LogError("wWinMain::getSound()->Init() Failed.", "getSound()->Init() Failed!!!",
-			"Sound: Something is wrong with Init Sound!");
 		return 5;
 	}
 
@@ -155,30 +146,34 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		return 5;
 	}
 
+	Application->getFS()->GetProject()->SetCurProject(path(Application->getFS()->GetFile(string("first_level"))->PathA));
+	Application->getFS()->GetProject()->OpenFile(Application->getFS()->GetFile(string("first_level"))->PathA);
+
 	Application->setMultiplayer(make_shared<Multiplayer>());
 	EngineTrace(Application->getMPL()->Init());
-
+	
+	// Start The Main Thread And Wait For While Message From System (WM_QUIT) Will Be
+	
+	Application->Render();
 	MSG msg = { 0 };
-	while (msg.message != WM_QUIT)
+	while (!Application->IsQuit())
 	{
 		Application->setMessage(msg);
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
-			continue;
 		}
-		else
-			Application->getTimer()->Tick([]()
-		{
-			Application->Render();
-		});
 	}
 
+	Application->getMainThread()->stop();
 	Application->getPhysics()->Destroy();
 
 	if (Application->getUI().operator bool())
+	{
+		Application->getUI()->getThread()->stop();
 		Application->getUI()->Destroy();
+	}
 
 	if (Application->getSound().operator bool())
 		Application->getSound()->ReleaseAudio();

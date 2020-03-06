@@ -4,8 +4,8 @@
 
 #include <WinSock2.h>
 #include "pch.h"
+#include "Timer.h"
 
-#include "StepTimer.h"
 class Multiplayer
 {
 public:
@@ -32,7 +32,7 @@ public:
 		sockaddr_in clientAddr;
 		UINT address = 0U;
 		USHORT ID = -1;
-		shared_ptr<StepTimer> tmr = make_shared<StepTimer>();
+		shared_ptr<Timer> tmr = make_shared<Timer>();
 	};
 	class Server
 	{

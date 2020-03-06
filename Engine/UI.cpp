@@ -100,7 +100,7 @@ HRESULT UI::LoadXmlUI(string File)
 #endif
 		return E_FAIL;
 	}
-	if (doc->Parse(Application->getFS()->getDataFromFile(File, true).c_str()) > 0)
+	if (doc->Parse(Application->getFS()->getDataFromFile(File).c_str()) > 0)
 	{
 		Engine::LogError("", (boost::format("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error ID: %s")
 			% to_string(doc->ErrorID())).str(),

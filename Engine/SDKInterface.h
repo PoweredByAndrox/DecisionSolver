@@ -9,7 +9,8 @@ class SDKInterface
 public:
 	void Render();
 private:
-	bool Open = true, Open2 = true, Open3 = true, Open4 = true, Open5 = true;
+	bool Open = true, Open2 = true, Open3 = false, Open4 = true, Open5 = true, Open6 = true,
+		Open7 = true;
 	ImGuiTextFilter filter;
 };
 

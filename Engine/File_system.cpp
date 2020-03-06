@@ -42,45 +42,104 @@ int GetMaxDeCompressedLen(int nLenSrc)
 
 int CompressData(const BYTE *abSrc, int nLenSrc, BYTE *abDst, int nLenDst)
 {
-	z_stream zInfo = { 0 };
-	zInfo.total_in = zInfo.avail_in = nLenSrc;
-	zInfo.total_out = zInfo.avail_out = nLenDst;
-	zInfo.next_in = (BYTE *)abSrc;
-	zInfo.next_out = abDst;
+	z_stream stream;
+	int err;
+	const uInt max = (uInt)-1;
+	uLong left;
 
-	int nErr, nRet = -1;
-	nErr = deflateInit(&zInfo, Z_DEFAULT_COMPRESSION); // zlib function
+	left = nLenDst;
+	nLenDst = 0;
 
-	if (nErr == Z_OK)
+	stream.zalloc = (alloc_func)0;
+	stream.zfree = (free_func)0;
+	stream.opaque = (voidpf)0;
+
+	err = deflateInit(&stream, Z_BEST_COMPRESSION);
+	if (err != Z_OK) return err;
+
+	stream.next_out = abDst;
+	stream.avail_out = 0;
+	stream.next_in = (Bytef *)abSrc;
+	stream.avail_in = 0;
+
+	do
 	{
-		nErr = deflate(&zInfo, Z_FINISH);              // zlib function
-
-		if (nErr == Z_STREAM_END)
-			nRet = zInfo.total_out;
+		if (stream.avail_out == 0) {
+			stream.avail_out = left > (uLong)max ? max : (uInt)left;
+			left -= stream.avail_out;
+		}
+		if (stream.avail_in == 0) {
+			stream.avail_in = nLenSrc > (uLong)max ? max : (uInt)nLenSrc;
+			nLenSrc -= stream.avail_in;
+		}
+		err = deflate(&stream, nLenSrc ? Z_NO_FLUSH : Z_FINISH);
 	}
-	deflateEnd(&zInfo);    // zlib function
-	return(nRet);
+	while (err == Z_OK);
+
+	nLenDst = stream.total_out;
+	deflateEnd(&stream);
+	return err == Z_STREAM_END ? Z_OK : err;
 }
 
 int UncompressData(const BYTE *abSrc, int nLenSrc, BYTE *abDst, int nLenDst)
 {
-	z_stream zInfo = { 0 };
-	zInfo.total_in = zInfo.avail_in = nLenSrc;
-	zInfo.total_out = zInfo.avail_out = nLenDst;
-	zInfo.next_in = (BYTE*)abSrc;
-	zInfo.next_out = abDst;
+	z_stream stream;
+	int err;
+	const uInt max = (uInt)-1;
+	uLong len, left;
+	Byte buf[1];    /* for detection of incomplete stream when *destLen == 0 */
 
-	int nErr, nRet = -1;
-	nErr = inflateInit(&zInfo);               // zlib function
-	if (nErr == Z_OK)
+	len = nLenSrc;
+	if (nLenDst)
 	{
-		nErr = inflate(&zInfo, Z_FINISH);     // zlib function
-
-		if (nErr == Z_STREAM_END)
-			nRet = zInfo.total_out;
+		left = nLenDst;
+		nLenDst = 0;
 	}
-	inflateEnd(&zInfo);   // zlib function
-	return(nRet); // -1 or len of output
+	else
+	{
+		left = 1;
+		abDst = buf;
+	}
+
+	stream.next_in = (z_const Bytef *)abSrc;
+	stream.avail_in = 0;
+	stream.zalloc = (alloc_func)0;
+	stream.zfree = (free_func)0;
+	stream.opaque = (voidpf)0;
+
+	err = inflateInit(&stream);
+	if (err != Z_OK) return err;
+
+	stream.next_out = abDst;
+	stream.avail_out = 0;
+
+	do
+	{
+		if (stream.avail_out == 0)
+		{
+			stream.avail_out = left > (uLong)max ? max : (uInt)left;
+			left -= stream.avail_out;
+		}
+		if (stream.avail_in == 0)
+		{
+			stream.avail_in = len > (uLong)max ? max : (uInt)len;
+			len -= stream.avail_in;
+		}
+		err = inflate(&stream, Z_NO_FLUSH);
+	}
+	while (err == Z_OK);
+
+	nLenSrc -= len + stream.avail_in;
+	if (abDst != buf)
+		nLenDst = stream.total_out;
+	else if (stream.total_out && err == Z_BUF_ERROR)
+		left = 1;
+
+	inflateEnd(&stream);
+	return err == Z_STREAM_END ? Z_OK :
+		err == Z_NEED_DICT ? Z_DATA_ERROR :
+		err == Z_BUF_ERROR && left + stream.avail_out ? Z_DATA_ERROR :
+		err;
 }
 
 //Use it only to save files
@@ -97,7 +156,7 @@ void File_system::CompressFile(string File, string &Buffer)
 	OutLen = GetMaxCompressedLen(InLen);
 	Out = (BYTE *)malloc(OutLen);
 	
-	if (CompressData(In, InLen, Out, OutLen) == -1)
+	if (CompressData(In, InLen, Out, OutLen) != Z_OK)
 		throw exception("HERE!!!");
 	
 	reinterpret_cast<char *>(Out)[OutLen] = '\0';
@@ -108,7 +167,24 @@ void File_system::CompressFile(string File, string &Buffer)
 
 	std::ofstream(thisFile, std::ofstream::binary).write(reinterpret_cast<char *>(Out), OutLen);
 
-	Buffer = (reinterpret_cast<char *>(Out));
+	Buffer = reinterpret_cast<char *>(Out);
+}
+string File_system::CompressBuf(string SrcBuffer)
+{
+	if (SrcBuffer.empty()) return "";
+	BYTE *In = reinterpret_cast<BYTE *>(const_cast<char *>(SrcBuffer.c_str())),
+		*Out = {};
+	size_t InLen = 0,
+		OutLen = 0;
+
+	OutLen = GetMaxCompressedLen(SrcBuffer.length());
+	Out = (BYTE *)malloc(OutLen);
+
+	if (CompressData(In, SrcBuffer.length(), Out, OutLen) != Z_OK)
+		throw exception("HERE!!!");
+
+	reinterpret_cast<char *>(Out)[OutLen] = '\0';
+	return reinterpret_cast<char *>(Out);
 }
 
 //Use it only to open files
@@ -126,7 +202,7 @@ void File_system::DecompressFile(string File, string &Buffer)
 	OutLen = GetMaxDeCompressedLen(InLen);
 
 	In = (BYTE *)malloc(OutLen);
-	if (UncompressData(Out, InLen, In, OutLen) == -1)
+	if (UncompressData(Out, InLen, In, OutLen) != Z_OK)
 		throw exception("Here!!!");
 
 	reinterpret_cast<char *>(In)[OutLen] = '\0';
@@ -137,14 +213,28 @@ void File_system::DecompressFile(string File, string &Buffer)
 
 	std::ofstream(thisFile, std::ofstream::binary).write(reinterpret_cast<char *>(Out), OutLen);
 
-	Buffer = (reinterpret_cast<char *>(Out));
+	Buffer = reinterpret_cast<char *>(Out);
+}
+string File_system::DecompressBuf(string SrcBuffer)
+{
+	if(SrcBuffer.empty()) return "";
+	BYTE *In = reinterpret_cast<BYTE *>(const_cast<char *>(SrcBuffer.c_str())),
+		*Out = {};
+	size_t InLen = 0,
+		OutLen = 0;
+
+	OutLen = GetMaxDeCompressedLen(SrcBuffer.length());
+
+	In = (BYTE *)malloc(OutLen);
+	if (UncompressData(Out, SrcBuffer.length(), In, OutLen) != Z_OK)
+		throw exception("Here!!!");
+
+	reinterpret_cast<char *>(In)[OutLen] = '\0';
+	return reinterpret_cast<char *>(Out);
 }
 
 void File_system::ScanFiles()
 {
-	if (!Files.operator bool())
-		Files = make_shared<AllFile>();
-
 	WorkDirSourcesA = WorkDir.generic_string() + ((WorkDir.generic_string().back() == '/')
 		? "resource/"
 		: "/resource/");
@@ -163,82 +253,81 @@ void File_system::ScanFiles()
 		switch (type)
 		{
 		case MODELS:
-			Files->Models.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Models.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Models.back().first->ExtW = Fname.extension().wstring();
-			Files->Models.back().first->FileW = Fname.filename().wstring();
-			Files->Models.back().first->PathW = Fname.wstring().c_str();
+			Models.back().first->ExtW = Fname.extension().wstring();
+			Models.back().first->FileW = Fname.filename().wstring();
+			Models.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case TEXTURES:
-			Files->Textures.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Textures.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Textures.back().first->ExtW = Fname.extension().wstring();
-			Files->Textures.back().first->FileW = Fname.filename().wstring();
-			Files->Textures.back().first->PathW = Fname.wstring().c_str();
+			Textures.back().first->ExtW = Fname.extension().wstring();
+			Textures.back().first->FileW = Fname.filename().wstring();
+			Textures.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case LEVELS:
-			Files->Levels.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Levels.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Levels.back().first->ExtW = Fname.extension().wstring();
-			Files->Levels.back().first->FileW = Fname.filename().wstring();
-			Files->Levels.back().first->PathW = Fname.wstring().c_str();
+			Levels.back().first->ExtW = Fname.extension().wstring();
+			Levels.back().first->FileW = Fname.filename().wstring();
+			Levels.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case DIALOGS:
-			Files->Dialogs.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Dialogs.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Dialogs.back().first->ExtW = Fname.extension().wstring();
-			Files->Dialogs.back().first->FileW = Fname.filename().wstring();
-			Files->Dialogs.back().first->PathW = Fname.wstring().c_str();
+			Dialogs.back().first->ExtW = Fname.extension().wstring();
+			Dialogs.back().first->FileW = Fname.filename().wstring();
+			Dialogs.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SOUNDS:
-			Files->Sounds.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Sounds.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Sounds.back().first->ExtW = Fname.extension().wstring();
-			Files->Sounds.back().first->FileW = Fname.filename().wstring();
-			Files->Sounds.back().first->PathW = Fname.wstring().c_str();
+			Sounds.back().first->ExtW = Fname.extension().wstring();
+			Sounds.back().first->FileW = Fname.filename().wstring();
+			Sounds.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SHADERS:
-			Files->Shaders.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Shaders.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Shaders.back().first->ExtW = Fname.extension().wstring();
-			Files->Shaders.back().first->FileW = Fname.filename().wstring();
-			Files->Shaders.back().first->PathW = Fname.wstring().c_str();
+			Shaders.back().first->ExtW = Fname.extension().wstring();
+			Shaders.back().first->FileW = Fname.filename().wstring();
+			Shaders.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case UIS:
-			Files->Uis.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Uis.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Uis.back().first->ExtW = Fname.extension().wstring();
-			Files->Uis.back().first->FileW = Fname.filename().wstring();
-			Files->Uis.back().first->PathW = Fname.wstring().c_str();
+			Uis.back().first->ExtW = Fname.extension().wstring();
+			Uis.back().first->FileW = Fname.filename().wstring();
+			Uis.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case SCRIPTS:
-			Files->Scripts.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Scripts.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Scripts.back().first->ExtW = Fname.extension().wstring();
-			Files->Scripts.back().first->FileW = Fname.filename().wstring();
-			Files->Scripts.back().first->PathW = Fname.wstring().c_str();
+			Scripts.back().first->ExtW = Fname.extension().wstring();
+			Scripts.back().first->FileW = Fname.filename().wstring();
+			Scripts.back().first->PathW = Fname.wstring().c_str();
 			break;
 		case FONTS:
-			Files->Fonts.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			Fonts.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->Fonts.back().first->ExtW = Fname.extension().wstring();
-			Files->Fonts.back().first->FileW = Fname.filename().wstring();
-			Files->Fonts.back().first->PathW = Fname.wstring().c_str();
+			Fonts.back().first->ExtW = Fname.extension().wstring();
+			Fonts.back().first->FileW = Fname.filename().wstring();
+			Fonts.back().first->PathW = Fname.wstring().c_str();
 			break;
 		default:
 			if (contains(Fname.filename().string(), "proj")) continue;
 
-			Files->None.push_back(make_pair(make_shared<AllFile::File>(someFile, ext,
+			None.push_back(make_pair(make_shared<File_system::File>(someFile, ext,
 				Fname.filename().string(), (size_t)file_size(Fname), type), file.at(i)));
-			Files->None.back().first->ExtW = Fname.extension().wstring();
-			Files->None.back().first->FileW = Fname.filename().wstring();
-			Files->None.back().first->PathW = Fname.wstring().c_str();
+			None.back().first->ExtW = Fname.extension().wstring();
+			None.back().first->FileW = Fname.filename().wstring();
+			None.back().first->PathW = Fname.wstring().c_str();
 			break;
 		}
 	}
 }
 
-ToDo("Think it over later!");
 void File_system::RescanFilesByType(_TypeOfFile Type)
 {
 	// Get New Files
@@ -246,10 +335,7 @@ void File_system::RescanFilesByType(_TypeOfFile Type)
 	auto Files = getFilesInFolder(getPathFromType(Type), true, true);
 	for (size_t i = 0; i < Files.size(); i++)
 	{
-		// If File Doesn't Exist
-		auto ThisFile = GetFile(Files.at(i));
-		if (ThisFile->FileA.empty() || ThisFile->FileW.empty())
-			AddFile(Files.at(i));
+		GetFile(Files.at(i));
 	}
 }
 
@@ -385,9 +471,9 @@ string File_system::getPathFromType(_TypeOfFile T)
 	return New;
 }
 
-shared_ptr<File_system::AllFile::File> File_system::Find(path File)
+shared_ptr<File_system::File> File_system::Find(path File)
 {
-	shared_ptr<File_system::AllFile::File> NewObj = make_shared<File_system::AllFile::File>();
+	shared_ptr<File_system::File> NewObj = make_shared<File_system::File>();
 	auto AllFiles = getFilesInFolder(WorkDirSourcesA, true, true);
 	for (size_t i = 0; i < AllFiles.size(); i++)
 	{
@@ -571,36 +657,36 @@ shared_ptr<File_system::AllFile::File> File_system::Find(path File)
 	return NewObj;
 }
 
-vector<pair<shared_ptr<File_system::AllFile::File>, string>> File_system::GetFileByType(_TypeOfFile T)
+vector<pair<shared_ptr<File_system::File>, string>> File_system::GetFileByType(_TypeOfFile T)
 {
 	switch (T)
 	{
 	case MODELS:
-		return Files->Models;
+		return Models;
 	case TEXTURES:
-		return Files->Textures;
+		return Textures;
 	case LEVELS:
-		return Files->Levels;
+		return Levels;
 	case DIALOGS:
-		return Files->Dialogs;
+		return Dialogs;
 	case SOUNDS:
-		return Files->Sounds;
+		return Sounds;
 	case SHADERS:
-		return Files->Shaders;
+		return Shaders;
 	case UIS:
-		return Files->Uis;
+		return Uis;
 	case SCRIPTS:
-		return Files->Scripts;
+		return Scripts;
 	case FONTS:
-		return Files->Fonts;
+		return Fonts;
 	case NONE:
-		return Files->None;
+		return None;
 	}
 
-	return vector<pair<shared_ptr<File_system::AllFile::File>, string>>();
+	return vector<pair<shared_ptr<File_system::File>, string>>();
 }
 
-shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
+shared_ptr<File_system::File> File_system::GetFileByPath(path File)
 {
 	string lower = File.string();
 	to_lower(lower);
@@ -608,7 +694,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 	switch (GetTypeFileByExt(lower))
 	{
 	case MODELS:
-		for (auto it: Files->Models)
+		for (auto it: Models)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -616,7 +702,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case TEXTURES:
-		for (auto it: Files->Textures)
+		for (auto it: Textures)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -624,7 +710,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case LEVELS:
-		for (auto it: Files->Levels)
+		for (auto it: Levels)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -632,7 +718,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case DIALOGS:
-		for (auto it: Files->Dialogs)
+		for (auto it: Dialogs)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -640,7 +726,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case SOUNDS:
-		for (auto it: Files->Sounds)
+		for (auto it: Sounds)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -648,7 +734,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case SHADERS:
-		for (auto it: Files->Shaders)
+		for (auto it: Shaders)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -656,7 +742,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case UIS:
-		for (auto it: Files->Uis)
+		for (auto it: Uis)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -664,7 +750,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case SCRIPTS:
-		for (auto it: Files->Scripts)
+		for (auto it: Scripts)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -672,7 +758,7 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		}
 		break;
 	case FONTS:
-		for (auto it: Files->Fonts)
+		for (auto it: Fonts)
 		{
 			to_lower(it.second);
 			if ((contains(it.second, lower)))
@@ -681,33 +767,37 @@ shared_ptr<File_system::AllFile::File> File_system::GetFileByPath(path File)
 		break;
 	}
 
-	return shared_ptr<File_system::AllFile::File>();
+	return shared_ptr<File_system::File>();
 }
 
-shared_ptr<File_system::AllFile::File> File_system::GetFile(path File)
+shared_ptr<File_system::File> File_system::GetFile(path File)
 {
-	if (File.empty()) return shared_ptr<File_system::AllFile::File>();
+	if (File.empty()) return shared_ptr<File_system::File>();
 	
 	File.swap(File.generic());
 	string Fname = File.generic_string();
 	to_lower(Fname);
 
-	// It means that we have the full-path like this "C:/SommePath/Somme.obj"
+	// It means that we have the full-path like this "C:/SommePath/Somme.obj" only with lower cases
 	if (File.has_branch_path() && File.has_parent_path() && File.has_root_directory() &&
 		File.has_root_name() && File.has_root_path() && File.has_extension() && File.has_filename())
-		return GetFileByPath(Fname);
+	{
+		auto Obj = GetFileByPath(Fname);
+		if (Obj->Size != 0)
+			return Obj;
+		if (File.has_extension())
+			deleteWord(Fname, File.extension().string());
+
+		// if it was empty try to add to engine
+		Find(Fname);
+	}
 
 	// It means that we have the path like this "Somme" or with full-path "C:/SommePath/Somme"
 	else if (File.has_filename())
 	{
 		if (File.has_extension())
-		{
 			deleteWord(Fname, File.extension().string());
-			auto Obj = Find(Fname);
-			if (Obj->Size != 0)
-				return Obj;
 
-		}
 		auto Obj = Find(Fname);
 		if (Obj->Size != 0)
 			return Obj;
@@ -715,9 +805,10 @@ shared_ptr<File_system::AllFile::File> File_system::GetFile(path File)
 
 	return AddFile(File);
 }
-shared_ptr<File_system::AllFile::File> File_system::AddFile(path File)
+
+shared_ptr<File_system::File> File_system::AddFile(path File)
 {
-	if (File.empty() || !exists(File)) return shared_ptr<File_system::AllFile::File>();
+	if (File.empty() || !exists(File)) return shared_ptr<File_system::File>();
 
 	_TypeOfFile T = NONE;
 	string PathFile, ext;
@@ -734,6 +825,11 @@ shared_ptr<File_system::AllFile::File> File_system::AddFile(path File)
 		PathFile = getPathFromType(T) + Fname;
 		ext = File.extension().string();
 		to_lower(ext);
+
+		// Try to find this file in Engine if it was find then return it
+		auto Obj = GetFileByPath(PathFile);
+		if (Obj->Size != 0)
+			return Obj;
 	}
 
 	// It means that we have the path like this "Somme" or with full-path "C:/SommePath/Somme"
@@ -746,78 +842,80 @@ shared_ptr<File_system::AllFile::File> File_system::AddFile(path File)
 			PathFile = Obj->PathA;
 			ext = Obj->ExtA;
 		}
+		else
+			return Obj;
 	}
 
 	switch (T)
 	{
 	case MODELS:
-		Files->Models.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Models.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Models.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Models.back().first->FileW = File.filename().wstring();
-		Files->Models.back().first->PathW = path(PathFile).wstring();
+		Models.back().first->ExtW = path(PathFile).extension().wstring();
+		Models.back().first->FileW = File.filename().wstring();
+		Models.back().first->PathW = path(PathFile).wstring();
 		break;
 	case TEXTURES:
-		Files->Textures.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Textures.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Textures.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Textures.back().first->FileW = File.filename().wstring();
-		Files->Textures.back().first->PathW = path(PathFile).wstring();
+		Textures.back().first->ExtW = path(PathFile).extension().wstring();
+		Textures.back().first->FileW = File.filename().wstring();
+		Textures.back().first->PathW = path(PathFile).wstring();
 		break;
 	case LEVELS:
-		Files->Levels.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Levels.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Levels.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Levels.back().first->FileW = File.filename().wstring();
-		Files->Levels.back().first->PathW = path(PathFile).wstring();
+		Levels.back().first->ExtW = path(PathFile).extension().wstring();
+		Levels.back().first->FileW = File.filename().wstring();
+		Levels.back().first->PathW = path(PathFile).wstring();
 		break;
 	case DIALOGS:
-		Files->Dialogs.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Dialogs.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Dialogs.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Dialogs.back().first->FileW = File.filename().wstring();
-		Files->Dialogs.back().first->PathW = path(PathFile).wstring();
+		Dialogs.back().first->ExtW = path(PathFile).extension().wstring();
+		Dialogs.back().first->FileW = File.filename().wstring();
+		Dialogs.back().first->PathW = path(PathFile).wstring();
 		break;
 	case SOUNDS:
-		Files->Sounds.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Sounds.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Sounds.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Sounds.back().first->FileW = File.filename().wstring();
-		Files->Sounds.back().first->PathW = path(PathFile).wstring();
+		Sounds.back().first->ExtW = path(PathFile).extension().wstring();
+		Sounds.back().first->FileW = File.filename().wstring();
+		Sounds.back().first->PathW = path(PathFile).wstring();
 		break;
 	case SHADERS:
-		Files->Shaders.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Shaders.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Shaders.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Shaders.back().first->FileW = File.filename().wstring();
-		Files->Shaders.back().first->PathW = path(PathFile).wstring();
+		Shaders.back().first->ExtW = path(PathFile).extension().wstring();
+		Shaders.back().first->FileW = File.filename().wstring();
+		Shaders.back().first->PathW = path(PathFile).wstring();
 		break;
 	case UIS:
-		Files->Uis.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Uis.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Uis.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Uis.back().first->FileW = File.filename().wstring();
-		Files->Uis.back().first->PathW = path(PathFile).wstring();
+		Uis.back().first->ExtW = path(PathFile).extension().wstring();
+		Uis.back().first->FileW = File.filename().wstring();
+		Uis.back().first->PathW = path(PathFile).wstring();
 		break;
 	case SCRIPTS:
-		Files->Scripts.push_back(make_pair(make_shared<AllFile::File>(PathFile, path(PathFile).extension().string(),
+		Scripts.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
 			Fname, (size_t)file_size(PathFile), T), PathFile));
-		Files->Scripts.back().first->ExtW = path(PathFile).extension().wstring();
-		Files->Scripts.back().first->FileW = File.filename().wstring();
-		Files->Scripts.back().first->PathW = path(PathFile).wstring();
+		Scripts.back().first->ExtW = path(PathFile).extension().wstring();
+		Scripts.back().first->FileW = File.filename().wstring();
+		Scripts.back().first->PathW = path(PathFile).wstring();
 		break;
 	case FONTS:
-		Files->Fonts.push_back(make_pair(make_shared<AllFile::File>(PathFile, File.extension().string(),
+		Fonts.push_back(make_pair(make_shared<File_system::File>(PathFile, File.extension().string(),
 			Fname, (size_t)file_size(File), T), PathFile));
-		Files->Fonts.back().first->ExtW = File.extension().wstring();
-		Files->Fonts.back().first->FileW = File.filename().wstring();
-		Files->Fonts.back().first->PathW = File.wstring().c_str();
+		Fonts.back().first->ExtW = File.extension().wstring();
+		Fonts.back().first->FileW = File.filename().wstring();
+		Fonts.back().first->PathW = File.wstring().c_str();
 		break;
 	}
 
 	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n", string(__FILE__) + ": " + to_string(__LINE__),
 		"File: " + Fname + " not found\n");
-	return make_shared<File_system::AllFile::File>();
+	return shared_ptr<File_system::File>();
 }
 
 vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bool onlyFile)
@@ -833,22 +931,30 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bo
 	if (!Recursive && !onlyFile)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			files.push_back(it->path().generic_wstring());
+			auto str = it->path().generic_wstring();
+			if (is_directory(str))
+				files.push_back(it->path().generic_wstring());
 		}
 	else if (Recursive && onlyFile)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			files.push_back(it->path().generic_wstring());
+			auto str = it->path().generic_wstring();
+			if (!is_directory(str))
+				files.push_back(it->path().generic_wstring());
 		}
 	else if (onlyFile && !Recursive)
 		for (directory_iterator it(ResPath); it != directory_iterator(); ++it)
 		{
-			files.push_back(it->path().generic_wstring());
+			auto str = it->path().generic_wstring();
+			if (!is_directory(str))
+				files.push_back(it->path().generic_wstring());
 		}
 	else if (!onlyFile && Recursive)
 		for (recursive_directory_iterator it(ResPath); it != recursive_directory_iterator(); ++it)
 		{
-			files.push_back(it->path().generic_wstring());
+			auto str = it->path().generic_wstring();
+			if (is_directory(str))
+				files.push_back(it->path().generic_wstring());
 		}
 
 	return files;
@@ -929,7 +1035,7 @@ vector<string> File_system::getFilesInFolder(string Folder)
 	return files;
 }
 
-string File_system::getDataFromFile(string File, bool LineByline, string start, string end)
+string File_system::getDataFromFile(string File, string start, string end)
 {
 	if (File.empty())
 		return "";
@@ -1031,7 +1137,7 @@ void File_system::ProjectFile::OpenFile(path File)
 	Application->getLevel()->LoadXML(reinterpret_cast<char *>(Buf));
 }
 
-ToDo("Add Here Compress File")
+#include "GameObjects.h"
 void File_system::ProjectFile::SaveFile(path File)
 {
 }
@@ -1040,23 +1146,41 @@ ToDo("Check It If We Use Dialog To Open File And Pass It")
 void File_system::CreateProjectFile(string FName)
 {
 	path Fname = "";
+	
+	string BuffCmp;
+	BuffCmp = CompressBuf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<scene>\n</scene>\n");
 	// Create File
 	*make_shared<boost::filesystem::ofstream>(Fname = (getPathFromType(_TypeOfFile::LEVELS) + (FName + ".proj")),
-		std::ofstream::in | std::ofstream::app) << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<scene>\n</scene>\n";
+		std::ofstream::out) << BuffCmp;
 
-	Projects->SetCurProject(Fname);
+	Project->SetCurProject(Fname);
 }
 
 void File_system::ProjectFile::SaveCurrProj()
 {
-//	Application->getLevel()->getCurrent()->Save();
+	string Buff;
+	auto MainChild = Application->getLevel()->getChild();
+	auto Nodes = MainChild->GetNodes();
+
+	shared_ptr<tinyxml2::XMLDocument> Doc = Application->getLevel()->getDocXMLFile();
+	for (size_t i = 0; i < Nodes.size(); i++)
+	{
+		auto Node = Nodes.at(i);
+		if (Node->IsItChanged)
+			Buff = Application->getLevel()->SomeFunc(Doc, Node);
+	}
+
+	*make_shared<boost::filesystem::ofstream>(CurrentProj, std::ofstream::out) << Buff;
+	
+	// string BuffCmp = CompressBuf(Buff);
+	// string BuffDeCmp = DecompressBuf(BuffCmp);
 }
 
 void File_system::ProjectFile::SetCurProject(path File)
 {
 	//CheckForSameFile(file);
 	RecentFiles.push_back({ (int)RecentFiles.size(), File });
-	CurrentProj = make_shared<path>(File);
+	CurrentProj = File;
 }
 
 void File_system::ProjectFile::Resort(bool Greater)

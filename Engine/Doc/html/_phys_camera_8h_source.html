@@ -104,31 +104,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;    <span class="keyword">struct </span>Jump</div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;    {</div>
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        <span class="keywordtype">bool</span> CanJump = <span class="keyword">true</span>;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;        <span class="keywordtype">bool</span> CanJump = <span class="keyword">true</span>, IsInAir = <span class="keyword">false</span>, IsOnGround = <span class="keyword">true</span>; <span class="comment">// Just skip free cam</span></div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;        <span class="keywordtype">float</span> JumpTimes = 0.f, ForceJump = 0.f;</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    <span class="keyword">public</span>:</div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;        <span class="keywordtype">void</span> Start(PxF32 Force);</div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;        <span class="keywordtype">void</span> Stop();</div>
 <div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;        <span class="keywordtype">float</span> getHeight(<span class="keywordtype">float</span> elapsedTime = 0.f);</div>
 <div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;        <span class="keywordtype">bool</span> getCanJump() { <span class="keywordflow">return</span> CanJump; }</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;    };</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    shared_ptr&lt;Jump&gt; jump = make_shared&lt;Jump&gt;();</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    <span class="keywordtype">void</span> TryStandup();</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    <span class="keywordtype">void</span> Update();</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    State getState() { <span class="keywordflow">return</span> state; }</div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    shared_ptr&lt;Jump&gt; getJump() { <span class="keywordflow">return</span> jump; }</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;};</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;        <span class="keywordtype">bool</span> IsInTheAir() { <span class="keywordflow">return</span> IsInAir; }</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;        <span class="keywordtype">bool</span> IsOnTheGround() { <span class="keywordflow">return</span> IsOnGround; }</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    };</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    shared_ptr&lt;Jump&gt; jump = make_shared&lt;Jump&gt;();</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    <span class="keywordtype">void</span> TryStandup();</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    <span class="keywordtype">void</span> Update();</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    State getState() { <span class="keywordflow">return</span> state; }</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    shared_ptr&lt;Jump&gt; getJump() { <span class="keywordflow">return</span> jump; }</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;};</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
 <div class="ttc" id="class_phys_camera_html"><div class="ttname"><a href="class_phys_camera.html">PhysCamera</a></div><div class="ttdef"><b>Definition:</b> PhysCamera.h:8</div></div>
 <div class="ttc" id="class_camera___control_html"><div class="ttname"><a href="class_camera___control.html">Camera_Control</a></div><div class="ttdef"><b>Definition:</b> Camera_Control.h:9</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:53 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

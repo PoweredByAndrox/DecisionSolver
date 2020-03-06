@@ -34,6 +34,9 @@ DXGI_SWAP_CHAIN_DESC Engine::SCD;
 DXGI_SWAP_CHAIN_DESC1 Engine::SCD1;
 D3D11_TEXTURE2D_DESC Engine::descDepth;
 D3D11_VIEWPORT Engine::vp;
+bool Engine::isQuit = false;
+
+shared_ptr<Timer> Engine::MainThread = make_shared<Timer>();
 
 shared_ptr<Mouse> Engine::mouse = make_shared<Mouse>();
 shared_ptr<Keyboard> Engine::keyboard = make_shared<Keyboard>();
@@ -288,203 +291,177 @@ HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 
 	::ShowWindow(hwnd, SW_SHOW);
 	::UpdateWindow(hwnd);
+
 	return S_OK;
 }
 
 void Engine::Render()
 {
-	if (!DeviceContext || !Device)
+	if (!DeviceContext || !Device || Application->IsQuit())
 		return;
 
-	frameTime = float(Timer->GetElapsedSeconds());
-
-	//frameTime = frameTime * 10.4; // Add Some Lags For Test
-	//Timer->SetFixedTimeStep(false);
-	//Timer->SetTargetElapsedSeconds(0.001f); // 0.2 == 5 FPS, 0.1 == 10FPS
-	fps = float(Timer->GetFramesPerSecond());
-	
-//	Console::LogInfo((boost::format("\nFramTime: %f\nFPS: %f") % frameTime % fps).str().c_str());
-
-	if (Pick.operator bool())
+	MainThread->Tick([&]()
 	{
-		if (Pick->isPicked() && mouse->GetState().leftButton)
-			Pick->tick();
-		else if (!Pick->isPicked() && mouse->GetState().leftButton)
-			Pick->UpdatePick();
-		else
-			Pick->ReleasePick();
-	}
+		frameTime = float(MainThread->GetElapsedSeconds());
 
-	if (keyboard->IsConnected())
-	{
-		auto state = keyboard->GetState();
-		TrackerKeyboard.Update(state);
+			//frameTime = frameTime * 10.4; // Add Some Lags For Test
+			//Timer->SetFixedTimeStep(false);
+			//Timer->SetTargetElapsedSeconds(0.001f); // 0.2 == 5 FPS, 0.1 == 10FPS
+		fps = float(MainThread->GetFramesPerSecond());
+		//	Console::LogInfo((boost::format("\nFramTime: %f\nFPS: %f") % frameTime % fps).str().c_str());
 
-		if (TrackerKeyboard.pressed.F1)
-			ChangeColorBuffer(_Color[rand() % 9 + 1]);
-
-		if (TrackerKeyboard.pressed.F2)
-			if (WireFrame)
-				WireFrame = false;
+		if (Pick.operator bool())
+		{
+			if (Pick->isPicked() && mouse->GetState().leftButton)
+				Pick->tick();
+			else if (!Pick->isPicked() && mouse->GetState().leftButton)
+				Pick->UpdatePick();
 			else
-				WireFrame = true;
+				Pick->ReleasePick();
+		}
 
-		if (TrackerKeyboard.pressed.F3)
-			if (IsSimulation)
-				IsSimulation = false;
-			else
-				IsSimulation = true;
+		if (keyboard->IsConnected())
+		{
+			auto state = keyboard->GetState();
+			TrackerKeyboard.Update(state);
 
-		if (console.operator bool() && TrackerKeyboard.pressed.OemTilde)
-			console->OpenConsole();
+			if (TrackerKeyboard.pressed.F1)
+				ChangeColorBuffer(_Color[rand() % 9 + 1]);
 
-		if (TrackerKeyboard.pressed.Escape)
-			Quit();
+			if (TrackerKeyboard.pressed.F2)
+				if (WireFrame)
+					WireFrame = false;
+				else
+					WireFrame = true;
 
-		if (TrackerKeyboard.pressed.F6)
-			if (DrawGrid)
-				DrawGrid = false;
-			else
-				DrawGrid = true;
+			if (TrackerKeyboard.pressed.F3)
+				if (IsSimulation)
+					IsSimulation = false;
+				else
+					IsSimulation = true;
 
-		if (TrackerKeyboard.pressed.F7)
-			if (DrawCamSphere)
-				DrawCamSphere = false;
-			else
-				DrawCamSphere = true;
-	}
-	else if (gamepad->GetState(0).IsConnected())
-	{
-		auto state = gamepad->GetState(0);
-		TrackerGamepad.Update(state);
-	}
+			if (console.operator bool() && TrackerKeyboard.pressed.OemTilde)
+				console->OpenConsole();
 
-	//if (lua.operator bool())
-	//	lua->Update();
-	
-	if (TrackerKeyboard.pressed.F4 && CScene.operator bool())
-	{
-		CScene->Reset();
-		Console::PushCMD("reinit_lua");
-		CScene->Restart();
-		DrawGrid = true;
-	}
+			if (TrackerKeyboard.pressed.Escape)
+				Quit();
 
-	ClearRenderTarget();
+			if (TrackerKeyboard.pressed.F6)
+				if (DrawGrid)
+					DrawGrid = false;
+				else
+					DrawGrid = true;
 
-	if (ui.operator bool())
-		ui->Begin();
+			if (TrackerKeyboard.pressed.F7)
+				if (DrawCamSphere)
+					DrawCamSphere = false;
+				else
+					DrawCamSphere = true;
+		}
+		else if (gamepad->GetState(0).IsConnected())
+		{
+			auto state = gamepad->GetState(0);
+			TrackerGamepad.Update(state);
+		}
 
-	mainActor->Render(frameTime);
+		//if (lua.operator bool())
+		//	lua->Update();
 
-	if (CScene.operator bool())
-		CScene->Update();
+		if (TrackerKeyboard.pressed.F4 && CScene.operator bool())
+		{
+			CScene->Reset();
+			Console::PushCMD("reinit_lua");
+			CScene->Restart();
+			DrawGrid = true;
+		}
 
-	//if (dDraw.operator bool())
-	//{
-	//	if (DrawGrid)
-	//		dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
-	//		(Vector4)Colors::Teal);
-	//	if (Sound.operator bool())
-	//	{
-	//		BoundingSphere sphere;
-	//		sphere.Radius = 50.0f;
-	//		sphere.Center = Sound->getSoundPosition();
-	//		dDraw->Draw(sphere, (Vector4)Colors::Red);
-	//		Sound->Update();
-	//	}
-	//}
+		ClearRenderTarget();
 
-	PhysX->Simulation(frameTime);
+		mainActor->Render(frameTime);
+
+		if (CScene.operator bool())
+			CScene->Update();
+
+		//if (dDraw.operator bool())
+		//{
+		//	if (DrawGrid)
+		//		dDraw->DrawGrid(Vector3(500.0f, 0.0f, 0.0f), Vector3(0.0f, 0.0f, 500.0f), Vector3::Zero, 300,
+		//		(Vector4)Colors::Teal);
+		//	if (Sound.operator bool())
+		//	{
+		//		BoundingSphere sphere;
+		//		sphere.Radius = 50.0f;
+		//		sphere.Center = Sound->getSoundPosition();
+		//		dDraw->Draw(sphere, (Vector4)Colors::Red);
+		//		Sound->Update();
+		//	}
+		//}
+
+		PhysX->Simulation(frameTime);
 
 #if defined(NEEDED_DEBUG_INFO)
-	Device->QueryInterface(IID_ID3D11Debug, (void **)&debug);
-	debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		Device->QueryInterface(IID_ID3D11Debug, (void **)&debug);
+		debug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
 #endif
 
-	if (Level.operator bool())
-		Level->Update();
+		if (Level.operator bool())
+			Level->Update();
 
-	if (ui.operator bool())
-	{
-		//::ShowCursor(false);
-
-		auto Dial1 = ui->getDialog("SDKDIAL");
-		if (Dial1.operator bool() && !Dial1->GetTitle().empty())
+		if (ui.operator bool() && ui->getThread().operator bool())
 		{
-			float CamPos[] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
-			Dial1->getComponents()->FindComponentLabel("##SDKDIAL_MainLabel")->ChangeText(string((boost::format(
-				string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"
-					"Is Simulation PhysX : %b\nResolution Window: W:%f, H:%f\nFrameTime:%f"))
-				% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation % getWorkAreaSize(hwnd).x %
-				getWorkAreaSize(hwnd).y % frameTime).str()));
+			//ui->getThread()->Tick([&]()
+			//{
+			if (Application->IsQuit()) return;
+			ui->Begin();
+			//::ShowCursor(false);
 
-			auto Comp = Dial1->getComponents()->FindComponentCHeader("##SDKDIAL_ClpSound")->getComponents().front();
-			auto Comb = Comp->FindComponentCombo("Select Track!");
-			if (Sound && Comp && Comb)
+			auto Dial1 = ui->getDialog("SDKDIAL");
+			if (Dial1.operator bool() && !Dial1->GetTitle().empty())
 			{
-				if (Comp->FindComponentBtn("##Track_Start")->IsClicked() && Comb->GetSelect() != "None")
-				{
-					Sound->PlayFile(Comb->GetSelect(), false, true);
-					Sound->doPlay();
-				}
-				if (Comp->FindComponentBtn("##Track_Stop")->IsClicked())
-					Sound->doStop();
-				if (Comp->FindComponentBtn("##Track_Pause")->IsClicked())
-					Sound->doPause();
+				float CamPos[] = { mainActor->getPosition().x, mainActor->getPosition().y, mainActor->getPosition().z };
+				Dial1->getComponents()->FindComponentLabel("##SDKDIAL_MainLabel")->ChangeText(string((boost::format(
+					string("FPS: (%.2f FPS)\nCamera pos: X(%.2f), Y(%.2f), Z(%.2f)\nIs WireFrame? : %b\n"
+						"Is Simulation PhysX : %b\nResolution Window: W:%f, H:%f\nFrameTime:%f"))
+					% fps % CamPos[0] % CamPos[1] % CamPos[2] % WireFrame % !IsSimulation % getWorkAreaSize(hwnd).x %
+					getWorkAreaSize(hwnd).y % frameTime).str()));
+
+				Dial1->Render();
 			}
 
-			if (Comb->IsMouseSelected())
-			{
-				Comb->ClearItems();
-				FS->RescanFilesByType(_TypeOfFile::SOUNDS);
-				auto SoundFiles = FS->GetFileByType(_TypeOfFile::SOUNDS);
+			auto DialCons = ui->getDialog("Console");
+			if (DialCons.operator bool() && !DialCons->GetTitle().empty())
+				console->Render();
 
-				for (size_t i = 0; i < SoundFiles.size(); i++)
-				{
-					string FNameWithoutExt = SoundFiles.at(i).first->FileA;
-					deleteWord(FNameWithoutExt, SoundFiles.at(i).first->ExtA);
-					Comb->AddItem(FNameWithoutExt);
-				}
+			auto DialMP = ui->getDialog("MPConnection");
+			if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
+			{
+				auto Comp = DialMP->getComponents();
+				if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
+					MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
+						MPL->getCurrentUser()->getSocket(),
+						MPL->getCurrentUser()->getAddresStruct());
+				if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
+					MPL->getServer()->Create();
+				if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
+					MPL->Connect();
+				if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
+					MPL->getCurrentUser()->Disconnect();
+				if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
+					Comp->FindComponentITextMul("##MP_Chat")->ClearText();
+				//MPL->Update();
+				//if (!str.empty())
+				//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
+				DialMP->Render();
 			}
 
-			Dial1->Render();
+			if (SDK)
+				SDK->Render();
+			ui->FrameEnd();
+			//});
 		}
 
-		auto DialCons = ui->getDialog("Console");
-		if (DialCons.operator bool() && !DialCons->GetTitle().empty())
-			console->Render();
-
-		auto DialMP = ui->getDialog("MPConnection");
-		if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
-		{
-			auto Comp = DialMP->getComponents();
-			if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
-				MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
-					MPL->getCurrentUser()->getSocket(),
-					MPL->getCurrentUser()->getAddresStruct());
-			if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
-				MPL->getServer()->Create();
-			if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
-				MPL->Connect();
-			if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
-				MPL->getCurrentUser()->Disconnect();
-			if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
-				Comp->FindComponentITextMul("##MP_Chat")->ClearText();
-			//MPL->Update();
-			//if (!str.empty())
-			//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
-			DialMP->Render();
-		}
-
-		if (SDK)
-			SDK->Render();
-	}
-	
-	if (ui.operator bool())
-		ui->FrameEnd();
-
-	SwapChain->Present(0, 0);
+		SwapChain->Present(0, 0);
+	});
 }
 
 void Engine::LogError(string DebugText, string ExceptionText, string LogText)

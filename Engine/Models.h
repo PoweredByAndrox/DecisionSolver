@@ -3,9 +3,9 @@
 #define __MODELS_H__
 #include "pch.h"
 
-#include <assimp\Importer.hpp>
-#include <assimp\scene.h>
-#include <assimp\postprocess.h>
+#include "assimp\Importer.hpp"
+#include "assimp\scene.h"
+#include "assimp\postprocess.h"
 
 #include "Render_Buffer.h"
 

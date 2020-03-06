@@ -4,7 +4,6 @@ class Engine;
 extern shared_ptr<Engine> Application;
 #include "Engine.h"
 
-#include "StepTimer.h"
 void PhysCamera::TryStandup()
 {
 	// overlap with upper part
@@ -77,14 +76,24 @@ void PhysCamera::Jump::Stop()
 float PhysCamera::Jump::getHeight(float elapsedTime)
 {
 	if (CanJump)
+	{
+		IsOnGround = true;
+		IsInAir = false;
 		return 0.0f;
+	}
+	else
+	{
+		IsInAir = true;
+		IsOnGround = false;
+	}
 
 	//Console::LogInfo((boost::format("\nJump elapsedTime: %f") % elapsedTime).str().c_str());
+	float MainGravity = Application->getPhysics()->getScene()->getGravity().y;
 
 	JumpTimes += elapsedTime;
-	//OutputDebugStringA((string("\nJumpTimes: ") + to_string(JumpTimes) + string("\n")).c_str());
+	//OutputDebugStringA(("\nJumpTimes: " + to_string(JumpTimes) + "\n").c_str());
 
-	const float Result = (-Application->getPhysics()->getScene()->getGravity().y * -JumpTimes)
+	const float Result = (-MainGravity * -JumpTimes)
 		* JumpTimes*JumpTimes + ForceJump*JumpTimes;
 	//OutputDebugStringA((string("\nResult: ") + to_string(Result) + string("\n")).c_str());
 

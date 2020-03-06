@@ -85,158 +85,177 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">File_system.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="preprocessor">#pragma once</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="preprocessor">#if !defined(__FILE_SYSTEM_H__)</span></div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="preprocessor">#define __FILE_SYSTEM_H__</span></div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
-<div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;</div>
-<div class="line"><a name="l00006"></a><span class="lineno">    6</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
-<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#include &quot;boost/filesystem.hpp&quot;</span></div>
-<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#include &lt;algorithm&gt;</span></div>
-<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;</div>
-<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;zlib.h&quot;</span></div>
+<a href="_file__system_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;</div>
+<div class="line"><a name="l00007"></a><span class="lineno">    7</span>&#160;<span class="preprocessor">#pragma once</span></div>
+<div class="line"><a name="l00008"></a><span class="lineno">    8</span>&#160;<span class="preprocessor">#if !defined(__FILE_SYSTEM_H__)</span></div>
+<div class="line"><a name="l00009"></a><span class="lineno">    9</span>&#160;<span class="preprocessor">#define __FILE_SYSTEM_H__</span></div>
+<div class="line"><a name="l00010"></a><span class="lineno">   10</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="pch_8h.html">pch.h</a>&quot;</span></div>
 <div class="line"><a name="l00011"></a><span class="lineno">   11</span>&#160;</div>
-<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacestd.html">std</a>;</div>
-<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespaceboost_1_1filesystem.html">boost::filesystem</a>;</div>
-<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;</div>
-<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;<span class="keyword">enum</span> _TypeOfFile { MODELS = 1, TEXTURES, LEVELS, DIALOGS, SOUNDS, SHADERS, UIS, SCRIPTS, FONTS, NONE };</div>
-<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;</div>
-<div class="line"><a name="l00017"></a><span class="lineno"><a class="line" href="class_file__system.html">   17</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_file__system.html">File_system</a></div>
-<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;{</div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">private</span>:</div>
-<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    <span class="keyword">struct </span>ProjectFile;</div>
-<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    <span class="keyword">struct </span>AllFile</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;    {</div>
-<div class="line"><a name="l00023"></a><span class="lineno"><a class="line" href="struct_file__system_1_1_all_file_1_1_file.html">   23</a></span>&#160;        <span class="keyword">struct </span><a class="code" href="struct_file__system_1_1_all_file_1_1_file.html">File</a></div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;        {</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;            <a class="code" href="struct_file__system_1_1_all_file_1_1_file.html">File</a>() {}</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;            <a class="code" href="struct_file__system_1_1_all_file_1_1_file.html">File</a>(wstring PathW, wstring ExtW, wstring FileW, <span class="keywordtype">size_t</span> Size, _TypeOfFile TypeOfFile) : PathW(PathW), ExtW(ExtW), FileW(FileW),</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;                Size(Size), TypeOfFile(TypeOfFile) {}</div>
+<div class="line"><a name="l00012"></a><span class="lineno">   12</span>&#160;<span class="preprocessor">#include &lt;fstream&gt;</span></div>
+<div class="line"><a name="l00013"></a><span class="lineno">   13</span>&#160;<span class="preprocessor">#include &quot;boost/filesystem.hpp&quot;</span></div>
+<div class="line"><a name="l00014"></a><span class="lineno">   14</span>&#160;<span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a name="l00015"></a><span class="lineno">   15</span>&#160;</div>
+<div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160;<span class="preprocessor">#include &quot;zlib.h&quot;</span></div>
+<div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;</div>
+<div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespacestd.html">std</a>;</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">using namespace </span><a class="code" href="namespaceboost_1_1filesystem.html">boost::filesystem</a>;</div>
+<div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">   27</a></span>&#160;<span class="keyword">enum</span> <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> { MODELS = 1, TEXTURES, LEVELS, DIALOGS, SOUNDS, SHADERS, UIS, SCRIPTS, FONTS, NONE };</div>
 <div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;            <a class="code" href="struct_file__system_1_1_all_file_1_1_file.html">File</a>(<span class="keywordtype">string</span> PathA, <span class="keywordtype">string</span> ExtA, <span class="keywordtype">string</span> FileA, <span class="keywordtype">size_t</span> Size, _TypeOfFile TypeOfFile) : PathA(PathA), ExtA(ExtA), FileA(FileA),</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;                Size(Size), TypeOfFile(TypeOfFile) {}</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;            wstring PathW = L<span class="stringliteral">&quot;&quot;</span>, ExtW = L<span class="stringliteral">&quot;&quot;</span>, FileW = L<span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;            <span class="comment">// Full Path To Required File</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;            <span class="keywordtype">string</span> PathA = <span class="stringliteral">&quot;&quot;</span>,</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;                ExtA = <span class="stringliteral">&quot;&quot;</span>, FileA = <span class="stringliteral">&quot;&quot;</span>;</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;            <span class="keywordtype">size_t</span> Size = 0;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;            _TypeOfFile TypeOfFile;</div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        };</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;        vector&lt;shared_ptr&lt;File&gt;&gt;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;            <a class="code" href="class_models.html">Models</a>,</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;            Textures,</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;            <a class="code" href="class_levels.html">Levels</a>,</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;            <a class="code" href="class_dialogs.html">Dialogs</a>,</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;            Sounds,</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;            <a class="code" href="class_shaders.html">Shaders</a>,</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;            Uis,</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;            Scripts,</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;            Fonts,</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;            None;</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    };</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="comment">// For SDK!!!</span></div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    shared_ptr&lt;ProjectFile&gt; Projects = make_shared&lt;ProjectFile&gt;();</div>
+<div class="line"><a name="l00038"></a><span class="lineno"><a class="line" href="class_file__system.html">   38</a></span>&#160;<span class="keyword">class </span><a class="code" href="class_file__system.html">File_system</a></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;{</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="keyword">private</span>:</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    <span class="keyword">struct </span>ProjectFile;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    <span class="keyword">struct </span>File</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;        {</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;            File() {}</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;            File(wstring PathW, wstring ExtW, wstring FileW, <span class="keywordtype">size_t</span> Size, <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> TypeOfFile): PathW(PathW), ExtW(ExtW), FileW(FileW),</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;                Size(Size), TypeOfFile(TypeOfFile) {}</div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="keyword">struct </span>ProjectFile</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    {</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        ProjectFile() {}</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;        ~ProjectFile() {}</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;        ProjectFile(path CurrProj) { SetCurProject(CurrProj); }</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;            File(<span class="keywordtype">string</span> PathA, <span class="keywordtype">string</span> ExtA, <span class="keywordtype">string</span> FileA, <span class="keywordtype">size_t</span> Size, <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> TypeOfFile): PathA(PathA), ExtA(ExtA), FileA(FileA),</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;                Size(Size), TypeOfFile(TypeOfFile) {}</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;            wstring PathW = L<span class="stringliteral">&quot;&quot;</span>, ExtW = L<span class="stringliteral">&quot;&quot;</span>, FileW = L<span class="stringliteral">&quot;&quot;</span>;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;            <span class="comment">// Full Path To Required File</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;            <span class="keywordtype">string</span> PathA = <span class="stringliteral">&quot;&quot;</span>, ExtA = <span class="stringliteral">&quot;&quot;</span>, FileA = <span class="stringliteral">&quot;&quot;</span>;</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        <span class="keyword">auto</span> GetRecent() { <span class="keywordflow">return</span> RecentFiles; }</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keyword">auto</span> GetCurrentProject() { <span class="keywordflow">return</span> CurrentProj; }</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        <a class="code" href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">ToDo</a>(<span class="stringliteral">&quot;Add To Open Proj File Itself (From Recent)&quot;</span>);</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        <span class="keywordtype">void</span> OpenFile(path file);</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        <span class="comment">// &quot;Save As&quot; Means Save In Another File Path</span></div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <span class="keywordtype">void</span> SaveFile(path file);</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        <span class="keywordtype">void</span> SaveCurrProj();</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <span class="keywordtype">void</span> SetCurProject(path file);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        <span class="keywordtype">void</span> CheckForSameFile(path Path);</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    <span class="keyword">private</span>:</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        <span class="keywordtype">void</span> Resort(<span class="keywordtype">bool</span> Greater = <span class="keyword">true</span>);</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        shared_ptr&lt;boost::filesystem::ofstream&gt; ProjFile;</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;        shared_ptr&lt;path&gt; CurrentProj = make_shared&lt;path&gt;();</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;        list&lt;pair&lt;int, path&gt;&gt; RecentFiles = {};</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    };</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;<span class="keyword">public</span>:</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    <a class="code" href="class_file__system.html">File_system</a>();</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;    ~<a class="code" href="class_file__system.html">File_system</a>() {}</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    <span class="keywordtype">void</span> DecompressFile(<span class="keywordtype">string</span> File, <span class="keywordtype">string</span> &amp;Buffer);</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    <span class="keywordtype">void</span> CompressFile(<span class="keywordtype">string</span> File, <span class="keywordtype">string</span> &amp;Buffer);</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    <span class="comment">// Function reads all files from our Resource</span></div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    <span class="keywordtype">void</span> ScanFiles();</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    <span class="comment">// Function if need to rescan files</span></div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keywordtype">void</span> RescanFilesByType(_TypeOfFile T);</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    shared_ptr&lt;AllFile::File&gt; GetFile(<span class="keywordtype">string</span> file);</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    shared_ptr&lt;AllFile::File&gt; GetFileByType(<span class="keywordtype">string</span> file);</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;    vector&lt;shared_ptr&lt;AllFile::File&gt;&gt; GetFileByType(_TypeOfFile T);</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;    <span class="comment">//********</span></div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;    vector&lt;wstring&gt; getFilesInFolder(wstring Folder);</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    vector&lt;wstring&gt; getFilesInFolder(wstring Folder, <span class="keywordtype">bool</span> Recursive = <span class="keyword">false</span>, <span class="keywordtype">bool</span> onlyFile = <span class="keyword">false</span>);</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;    vector&lt;string&gt; getFilesInFolder(<span class="keywordtype">string</span> Folder, <span class="keywordtype">bool</span> Recursive, <span class="keywordtype">bool</span> onlyFile);</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;    vector&lt;string&gt; getFilesInFolder(<span class="keywordtype">string</span> Folder);</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;    <span class="comment">// Work With Files</span></div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;    <span class="keywordtype">string</span> getDataFromFile(<span class="keywordtype">string</span> File, <span class="keywordtype">bool</span> LineByline, <span class="keywordtype">string</span> start = <span class="stringliteral">&quot;&lt;!--&quot;</span>, <span class="keywordtype">string</span> end = <span class="stringliteral">&quot;--&gt;&quot;</span>);</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;    vector&lt;string&gt; getDataFromFileVector(<span class="keywordtype">string</span> File, <span class="keywordtype">bool</span> LineByline);</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;    <span class="keywordtype">bool</span> ReadFileMemory(LPCSTR filename, <span class="keywordtype">size_t</span> *FileSize, <span class="keywordtype">void</span> **FilePtr);</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;    _TypeOfFile GetTypeFile(<span class="keywordtype">string</span> file);</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;</div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> CreateLog();</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> AddTextToLog(<span class="keywordtype">string</span> Text, <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type);</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> OpenLog();</div>
-<div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> ClearLogs();</div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;</div>
-<div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;    <span class="keywordtype">void</span> CreateProjectFile(<span class="keywordtype">string</span> FName);</div>
-<div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;</div>
-<div class="line"><a name="l00120"></a><span class="lineno">  120</span>&#160;    <span class="keyword">auto</span> getLogFName() { <span class="keywordflow">return</span> LogFName; }</div>
-<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;    <span class="keyword">auto</span> <span class="keyword">static</span> GetCurrentPath() { <span class="keywordflow">return</span> p; }</div>
-<div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;    <span class="keywordtype">string</span> <span class="keyword">static</span> GetCurPath() { <span class="keywordflow">return</span> p.string(); }</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;    <span class="keywordtype">string</span> getPathFromType(_TypeOfFile T);</div>
-<div class="line"><a name="l00126"></a><span class="lineno">  126</span>&#160;</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;    <span class="keyword">auto</span> getAllFiles() { <span class="keywordflow">return</span> Files; }</div>
-<div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;</div>
-<div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;    <span class="keyword">auto</span> GetProjects() { <span class="keywordflow">return</span> Projects; }</div>
-<div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;    <span class="keywordtype">void</span> CreateProject(path CurrFile = <span class="stringliteral">&quot;&quot;</span>) { Projects = make_shared&lt;ProjectFile&gt;(CurrFile); }</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;    <span class="keyword">static</span> path p;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;    shared_ptr&lt;AllFile&gt; Files = make_shared&lt;AllFile&gt;();</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;</div>
-<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;    <span class="keyword">static</span> path LogFName;</div>
-<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;};</div>
-<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;<span class="preprocessor">#endif // !__FILE_SYSTEM_H__</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;            <span class="keywordtype">size_t</span> Size = 0;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;            <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> TypeOfFile;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        };</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    vector&lt;pair&lt;shared_ptr&lt;File&gt;, <span class="keywordtype">string</span><span class="comment">/*IDPath*/</span>&gt;&gt;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        <a class="code" href="class_models.html">Models</a>,</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        Textures,</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        <a class="code" href="class_levels.html">Levels</a>,</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;        <a class="code" href="class_dialogs.html">Dialogs</a>,</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        Sounds,</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;        <a class="code" href="class_shaders.html">Shaders</a>,</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;        Uis,</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        Scripts,</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        Fonts,</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;        None;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;    shared_ptr&lt;ProjectFile&gt; Projects = make_shared&lt;ProjectFile&gt;();</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    <span class="keyword">struct </span>ProjectFile</div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;    {</div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;        ProjectFile() {}</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        ~ProjectFile() {}</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        ProjectFile(path CurrProj) { SetCurProject(CurrProj); }</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;</div>
+<div class="line"><a name="l00121"></a><span class="lineno">  121</span>&#160;        <span class="keyword">auto</span> GetRecent() { <span class="keywordflow">return</span> RecentFiles; }</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;</div>
+<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;        <span class="keyword">auto</span> GetCurrentProject() { <span class="keywordflow">return</span> CurrentProj; }</div>
+<div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;</div>
+<div class="line"><a name="l00136"></a><span class="lineno">  136</span>&#160;        <a class="code" href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">ToDo</a>(<span class="stringliteral">&quot;Add To Open Proj File Itself (From Recent)&quot;</span>);</div>
+<div class="line"><a name="l00137"></a><span class="lineno">  137</span>&#160;</div>
+<div class="line"><a name="l00149"></a><span class="lineno">  149</span>&#160;        <span class="keywordtype">void</span> OpenFile(path file);</div>
+<div class="line"><a name="l00150"></a><span class="lineno">  150</span>&#160;</div>
+<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;         <span class="comment">// &quot;Save As&quot; Means Save In Another File Path</span></div>
+<div class="line"><a name="l00163"></a><span class="lineno">  163</span>&#160;        <span class="keywordtype">void</span> SaveFile(path file);</div>
+<div class="line"><a name="l00164"></a><span class="lineno">  164</span>&#160;</div>
+<div class="line"><a name="l00174"></a><span class="lineno">  174</span>&#160;        <span class="keywordtype">void</span> SaveCurrProj();</div>
+<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;</div>
+<div class="line"><a name="l00187"></a><span class="lineno">  187</span>&#160;        <span class="keywordtype">void</span> SetCurProject(path File);</div>
+<div class="line"><a name="l00188"></a><span class="lineno">  188</span>&#160;</div>
+<div class="line"><a name="l00200"></a><span class="lineno">  200</span>&#160;        <span class="keywordtype">void</span> CheckForSameFile(path Path);</div>
+<div class="line"><a name="l00201"></a><span class="lineno">  201</span>&#160;    <span class="keyword">private</span>:</div>
+<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;</div>
+<div class="line"><a name="l00214"></a><span class="lineno">  214</span>&#160;        <span class="keywordtype">void</span> Resort(<span class="keywordtype">bool</span> Greater = <span class="keyword">true</span>);</div>
+<div class="line"><a name="l00215"></a><span class="lineno">  215</span>&#160;        shared_ptr&lt;boost::filesystem::ofstream&gt; ProjFile;</div>
+<div class="line"><a name="l00216"></a><span class="lineno">  216</span>&#160;        shared_ptr&lt;path&gt; CurrentProj = make_shared&lt;path&gt;();</div>
+<div class="line"><a name="l00217"></a><span class="lineno">  217</span>&#160;        list&lt;pair&lt;int, path&gt;&gt; RecentFiles = {};</div>
+<div class="line"><a name="l00218"></a><span class="lineno">  218</span>&#160;    };</div>
+<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="keyword">public</span>:</div>
+<div class="line"><a name="l00229"></a><span class="lineno">  229</span>&#160;    <a class="code" href="class_file__system.html">File_system</a>();</div>
+<div class="line"><a name="l00230"></a><span class="lineno">  230</span>&#160;    ~<a class="code" href="class_file__system.html">File_system</a>() {}</div>
+<div class="line"><a name="l00231"></a><span class="lineno">  231</span>&#160;</div>
+<div class="line"><a name="l00232"></a><span class="lineno">  232</span>&#160;    <span class="comment">// ********************************</span></div>
+<div class="line"><a name="l00233"></a><span class="lineno">  233</span>&#160;        <span class="comment">// ZLIB Comporession Files</span></div>
+<div class="line"><a name="l00246"></a><span class="lineno">  246</span>&#160;<span class="comment"></span>    <span class="keywordtype">void</span> DecompressFile(<span class="keywordtype">string</span> File, <span class="keywordtype">string</span> &amp;Buffer);</div>
+<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;</div>
+<div class="line"><a name="l00260"></a><span class="lineno">  260</span>&#160;    <span class="keywordtype">void</span> CompressFile(<span class="keywordtype">string</span> File, <span class="keywordtype">string</span> &amp;Buffer);</div>
+<div class="line"><a name="l00261"></a><span class="lineno">  261</span>&#160;</div>
+<div class="line"><a name="l00271"></a><span class="lineno">  271</span>&#160;    <span class="keywordtype">void</span> ScanFiles();</div>
+<div class="line"><a name="l00272"></a><span class="lineno">  272</span>&#160;</div>
+<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;    <span class="keywordtype">void</span> RescanFilesByType(<a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> T);</div>
+<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;</div>
+<div class="line"><a name="l00299"></a><span class="lineno">  299</span>&#160;    shared_ptr&lt;File&gt; GetFile(path File);</div>
+<div class="line"><a name="l00300"></a><span class="lineno">  300</span>&#160;</div>
+<div class="line"><a name="l00314"></a><span class="lineno">  314</span>&#160;    shared_ptr&lt;File&gt; AddFile(path File);</div>
+<div class="line"><a name="l00315"></a><span class="lineno">  315</span>&#160;</div>
+<div class="line"><a name="l00329"></a><span class="lineno">  329</span>&#160;    vector&lt;pair&lt;shared_ptr&lt;File&gt;, <span class="keywordtype">string</span>&gt;&gt; GetFileByType(<a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> T);</div>
+<div class="line"><a name="l00330"></a><span class="lineno">  330</span>&#160;</div>
+<div class="line"><a name="l00344"></a><span class="lineno">  344</span>&#160;    vector&lt;wstring&gt; getFilesInFolder(wstring Folder);</div>
+<div class="line"><a name="l00345"></a><span class="lineno">  345</span>&#160;</div>
+<div class="line"><a name="l00361"></a><span class="lineno">  361</span>&#160;    vector&lt;wstring&gt; getFilesInFolder(wstring Folder, <span class="keywordtype">bool</span> Recursive = <span class="keyword">false</span>, <span class="keywordtype">bool</span> onlyFile = <span class="keyword">false</span>);</div>
+<div class="line"><a name="l00362"></a><span class="lineno">  362</span>&#160;</div>
+<div class="line"><a name="l00378"></a><span class="lineno">  378</span>&#160;    vector&lt;string&gt; getFilesInFolder(<span class="keywordtype">string</span> Folder, <span class="keywordtype">bool</span> Recursive, <span class="keywordtype">bool</span> onlyFile);</div>
+<div class="line"><a name="l00379"></a><span class="lineno">  379</span>&#160;</div>
+<div class="line"><a name="l00393"></a><span class="lineno">  393</span>&#160;    vector&lt;string&gt; getFilesInFolder(<span class="keywordtype">string</span> Folder);</div>
+<div class="line"><a name="l00394"></a><span class="lineno">  394</span>&#160;</div>
+<div class="line"><a name="l00412"></a><span class="lineno">  412</span>&#160;    <span class="keywordtype">string</span> getDataFromFile(<span class="keywordtype">string</span> File, <span class="keywordtype">string</span> start = <span class="stringliteral">&quot;&lt;!--&quot;</span>, <span class="keywordtype">string</span> end = <span class="stringliteral">&quot;--&gt;&quot;</span>);</div>
+<div class="line"><a name="l00413"></a><span class="lineno">  413</span>&#160;</div>
+<div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;    vector&lt;string&gt; getDataFromFileVector(<span class="keywordtype">string</span> File, <span class="keywordtype">bool</span> LineByline);</div>
+<div class="line"><a name="l00429"></a><span class="lineno">  429</span>&#160;</div>
+<div class="line"><a name="l00445"></a><span class="lineno">  445</span>&#160;    <span class="keywordtype">bool</span> ReadFileMemory(LPCSTR filename, <span class="keywordtype">size_t</span> *FileSize, <span class="keywordtype">void</span> **FilePtr);</div>
+<div class="line"><a name="l00446"></a><span class="lineno">  446</span>&#160;</div>
+<div class="line"><a name="l00458"></a><span class="lineno">  458</span>&#160;    <a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> GetTypeFileByExt(path File);</div>
+<div class="line"><a name="l00459"></a><span class="lineno">  459</span>&#160;</div>
+<div class="line"><a name="l00473"></a><span class="lineno">  473</span>&#160;    shared_ptr&lt;File&gt; GetFileByPath(path File);</div>
+<div class="line"><a name="l00474"></a><span class="lineno">  474</span>&#160;</div>
+<div class="line"><a name="l00475"></a><span class="lineno">  475</span>&#160;    <span class="comment">// ********************************</span></div>
+<div class="line"><a name="l00476"></a><span class="lineno">  476</span>&#160;        <span class="comment">// Functions For Logging File</span></div>
+<div class="line"><a name="l00477"></a><span class="lineno">  477</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> CreateLog();</div>
+<div class="line"><a name="l00478"></a><span class="lineno">  478</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> AddTextToLog(<span class="keywordtype">string</span> Text, <a class="code" href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a> type);</div>
+<div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> OpenLog();</div>
+<div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;    <span class="keyword">static</span> <span class="keywordtype">void</span> ClearLogs();</div>
+<div class="line"><a name="l00481"></a><span class="lineno">  481</span>&#160;    <span class="comment">// ********************************</span></div>
+<div class="line"><a name="l00482"></a><span class="lineno">  482</span>&#160;</div>
+<div class="line"><a name="l00494"></a><span class="lineno">  494</span>&#160;    <span class="keywordtype">void</span> CreateProjectFile(<span class="keywordtype">string</span> FName);</div>
+<div class="line"><a name="l00495"></a><span class="lineno">  495</span>&#160;</div>
+<div class="line"><a name="l00496"></a><span class="lineno">  496</span>&#160;    <span class="keyword">auto</span> getLogFName() { <span class="keywordflow">return</span> LogFName; }</div>
+<div class="line"><a name="l00497"></a><span class="lineno">  497</span>&#160;</div>
+<div class="line"><a name="l00509"></a><span class="lineno"><a class="line" href="class_file__system.html#a8d250bdfa183730797aa61c775731827">  509</a></span>&#160;    <span class="keyword">auto</span> <span class="keyword">static</span> <a class="code" href="class_file__system.html#a8d250bdfa183730797aa61c775731827">GetCurrentPath</a>() { <span class="keywordflow">return</span> WorkDir; }</div>
+<div class="line"><a name="l00510"></a><span class="lineno">  510</span>&#160;</div>
+<div class="line"><a name="l00524"></a><span class="lineno">  524</span>&#160;    <span class="keywordtype">string</span> getPathFromType(<a class="code" href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a> T);</div>
+<div class="line"><a name="l00525"></a><span class="lineno">  525</span>&#160;</div>
+<div class="line"><a name="l00537"></a><span class="lineno"><a class="line" href="class_file__system.html#a8afc836379ac4dceff557fb7a425e333">  537</a></span>&#160;    <span class="keyword">auto</span> <a class="code" href="class_file__system.html#a8afc836379ac4dceff557fb7a425e333">GetProjects</a>() { <span class="keywordflow">return</span> Projects; }</div>
+<div class="line"><a name="l00538"></a><span class="lineno">  538</span>&#160;</div>
+<div class="line"><a name="l00550"></a><span class="lineno"><a class="line" href="class_file__system.html#ae42e1c03d95a6db05936250aa1c19976">  550</a></span>&#160;    <span class="keywordtype">void</span> <a class="code" href="class_file__system.html#ae42e1c03d95a6db05936250aa1c19976">CreateProject</a>(path CurrFile = <span class="stringliteral">&quot;&quot;</span>) { Projects = make_shared&lt;ProjectFile&gt;(CurrFile); }</div>
+<div class="line"><a name="l00551"></a><span class="lineno">  551</span>&#160;<span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00553"></a><span class="lineno"><a class="line" href="class_file__system.html#afdb1f29cfbb3f5f0e766084d6b0419aa">  553</a></span>&#160;    <span class="keyword">static</span> path <a class="code" href="class_file__system.html#afdb1f29cfbb3f5f0e766084d6b0419aa">WorkDir</a>;</div>
+<div class="line"><a name="l00555"></a><span class="lineno"><a class="line" href="class_file__system.html#ad89afa508b96d566217c8165f5062d12">  555</a></span>&#160;    <span class="keywordtype">string</span> <a class="code" href="class_file__system.html#ad89afa508b96d566217c8165f5062d12">WorkDirSourcesA</a>;</div>
+<div class="line"><a name="l00557"></a><span class="lineno"><a class="line" href="class_file__system.html#accdea462b7bb79239a56f2f88116e385">  557</a></span>&#160;    wstring <a class="code" href="class_file__system.html#accdea462b7bb79239a56f2f88116e385">WorkDirSourcesW</a>;</div>
+<div class="line"><a name="l00558"></a><span class="lineno">  558</span>&#160;</div>
+<div class="line"><a name="l00560"></a><span class="lineno"><a class="line" href="class_file__system.html#a5938aad95b99fdd39c6bdcd258f05ea0">  560</a></span>&#160;    <span class="keyword">static</span> path <a class="code" href="class_file__system.html#a5938aad95b99fdd39c6bdcd258f05ea0">LogFName</a>;</div>
+<div class="line"><a name="l00561"></a><span class="lineno">  561</span>&#160;</div>
+<div class="line"><a name="l00575"></a><span class="lineno">  575</span>&#160;    shared_ptr&lt;File_system::File&gt; Find(path File);</div>
+<div class="line"><a name="l00576"></a><span class="lineno">  576</span>&#160;};</div>
+<div class="line"><a name="l00577"></a><span class="lineno">  577</span>&#160;<span class="preprocessor">#endif // !__FILE_SYSTEM_H__</span></div>
+<div class="ttc" id="class_file__system_html_a8d250bdfa183730797aa61c775731827"><div class="ttname"><a href="class_file__system.html#a8d250bdfa183730797aa61c775731827">File_system::GetCurrentPath</a></div><div class="ttdeci">static auto GetCurrentPath()</div><div class="ttdoc">Gets current path. </div><div class="ttdef"><b>Definition:</b> File_system.h:509</div></div>
+<div class="ttc" id="_file__system_8h_html_a367ca570b089d9a54d6b1d12b55ab146"><div class="ttname"><a href="_file__system_8h.html#a367ca570b089d9a54d6b1d12b55ab146">_TypeOfFile</a></div><div class="ttdeci">_TypeOfFile</div><div class="ttdoc">Values that represent type of files. </div><div class="ttdef"><b>Definition:</b> File_system.h:27</div></div>
 <div class="ttc" id="pch_8h_html_a1d1cfd8ffb84e947f82999c682b666a7"><div class="ttname"><a href="pch_8h.html#a1d1cfd8ffb84e947f82999c682b666a7">Type</a></div><div class="ttdeci">Type</div><div class="ttdoc">Values that using in Loggin File And UI Console Text Colored. </div><div class="ttdef"><b>Definition:</b> pch.h:409</div></div>
 <div class="ttc" id="namespacestd_html"><div class="ttname"><a href="namespacestd.html">std</a></div></div>
+<div class="ttc" id="class_file__system_html_afdb1f29cfbb3f5f0e766084d6b0419aa"><div class="ttname"><a href="class_file__system.html#afdb1f29cfbb3f5f0e766084d6b0419aa">File_system::WorkDir</a></div><div class="ttdeci">static path WorkDir</div><div class="ttdoc">The work dir. </div><div class="ttdef"><b>Definition:</b> File_system.h:553</div></div>
 <div class="ttc" id="pch_8h_html_a5ef1f637168d0a8cc1f2919056ae4615"><div class="ttname"><a href="pch_8h.html#a5ef1f637168d0a8cc1f2919056ae4615">ToDo</a></div><div class="ttdeci">#define ToDo(desc)</div><div class="ttdoc">A macro that defines to do. </div><div class="ttdef"><b>Definition:</b> pch.h:71</div></div>
 <div class="ttc" id="class_models_html"><div class="ttname"><a href="class_models.html">Models</a></div><div class="ttdef"><b>Definition:</b> Models.h:34</div></div>
+<div class="ttc" id="class_file__system_html_a5938aad95b99fdd39c6bdcd258f05ea0"><div class="ttname"><a href="class_file__system.html#a5938aad95b99fdd39c6bdcd258f05ea0">File_system::LogFName</a></div><div class="ttdeci">static path LogFName</div><div class="ttdoc">Name of the log file. </div><div class="ttdef"><b>Definition:</b> File_system.h:560</div></div>
+<div class="ttc" id="class_file__system_html_accdea462b7bb79239a56f2f88116e385"><div class="ttname"><a href="class_file__system.html#accdea462b7bb79239a56f2f88116e385">File_system::WorkDirSourcesW</a></div><div class="ttdeci">wstring WorkDirSourcesW</div><div class="ttdoc">The work dir resources Wide. </div><div class="ttdef"><b>Definition:</b> File_system.h:557</div></div>
 <div class="ttc" id="class_dialogs_html"><div class="ttname"><a href="class_dialogs.html">Dialogs</a></div><div class="ttdef"><b>Definition:</b> Dialogs.h:8</div></div>
-<div class="ttc" id="struct_file__system_1_1_all_file_1_1_file_html"><div class="ttname"><a href="struct_file__system_1_1_all_file_1_1_file.html">File_system::AllFile::File</a></div><div class="ttdef"><b>Definition:</b> File_system.h:23</div></div>
 <div class="ttc" id="pch_8h_html"><div class="ttname"><a href="pch_8h.html">pch.h</a></div><div class="ttdoc">Declares the pch class. </div></div>
+<div class="ttc" id="class_file__system_html_ad89afa508b96d566217c8165f5062d12"><div class="ttname"><a href="class_file__system.html#ad89afa508b96d566217c8165f5062d12">File_system::WorkDirSourcesA</a></div><div class="ttdeci">string WorkDirSourcesA</div><div class="ttdoc">The work dir resources Ansi. </div><div class="ttdef"><b>Definition:</b> File_system.h:555</div></div>
 <div class="ttc" id="class_shaders_html"><div class="ttname"><a href="class_shaders.html">Shaders</a></div><div class="ttdef"><b>Definition:</b> Shaders.h:6</div></div>
 <div class="ttc" id="class_levels_html"><div class="ttname"><a href="class_levels.html">Levels</a></div><div class="ttdef"><b>Definition:</b> Levels.h:11</div></div>
 <div class="ttc" id="namespaceboost_1_1filesystem_html"><div class="ttname"><a href="namespaceboost_1_1filesystem.html">filesystem</a></div></div>
-<div class="ttc" id="class_file__system_html"><div class="ttname"><a href="class_file__system.html">File_system</a></div><div class="ttdef"><b>Definition:</b> File_system.h:17</div></div>
+<div class="ttc" id="class_file__system_html"><div class="ttname"><a href="class_file__system.html">File_system</a></div><div class="ttdoc">A file system. </div><div class="ttdef"><b>Definition:</b> File_system.h:38</div></div>
+<div class="ttc" id="class_file__system_html_ae42e1c03d95a6db05936250aa1c19976"><div class="ttname"><a href="class_file__system.html#ae42e1c03d95a6db05936250aa1c19976">File_system::CreateProject</a></div><div class="ttdeci">void CreateProject(path CurrFile=&quot;&quot;)</div><div class="ttdoc">Creates a project. </div><div class="ttdef"><b>Definition:</b> File_system.h:550</div></div>
+<div class="ttc" id="class_file__system_html_a8afc836379ac4dceff557fb7a425e333"><div class="ttname"><a href="class_file__system.html#a8afc836379ac4dceff557fb7a425e333">File_system::GetProjects</a></div><div class="ttdeci">auto GetProjects()</div><div class="ttdoc">Gets the projects. </div><div class="ttdef"><b>Definition:</b> File_system.h:537</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:53 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

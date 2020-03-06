@@ -116,6 +116,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>AddNewFile</b> (vecto
 <tr class="memitem:a825a3e6d16d8c6b01ed64b95c32c6c4d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a825a3e6d16d8c6b01ed64b95c32c6c4d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>DeleteSound</b> (string ID)</td></tr>
 <tr class="separator:a825a3e6d16d8c6b01ed64b95c32c6c4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeee26b861b5cf6793d57690584a6f595"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeee26b861b5cf6793d57690584a6f595"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateSounds</b> ()</td></tr>
+<tr class="separator:aeee26b861b5cf6793d57690584a6f595"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1faec04d8f3ce88cf8c54de6537cf96"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1faec04d8f3ce88cf8c54de6537cf96"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> (Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp)</td></tr>
 <tr class="separator:af1faec04d8f3ce88cf8c54de6537cf96"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -137,21 +140,27 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>IsInitSoundSystem</b>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a4171e7de3db76072006390d852b805e0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4171e7de3db76072006390d852b805e0"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPause</b> ()</td></tr>
-<tr class="separator:a4171e7de3db76072006390d852b805e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cabffb7c39d5c9158d68b71ee6f1579"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9cabffb7c39d5c9158d68b71ee6f1579"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> ()</td></tr>
-<tr class="separator:a9cabffb7c39d5c9158d68b71ee6f1579"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfd78f3b4162643b047d2a4292878cb5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abfd78f3b4162643b047d2a4292878cb5"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> ()</td></tr>
-<tr class="separator:abfd78f3b4162643b047d2a4292878cb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6233cf78f76b7b386e8cd06bd9160ba0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6233cf78f76b7b386e8cd06bd9160ba0"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPause</b> ()</td></tr>
+<tr class="separator:a6233cf78f76b7b386e8cd06bd9160ba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69ad86fc2c3ff3310501d9106c02bca4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69ad86fc2c3ff3310501d9106c02bca4"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> ()</td></tr>
+<tr class="separator:a69ad86fc2c3ff3310501d9106c02bca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21f2265beb5117506321a9e95e1dacc3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21f2265beb5117506321a9e95e1dacc3"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> (string Index)</td></tr>
+<tr class="separator:a21f2265beb5117506321a9e95e1dacc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabcf6c6397240034ea7b48f3b42655f6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aabcf6c6397240034ea7b48f3b42655f6"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> ()</td></tr>
+<tr class="separator:aabcf6c6397240034ea7b48f3b42655f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bed5dab207695ded62c65cf30ca627a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8bed5dab207695ded62c65cf30ca627a"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> (string Index)</td></tr>
+<tr class="separator:a8bed5dab207695ded62c65cf30ca627a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7281880127636e4132607c69ff6c8126"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7281880127636e4132607c69ff6c8126"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>changeSoundVol</b> (float Vol)</td></tr>
 <tr class="separator:a7281880127636e4132607c69ff6c8126"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a539c68c12b29f3f9efd5124d93d6ec1c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a539c68c12b29f3f9efd5124d93d6ec1c"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool RepeatIt, bool NeedFind)</td></tr>
-<tr class="separator:a539c68c12b29f3f9efd5124d93d6ec1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adff1d12142057a2c454ebe6899c52063"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adff1d12142057a2c454ebe6899c52063"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool RepeatIt, bool NeedFind)</td></tr>
+<tr class="separator:adff1d12142057a2c454ebe6899c52063"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this class was generated from the following files:<ul>
 <li><a class="el" href="_audio_8h_source.html">Audio.h</a></li>
@@ -160,7 +169,7 @@ static void&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:24 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:54 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

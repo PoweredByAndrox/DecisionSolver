@@ -12,20 +12,19 @@ extern shared_ptr<Engine> Application;
 #include "Audio.h"
 #include "DebugDraw.h"
 
-Vector3 DragFloat3(string ID, Vector3 Thing)
+pair<Vector3, bool> DragFloat3(string ID, Vector3 Thing)
 {
-	Vector3 Ret_Thing = Thing;
-	ImGui::DragFloat3(ID.c_str(), (float *)&Ret_Thing);
+	pair<Vector3, bool> Ret_Thing = make_pair(Thing, false);
+	Ret_Thing.second = ImGui::DragFloat3(ID.c_str(), (float *)&Ret_Thing, 0.001f);
 	return Ret_Thing;
 }
 
 static vector<string> values = { "Stay", "WalkToNPoint", "Follow" };
 static vector<string> TrueFalse = { "True", "False" };
-int Current = 0, Curr = 0, Cur = 1;
-#include "Inc/GeometricPrimitive.h"
+int Current = 0, Curr = 0, Cur = 1, Open6Cur = 0;
+float NewTarget = 0.f, Aud_Targt1 = 0.f, Aud_Targt2 = 1.f, Aud_Targt3 = 1.f;
 
-vector<shared_ptr<GeometricPrimitive>> SoundBoxes;
-
+#include "Models.h"
 void SDKInterface::Render()
 {
 	auto LevelObjs = Application->getLevel()->getChild();
@@ -58,7 +57,7 @@ void SDKInterface::Render()
 					if (ImGui::Button("X"))
 					{
 						Application->getLevel()->Remove(Object->ID);
-						//Application->getSound()->DeleteSound(string ID);
+						Application->getSound()->Remove(Object->ID);
 						ImGui::TreePop();
 
 						continue; // Don't work with this object anymore
@@ -66,8 +65,11 @@ void SDKInterface::Render()
 					if (id)
 					{
 						ImGui::SetNextItemWidth(-1);
-						ImGui::Checkbox("Is Render", &Object->GM->RenderIt);
-
+						if (ImGui::Checkbox("Is Render", &Object->GM->RenderIt))
+						{
+							Object->IsItChanged = true;
+							Object->SaveInfo->IsVisible = Object->GM->RenderIt;
+						}
 						ImGui::Separator();
 						ImGui::SetNextItemWidth(-1);
 						ImGui::TreeNodeEx(("Pos#" + Object->ID).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -75,10 +77,16 @@ void SDKInterface::Render()
 
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
-						Object->GM->SetPositionCoords(DragFloat3(("##Pos#" + Object->ID).c_str(),
-							Object->GM->GetPositionCord()));
+						pair<Vector3, bool> Ret;
+						Object->GM->SetPositionCoords((Ret = DragFloat3(("##Pos#" + Object->ID).c_str(),
+							Object->GM->GetPositionCord())).first);
 						ImGui::NextColumn();
 
+						if (Ret.second)
+						{
+							Object->IsItChanged = true;
+							Object->SaveInfo->Pos = true;
+						}
 						//OutputDebugStringA((boost::format("\nPosition: X: %.3f, Y: %.3f, Z: %.3f\n")
 						//  % Object->GetPositionCord().x
 						//	% Object->GetPositionCord().y
@@ -91,9 +99,15 @@ void SDKInterface::Render()
 
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
-						Object->GM->SetRotationCoords(DragFloat3(("##Rot#" + Object->ID).c_str(), Object->GM->GetRotCord()));
+						Object->GM->SetRotationCoords(
+							(Ret = DragFloat3(("##Rot#" + Object->ID).c_str(), Object->GM->GetRotCord())).first);
 						ImGui::NextColumn();
 						ImGui::Separator();
+						if (Ret.second)
+						{
+							Object->IsItChanged = true;
+							Object->SaveInfo->Rot = true;
+						}
 
 						ImGui::SetNextItemWidth(-1);
 						ImGui::TreeNodeEx(("Scl#" + Object->ID).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -101,9 +115,15 @@ void SDKInterface::Render()
 
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
-						Object->GM->SetScaleCoords(DragFloat3(("##Scl#" + Object->ID).c_str(), Object->GM->GetScaleCord()));
+						Object->GM->SetScaleCoords(
+							(Ret = DragFloat3(("##Scl#" + Object->ID).c_str(), Object->GM->GetScaleCord())).first);
 						ImGui::NextColumn();
 						ImGui::Separator();
+						if (Ret.second)
+						{
+							Object->IsItChanged = true;
+							Object->SaveInfo->Scale = true;
+						}
 
 						ImGui::SetNextItemWidth(-1);
 						if (ImGui::Button("Reset All"))
@@ -124,9 +144,9 @@ void SDKInterface::Render()
 				ImGui::TreePop();
 			}
 
-			if (ImGui::Button("Reload Level"))
-				Application->getLevel()->Reload_Level(
-					Application->getFS()->GetFileByType(_TypeOfFile::LEVELS).back().first->PathA);
+			//if (ImGui::Button("Reload Level"))
+			//	Application->getLevel()->Reload_Level(
+			//		Application->getFS()->GetFileByType(_TypeOfFile::LEVELS).back().first->PathA);
 			ImGui::Columns(1);
 		}
 		dockspaceID = ImGui::GetID("MyDockSpace");
@@ -137,22 +157,16 @@ void SDKInterface::Render()
 
 	for (size_t i = 0; i < Obj.size(); i++)
 	{
-		if (Obj.at(i)->GM->GetType() != GameObjects::TYPE::OBJECTS_Stat) continue;
-		if (Application->getKeyboard()->GetState().F7) Application->getSound()->doPlay();
-		if (Application->getDebugDraw().operator bool())
-			Application->getDebugDraw()->MainRender(Cam->GetViewMatrix(), Cam->GetProjMatrix());
-
-		auto SndObj = Application->getSound()->getAllSources();
-		for (size_t iSnd = 0; iSnd < SndObj.size(); iSnd++)
+		auto ObjObj = Obj.at(i);
+		if (ObjObj->GM->GetType() != GameObjects::TYPE::Sound_Obj) continue;
+		auto ObjSnd = Application->getSound()->GetSound(ObjObj->ID);
+		if (ObjSnd.operator bool())
 		{
-			SndObj.at(iSnd).first->setSoundPosition(Obj.at(i)->GM->GetPositionCord());
-			i++;
-			if (Obj.size() <= i)
-				break;
+			if (Application->getTrackerKeyboard().pressed.F7)
+				ObjSnd->Play();
+			ObjSnd->setSoundPosition(Obj.at(i)->GM->GetPositionCord());
+			Application->getSound()->Update(Cam->GetEyePt(), Cam->GetWorldAhead(), Cam->GetWorldUp());
 		}
-		Application->getSound()->Update(Cam->GetEyePt(), Cam->GetWorldAhead(), Cam->GetWorldUp());
-		//It->Draw(Matrix::Identity, Cam->GetViewMatrix(), Cam->GetProjMatrix(), Colors::Wheat,
-		//	nullptr, Application->GetWireFrame());
 	}
 
 	ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
@@ -205,12 +219,16 @@ void SDKInterface::Render()
 							return;
 						}
 
-						Application->getSound()->AddNewFile(Obj.second.back(), true);
-						Application->getLevel()->Add(_TypeOfFile::MODELS,
-							Application->getFS()->getPathFromType(_TypeOfFile::MODELS) + "cube_with_diffuse_texture.3ds");
-						Application->getLevel()->getChild()->GetNodes().back()->GM->SetScaleCoords(Vector3(0.1f, 0.1f, 0.1f));
-						Application->getLevel()->getChild()->GetNodes().back()->GM->SetPositionCoords(Cam->GetEyePt());
-						Application->getLevel()->getChild()->GetNodes().back()->GM->SetType(GameObjects::TYPE::OBJECTS_Stat);
+						for (auto It: Obj.second)
+						{
+							Application->getSound()->AddNewFile(It, true);
+							auto OurNode = Application->getLevel()->Add(_TypeOfFile::MODELS,
+								Application->getFS()->getPathFromType(_TypeOfFile::MODELS) + "cube_with_diffuse_texture.3ds");
+							OurNode->ID = path(It).filename().string();
+							OurNode->GM->SetScaleCoords(Vector3(0.01f, 0.01f, 0.01f));
+							OurNode->GM->SetPositionCoords(Cam->GetEyePt());
+							OurNode->GM->SetType(GameObjects::TYPE::Sound_Obj);
+						}
 					}
 				}
 				// Also would like to add particle source
@@ -356,7 +374,8 @@ void SDKInterface::Render()
 								ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet, "Position");
 							ImGui::NextColumn();
 							ImGui::SetNextItemWidth(-1);
-							This->GetPoints().at(i)->SetPos(DragFloat3(("##SLogic_Pos" + to_string(i)), This->GetPoints().at(i)->GetPos()));
+							This->GetPoints().at(i)->SetPos(DragFloat3(("##SLogic_Pos" + to_string(i)),
+							This->GetPoints().at(i)->GetPos()));
 							ImGui::NextColumn();
 
 							ImGui::Separator();
@@ -479,30 +498,33 @@ void SDKInterface::Render()
 	{
 		if (ImGui::Begin("Everything", &Open5))
 		{
+			ImGui::SetNextItemOpen(true);
 			bool Cam = ImGui::TreeNode("Camera");
 			if (Cam)
 			{
+				auto Cam = Application->getCamera();
 				ImGui::Separator();
 				ImGui::TreeNodeEx("Position:", ImGuiTreeNodeFlags_Leaf |
 					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
 				ImGui::SameLine();
-				Vector3 Pos = Application->getCamera()->GetEyePt(), Look = Application->getCamera()->GetLookAtPt();
+				Vector3 Pos = Cam->GetEyePt(), Look = Cam->GetLookAtPt();
 				bool BPos = ImGui::DragFloat3("##Position", (float *)&Pos);
 
 				ImGui::Text("Look: ");
 				ImGui::SameLine();
 				bool BLook = ImGui::DragFloat2("##Look", (float *)&Look);
 				if (BPos || BLook)
-					Application->getCamera()->Teleport(Pos, Look);
+					Cam->Teleport(Pos, Look);
 
 				ImGui::Separator();
+				Cur = Cam->GetIsFreeCam();
 				if (Combobox::Combo("Is Free Cam?", &Cur, TrueFalse))
-					Application->getCamera()->SetFreeMoveCam((bool)Cur);
+					Cam->SetFreeMoveCam((bool)Cur);
 				ImGui::Separator();
 
 				ImGui::TreeNodeEx("Move Senses:", ImGuiTreeNodeFlags_Leaf |
 					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
-				float MovSense = Application->getCamera()->getMoveScale(), RotSense = Application->getCamera()->getRotateScale();
+				float MovSense = Cam->getMoveScale(), RotSense = Cam->getRotateScale();
 				ImGui::Text("Move Scaler: ");
 				ImGui::SameLine();
 				bool MSense = ImGui::DragFloat("##MSense", &MovSense);
@@ -511,7 +533,7 @@ void SDKInterface::Render()
 				ImGui::SameLine();
 				bool RSense = ImGui::DragFloat("##RSense", &RotSense);
 				if (MSense || RSense)
-					Application->getCamera()->SetScalers(RotSense, MovSense);
+					Cam->SetScalers(RotSense, MovSense);
 
 				ImGui::Separator();
 				ImGui::TreePop();
@@ -527,6 +549,209 @@ void SDKInterface::Render()
 		}
 		ImGui::End();
 	}
+	
+	if (Open6)
+	{
+		if (ImGui::Begin("Lag Testing", &Open6))
+		{
+			auto Timer = Application->getMainThread();
+			ImGui::Separator();
+			Open6Cur = !Timer->GetIsFixedTimeStep();
+
+			if (Combobox::Combo("Tartet Seconds Timer:", &Open6Cur, TrueFalse))
+				Timer->SetFixedTimeStep(!(bool)Open6Cur);
+			if (!Open6Cur)
+			{
+				ImGui::DragFloat("##Trgt", &NewTarget, 0.001f);
+				Timer->SetTargetElapsedSeconds(NewTarget);
+			}
+
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Seconds:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetElapsedSeconds()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Ticks:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetElapsedTicks()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Frames:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetFrameCount()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current FPS:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetFramesPerSecond()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Different Time (End - Begin):", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetResultTime().count()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Total Seconds:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetTotalSeconds()).c_str());
+			ImGui::Separator();
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			ImGui::TreeNodeEx("Current Total Ticks:", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			ImGui::SameLine();
+			ImGui::Text(to_string(Timer->GetTotalTicks()).c_str());
+			ImGui::Separator();
+
+			if (ImGui::Button("Reset"))
+			{
+				Open6Cur = false;
+				Timer->SetFixedTimeStep(Open6Cur);
+				Timer->SetTargetElapsedSeconds(0.f);
+				NewTarget = 0.0001f;
+			}
+
+			//ImGui::TreeNodeEx("Current Seconds:", ImGuiTreeNodeFlags_Leaf |
+			//	ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+
+			//bool BLook = ImGui::DragFloat2("##Look", (float *)&Look);
+			//if (BPos || BLook)
+			//	Application->getCamera()->Teleport(Pos, Look);
+
+			//ImGui::Separator();
+			//if (Combobox::Combo("Is Free Cam?", &Cur, TrueFalse))
+			//	Application->getCamera()->SetFreeMoveCam((bool)Cur);
+			//ImGui::Separator();
+
+			//float MovSense = Application->getCamera()->getMoveScale(), RotSense =
+			// Application->getCamera()->getRotateScale();
+			//ImGui::Text("Move Scaler: ");
+			//ImGui::SameLine();
+			//bool MSense = ImGui::DragFloat("##MSense", &MovSense);
+
+			//ImGui::Text("Rotation Scaler: ");
+			//ImGui::SameLine();
+			//bool RSense = ImGui::DragFloat("##RSense", &RotSense);
+			//if (MSense || RSense)
+			//	Application->getCamera()->SetScalers(RotSense, MovSense);
+
+			//ImGui::Separator();
+
+			//bool Gm = ImGui::TreeNode("Game");
+			//if (Gm)
+			//{
+			//	ImGui::TreeNodeEx("File", ImGuiTreeNodeFlags_Leaf |
+			//		ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			//	ImGui::TreePop();
+			//}
+		}
+		ImGui::End();
+	}
+
+	if (Open7)
+	{
+		if (ImGui::Begin("Audio", &Open7))
+		{
+			auto snd = Application->getSound();
+			ImGui::Separator();
+
+			if (ImGui::Button("Open Sound File"))
+			{
+				auto Obj = UI::GetWndDlgOpen(const_cast<LPSTR>(Application->getFS()->getPathFromType(
+					_TypeOfFile::MODELS).c_str()), "", "All\0*.*\0");
+
+				if (Obj.first) // If Dialog Wasn't Skip
+				{
+					if (Obj.second.empty())
+					{
+						ImGui::EndPopup();
+						ImGui::End();
+						return;
+					}
+
+					Application->getSound()->PlayFile(Obj.second.back(), false, false);
+				}
+			}
+			if (ImGui::Button("Play"))
+				snd->getAllSources().back().first->Play();
+
+			if (ImGui::Button("Stop"))
+				snd->getAllSources().back().first->Stop();
+
+			if (ImGui::Button("Reset"))
+			{
+				Open6Cur = false;
+				Aud_Targt1 = 0.f;
+				Aud_Targt2 = 1.f;
+				Aud_Targt3 = 1.f;
+				snd->changePan(Aud_Targt1);
+				snd->changePitch(Aud_Targt2);
+				snd->changeVol(Aud_Targt3);
+			}
+
+			ImGui::TreeNodeEx("Change Panning", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			if (ImGui::DragFloat("##Pan", &Aud_Targt1, 0.001f, -1.f, 1.f))
+				snd->changePan(Aud_Targt1);
+
+			ImGui::TreeNodeEx("Change Pitch", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			if (ImGui::DragFloat("##Pth", &Aud_Targt2, 0.001f, XAUDIO2_MIN_FREQ_RATIO, XAUDIO2_DEFAULT_FREQ_RATIO))
+				snd->changePitch(Aud_Targt2);
+
+			ImGui::TreeNodeEx("Change Volume", ImGuiTreeNodeFlags_Leaf |
+				ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+			if (ImGui::DragFloat("##Vlm", &Aud_Targt3, 0.001f, 0.0f, 1.0f))
+				snd->changeVol(Aud_Targt3);
+
+			ImGui::NewLine();
+			ImGui::Separator();
+			for (size_t i = 0; i < snd->getAllSources().size(); i++)
+			{
+				bool Clicked = ImGui::Button(("[" + to_string(i) + ("] FileName:") + 
+					snd->getAllSources().at(i).second).c_str());
+				if (Clicked && snd->getAllSources().at(i).first->IsStop())
+				{
+					snd->getAllSources().at(i).first->Play();
+					continue;
+				}
+				if (Clicked && snd->getAllSources().at(i).first->IsPlay())
+				{
+					snd->getAllSources().at(i).first->Stop();
+					continue;
+				}
+
+				ImGui::Separator();
+
+				//ImGui::TreeNodeEx(("[" + to_string(i) + ("] Current State:")).c_str(), ImGuiTreeNodeFlags_Leaf |
+				//	ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+				//ImGui::SameLine();
+				//ImGui::Text(snd->getAllSources().at(i).first->IsPlay() ? "It's Playing" : "It's Stop");
+				ImGui::NewLine();
+			}
+			ImGui::Separator();
+		}
+		ImGui::End();
+	}
+
 	ImGui::PopStyleVar();
 
 	if (ImGui::BeginMainMenuBar())
@@ -541,6 +766,9 @@ void SDKInterface::Render()
 			}
 
 			ToDo("Add Dialogs For Open and Save actions");
+			// Needs To Shortcuts
+			//if (Application->getTrackerKeyboard().pressed.LeftControl && Application->getTrackerKeyboard().pressed.O)
+			//	ImGui::SetNextItemOpen(true, ImGuiCond_::ImGuiCond_Once);
 			if (ImGui::MenuItem("Open Project", "Ctrl+O"))
 			{
 				auto Obj = UI::GetWndDlgOpen(const_cast<LPSTR>(
@@ -554,8 +782,8 @@ void SDKInterface::Render()
 						return;
 					}
 
-					Application->getFS()->GetProjects()->SetCurProject(path(Obj.second.back()));
-					Application->getFS()->GetProjects()->OpenFile(Obj.second.back());
+					Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
+					Application->getFS()->GetProject()->OpenFile(Obj.second.back());
 				}
 			}
 			if (ImGui::BeginMenu("Open Recent"))
@@ -570,24 +798,33 @@ void SDKInterface::Render()
 
 					Engine::Quit();
 				}
-				if (Application->getFS()->GetProjects().operator bool())
+				if (Application->getFS()->GetProject().operator bool())
 				{
-					auto Recent = Application->getFS()->GetProjects()->GetRecent();
+					auto Recent = Application->getFS()->GetProject()->GetRecent();
 					for (size_t i = 0; i < Recent.size(); i++)
 					{
 						auto Obj = std::next(Recent.begin(), i);
 						if (ImGui::MenuItem((ReplaceSymbols(Obj->second.filename().string())).c_str(),
 							to_string(Obj->first).c_str()))
-							Application->getFS()->GetProjects()->OpenFile(Obj->second);
+							Application->getFS()->GetProject()->OpenFile(Obj->second);
 					}
 				}
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-				Application->getFS()->GetProjects()->SaveCurrProj();
+				Application->getFS()->GetProject()->SaveCurrProj();
 			if (ImGui::MenuItem("Save Project As..", "Ctrl+Shift+S"))
-				UI::GetWndDlgSave(const_cast<LPSTR>(Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
-			
+			{
+				auto Obj = UI::GetWndDlgSave(const_cast<LPSTR>(Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
+				if (Obj.first) // If Dialog Wasn't Skip
+				{
+					if (Obj.second.empty())
+						ImGui::EndMenu();
+				
+					Application->getFS()->GetProject()->SaveFile(path(Obj.second.back()));
+				}
+			}
+
 			ImGui::Separator();
 			if (ImGui::MenuItem("Quit Programm", "Alt+F4"))
 				Engine::Quit();

@@ -5,12 +5,22 @@ extern shared_ptr<Engine> Application;
 #include "Engine.h"
 #include "PhysCamera.h"
 #include "Camera.h"
+#include "Audio.h"
+#include "File_system.h"
 
 PxCapsuleController *Camera_Control::C_Control = nullptr;
+string jmpSnd, dwnSnd;
 
 void Camera_Control::Init()
 {
 	PCam = make_shared<PhysCamera>();
+	auto Obj = Application->getFS()->GetFile("Start Jump");
+	Application->getSound()->AddNewFile(Obj->PathA, false);
+	jmpSnd = Obj->FileA;
+
+	Obj = Application->getFS()->GetFile("Stop Jump");
+	Application->getSound()->AddNewFile(Obj->PathA, false);
+	dwnSnd = Obj->FileA;
 
 	//capscDescActor->density = cDescActor.ProxyDensity;
 	//capscDescActor->scaleCoeff = cDescActor.ProxyScale;
@@ -60,32 +70,37 @@ void Camera_Control::PosControllerHead()
 	HeadPos = ToVec3(toVec3(C_Control->getPosition())) +
 		Vector3(0.f, geom.halfHeight + geom.radius, 0.f);
 }
+//PCam->Update(); // Stand up and crouch
 
 Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 {
-	//PCam->Update();
+	if (!C_Control) return camPos;
 
 	auto Jump = PCam->getJump();
+	float MGr = Application->getPhysics()->getScene()->getGravity().y;
+	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Space) && Jump->getCanJump())
+	{
+		if (!jmpSnd.empty())
+			Application->getSound()->doPlay(jmpSnd);
+		Jump->Start(5.5f);
+	}
+
 	float jump_height = Jump->getHeight(Time),
-		fScaleMove = Application->getCamera()->getMoveScale(), X = fScaleMove, Z = fScaleMove;
-	PosControllerHead();
+		fScaleMove = Application->getCamera()->getMoveScale();
+	
+	targetKeyDisplacement.y = jump_height;
 
-	targetKeyDisplacement.x *= X;
-	targetKeyDisplacement.z *= Z;
-
-	targetKeyDisplacement.y += (jump_height == 0.0f && Jump->getCanJump() ?
-		Application->getPhysics()->getScene()->getGravity().y * Time :
-		jump_height);
-
-	const PxU32 flags = C_Control->move(targetKeyDisplacement, 0.0f, Time, PxControllerFilters(0));
+	flags = C_Control->move(targetKeyDisplacement, 0.0f, Time, PxControllerFilters(0));
 
 	if (flags & PxControllerCollisionFlag::eCOLLISION_DOWN)
+	{
+		if (!dwnSnd.empty() && targetKeyDisplacement.y <= 0.0f && !Jump->getCanJump())
+			Application->getSound()->doPlay(dwnSnd);
 		Jump->Stop();
+	}
 
-	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Space))
-		Jump->Start(5.5f);
-
-	return HeadPos - VDir;
+	PosControllerHead();
+	return HeadPos + VDir;
 }
 
 void Camera_Control::GetInput(Vector3 VDir)

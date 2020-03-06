@@ -210,8 +210,8 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClCompile Include="Camera_Control.cpp" />
     <ClCompile Include="CCommands.cpp" />
     <ClCompile Include="CLua.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CutScene.cpp" />
@@ -223,6 +223,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClCompile Include="File_system.cpp" />
     <ClCompile Include="GameObjects.cpp" />
     <ClCompile Include="GrabThing.cpp" />
+    <ClCompile Include="Include\Timer.cpp" />
     <ClCompile Include="Levels.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="Actor.cpp" />
@@ -261,8 +262,8 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClInclude Include="Camera_Control.h" />
     <ClInclude Include="CCommands.h" />
     <ClInclude Include="CLua.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="Console.h" />
     <ClInclude Include="CutScene.h" />
@@ -275,7 +276,6 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClInclude Include="File_system.h" />
     <ClInclude Include="GameObjects.h" />
     <ClInclude Include="GrabThing.h" />
-    <ClInclude Include="Include\StepTimer.h" />
     <ClInclude Include="Include\Timer.h" />
     <ClInclude Include="Levels.h" />
     <ClInclude Include="Actor.h" />

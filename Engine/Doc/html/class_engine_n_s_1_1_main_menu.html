@@ -173,6 +173,9 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>AddNewFile</b> (vecto
 <tr class="memitem:a825a3e6d16d8c6b01ed64b95c32c6c4d inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a825a3e6d16d8c6b01ed64b95c32c6c4d"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>DeleteSound</b> (string ID)</td></tr>
 <tr class="separator:a825a3e6d16d8c6b01ed64b95c32c6c4d inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeee26b861b5cf6793d57690584a6f595 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeee26b861b5cf6793d57690584a6f595"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateSounds</b> ()</td></tr>
+<tr class="separator:aeee26b861b5cf6793d57690584a6f595 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af1faec04d8f3ce88cf8c54de6537cf96 inherit pub_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1faec04d8f3ce88cf8c54de6537cf96"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Update</b> (Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp)</td></tr>
 <tr class="separator:af1faec04d8f3ce88cf8c54de6537cf96 inherit pub_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -260,21 +263,27 @@ static pair&lt; bool, vector&lt; string &gt; &gt;&#160;</td><td class="memItemRi
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>SetRenderOnlyID</b> (bool b)</td></tr>
 <tr class="separator:a7612d31729e6a0740e3e3a3de077e597 inherit pub_static_methods_class_u_i"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_static_methods_class_audio"><td colspan="2" onclick="javascript:toggleInherit('pub_static_methods_class_audio')"><img src="closed.png" alt="-"/>&#160;Static Public Member Functions inherited from <a class="el" href="class_audio.html">Audio</a></td></tr>
-<tr class="memitem:a4171e7de3db76072006390d852b805e0 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4171e7de3db76072006390d852b805e0"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPause</b> ()</td></tr>
-<tr class="separator:a4171e7de3db76072006390d852b805e0 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9cabffb7c39d5c9158d68b71ee6f1579 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9cabffb7c39d5c9158d68b71ee6f1579"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> ()</td></tr>
-<tr class="separator:a9cabffb7c39d5c9158d68b71ee6f1579 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abfd78f3b4162643b047d2a4292878cb5 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abfd78f3b4162643b047d2a4292878cb5"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> ()</td></tr>
-<tr class="separator:abfd78f3b4162643b047d2a4292878cb5 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6233cf78f76b7b386e8cd06bd9160ba0 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6233cf78f76b7b386e8cd06bd9160ba0"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPause</b> ()</td></tr>
+<tr class="separator:a6233cf78f76b7b386e8cd06bd9160ba0 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69ad86fc2c3ff3310501d9106c02bca4 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69ad86fc2c3ff3310501d9106c02bca4"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> ()</td></tr>
+<tr class="separator:a69ad86fc2c3ff3310501d9106c02bca4 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21f2265beb5117506321a9e95e1dacc3 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21f2265beb5117506321a9e95e1dacc3"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doStop</b> (string Index)</td></tr>
+<tr class="separator:a21f2265beb5117506321a9e95e1dacc3 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aabcf6c6397240034ea7b48f3b42655f6 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aabcf6c6397240034ea7b48f3b42655f6"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> ()</td></tr>
+<tr class="separator:aabcf6c6397240034ea7b48f3b42655f6 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8bed5dab207695ded62c65cf30ca627a inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8bed5dab207695ded62c65cf30ca627a"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>doPlay</b> (string Index)</td></tr>
+<tr class="separator:a8bed5dab207695ded62c65cf30ca627a inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7281880127636e4132607c69ff6c8126 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7281880127636e4132607c69ff6c8126"></a>
 static void&#160;</td><td class="memItemRight" valign="bottom"><b>changeSoundVol</b> (float Vol)</td></tr>
 <tr class="separator:a7281880127636e4132607c69ff6c8126 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a539c68c12b29f3f9efd5124d93d6ec1c inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a539c68c12b29f3f9efd5124d93d6ec1c"></a>
-static void&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool RepeatIt, bool NeedFind)</td></tr>
-<tr class="separator:a539c68c12b29f3f9efd5124d93d6ec1c inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adff1d12142057a2c454ebe6899c52063 inherit pub_static_methods_class_audio"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adff1d12142057a2c454ebe6899c52063"></a>
+static HRESULT&#160;</td><td class="memItemRight" valign="bottom"><b>PlayFile</b> (string File, bool RepeatIt, bool NeedFind)</td></tr>
+<tr class="separator:adff1d12142057a2c454ebe6899c52063 inherit pub_static_methods_class_audio"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_class_u_i"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_class_u_i')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="class_u_i.html">UI</a></td></tr>
 <tr class="memitem:a0dc833d3cdfbe91323b336cba0734fca inherit pro_methods_class_u_i"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0dc833d3cdfbe91323b336cba0734fca"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>Gamepads</b> ()</td></tr>
@@ -365,7 +374,7 @@ static bool&#160;</td><td class="memItemRight" valign="bottom"><b>UpdateMouseCur
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Feb 17 2020 18:46:25 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sat Feb 29 2020 05:06:56 for DecisionSolver by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

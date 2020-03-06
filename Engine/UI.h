@@ -5,6 +5,7 @@
 
 #include "tinyxml2.h"
 #include "imgui.h"
+#include "Timer.h"
 
 using namespace tinyxml2;
 
@@ -728,6 +729,8 @@ public:
 
 	// Set All The Component's name to ID (Using for debug)
 	static void SetRenderOnlyID(bool b);
+
+	shared_ptr<Timer> getThread() { return UIThread; }
 protected:
 	// **********
 	HRESULT hr = S_OK;
@@ -735,6 +738,7 @@ protected:
 	// **********
 	vector<shared_ptr<dialogs>> Dialogs;
 
+	shared_ptr<Timer> UIThread = make_shared<Timer>();
 	// **********
 	bool InitUI = false;
 

@@ -20,7 +20,7 @@ font="capture-it" sizefont="18" brightness="0.8">
 		</TabItem>
 	</Tab>
 </gui>-->
-<gui id="MPConnection" width="820" height="420" open="true" resize="true" 
+<!--<gui id="MPConnection" width="820" height="420" open="true" resize="true" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="rodc" sizefont="22" brightness="0.9">
 	<InputText id="##MP_IText" text="Send A Message" visible="true" history="true" hint="true"
@@ -31,16 +31,10 @@ font="rodc" sizefont="22" brightness="0.9">
 	<Button id="##MP_Connect" text="Connect" visible="true"/>
 	<Button id="##MP_Disconnect" text="Disconnect" visible="true"/>
 	<Button id="##MP_Clear" text="Clear Chat" visible="true"/>
-</gui>
+</gui>-->
 <gui id="SDKDIAL" width="0" height="0" open="true" resize="true" 
 show_title="false" moveble="false" collapsible="false" bring_to_font="false"
 font="capture-it" sizefont="24" brightness="0.9" fullscreene="false">
-	<Collapse id="##SDKDIAL_ClpSound" text="Sound" seldefault="true" collapsible="true">
-		<Combo id="Select Track!"/>
-		<Button id="##Track_Start" text="Start!" visible="true"/>
-		<Button id="##Track_Stop" text="Stop!" visible="true"/>
-		<Button id="##Track_Pause" text="Pause!" visible="true"/>
-	</Collapse>
 	<Label id="##SDKDIAL_MainLabel" text="A Simple Text!" visible="true"/>
 </gui>
 <gui id="Console" width="400" height="250" open="false" resize="false" 

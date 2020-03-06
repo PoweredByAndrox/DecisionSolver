@@ -66,11 +66,10 @@ private:
 		void setSoundPosition(Vector3 pos) { this->pos = X3DAUDIO_VECTOR{ pos.x, pos.y, pos.z }; }
 
 		HRESULT Play();
-		HRESULT Pause();
 		HRESULT Stop();
 
 		bool IsPlay() { return isPlay; }
-		bool IsPause() { return isPause; }
+		bool IsStop() { return isStop; }
 
 		void Destroy();
 	private:
@@ -83,7 +82,7 @@ private:
 			| X3DAUDIO_CALCULATE_LPF_DIRECT /*| X3DAUDIO_CALCULATE_LPF_REVERB
 			| X3DAUDIO_CALCULATE_REVERB*/;
 
-		bool isPlay = false, isPause = true;
+		bool isPlay = false, isStop = false;
 	};
 	// Listener it has only one cuz it's a camera
 	struct Listerner
@@ -102,31 +101,35 @@ private:
 	};
 	static vector<pair<shared_ptr<Source>, string>> Src;
 	static shared_ptr<Listerner> Lnr;
-
 public:
 	HRESULT Init();
 	
 	void AddNewFile(string File, bool Repeat);
 	void AddNewFile(vector<string> Files, bool Repeat);
-	void DeleteSound(string ID);
+	void Remove(string ID);
 
 	void Update(Vector3 CamPos, Vector3 CamAhead, Vector3 CamUp);
 
-	static void doPause();
-	static void doStop();
-	static void doPlay();
+	static HRESULT doStop();
+	static HRESULT doStop(string Index);
+
+	static HRESULT doPlay();
+	static HRESULT doPlay(string Index);
+
+	shared_ptr<Source> GetSound(string Index);
 
 	void ReleaseAudio();
 
-	static void changeSoundVol(float Vol);
-	void changeSoundPan(float Pan);
+	static HRESULT changeVol(float Vol);
+	HRESULT changePitch(float Pitch);
+	HRESULT changePan(float Pan);
 
 	vector<pair<shared_ptr<Source>, string>> getAllSources() { return Src; }
 	shared_ptr<Listerner> getListerner() { return Lnr; }
 
 	bool IsInitSoundSystem() { return InitSoundSystem; }
 
-	static void PlayFile(string File, bool RepeatIt, bool NeedFind);
+	static HRESULT PlayFile(string File, bool RepeatIt, bool NeedFind);
 private:
 	bool InitSoundSystem = false;
 	static IXAudio2 *pXAudio2;

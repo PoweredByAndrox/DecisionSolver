@@ -18,6 +18,7 @@ protected:
 	shared_ptr<PhysCamera> PCam;
 	void PosControllerHead();
 	Vector3 HeadPos = Vector3::Zero;
+	PxU32 flags;
 public:
 	void Init();
 

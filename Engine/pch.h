@@ -11,9 +11,8 @@
 #include <direct.h>
 #include <tchar.h>
 #include <memory>
-
-#include "boost/thread.hpp"
-#include "boost/thread/scoped_thread.hpp"
+#include <thread>
+#include <chrono>
 
 #include <d3dcompiler.h>
 

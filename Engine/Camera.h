@@ -53,6 +53,7 @@ public:
 	float GetFarClip() const;
 	float getMoveScale();
 	float getRotateScale();
+	bool GetIsFreeCam() { return FreeCamMove; }
 protected:
 	void UpdateMouseDelta();
 	void UpdateVelocity(float fElapsedTime);

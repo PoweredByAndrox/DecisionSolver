@@ -38,8 +38,8 @@ void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot)
 
 	if (_Point->GetState() != Stay)
 	{
-		Pos = Vector3::SmoothStep(Pos, _Point->GetPos(), Application->getframeTime() * 0.85f);
-		Rot = Vector3::SmoothStep(Rot, _Point->GetRotate(), Application->getframeTime() * 0.85f);
+		Pos = Vector3::SmoothStep(Pos, _Point->GetPos(), Application->getframeTime() + 0.85f);
+		Rot = Vector3::SmoothStep(Rot, _Point->GetRotate(), Application->getframeTime() + 0.85f);
 
 		if (XMVector3NearEqual(_Point->GetPos(), Pos, Vector3(0.001f, 0.001f, 0.001f)) &&
 			XMVector3NearEqual(_Point->GetRotate(), Rot, Vector3(0.001f, 0.001f, 0.001f)))

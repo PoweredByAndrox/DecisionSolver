@@ -28,8 +28,8 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 		Engine::LogError("GameObjects:Object: Create a New Object is failed.",
 			"GameObjects:Object: Create Model is failed!!!",
 			"GameObjects:Object: Create a New Object is Fail!");
-	// Set Up The Logic
-	SetLogic(Logic);
+	// Set Up The Logic (By Default Not To Set Up It)
+	//SetLogic(Logic);
 	// Set Up The Physic
 	//Application->getPhysics()->_createTriMesh(model, false);
 	//SetPH(Application->getPhysics()->GetPhysDynamicObject().back());
@@ -53,7 +53,8 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 
 void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> Logic)
 {
-	this->Logic = Logic;
+	if (!this->Logic.operator bool())
+		this->Logic = Logic;
 }
 
 void GameObjects::Object::UpdateLogic(float Time)
@@ -74,7 +75,7 @@ void GameObjects::Object::UpdateLogic(float Time)
 		Vector3 newPos = ConstrainToBoundary(PosCoords,
 			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
 			newRot = Vector3::Zero;
-		if(Logic.operator bool() && !Logic->GetPoints().empty())
+		if (Logic.operator bool() && !Logic->GetPoints().empty())
 			Logic->Update(PosCoords, RotationCoords);
 		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
 	}

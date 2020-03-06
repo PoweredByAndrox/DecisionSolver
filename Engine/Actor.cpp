@@ -43,18 +43,28 @@ void Actor::Render(float Time)
 	Number.Clamp(Vector2(0.2f, 0.f), Vector2(1.f, 0.f));
 	if (Application->getKeyboard()->GetState().OemPlus)
 	{
-		Number.x -= 0.01f;
+		Number -= Vector2(Time);
 		return;
 	}
 	else if (Application->getKeyboard()->GetState().OemMinus)
 	{
-		Number.x += 0.01f;
+		Number += Vector2(Time);
 		return;
 	}
 }
 
 HRESULT Actor::Init()
 {
+	//	// Camera Class
+	Application->setCamera(make_shared<Camera>());
+	if (FAILED(Application->getCamera()->Init(Application->getWorkAreaSize(Application->GetHWND()).x,
+		Application->getWorkAreaSize(Application->GetHWND()).y)))
+	{
+		Engine::LogError("Actor::Init::Camera->Init() Failed.",
+			"getCamera()->Init() Failed!!!", "Camera: Init Failed!");
+		return E_FAIL;
+	}
+
 	Application->getCamera()->SetCameraControlButtons(false, true, false);
 	Application->getCamera()->SetResetCursorAfterMove(true);
 	Application->getCamera()->SetFreeMoveCam(true);

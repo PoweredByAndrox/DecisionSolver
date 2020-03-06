@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scene>
-	<objects>
-    <!-- Name of Model also like an identifier -->
-    <!-- If the name has a space then replace them with _ -->
-		<One id="v2colored_low">
-			<pos>0,0,0</pos>
-			<scale>0.005,0.005,0.005</scale>
-		</One>
-		<Two id="ak47">
-			<pos>10,0,0</pos>
-		</Two>
-	</objects>
+    <model>
+        <Zero id="ak47">
+            <pos>12.000000, 0.000000, 0.000000</pos>
+            <scale>0.05,0.05,0.05</scale>
+            <rotate>0.000000, 0.000000, 9.000000</rotate>
+        </Zero>
+    </model>
+    <s_obj>
+        <Zero id="PBAX or Powered_By_AndroX - 01.07.18">
+            <pos>10,0,0</pos>
+            <scale>0.05,0.05,0.05</scale>
+            <rotate>10,0,0</rotate>
+        </Zero>
+    </s_obj>
 </scene>

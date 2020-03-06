@@ -65,8 +65,8 @@ void Console::Render()
 	auto text = IText->GetText();
 	auto History = ProcessCommand->getHistoryCommands();
 	auto TextList = Dialog->getComponents()->FindComponentTList("##HintCmd");
-	ToDo("Change the following buttons to work with History in Console")
-		if (text.empty() && !Application->getTrackerKeyboard().pressed.Tab)
+	ToDo("Change the following buttons to work with History in Console");
+	if (text.empty() && !Application->getTrackerKeyboard().pressed.Tab)
 	{
 		TextList->clearItems();
 		return;

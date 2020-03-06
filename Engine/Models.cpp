@@ -112,8 +112,8 @@ bool Models::LoadFromAllModels()
 void Models::Render(Matrix View, Matrix Proj)
 {
 	ConstantBuffer cb;
-	auto Mrx = XMMatrixTranspose(scale) * XMMatrixTranspose(position) * XMMatrixTranspose(rotate);
-	cb.World = Mrx;
+	auto Mrx = scale * position * rotate;
+	cb.World = XMMatrixTranspose(Mrx);
 	cb.View = XMMatrixTranspose(View);
 	cb.Proj = XMMatrixTranspose(Proj);
 
@@ -346,22 +346,12 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 
 	return texture;
 }
-inline XMMATRIX XMMatrixRotationAxis1
-(
-	Vector3 Axis,
-	float     Angle
-)
-{
-	// assert(!XMVector3Equal(Axis, XMVectorZero()));
-	assert(!XMVector3IsInfinite(Axis));
-
-	//Vector3 Normal = XMVector3Normalize(Axis);
-	return XMMatrixRotationNormal(Axis, Angle);
-}
 
 void Models::setRotation(Vector3 rotaxis)
 {
-	rotate = XMMatrixRotationAxis1(rotaxis, 0.1f);
+	rotate = Matrix::CreateRotationX(rotaxis.x) *
+		Matrix::CreateRotationY(rotaxis.y) *
+		Matrix::CreateRotationZ(rotaxis.z);
 }
 
 void Models::setScale(Vector3 Scale)
