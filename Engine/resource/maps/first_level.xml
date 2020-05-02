@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <scene>
-    <model>
-        <Zero id="ak47">
-            <pos>12.000000, 0.000000, 0.000000</pos>
-            <scale>0.05,0.05,0.05</scale>
-            <rotate>0.000000, 0.000000, 9.000000</rotate>
-        </Zero>
-    </model>
-    <s_obj>
-        <Zero id="PBAX or Powered_By_AndroX - 01.07.18">
-            <pos>10,0,0</pos>
-            <scale>0.05,0.05,0.05</scale>
-            <rotate>10,0,0</rotate>
-        </Zero>
-    </s_obj>
+    <models>
+        <model id="Plane.obj" pos="0.000000, 0.952000, 0.000000" scale="0.369000, 0.429000, 0.386000" rotate="1.538000, 0.000000, 0.000000"/>
+        <model id="ak47.obj" pos="0.000000, 0.000000, 0.000000" scale="1.000000, 1.000000, 1.000000" rotate="0.000000, 0.000000, 0.000000"/>
+    </models>
+    <s_objs/>
 </scene>

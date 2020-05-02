@@ -157,6 +157,7 @@ public:
 	void ChangeID(string ID);
 	void ChangeText(string Text) { this->Text = Text; }
 	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setVisible(bool Visible) { IsVisible = Visible; }
 
 	static void SetOnlyRenderID(bool b) { OnlyRenderID = b; }
 
@@ -166,7 +167,7 @@ public:
 	{
 		if (OnlyRenderID)
 		{
-			// Create a new string to remove "##" and render it normals
+			// Create a new string to remove "#" and render it
 			string NewString = ID;
 			int Found = string::npos;
 			if ((Found = NewString.find("#")) != string::npos)
@@ -180,15 +181,22 @@ public:
 	const int getRenderOrder() { return OrderlyRender; }
 	const string GetID() { return ID; }
 	vector<shared_ptr<AllTheComponent>> getComponents() { return Components; }
+	bool GetVisible() { return IsVisible; }
+
+	bool IsClicked() { return clicked; }
+	bool PressedEnter() { return pressEnter; }
 protected:
 	int OrderlyRender = 0, OrderlyRenderInDial = 0;
 	static bool OnlyRenderID;
-	string Text = "";
+	bool IsVisible = false,
+		clicked = false,
+		pressEnter = false;
+	string Text;
 	const string ID;
 	vector<shared_ptr<AllTheComponent>> Components;
 };
 
-class Combobox: virtual public BaseComponent
+class Combobox: public BaseComponent
 {
 public:
 	static bool Combo(const char *label, int *currIndex, vector<string> &values)
@@ -218,7 +226,7 @@ private:
 	bool Active = false;
 	vector<string> Items = { "None" };
 };
-class Selectable: virtual public BaseComponent
+class Selectable: public BaseComponent
 {
 public:
 	Selectable() {}
@@ -238,7 +246,7 @@ struct TabItem
 	vector<string> Name;
 	vector<shared_ptr<AllTheComponent>> TabItemComp;
 };
-class Column: virtual public BaseComponent
+class Column: public BaseComponent
 {
 public:
 	Column() {}
@@ -254,7 +262,7 @@ private:
 	int CountColumn = 0;
 	bool Border = false;
 };
-class Tab: virtual public BaseComponent
+class Tab: public BaseComponent
 {
 public:
 	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
@@ -278,7 +286,7 @@ private:
 	ImGuiTabBarFlags Flags = 0;
 	vector<shared_ptr<TabItem>> TBItm { make_shared<TabItem>() };
 };
-class TreeNode: virtual public BaseComponent
+class TreeNode: public BaseComponent
 {
 public:
 	TreeNode() {}
@@ -293,7 +301,7 @@ private:
 
 	ImGuiTreeNodeFlags Flags = 0;
 };
-class TextList: virtual public BaseComponent
+class TextList: public BaseComponent
 {
 public:
 	static bool ListBox(const char *label, int *currIndex, vector<string> &values)
@@ -305,7 +313,6 @@ public:
 	TextList(string ID) { ChangeID(ID); }
 
 	void addItem(string Item) { Items.push_back(Item); }
-	void setVisible(bool Visible) { IsVisible = Visible; }
 
 	bool FindInItems(string Item)
 	{
@@ -318,7 +325,6 @@ public:
 		return false;
 	}
 
-	bool GetVisible() { return IsVisible; }
 	bool IsMouseSelected() { return Active; }
 
 	//	Current
@@ -347,9 +353,9 @@ private:
 	vector<string> Items;
 
 	int Selected = -1;
-	bool IsVisible = false, Active = false;
+	bool Active = false;
 };
-class _Separator: virtual public BaseComponent
+class _Separator: public BaseComponent
 {
 public:
 	void Render()
@@ -357,7 +363,7 @@ public:
 		ImGui::Separator();
 	}
 };
-class UnformatedText: virtual public BaseComponent
+class UnformatedText: public BaseComponent
 {
 public:
 	UnformatedText() {}
@@ -372,7 +378,7 @@ public:
 		string GetText() { return CText; }
 	private:
 		Type type = Type::Normal;
-		string CText = "";
+		string CText;
 	};
 	vector<shared_ptr<ColorText>> clText;
 
@@ -425,30 +431,29 @@ class IText: public BaseComponent
 public:
 	void ChangeTextHint(string Text) { TextHint = Text; }
 
-	void setVisible(bool Visible) { IsVisible = Visible; }
 	void setHistory(bool History) { IsNeedHistory = History; }
 	void setHint(bool NeedHint) { IsNeedHint = NeedHint; }
 
 	bool isActive() { return Active; }
-
-	bool GetVisible() { return IsVisible; }
+	
 	bool getTextChange() { return IsTextChange; }
 	bool getHistory() { return IsNeedHistory; }
 
 	IText() {}
 	IText(string ID, bool IsVisible = true, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
 		bool EnterReturnsTrue = true, bool IsNeedHint = false):
-		IsVisible(IsVisible), IsNeedHistory(IsNeedHistory),
+		IsNeedHistory(IsNeedHistory),
 		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
 	{
 		ChangeID(ID);
+		setVisible(IsVisible);
 	}
 
 	void Render();
 private:
-	string TextHint = "";
+	string TextHint;
 
-	bool IsVisible = false, IsNeedHistory = false,
+	bool IsNeedHistory = false,
 		NeedToUseTAB = false, EnterReturnsTrue = true,
 		IsTextChange = false, IsNeedHint = false,
 		Active = false;
@@ -459,73 +464,53 @@ class ITextMulti: public BaseComponent
 {
 	struct ColorText;
 public:
-	void ChangeText(string Text) { this->Text.append("\n" + Text); }
-
-	void setVisible(bool Visible) { IsVisible = Visible; }
 	void setReadOnly(bool ReadOnly) { this->ReadOnly = ReadOnly; }
 
 	vector<ColorText> getCLText() { return clText; }
-	void AddCLText(Type type, string str)
-	{
-		if (clText.empty())
-			clText.push_back(ColorText(type, str));
+	void AddText(Type type, string str) { clText.push_back(ColorText(type, str)); }
 
-		for (size_t i = 0; i < clText.size(); i++)
-		{
-			if (clText.at(i).type == type && clText.at(i).str == str)
-				return;
-			else
-				clText.push_back(ColorText(type, str));
-		}
-	}
-
-	void ClearText() 
-	{
-		Text.clear();
-		clText.clear();
-	}
-
-	bool GetVisible() { return IsVisible; }
+	void ClearText() { clText.clear(); }
 
 	ITextMulti() {}
 	ITextMulti(string ID, bool IsVisible = true, bool ReadOnly = false, bool IsCtrlNewLine = false):
-		IsVisible(IsVisible), ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
+		ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
 	{
 		ChangeID(ID);
+		setVisible(IsVisible);
 	}
 
 	void Render();
 private:
-	string Text = "";
-	bool IsVisible = false, ReadOnly = false, IsCtrlNewLine = false;
+	bool ReadOnly = false, IsCtrlNewLine = false;
 
 	ImGuiInputTextFlags Flags = 0;
 	struct ColorText
 	{
 		Type type = Type::Normal;
-		string str = "";
+		string str;
 
 		ColorText(Type type, string str): type(type), str(str) {}
 	};
 
 	vector<ColorText> clText;
 };
-class Labels: virtual public BaseComponent
+class Labels: public BaseComponent
 {
 public:
-	void setVisible(bool Visible) { IsVisible = Visible; }
+	
 	void SetColorText(ImVec4 Color)
 	{
 		this->Color = Color;
 		NeedToChangeColor = true;
 	}
 
-	bool GetVisible() { return IsVisible; }
+	
 
 	Labels() {}
-	Labels(string ID, bool IsVisible = true): IsVisible(IsVisible)
+	Labels(string ID, bool IsVisible = true)
 	{
 		ChangeID(ID);
+		setVisible(IsVisible);
 	}
 
 	void Render()
@@ -539,21 +524,17 @@ public:
 			ImGui::PopStyleColor();
 	}
 private:
-	bool IsVisible = false, NeedToChangeColor = false;
+	bool NeedToChangeColor = false;
 	ImVec4 Color = ImVec4(0.f, 0.f, 0.f, 1.f);
 };
-class Buttons: virtual public BaseComponent
+class Buttons: public BaseComponent
 {
 public:
-	bool GetVisible() { return IsVisible; }
-	void setVisible(bool Visible) { IsVisible = Visible; }
-
-	bool IsClicked() { return clicked; }
-
 	Buttons() {}
-	Buttons(string ID, bool IsVisible = true): IsVisible(IsVisible)
+	Buttons(string ID, bool IsVisible = true)
 	{
 		ChangeID(ID);
+		setVisible(IsVisible);
 	}
 
 	void Render()
@@ -563,10 +544,8 @@ public:
 		else
 			clicked = false;
 	}
-private:
-	bool IsVisible = false, clicked = false;
 };
-class CollapsingHeaders: virtual public BaseComponent
+class CollapsingHeaders: public BaseComponent
 {
 public:
 	void setCollapse(bool Collapse) { IsCollapse = Collapse; }
@@ -586,7 +565,7 @@ private:
 	bool SelDef = false, IsCollapse = true;
 	ImGuiTreeNodeFlags Flags = 0;
 };
-class Child: virtual public BaseComponent
+class Child: public BaseComponent
 {
 public:
 	void setHScroll(bool HScroll) { IsHScroll = HScroll; }
@@ -652,15 +631,15 @@ public:
 
 	void Render();
 private:
-	string IDTitle = "";
-	bool IsVisible = false,
-		IsKeyboardSupport = false,
+	string IDTitle;
+	bool IsKeyboardSupport = false,
 		ShowTitle = false,
 		IsMoveble = false,
 		IsResizeble = false,
 		IsCollapsible = false,
 		IsNeedBringToFont = false,
-		IsFullScreen = false;
+		IsFullScreen = false,
+		IsVisible = false;
 
 	ImGuiWindowFlags window_flags = 0;
 

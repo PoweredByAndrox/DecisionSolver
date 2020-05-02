@@ -1,5 +1,3 @@
-var searchData=
-[
-  ['waveformat_5ftag',['waveformat_tag',['../structwaveformat__tag.html',1,'']]],
-  ['waveformatextensible',['WAVEFORMATEXTENSIBLE',['../struct_w_a_v_e_f_o_r_m_a_t_e_x_t_e_n_s_i_b_l_e.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:3dc78d27391190f3b6b6a826d45bb1e6f30f5622e998773b11b42efb1c3dfefb
+size 219

@@ -1,4 +1,3 @@
-var searchData=
-[
-  ['everything_20has_20started_20here_2e_20the_20following_20function_20inits_20each_20class_2e',['Everything Has Started Here. The Following Function Inits Each Class.',['../index.html',1,'']]]
-];
+version https://git-lfs.github.com/spec/v1
+oid sha256:5e22a19bc39d2a7d584b83cbb2ea3a81394f470d620fc2a7057a0043c0b757e5
+size 216

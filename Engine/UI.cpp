@@ -1842,7 +1842,7 @@ void UI::ProcessXML()
 			// Dialog
 		dialog.push_back(make_shared<dialogs>());
 		float W = 0.f, H = 0.f, SizeFont = 0.f, Bright = 0.f;
-		string nameFont = "";
+		string nameFont;
 		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(XMLDialogs.at(IDDial)->Dial->ToElement()->FirstAttribute());
 		for (;;)
 		{
@@ -1867,7 +1867,7 @@ void UI::ProcessXML()
 				if (!FirstAttr)
 					break;
 			}
-			if (strcmp(FirstAttr->Name(), "open") == 0)
+			if (strcmp(FirstAttr->Name(), "visible") == 0)
 			{
 				dialog.at(IDDial)->setVisible(FirstAttr->BoolValue());
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
@@ -2063,9 +2063,9 @@ shared_ptr<dialogs> UI::getDialog(string IDDialog)
 			return Dialogs.at(i);
 	}
 
-	//Engine::LogError("UI: " + string(IDDialog) + " Cannot Be Found!",
-	//	"UI: " + string(IDDialog) + " Cannot Be Found!",
-	//	"UI: " + string(IDDialog) + " Cannot Be Found!");
+	//Engine::LogError("UI: " + string(IDDialog) + " Cannot Be found!\n",
+	//	"UI: " + string(IDDialog) + " Cannot Be found!\n",
+	//	"UI: " + string(IDDialog) + " Cannot Be found!\n");
 	return make_shared<dialogs>();
 }
 
@@ -2382,9 +2382,9 @@ shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName, bool NeedL
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Buttons>();
 }
 
@@ -2396,9 +2396,9 @@ shared_ptr<Labels> AllTheComponent::FindComponentLabel(string CmpName, bool Need
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Labels>();
 }
 
@@ -2410,9 +2410,9 @@ shared_ptr<ITextMulti> AllTheComponent::FindComponentITextMul(string CmpName, bo
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<ITextMulti>();
 }
 
@@ -2424,9 +2424,9 @@ shared_ptr<IText> AllTheComponent::FindComponentIText(string CmpName, bool NeedL
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<IText>();
 }
 
@@ -2438,9 +2438,9 @@ shared_ptr<UnformatedText> AllTheComponent::FindComponentUText(string CmpName, b
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<UnformatedText>();
 }
 
@@ -2452,9 +2452,9 @@ shared_ptr<TextList> AllTheComponent::FindComponentTList(string CmpName, bool Ne
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<TextList>();
 }
 
@@ -2466,9 +2466,9 @@ shared_ptr<Selectable> AllTheComponent::FindComponentSelectable(string CmpName, 
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Selectable>();
 }
 
@@ -2481,8 +2481,8 @@ shared_ptr<Combobox> AllTheComponent::FindComponentCombo(string CmpName, bool Ne
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Combobox>();
 }
 
@@ -2494,9 +2494,9 @@ shared_ptr<TreeNode> AllTheComponent::FindComponentTreeNode(string CmpName, bool
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<TreeNode>();
 }
 
@@ -2508,9 +2508,9 @@ shared_ptr<Tab> AllTheComponent::FindComponentTab(string CmpName, bool NeedLog)
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Tab>();
 }
 
@@ -2522,9 +2522,9 @@ shared_ptr<Child> AllTheComponent::FindComponentChild(string CmpName, bool NeedL
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Child>();
 }
 
@@ -2536,9 +2536,9 @@ shared_ptr<CollapsingHeaders> AllTheComponent::FindComponentCHeader(string CmpNa
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<CollapsingHeaders>();
 }
 
@@ -2550,9 +2550,9 @@ shared_ptr<Column> AllTheComponent::FindComponentColumn(string CmpName, bool Nee
 			return it.second;
 	}
 	if (NeedLog)
-		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!");
+		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Column>();
 }
 
@@ -2716,31 +2716,15 @@ void ITextMulti::Render()
 	if (IsCtrlNewLine)
 		Flags |= ImGuiInputTextFlags_CtrlEnterForNewLine;
 
-	if (clText.empty())
+	Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
+
+	for (size_t i = 0; i < clText.size(); i++)
 	{
-		string str = "";
-		ImGui::InputTextMultiline(GetText().c_str(), &str, ImVec2(0, 0), Flags);
-		ChangeText(str);
-	}
-	else
-	{
-		for (size_t i = 0; i < clText.size(); i++)
-		{
-			if (clText.at(i).type == Type::Normal)
-				ImGui::InputTextMultiline(GetText().c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-			else if (clText.at(i).type == Type::Information)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.8f, 0.6f, 1.0f));
-				ImGui::InputTextMultiline(GetText().c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-				ImGui::PopStyleColor();
-			}
-			else if (clText.at(i).type == Type::Error)
-			{
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
-				ImGui::InputTextMultiline(GetText().c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
-				ImGui::PopStyleColor();
-			}
-		}
+		ImGui::PushStyleColor(ImGuiCol_Text,
+			clText.at(i).type == Type::Normal ? ImVec4(0.0f, 112.0f, 150.0f, 1.0f) :
+			(clText.at(i).type != Type::Information ? ImVec4(1.0f, 0.8f, 0.6f, 1.0f) : ImVec4(1.0f, 0.4f, 0.4f, 1.0f)));
+		pressEnter = ImGui::InputTextMultiline(GetID().c_str(), &clText.at(i).str, ImVec2(0, 0), Flags);
+		ImGui::PopStyleColor();
 	}
 }
 
@@ -2757,13 +2741,15 @@ void IText::Render()
 	if (NeedToUseTAB)
 		Flags |= ImGuiInputTextFlags_CallbackCompletion;
 
+	Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
+
 	if (IsNeedHint)
-		if (ImGui::InputTextWithHint(TextHint.c_str(), TextHint.c_str(), &Text, Flags))
+		if (pressEnter = ImGui::InputTextWithHint(TextHint.c_str(), TextHint.c_str(), &Text, Flags))
 			IsTextChange = true;
 		else
 			IsTextChange = false;
 	else
-		if (ImGui::InputText(GetID().c_str(), &Text, Flags))
+		if (pressEnter = ImGui::InputText(GetID().c_str(), &Text, Flags))
 			IsTextChange = true;
 		else
 			IsTextChange = false;

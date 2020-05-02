@@ -55,7 +55,7 @@ public:
 
 	HRESULT Init();
 	static void Destroy();
-	void Update();
+	void UpdateUI();
 
 	static string Receive(string msg, SOCKET Sock);
 	static bool Send(string MSG, SOCKET sock, sockaddr_in some_addr = sockaddr_in());

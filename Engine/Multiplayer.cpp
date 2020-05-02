@@ -43,9 +43,53 @@ void Multiplayer::Destroy()
 	::WSACleanup();
 }
 
-void Multiplayer::Update()
+string Log, Pas;
+void Multiplayer::UpdateUI()
 {
-	//Multiplayer::Client::Update();
+	auto DialMPConn = Application->getUI()->getDialog("MPConnection");
+	auto DialMPLogin = Application->getUI()->getDialog("MPLogin");
+	
+	if (!DialMPLogin->getVisible() && DialMPConn.operator bool() &&
+		!DialMPConn->GetTitle().empty())
+	{
+		auto Comp = DialMPConn->getComponents();
+		if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
+			Comp->FindComponentITextMul("##MP_Chat")->AddText(Type::Normal,
+				Comp->FindComponentIText("##MP_IText")->GetText());
+		if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
+			Comp->FindComponentITextMul("##MP_Chat")->ClearText();
+		DialMPConn->Render();
+	}
+
+	if (!DialMPConn->getVisible() && DialMPLogin.operator bool() &&
+		!DialMPLogin->GetTitle().empty())
+	{
+		auto Comp = DialMPLogin->getComponents();
+		if (Comp->FindComponentBtn("##MP_Connect")->IsClicked() ||
+			Comp->FindComponentIText("##MP_Login")->PressedEnter() ||
+			Comp->FindComponentIText("##MP_Pass")->PressedEnter())
+		{
+			Log = Comp->FindComponentIText("##MP_Login")->GetText();
+			Pas = Comp->FindComponentIText("##MP_Pass")->GetText();
+
+			string MSG = "You connected to the server with" + Log + " and " + Pas;
+			auto PrevDial = DialMPConn->getComponents();
+			
+			if (!Log.empty() && !Pas.empty() && Log == "PBAX" && Pas == "Test")
+			{
+				PrevDial->FindComponentITextMul("##MP_Chat")->AddText(Type::Information, MSG);
+				DialMPConn->setVisible(true);
+				DialMPLogin->setVisible(false);
+			}
+			else
+			{
+				MSG = "You entered wrong an User Information";
+				PrevDial->FindComponentITextMul("##MP_Chat")->AddText(Type::Error, MSG);
+			}
+		}
+
+		DialMPLogin->Render();
+	}
 }
 
 #include "Camera.h"
@@ -136,7 +180,7 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 							string IP = ((boost::format("%s.%s.%s.%s") % to_string(from.sin_addr.S_un.S_un_b.s_b1)
 								% to_string(from.sin_addr.S_un.S_un_b.s_b2) % to_string(from.sin_addr.S_un.S_un_b.s_b3)
 								% to_string(from.sin_addr.S_un.S_un_b.s_b4)).str());
-							DialMP->getComponents()->Itextmul.back().second->AddCLText(Type::Information,
+							DialMP->getComponents()->Itextmul.back().second->AddText(Type::Information,
 								(boost::format("The user ID = %d, IP = %s, Port = %s.\nConnection Successful!")
 									% slot %IP % to_string(from.sin_port)).str());
 						}

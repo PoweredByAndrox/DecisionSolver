@@ -432,27 +432,7 @@ void Engine::Render()
 			if (DialCons.operator bool() && !DialCons->GetTitle().empty())
 				console->Render();
 
-			auto DialMP = ui->getDialog("MPConnection");
-			if (DialMP.operator bool() && !DialMP->GetTitle().empty() && MPL.operator bool())
-			{
-				auto Comp = DialMP->getComponents();
-				if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
-					MPL->Send("Chat: " + Comp->FindComponentIText("##MP_IText")->GetText(),
-						MPL->getCurrentUser()->getSocket(),
-						MPL->getCurrentUser()->getAddresStruct());
-				if (Comp->FindComponentBtn("##MP_CreateServer")->IsClicked())
-					MPL->getServer()->Create();
-				if (Comp->FindComponentBtn("##MP_Connect")->IsClicked())
-					MPL->Connect();
-				if (Comp->FindComponentBtn("##MP_Disconnect")->IsClicked())
-					MPL->getCurrentUser()->Disconnect();
-				if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
-					Comp->FindComponentITextMul("##MP_Chat")->ClearText();
-				//MPL->Update();
-				//if (!str.empty())
-				//	Comp->Itextmul.back()->AddCLText(Type::Normal, string("Echo: ") + str);
-				DialMP->Render();
-			}
+			MPL->UpdateUI();
 
 			if (SDK)
 				SDK->Render();
