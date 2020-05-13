@@ -536,7 +536,8 @@ public:
 	 * \returns	The current path.
 	 */
 
-	auto static GetCurrentPath() { return WorkDir; }
+	auto static GetCurrentPath() { return WorkDir.generic_string() + 
+		((WorkDir.generic_string().back() == '/') ? "" : "/"); }
 
 	/**
 	 * \fn	string File_system::getPathFromType(_TypeOfFile T);
@@ -578,6 +579,8 @@ public:
 	 */
 
 	void CreateProject(path CurrFile) { Project = make_shared<ProjectFile>(CurrFile); }
+	boost::property_tree::ptree LoadSettings();
+	void SaveSettings(vector<pair<string, string>> ToFile);
 protected:
 	/** \brief	The work dir */
 	static path WorkDir;

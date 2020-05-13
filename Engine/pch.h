@@ -51,6 +51,7 @@ using namespace tinyxml2;
 #if defined (_DEBUG)
 	#include <d3d11sdklayers.h>
 #endif
+#include <boost/property_tree/ini_parser.hpp>
 
 	// For Debug!!!
 #define MacroStr(x) #x

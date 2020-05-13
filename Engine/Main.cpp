@@ -21,6 +21,7 @@
 #include "Multiplayer.h"
 #include "UI.h"
 #include "CLua.h"
+#include "SDKInterface.h"
 
 #include "Timer.h"
 
@@ -50,6 +51,7 @@ ToDo("Use PxPreprocessor.h for Check If We Have x86 or x64")
  * \returns	A WINAPI.
  * \see Engine
  */
+shared_ptr<SDKInterface> SDK = make_shared<SDKInterface>();
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
@@ -76,6 +78,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"Application::Init() Failed!");
 		return 5;
 	}
+	SDK->Load(Application->getFS()->LoadSettings());
 
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
@@ -91,7 +94,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"getUI()->Init() is failed!!!", "UI: Init Failed!");
 		return 5;
 	}
-	Application->getUI()->LoadXmlUI(Application->getFS()->GetFile("All.xml")->PathA.c_str());
+	Application->getUI()->LoadFileUI(Application->getFS()->GetFile("All.xml")->PathA.c_str());
 
 	//	// Console Class!!!
 	Application->setConsole(make_shared<Console>());

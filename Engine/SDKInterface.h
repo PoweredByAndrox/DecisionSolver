@@ -4,14 +4,22 @@
 #include "pch.h"
 
 #include "UI.h"
+class ptree;
 class SDKInterface
 {
 public:
 	void Render();
+	void Load(boost::property_tree::ptree fData);
+	void Save();
 private:
-	bool Open = true, Open2 = true, Open3 = false, Open4 = true, Open5 = true, Open6 = true,
-		Open7 = true;
 	ImGuiTextFilter filter;
+	float MovSense = 2.f, RotSense = 2.f;
+	bool IsFreeCam = false;
+	Vector3 Pos = Vector3::Zero, Look = Vector3::Zero;
+	bool LOGO = true, HoL = true, FR = false, CS = false, LagTest = false, audio = false;
+
+	// Utilities
+	string getPos, getLook;
 };
 
 #endif // !__SDKINTERFACE_H__

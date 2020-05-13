@@ -1099,6 +1099,8 @@ vector<string> File_system::getDataFromFileVector(string File, bool LineByline)
 }
 bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FilePtr)
 {
+	if (!exists(filename) || file_size(filename) == 0) return false;
+
 	std::ifstream is(filename, std::ifstream::binary);
 	if (is)
 	{
@@ -1110,12 +1112,11 @@ bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FileP
 		reinterpret_cast<char *>(*FilePtr)[*FileSize] = '\0';
 
 		is.read((char *)*FilePtr, *FileSize);
-
-		if (!is)
-		{
-			is.close();
-			return false;
-		}
+	}
+	else
+	{
+		is.close();
+		return false;
 	}
 
 	is.close();
@@ -1134,7 +1135,7 @@ void File_system::ProjectFile::OpenFile(path File)
 	void *Buf = { 0 };
 	size_t n = 0;
 	Application->getFS()->ReadFileMemory(File.string().c_str(), &n, &Buf);
-	Application->getLevel()->LoadXML(reinterpret_cast<char *>(Buf));
+	Application->getLevel()->Load(reinterpret_cast<char *>(Buf));
 }
 
 #include "GameObjects.h"
@@ -1167,7 +1168,7 @@ void File_system::ProjectFile::SaveCurrProj()
 	{
 		auto Node = Nodes.at(i);
 		if (Node->IsItChanged)
-			Buff = Application->getLevel()->SomeFunc(Doc, Node);
+			Buff = Application->getLevel()->Save(Doc, Node);
 	}
 
 	*make_shared<boost::filesystem::ofstream>(CurrentProj, std::ofstream::out) << Buff;
@@ -1210,4 +1211,36 @@ void File_system::ProjectFile::CheckForSameFile(path Path)
 
 	RecentFiles.push_back({ (int)RecentFiles.size(), Path });
 	Resort();
+}
+
+boost::property_tree::ptree File_system::LoadSettings()
+{
+	bool IfRead = false;
+	void *File; size_t Size;
+	boost::property_tree::ptree fData;
+	if (IfRead = File_system::ReadFileMemory((GetCurrentPath() + "settings.cfg").c_str(), &Size, &File))
+	{
+		string Data = reinterpret_cast<const char *>(File);
+		to_lower(Data);
+
+		std::istringstream ini(Data);
+		boost::property_tree::ini_parser::read_ini(ini, fData);
+	}
+
+	return fData;
+}
+
+void File_system::SaveSettings(vector<pair<string, string>> ToFile)
+{
+	path p(GetCurrentPath() + "settings.cfg");
+	remove(p);
+
+	boost::property_tree::ptree fData;
+	
+	for (auto Auto: ToFile)
+	{
+		fData.add<string>(Auto.first, Auto.second);
+	}
+
+	boost::property_tree::ini_parser::write_ini(p.string(), fData);
 }

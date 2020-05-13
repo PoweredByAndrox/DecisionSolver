@@ -21,7 +21,7 @@ pair<Vector3, bool> DragFloat3(string ID, Vector3 Thing)
 
 static vector<string> values = { "Stay", "WalkToNPoint", "Follow" };
 static vector<string> TrueFalse = { "True", "False" };
-int Current = 0, Curr = 0, Cur = 1, Open6Cur = 0;
+int Current = 0, Cur = 1, Open6Cur = 0;
 float NewTarget = 0.f, Aud_Targt1 = 0.f, Aud_Targt2 = 1.f, Aud_Targt3 = 1.f;
 
 #include "Models.h"
@@ -38,9 +38,9 @@ void SDKInterface::Render()
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
-	if (Open)
+	if (LOGO)
 	{
-		if (ImGui::Begin("List Of Game Objects", &Open))
+		if (ImGui::Begin("List Of Game Objects", &LOGO))
 		{
 			ImGui::Columns(2);
 			ImGui::Separator();
@@ -171,9 +171,9 @@ void SDKInterface::Render()
 
 	ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
-	if (Open2)
+	if (HoL)
 	{
-		if (ImGui::Begin("Hierarchy of Level", &Open2))
+		if (ImGui::Begin("Hierarchy of Level", &HoL))
 		{
 			if (ImGui::Button("Add One"))
 				ImGui::OpenPopup("##my_toggle_popup");
@@ -241,10 +241,10 @@ void SDKInterface::Render()
 		ImGui::End();
 	}
 
-	if (Open3)
+	if (FR)
 	{
 		ToDo("Drag and drop here?");
-		if (ImGui::Begin("File Resources", &Open3))
+		if (ImGui::Begin("File Resources", &FR))
 		{
 			UI::HelpMarker("Filter usage:\n"
 				"  \"\"         display all lines\n"
@@ -273,7 +273,7 @@ void SDKInterface::Render()
 			if (Mdl)
 			{
 				auto MldFiles = FS->GetFileByType(_TypeOfFile::MODELS);
-				for (auto it : MldFiles)
+				for (auto it: MldFiles)
 				{
 					if (filter.PassFilter(it.first->FileA.c_str()))
 						ImGui::TreeNodeEx(("File#" + it.first->FileA).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -287,7 +287,7 @@ void SDKInterface::Render()
 			if (Txtrs)
 			{
 				auto TxtrFiles = FS->GetFileByType(_TypeOfFile::TEXTURES);
-				for (auto it : TxtrFiles)
+				for (auto it: TxtrFiles)
 				{
 					if (filter.PassFilter(it.first->FileA.c_str()))
 						ImGui::TreeNodeEx(("File#" + it.first->FileA).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -301,7 +301,7 @@ void SDKInterface::Render()
 			if (Lvls)
 			{
 				auto LvlFiles = FS->GetFileByType(_TypeOfFile::LEVELS);
-				for (auto it : LvlFiles)
+				for (auto it: LvlFiles)
 				{
 					if (filter.PassFilter(it.first->FileA.c_str()))
 						ImGui::TreeNodeEx(("File#" + it.first->FileA).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -315,7 +315,7 @@ void SDKInterface::Render()
 			if (Shdrs)
 			{
 				auto ShdrFiles = FS->GetFileByType(_TypeOfFile::SHADERS);
-				for (auto it : ShdrFiles)
+				for (auto it: ShdrFiles)
 				{
 					if (filter.PassFilter(it.first->FileA.c_str()))
 						ImGui::TreeNodeEx(("File#" + it.first->FileA).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -329,7 +329,7 @@ void SDKInterface::Render()
 			if (Scrpts)
 			{
 				auto ScrFiles = FS->GetFileByType(_TypeOfFile::SCRIPTS);
-				for (auto it : ScrFiles)
+				for (auto it: ScrFiles)
 				{
 					if (filter.PassFilter(it.first->FileA.c_str()))
 						ImGui::TreeNodeEx(("File#" + it.first->FileA).c_str(), ImGuiTreeNodeFlags_Leaf |
@@ -343,9 +343,9 @@ void SDKInterface::Render()
 		ImGui::End();
 	}
 
-	/*	if (Open4)
+	/*	if (CS)
 		{
-			if (ImGui::Begin("Logic 'n' Cut-Scene", &Open4))
+			if (ImGui::Begin("Logic 'n' Cut-Scene", &CS))
 			{
 				bool SLogic = ImGui::TreeNode("Simple Logic");
 				if (SLogic)
@@ -493,66 +493,10 @@ void SDKInterface::Render()
 			}
 			ImGui::End();
 		}*/
-
-	if (Open5)
-	{
-		if (ImGui::Begin("Everything", &Open5))
-		{
-			ImGui::SetNextItemOpen(true);
-			bool Cam = ImGui::TreeNode("Camera");
-			if (Cam)
-			{
-				auto Cam = Application->getCamera();
-				ImGui::Separator();
-				ImGui::TreeNodeEx("Position:", ImGuiTreeNodeFlags_Leaf |
-					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
-				ImGui::SameLine();
-				Vector3 Pos = Cam->GetEyePt(), Look = Cam->GetLookAtPt();
-				bool BPos = ImGui::DragFloat3("##Position", (float *)&Pos);
-
-				ImGui::Text("Look: ");
-				ImGui::SameLine();
-				bool BLook = ImGui::DragFloat2("##Look", (float *)&Look);
-				if (BPos || BLook)
-					Cam->Teleport(Pos, Look);
-
-				ImGui::Separator();
-				Cur = Cam->GetIsFreeCam();
-				if (Combobox::Combo("Is Free Cam?", &Cur, TrueFalse))
-					Cam->SetFreeMoveCam((bool)Cur);
-				ImGui::Separator();
-
-				ImGui::TreeNodeEx("Move Senses:", ImGuiTreeNodeFlags_Leaf |
-					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
-				float MovSense = Cam->getMoveScale(), RotSense = Cam->getRotateScale();
-				ImGui::Text("Move Scaler: ");
-				ImGui::SameLine();
-				bool MSense = ImGui::DragFloat("##MSense", &MovSense);
-
-				ImGui::Text("Rotation Scaler: ");
-				ImGui::SameLine();
-				bool RSense = ImGui::DragFloat("##RSense", &RotSense);
-				if (MSense || RSense)
-					Cam->SetScalers(RotSense, MovSense);
-
-				ImGui::Separator();
-				ImGui::TreePop();
-			}
-
-			//bool Gm = ImGui::TreeNode("Game");
-			//if (Gm)
-			//{
-			//	ImGui::TreeNodeEx("File", ImGuiTreeNodeFlags_Leaf |
-			//		ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
-			//	ImGui::TreePop();
-			//}
-		}
-		ImGui::End();
-	}
 	
-	if (Open6)
+	if (LagTest)
 	{
-		if (ImGui::Begin("Lag Testing", &Open6))
+		if (ImGui::Begin("Lag Testing", &LagTest))
 		{
 			auto Timer = Application->getMainThread();
 			ImGui::Separator();
@@ -666,9 +610,9 @@ void SDKInterface::Render()
 		ImGui::End();
 	}
 
-	if (Open7)
+	if (audio)
 	{
-		if (ImGui::Begin("Audio", &Open7))
+		if (ImGui::Begin("Audio", &audio))
 		{
 			auto snd = Application->getSound();
 			ImGui::Separator();
@@ -760,10 +704,8 @@ void SDKInterface::Render()
 		if (ImGui::BeginMenu("File"))
 		{
 			if (ImGui::MenuItem("New Project"))
-			{
 					// Use it if we don't save the current file yet or offer to save this file and can change name
 				Application->getFS()->CreateProjectFile("New File");
-			}
 
 			ToDo("Add Dialogs For Open and Save actions");
 			// Needs To Shortcuts
@@ -782,8 +724,8 @@ void SDKInterface::Render()
 						return;
 					}
 
-					Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
 					Application->getFS()->GetProject()->OpenFile(Obj.second.back());
+					Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
 				}
 			}
 			if (ImGui::BeginMenu("Open Recent"))
@@ -835,25 +777,80 @@ void SDKInterface::Render()
 		ImGui::Separator();
 		if (ImGui::BeginMenu("Options"))
 		{
-			ToDo("Need To Add New File For Setting And Save It After Every Change These Things");
-			static bool enabled = true;
-			ImGui::MenuItem("Enabled", "", &enabled);
-			if (ImGui::BeginChild("child", ImVec2(0, 60), true))
-				for (int i = 0; i < 10; i++)
-					ImGui::Text("Scrolling Text %d", i);
-			ImGui::EndChild();
-			static float f = 0.5f;
-			static int n = 0;
-			static bool b = true;
-			ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
-			ImGui::InputFloat("Input", &f, 0.1f);
-			ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
-			ImGui::Checkbox("Check", &b);
+			//ToDo("Need To Add New File For Setting And Save It After Every Change These Things");
+			//static bool enabled = true;
+			//ImGui::MenuItem("Enabled", "", &enabled);
+			//if (ImGui::BeginChild("child", ImVec2(0, 60), true))
+			//	for (int i = 0; i < 10; i++)
+			//		ImGui::Text("Scrolling Text %d", i);
+			//ImGui::EndChild();
+			//static float f = 0.5f;
+			//static int n = 0;
+			//static bool b = true;
+			//ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
+			//ImGui::InputFloat("Input", &f, 0.1f);			
+			ImGui::Separator();
+			if (ImGui::TreeNode("Window Settings"))
+			{
+				ImGui::Text("Always Open:");
+				ImGui::Checkbox("List Of Game Objects", &LOGO);
+				//ImGui::Checkbox("Logic 'n' Cut - Scene", &CS);
+				ImGui::Checkbox("Hierarchy of Level", &HoL);
+				ImGui::Checkbox("File Resources", &FR);
+				ImGui::Checkbox("Lag Testing", &LagTest);
+				ImGui::Checkbox("Audio", &audio);
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+			if (ImGui::TreeNode("Camera Settings"))
+			{
+				auto Cam = Application->getCamera();
+				ImGui::Separator();
+				ImGui::TreeNodeEx("Position:", ImGuiTreeNodeFlags_Leaf |
+					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+				ImGui::SameLine();
+				Pos = Cam->GetEyePt(), Look = Cam->GetLookAtPt();
+				bool BPos = ImGui::DragFloat3("##Position", (float *)&Pos);
+
+				ImGui::Text("Look: ");
+				ImGui::SameLine();
+				bool BLook = ImGui::DragFloat2("##Look", (float *)&Look);
+				if (BPos || BLook)
+					Cam->Teleport(Pos, Look);
+
+				ImGui::Separator();
+				IsFreeCam = Cam->GetIsFreeCam();
+				if (Combobox::Combo("Is Free Cam?", (int *)&IsFreeCam, TrueFalse))
+					Cam->SetFreeMoveCam(IsFreeCam);
+				ImGui::Separator();
+
+				ImGui::TreeNodeEx("Move Senses:", ImGuiTreeNodeFlags_Leaf |
+					ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet);
+				MovSense = Cam->getMoveScale(), RotSense = Cam->getRotateScale();
+				ImGui::Text("Move Scaler: ");
+				ImGui::SameLine();
+				bool MSense = ImGui::DragFloat("##MSense", &MovSense);
+
+				ImGui::Text("Rotation Scaler: ");
+				ImGui::SameLine();
+				bool RSense = ImGui::DragFloat("##RSense", &RotSense);
+				if (MSense || RSense)
+					Cam->SetScalers(RotSense, MovSense);
+				ImGui::TreePop();
+			}
+			ImGui::Separator();
+			if (ImGui::Button("Save"))
+			{
+				getTextFloat3(getPos, ",", vector<float>{Pos.x, Pos.y, Pos.z});
+				getTextFloat3(getLook, ",", vector<float>{Look.x, Look.y, Look.z});
+				Save();
+			}
 			ImGui::EndMenu();
 		}
 		//if (ImGui::BeginMenu("Disabled", false)) {} // Disabled
 		//if (ImGui::MenuItem("Checked", NULL, true)) {}
 
+		ToDo("Undo");
 		if (ImGui::BeginMenu("Edit"))
 		{
 			if (ImGui::MenuItem("Undo", "CTRL+Z", false, false)) {}
@@ -866,4 +863,50 @@ void SDKInterface::Render()
 		}
 		ImGui::EndMainMenuBar();
 	}
+}
+
+void SDKInterface::Load(boost::property_tree::ptree fData)
+{
+	if (fData.empty()) return;
+
+	//Application->SetLogInf(fData.get<bool>("engine.is infolog", "true"));
+	//Application->SetLogNrm(fData.get<bool>("engine.is normallog", "false"));
+
+	Application->SetLogErr(fData.get<bool>("engine.is errorlog", "false"));
+
+	LOGO = fData.get<bool>("application.open_logo", "false");
+	//CS = fData.get<bool>("application.open_cs", "false");
+	HoL = fData.get<bool>("application.open_hol", "false");
+	FR = fData.get<bool>("application.open_fr", "false");
+	LagTest = fData.get<bool>("application.open_lg", "false");
+	audio = fData.get<bool>("application.open_aud", "false");
+	MovSense = fData.get<float>("application.movesense", MovSense) == 0.f ? 1.f : MovSense;
+	RotSense = fData.get<float>("application.rotsense", RotSense) == 0.f ? 1.f : RotSense;
+	IsFreeCam = fData.get<bool>("application.isfreecam", "false");
+	getPos = fData.get<string>("application.pos", "0,0,0");
+	getLook = fData.get<string>("application.look", "0,0,0");
+}
+void SDKInterface::Save()
+{
+	vector<pair<string, string>> Settings =
+	{
+		make_pair("engine.is infolog", "false"),
+		make_pair("engine.is errorlog", "false"),
+		make_pair("engine.is normallog", "false"),
+
+		make_pair("application.open_logo", to_string(LOGO)),
+		//make_pair("application.open_cs", to_string(CS)),
+		make_pair("application.open_hol", to_string(HoL)),
+		make_pair("application.open_fr", to_string(FR)),
+		make_pair("application.open_lg", to_string(LagTest)),
+		make_pair("application.open_aud", to_string(audio)),
+
+		make_pair("application.movesense", to_string(MovSense)),
+		make_pair("application.rotsense", to_string(RotSense)),
+		make_pair("application.isfreecam", to_string(IsFreeCam)),
+		make_pair("application.pos", getPos),
+		make_pair("application.look", getLook),
+	};
+
+	Application->getFS()->SaveSettings(Settings);
 }

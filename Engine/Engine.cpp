@@ -35,6 +35,7 @@ DXGI_SWAP_CHAIN_DESC1 Engine::SCD1;
 D3D11_TEXTURE2D_DESC Engine::descDepth;
 D3D11_VIEWPORT Engine::vp;
 bool Engine::isQuit = false;
+bool Engine::IsLogError = false;
 
 shared_ptr<Timer> Engine::MainThread = make_shared<Timer>();
 
@@ -42,7 +43,7 @@ shared_ptr<Mouse> Engine::mouse = make_shared<Mouse>();
 shared_ptr<Keyboard> Engine::keyboard = make_shared<Keyboard>();
 shared_ptr<GamePad> Engine::gamepad = make_shared<GamePad>();
 
-shared_ptr<SDKInterface> SDK = make_shared<SDKInterface>();
+extern shared_ptr<SDKInterface> SDK;
 
 WNDCLASSEXW wnd;
 
@@ -439,13 +440,13 @@ void Engine::Render()
 			ui->FrameEnd();
 			//});
 		}
-
 		SwapChain->Present(0, 0);
 	});
 }
 
 void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 {
+	if (!IsLogError) return;
 #if defined (_DEBUG)
 	if (!DebugText.empty())
 		OutputDebugStringA(DebugText.c_str());

@@ -11,14 +11,14 @@ extern shared_ptr<Engine> Application;
 ToDo("Add a 'Spawn' command after Reffactoring a GameObject Class")
 static const vector<string> ListCommands =
 {
-	string("help"), string("quit"), string("clear"),
-	string("dotorque"), string("cleanphysbox"),
-	string("reinit_lua")
+	"help", "quit", "clear",
+	"dotorque", "cleanphysbox",
+	"reinit_lua"
 };
 static const vector<string> ListCommandsWithParams =
 {
-	string("changesize #float W, #float H"), /*string("addphysbox #float MassObj, #float SizeModel"),*/
-	string("exec_lua #PathToFile.function(param)")
+	"changesize #float W, #float H", /*"addphysbox #float MassObj, #float SizeModel",*/
+	"exec_lua #PathToFile.function(param)"
 };
 
 #include "File_system.h"
@@ -36,11 +36,11 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 			return;
 	}
 	else
-		Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-		FindComponentUText("##CText")->AddCLText(Type::Error, string(string("You're typed: ") + Text +
-			string("\n[error]: Unknown command type Help for help!")));
+		Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Error, "You're typed: " + Text +
+			"\n[error]: Unknown command type Help for help!");
 
-	File_system::AddTextToLog(string("\n> ") + Text + string("\n"), Type::Normal);
+	File_system::AddTextToLog("\n> " + Text + "\n", Type::Normal);
 }
 
 void Commands::Init()
@@ -54,13 +54,13 @@ void Commands::Init()
 		if (ListCommandsWithParams.at(i) == "exec_lua #PathToFile.function(param)") // HardCode CMD!!!
 		{
 			auto deleteStringParam = ListCommandsWithParams.at(i), deleteStringCommand = ListCommandsWithParams.at(i);
-			deleteWord(deleteStringParam, string("#"), ModeProcessString::UntilTheBegin);
-			deleteWord(deleteStringCommand, string("#"), ModeProcessString::UntilTheEnd);
+			deleteWord(deleteStringParam, "#", ModeProcessString::UntilTheBegin);
+			deleteWord(deleteStringCommand, "#", ModeProcessString::UntilTheEnd);
 			commands.push_back(make_shared<Command>(deleteStringCommand, deleteStringParam, Command::TypeOfCommand::Lua));
 		}
 		auto deleteStringParam = ListCommandsWithParams.at(i), deleteStringCommand = ListCommandsWithParams.at(i);
-		deleteWord(deleteStringParam, string("#"), ModeProcessString::UntilTheBegin);
-		deleteWord(deleteStringCommand, string("#"), ModeProcessString::UntilTheEnd);
+		deleteWord(deleteStringParam, "#", ModeProcessString::UntilTheBegin);
+		deleteWord(deleteStringCommand, "#", ModeProcessString::UntilTheEnd);
 		commands.push_back(make_shared<Command>(deleteStringCommand, deleteStringParam, Command::TypeOfCommand::WithParam));
 	}
 }
@@ -71,10 +71,10 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	{
 		if (cmd->CommandUnprocessed.empty())
 		{
-			Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-				FindComponentUText("##CText")->AddCLText(Type::Error,
-				string(cmd->CommandStr + string(": No parameters found! You must add several parameters, such like: ") +
-					cmd->CommandNeededParams));
+			Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+				FindComponentUText("##CText")->AddText(Type::Error,
+				cmd->CommandStr + ": No parameters found! You must add several parameters, such like: " +
+					cmd->CommandNeededParams);
 			return;
 		}
 
@@ -91,24 +91,24 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 			string all;
 			for (size_t i = 0; i < ListCommands.size(); i++)
 			{
-				all.append(string(string("\n") + ListCommands.at(i)));
+				all.append("\n" + ListCommands.at(i));
 			}
-			all.append(string(string("\nCMD With Params:")));
+			all.append("\nCMD With Params:");
 			for (size_t i = 0; i < ListCommandsWithParams.size(); i++)
 			{
-				all.append(string(string("\n") + ListCommandsWithParams.at(i)));
+				all.append("\n" + ListCommandsWithParams.at(i));
 			}
 
-			Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-				FindComponentUText("##CText")->AddCLText(Type::Information,
-					string("#list of available commands: ") + all);
+			Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+				FindComponentUText("##CText")->AddText(Type::Information,
+					"#list of available commands: " + all);
 		}
 		else if (contains(CMD, "quit"))
 			Application->Quit();
 		else if (contains(CMD, "clear"))
 		{
-			Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-				FindComponentUText("##CText")->ClearBuffer();
+			Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+				FindComponentUText("##CText")->ClearText();
 			File_system::ClearLogs();
 			History.push_back(cmd->TypedCmd);
 			return;
@@ -125,9 +125,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 						Application->getCamera()->GetEyePt().z), PxForceMode::eFORCE);
 			}
 			else
-				Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-				FindComponentUText("##CText")->AddCLText(Type::Error,
-					string(CMD + string(": GetPhysDynamicObject() return NULL!!!")));
+				Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+				FindComponentUText("##CText")->AddText(Type::Error, CMD + ": GetPhysDynamicObject() return NULL!!!");
 		}
 		else if (contains(CMD, "cleanphysbox"))
 			Application->getPhysics()->ClearAllObj();
@@ -151,8 +150,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 		//}
 	}
 
-	Console->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->
-		FindComponentUText("##CText")->AddCLText(Type::Normal, string(cmd->CommandStr + string(" #Apply")));
+	Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Normal, cmd->CommandStr + " #Apply");
 
 	for (size_t i = 0; i < History.size(); i++)
 	{
@@ -183,7 +182,7 @@ shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Co
 		to_lower(GetCommand);
 		to_lower(ThisCommand);
 
-		if (strcmp(ThisCommand.c_str(), GetCommand.c_str()) == 0)
+		if (contains(ThisCommand.c_str(), GetCommand.c_str()))
 		{
 			if (Text.length() <= ThisCommand.length() || GetParam.empty())
 				return commands.at(i);
@@ -218,7 +217,7 @@ void Commands::Command::CheckRequiredParam()
 
 		replaceAll(S_Three, ")", "", true, true);
 
-		CommandParamsProcess = S_One + string(" ") + S_Two + string(" ") + S_Three;
+		CommandParamsProcess = S_One + " " + S_Two + " " + S_Three;
 	}
 	deleteWord(CommandUnprocessed, " ");
 

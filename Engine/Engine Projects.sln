@@ -29,6 +29,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestReplaceCyrrilicSymbols"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Microphone Support", "..\Tests\Test Microphone Support\Test Microphone Support.vcxproj", "{E0C3038D-5252-4404-A1AC-9788802F39F1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Ini Boost", "..\Tests\Test Ini Boost\Test Ini Boost.vcxproj", "{9FF26D59-7CCF-4E3A-854F-021608D73C21}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -90,6 +92,14 @@ Global
 		{E0C3038D-5252-4404-A1AC-9788802F39F1}.Release|x64.Build.0 = Release|x64
 		{E0C3038D-5252-4404-A1AC-9788802F39F1}.Release|x86.ActiveCfg = Release|Win32
 		{E0C3038D-5252-4404-A1AC-9788802F39F1}.Release|x86.Build.0 = Release|Win32
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Debug|x64.ActiveCfg = Debug|x64
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Debug|x64.Build.0 = Debug|x64
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Debug|x86.ActiveCfg = Debug|Win32
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Debug|x86.Build.0 = Debug|Win32
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Release|x64.ActiveCfg = Release|x64
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Release|x64.Build.0 = Release|x64
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Release|x86.ActiveCfg = Release|Win32
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -101,6 +111,7 @@ Global
 		{9A92E577-938E-43CB-82B8-E267D3AD6036} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
 		{49ADAE5D-D8D8-49E5-A880-341E742E1BD6} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
 		{E0C3038D-5252-4404-A1AC-9788802F39F1} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
+		{9FF26D59-7CCF-4E3A-854F-021608D73C21} = {CF91DA6A-A884-4ED5-972F-97454F4E907B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {52DD52C6-4B5F-4111-B853-40E3A0B1A86B}

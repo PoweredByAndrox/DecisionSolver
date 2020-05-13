@@ -12,7 +12,7 @@
 
 //
 //  WASAPI Capture class.
-class CWASAPICapture : public IAudioSessionEvents, IMMNotificationClient
+class CWASAPICapture: public IAudioSessionEvents, IMMNotificationClient
 {
 public:
 	//  Public interface to CWASAPICapture.

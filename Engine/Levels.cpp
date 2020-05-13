@@ -13,7 +13,7 @@ extern shared_ptr<Engine> Application;
 //vector<shared_ptr<GameObjects::Object>> Levels::Obj_other, Levels::Obj_npc;
 //vector<string> Levels::IDModels;
 
-HRESULT Levels::LoadXML(string FileBuff)
+HRESULT Levels::Load(string FileBuff)
 {
 	deleteWord(FileBuff, string("<!--"), string("-->"));
 	if (doc->Parse(FileBuff.c_str()) > 0)
@@ -31,89 +31,15 @@ HRESULT Levels::LoadXML(string FileBuff)
 		return E_FAIL;
 	}
 
-	ProcessXML();
-	return S_OK;
-}
-
-void Levels::XMLPreparing(vector<XMLElement *> Attrib)
-{
-	for (;;)
+	if (!FindSubStr(FileBuff, "<scene>"))
 	{
-		Vector3 Pos = Vector3::Zero, Scale = Vector3::Zero,
-			Rotate = Vector3::Zero;
-		string ID_TEXT = "", ModelName = "";
-		shared_ptr<SimpleLogic> Logic = make_shared<SimpleLogic>();
-
-		GameObjects::TYPE type;
-		if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "model") == 0)
-			type = GameObjects::TYPE::Model;
-		else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "s_obj") == 0)
-			type = GameObjects::TYPE::Sound_Obj;
-		//else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "npc") == 0)
-		//	type = GameObjects::TYPE::NPC;
-		else
-			type = GameObjects::TYPE::NONE;
-
-		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
-		for (;;) // Count Of Arguments
-		{
-			if (FirstAttr && strcmp(FirstAttr->Name(), "id") == 0)
-			{
-				ModelName = FirstAttr->Value();
-
-				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-				if (!FirstAttr)
-					break;
-			}
-		}
-
-		vector<XMLNode *> Node = { Attrib.back()->FirstChild() };
-		for (;;) // Count Of Nodes
-		{
-			vector<float> Result;
-			if (Node.back() && strcmp(Node.back()->Value(), "scale") == 0)
-			{
-				Result.clear();
-				getFloat3Text(Node.back()->FirstChild()->Value(), ", ", Result);
-				Scale = Vector3(Result.data());
-
-				if (!Node.back()->NextSibling())
-					break;
-				else
-					Node.push_back(Node.back()->NextSibling());
-			}
-			if (Node.back() && strcmp(Node.back()->Value(), "rotate") == 0)
-			{
-				Result.clear();
-				getFloat3Text(Node.back()->FirstChild()->Value(), ", ", Result);
-				Rotate = Vector3(Result.data());
-
-				if (!Node.back()->NextSibling())
-					break;
-				else
-					Node.push_back(Node.back()->NextSibling());
-			}
-		
-			if (Node.back() && strcmp(Node.back()->Value(), "pos") == 0)
-			{
-				Result.clear();
-				getFloat3Text(Node.back()->FirstChild()->Value(), ", ", Result);
-				Pos = Vector3(Result.data());
-
-				if (!Node.back()->NextSibling())
-					break;
-				else
-					Node.push_back(Node.back()->NextSibling());
-			}
-		}
-
-		Add(_TypeOfFile::MODELS, Application->getFS()->GetFile(ModelName)->PathA);
-		if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
-			break;
-
-		if (Attrib.back()->NextSibling())
-			Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
+		Engine::LogError("Levels::Process:This level is corrupted or empty and load aborted!",
+			"Levels::Process:The level is corrupted or empty and load aborted!",
+			"Levels::Process:This level is corrupted or empty and load aborted!");
+		return E_FAIL;
 	}
+	Process();
+	return S_OK;
 }
 
 void Levels::Spawn(Vector3 pos, GameObjects::TYPE type)
@@ -147,109 +73,126 @@ void Levels::Reload_Level(string File)
 	//LoadXML(File);
 }
 
-void Levels::ProcessXML()
+void Levels::Process()
 {
-	vector<XMLElement *> Attrib = { doc->RootElement()->FirstChild()->ToElement() };
+	bool IsModels = true, IsSobjs = true; // If do not then abort create new nodes
 
-	if (!Attrib.back())
+	XMLNode *scene = doc->FirstChildElement("scene"), // We're now at <scene>
+		*models = nullptr,
+		*s_objs = nullptr;
+
+	// Does the matter between First or Last?
+	if (scene && scene->FirstChildElement("s_objs"))
+		s_objs = scene->FirstChildElement("s_objs");
+	else if (scene && scene->LastChildElement("s_objs"))
+		s_objs = scene->LastChildElement("s_objs");
+	else
+		IsSobjs = false;
+
+	// Does the matter between First or Last?
+	if (scene && scene->FirstChildElement("models"))
+		models = scene->FirstChildElement("models");
+	else if (scene && scene->LastChildElement("models"))
+		models = scene->LastChildElement("models");
+	else
+		IsModels = false;
+
+
+	vector<XMLElement *> Models, S_objs;
+	if (IsModels)
 	{
-		Engine::LogError("Levels->LoadXML()::doc->RootElement() == nullptr",
-			"Levels->LoadXML()::doc->RootElement() == nullptr",
-			"Levels: Something is wrong with Process XML File!");
-		return;
-	}
-
-	string cache = doc->RootElement()->FirstChild()->ToElement()->Value();
-	to_lower(cache);
-
-	if (strcmp(cache.c_str(), "model") == 0)
-	{
-		if (!Attrib.back()->FirstChild())
-			return;
-
-		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
 		for (;;)
 		{
-			Vector3 Pos = Vector3::Zero, Scale = Vector3::Zero,
-				Rotate = Vector3::Zero;
-			string ID_TEXT = "", ModelName = "";
-			shared_ptr<SimpleLogic> Logic = make_shared<SimpleLogic>();
+			if (models->NoChildren()) break; // <models/>
+			if (Models.empty())
+				Models.push_back(models->FirstChild()->ToElement());
 
-			GameObjects::TYPE type;
-			if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "model") == 0)
-				type = GameObjects::TYPE::Model;
-			else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "s_obj") == 0)
-				type = GameObjects::TYPE::Sound_Obj;
-			//else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "npc") == 0)
-			//	type = GameObjects::TYPE::NPC;
-			else
-				type = GameObjects::TYPE::NONE;
+			if (Models.back() && Models.back()->NextSibling())
+				Models.push_back(Models.back()->NextSibling()->ToElement());
 
-			XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
-			for (;;) // Count Of Arguments
-			{
-				if (FirstAttr && strcmp(FirstAttr->Name(), "id") == 0)
-				{
-					ModelName = FirstAttr->Value();
-
-					FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-					if (!FirstAttr)
-						break;
-				}
-			}
-
-			vector<XMLNode *> Node = { Attrib.back()->FirstChild() };
-			for (;;) // Count Of Nodes
-			{
-				vector<float> Result;
-				if (Node.back() && strcmp(Node.back()->Value(), "scale") == 0)
-				{
-					Result.clear();
-					getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
-					Scale = Vector3(Result.data());
-
-					if (!Node.back()->NextSibling())
-						break;
-					else
-						Node.push_back(Node.back()->NextSibling());
-				}
-				if (Node.back() && strcmp(Node.back()->Value(), "rotate") == 0)
-				{
-					Result.clear();
-					getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
-					Rotate = Vector3(Result.data());
-
-					if (!Node.back()->NextSibling())
-						break;
-					else
-						Node.push_back(Node.back()->NextSibling());
-				}
-
-				if (Node.back() && strcmp(Node.back()->Value(), "pos") == 0)
-				{
-					Result.clear();
-					getFloat3Text(Node.back()->FirstChild()->Value(), ",", Result);
-					Pos = Vector3(Result.data());
-
-					if (!Node.back()->NextSibling())
-						break;
-					else
-						Node.push_back(Node.back()->NextSibling());
-				}
-			}
-
-			Add(_TypeOfFile::MODELS, make_shared<GameObjects::Object>(ModelName, ModelName, nullptr,
-				type, Pos, Scale, Rotate));
-			if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
+			if (!Models.back()->NextSibling())
 				break;
-
-			if (Attrib.back()->NextSibling())
-				Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
 		}
+	}
+	if (IsSobjs)
+	{
+		for (;;)
+		{
+			if (s_objs->NoChildren()) break; // <s_objs/>
+			if (S_objs.empty())
+				S_objs.push_back(s_objs->ToElement());
+
+			if (S_objs.back() && S_objs.back()->NextSibling())
+				S_objs.push_back(S_objs.back()->NextSibling()->ToElement());
+
+			if (!S_objs.back()->NextSibling())
+				break;
+		}
+	}
+
+	for (auto It: Models)
+	{
+		Vector3 Pos = Vector3::Zero, Scale = Vector3::Zero,
+			Rotate = Vector3::Zero;
+		string ID_TEXT, ModelName;
+		auto type = GameObjects::TYPE::Model;
+
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(It->FirstAttribute());
+		for (;;)
+		{
+			if (FirstAttr)
+			{
+				ID_TEXT = FirstAttr->Name();
+				to_lower(ID_TEXT);
+			}
+
+			if (FirstAttr && ID_TEXT == "id")
+			{
+				ModelName = FirstAttr->Value();
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			vector<float> Result;
+			if (FirstAttr && ID_TEXT == "scale")
+			{
+				Result.clear();
+				getFloat3Text(FirstAttr->Value(), ",", Result);
+				Scale = Vector3(Result.data());
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+			if (FirstAttr && ID_TEXT == "rotate")
+			{
+				Result.clear();
+				getFloat3Text(FirstAttr->Value(), ",", Result);
+				Rotate = Vector3(Result.data());
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+
+			if (FirstAttr && ID_TEXT == "pos")
+			{
+				Result.clear();
+				getFloat3Text(FirstAttr->Value(), ",", Result);
+				Pos = Vector3(Result.data());
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+		}
+		Add(_TypeOfFile::MODELS, make_shared<GameObjects::Object>(ModelName, ModelName, nullptr,
+			type, Pos, Scale, Rotate));
 	}
 }
 
-#include "DebugDraw.h"
 void Levels::Update()
 {
 	MainChild->Update();
@@ -308,7 +251,8 @@ void Levels::Destroy()
 	//}
 }
 
-string Levels::SomeFunc(shared_ptr<tinyxml2::XMLDocument> Doc, shared_ptr<Node> Node)
+ToDo("Add Struct To Save Local Obj To File");
+string Levels::Save(shared_ptr<tinyxml2::XMLDocument> Doc, shared_ptr<Node> Node)
 {
 	/// <scene>
 	vector<XMLElement *> Attrib = { Doc->RootElement()->FirstChild()->ToElement() };
@@ -422,11 +366,7 @@ string Levels::SomeFunc(shared_ptr<tinyxml2::XMLDocument> Doc, shared_ptr<Node> 
 		}
 	}
 
-	XMLPrinter Prntr;
-	Doc->Print(&Prntr);
-	doc = Doc; // Update Our New XML Construction Of File
-
-	return Prntr.CStr();
+	return "";
 }
 
 HRESULT Levels::Init()

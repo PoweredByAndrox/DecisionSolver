@@ -197,11 +197,11 @@ void DebugDraw::Box::Init(BoundingBox Box, Vector4 color)
 
 void DebugDraw::MainRender(Matrix View, Matrix Proj)
 {
-	for (auto it : triangle)
+	for (auto it: triangle)
 	{
 		it->Draw(View, Proj);
 	}
-	for (auto it : boxes)
+	for (auto it: boxes)
 	{
 		it->Draw(View, Proj);
 	}
@@ -268,7 +268,7 @@ void DebugDraw::AddBox(Vector3 Pos, Vector3 Size, Vector4 color)
 //	DirectX::ComputeGeoSphere(s_verts, s_indices, 5.f, 20, false);
 //
 //	vector<SimpleVertex> verts;
-//	for (auto it : s_verts)
+//	for (auto it: s_verts)
 //	{
 //		verts.push_back(SimpleVertex(it.position, color));
 //	}

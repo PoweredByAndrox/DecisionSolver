@@ -17,11 +17,6 @@ shared_ptr<Multiplayer::Server> Multiplayer::Serv = make_shared<Multiplayer::Ser
 shared_ptr<Multiplayer::Client> Multiplayer::CurrentUser;
 SOCKET Multiplayer::Client::Sock;
 
-#include <thread>
-#include <WS2tcpip.h>
-#include <mutex>
-mutex g_lock;
-
 HRESULT Multiplayer::Init()
 {
 	::WSAStartup(MAKEWORD(2, 2), &Data);
@@ -48,16 +43,25 @@ void Multiplayer::UpdateUI()
 {
 	auto DialMPConn = Application->getUI()->getDialog("MPConnection");
 	auto DialMPLogin = Application->getUI()->getDialog("MPLogin");
-	
-	if (!DialMPLogin->getVisible() && DialMPConn.operator bool() &&
+
+	if (/*!DialMPLogin->getVisible() && */DialMPConn.operator bool() &&
 		!DialMPConn->GetTitle().empty())
 	{
 		auto Comp = DialMPConn->getComponents();
+		auto tbox = Comp->FindComponentChild("##MP_TextBox");
 		if (Comp->FindComponentBtn("##MP_Send")->IsClicked())
-			Comp->FindComponentITextMul("##MP_Chat")->AddText(Type::Normal,
-				Comp->FindComponentIText("##MP_IText")->GetText());
+		{
+			tbox->getMassComponents().back()
+				->FindComponentUText("##MP_Chat")->AddText(Type::Normal,
+					Comp->FindComponentIText("##MP_IText")->GetText());
+		}
 		if (Comp->FindComponentBtn("##MP_Clear")->IsClicked())
-			Comp->FindComponentITextMul("##MP_Chat")->ClearText();
+			tbox->getMassComponents().back()
+			->FindComponentUText("##MP_Chat")->ClearText();
+
+		tbox->setSize(ImVec2(450, 120));
+		tbox->setAutoScroll(true);
+
 		DialMPConn->Render();
 	}
 
@@ -74,17 +78,20 @@ void Multiplayer::UpdateUI()
 
 			string MSG = "You connected to the server with" + Log + " and " + Pas;
 			auto PrevDial = DialMPConn->getComponents();
-			
+
 			if (!Log.empty() && !Pas.empty() && Log == "PBAX" && Pas == "Test")
 			{
-				PrevDial->FindComponentITextMul("##MP_Chat")->AddText(Type::Information, MSG);
+				PrevDial->FindComponentChild("##MP_TextBox")->getMassComponents().back()
+					->FindComponentUText("##MP_Chat")->AddText(Type::Information, MSG);
+
 				DialMPConn->setVisible(true);
 				DialMPLogin->setVisible(false);
 			}
 			else
 			{
 				MSG = "You entered wrong an User Information";
-				PrevDial->FindComponentITextMul("##MP_Chat")->AddText(Type::Error, MSG);
+				Comp->FindComponentChild("##MP_TextBox")->getMassComponents().back()->
+					FindComponentUText("##MP_Chat")->AddText(Type::Error, MSG);
 			}
 		}
 
@@ -173,7 +180,6 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 				{
 					if (Send("Login=true|ID=" + to_string(slot), Serv->getSock(), from))
 					{
-						g_lock.lock();
 						auto DialMP = Application->getUI()->getDialog("MPConnection");
 						if (DialMP.operator bool())
 						{
@@ -185,8 +191,6 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 									% slot %IP % to_string(from.sin_port)).str());
 						}
 
-						g_lock.unlock();
-
 						//client_endpoints[slot] = from_endpoint;
 						//time_since_heard_from_clients[slot] = 0.0f;
 						//client_objects[slot] = {};
@@ -197,13 +201,11 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 				{
 					if (Send("Login=false|ID=" + to_string(slot), Serv->getSock(), from))
 					{
-						g_lock.lock();
 						//auto DialMP = Application->getUI()->getDialog("MPConnection");
 						//if (DialMP.operator bool())
 						//	DialMP->getComponents()->Itextmul.back()->AddCLText(Type::Error,
 						//		(boost::format("The user ID = %d, IP = %s, Port = %s.\nConnection Unsuccessful!")
 						//			% slot %to_string(from.sin_addr.S_un.S_addr) % to_string(from.sin_port)).str());
-						g_lock.unlock();
 					}
 				}
 			}
@@ -212,7 +214,6 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 				Users.erase(Users.begin() + slot);
 			else if (contains(Tmp, "Chat: "))
 			{
-				g_lock.lock();
 				auto DialMP = Application->getUI()->getDialog("MPConnection");
 				if (DialMP.operator bool())
 				{
@@ -220,7 +221,6 @@ DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 					//DialMP->getComponents()->Itextmul.back()->AddCLText(Type::Information,
 					//	(string("From Some User: ") + Tmp));
 				}
-				g_lock.unlock();
 			}
 			OutputDebugStringA((boost::format("Bytes received: %d\n") % iResult).str().c_str());
 		}
@@ -331,7 +331,7 @@ bool Multiplayer::Client::Connect()
 		return false;
 	}
 
-//	Send("Log in", Sock);
+	//	Send("Log in", Sock);
 	return true;
 }
 
@@ -345,7 +345,7 @@ void Multiplayer::Server::Create()
 		//		"The server already created!"));
 		return;
 	}
-	
+
 	int iResult;
 
 	Sock = ::socket(AF_INET, SOCK_STREAM, NULL);
@@ -353,7 +353,7 @@ void Multiplayer::Server::Create()
 	{
 		int i = WSAGetLastError();
 		::closesocket(Sock);
-		
+
 		Engine::LogError("socket failed with error: " + to_string(::WSAGetLastError()),
 			string(__FILE__) + ": " + to_string(__LINE__), "socket failed with error: " + to_string(::WSAGetLastError()));
 		Destroy();
