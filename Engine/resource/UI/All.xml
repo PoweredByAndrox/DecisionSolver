@@ -32,11 +32,11 @@ font="rodc" sizefont="22" brightness="0.9">
 <gui id="MPConnection" width="820" height="420" visible="false" resize="false" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="rodc" sizefont="22" brightness="0.9">
-	<InputText id="##MP_IText" text="Send A Message" visible="true" history="true" hint="false"
-	texthint="Send A Message Here"/>
 	<ChildDialog id="##MP_TextBox" border="true" horizontal_scroll="true">
 		<UnformatedText id="##MP_Chat"/>
 	</ChildDialog>
+	<InputText id="##MP_IText" text="Send A Message" visible="true" history="true" hint="false"
+	texthint="Send A Message Here"/>
 	<Button id="##MP_Send" text="Send" visible="true"/>
 	<Button id="##MP_CreateServer" text="Create Server" visible="true"/>
 	<Button id="##MP_Connect" text="Connect" visible="true"/>

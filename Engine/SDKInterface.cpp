@@ -24,6 +24,8 @@ static vector<string> TrueFalse = { "True", "False" };
 int Current = 0, Cur = 1, Open6Cur = 0;
 float NewTarget = 0.f, Aud_Targt1 = 0.f, Aud_Targt2 = 1.f, Aud_Targt3 = 1.f;
 
+bool IsNeed = false;
+
 #include "Models.h"
 void SDKInterface::Render()
 {
@@ -50,25 +52,28 @@ void SDKInterface::Render()
 			bool Othrs = ImGui::TreeNode("Others Object");
 			if (Othrs)
 			{
+				int i = 0;
 				for (auto Object: LevelObjs->GetNodes())
 				{
-					bool id = ImGui::TreeNode(Object->ID.c_str());
-					ImGui::SameLine();
-					if (ImGui::Button("X"))
+					i++;
+					if (Object->SaveInfo->IsRemoved) continue;
+					if (ImGui::Button((" X: " + to_string(i)).c_str()))
 					{
-						Application->getLevel()->Remove(Object->ID);
-						Application->getSound()->Remove(Object->ID);
-						ImGui::TreePop();
-
+						Object->SaveInfo->IsRemoved = true;
+						Object->SaveInfo->T = Object->GM->GetType();
+						AddToUndo("Removed Object: " + Object->ID, to_string(false), to_string(true));
 						continue; // Don't work with this object anymore
 					}
-					if (id)
+
+					ImGui::SameLine();
+					if (ImGui::TreeNode(Object->ID.c_str()))
 					{
 						ImGui::SetNextItemWidth(-1);
 						if (ImGui::Checkbox("Is Render", &Object->GM->RenderIt))
 						{
 							Object->IsItChanged = true;
 							Object->SaveInfo->IsVisible = Object->GM->RenderIt;
+							Object->SaveInfo->T = Object->GM->GetType();
 						}
 						ImGui::Separator();
 						ImGui::SetNextItemWidth(-1);
@@ -78,19 +83,18 @@ void SDKInterface::Render()
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
 						pair<Vector3, bool> Ret;
+						Vector3 Crd = Object->GM->GetPositionCord();
 						Object->GM->SetPositionCoords((Ret = DragFloat3(("##Pos#" + Object->ID).c_str(),
 							Object->GM->GetPositionCord())).first);
 						ImGui::NextColumn();
 
 						if (Ret.second)
 						{
+							AddToUndo("Changed Pos In: " + Object->ID, Crd, Ret.first);
 							Object->IsItChanged = true;
 							Object->SaveInfo->Pos = true;
+							Object->SaveInfo->T = Object->GM->GetType();
 						}
-						//OutputDebugStringA((boost::format("\nPosition: X: %.3f, Y: %.3f, Z: %.3f\n")
-						//  % Object->GetPositionCord().x
-						//	% Object->GetPositionCord().y
-						//	% Object->GetPositionCord().z).str().c_str());
 
 						ImGui::Separator();
 						ImGui::SetNextItemWidth(-1);
@@ -99,14 +103,18 @@ void SDKInterface::Render()
 
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
+						
+						Crd = Object->GM->GetRotCord();
 						Object->GM->SetRotationCoords(
 							(Ret = DragFloat3(("##Rot#" + Object->ID).c_str(), Object->GM->GetRotCord())).first);
 						ImGui::NextColumn();
 						ImGui::Separator();
 						if (Ret.second)
 						{
+							AddToUndo("Changed Rotation In: " + Object->ID, Crd, Ret.first);
 							Object->IsItChanged = true;
 							Object->SaveInfo->Rot = true;
+							Object->SaveInfo->T = Object->GM->GetType();
 						}
 
 						ImGui::SetNextItemWidth(-1);
@@ -115,14 +123,18 @@ void SDKInterface::Render()
 
 						ImGui::NextColumn();
 						ImGui::SetNextItemWidth(-1);
+						
+						Crd = Object->GM->GetScaleCord();
 						Object->GM->SetScaleCoords(
 							(Ret = DragFloat3(("##Scl#" + Object->ID).c_str(), Object->GM->GetScaleCord())).first);
 						ImGui::NextColumn();
 						ImGui::Separator();
 						if (Ret.second)
 						{
+							AddToUndo("Changed Scale In: " + Object->ID, Crd, Ret.first);
 							Object->IsItChanged = true;
 							Object->SaveInfo->Scale = true;
+							Object->SaveInfo->T = Object->GM->GetType();
 						}
 
 						ImGui::SetNextItemWidth(-1);
@@ -168,6 +180,23 @@ void SDKInterface::Render()
 			Application->getSound()->Update(Cam->GetEyePt(), Cam->GetWorldAhead(), Cam->GetWorldUp());
 		}
 	}
+	
+	// Update ShortCuts
+	ToDo("Need to Change this 'hardcode' keys!");
+	ImGuiIO &IO = ImGui::GetIO();
+	if (IO.KeyCtrl && IO.KeysDown[Keyboard::Keys::O])
+		Open();
+	if (IO.KeyCtrl && IO.KeysDown[Keyboard::Keys::S])
+		Save();
+	if (IO.KeyCtrl && IO.KeyShift && IO.KeysDown[Keyboard::Keys::S])
+		SaveAs();
+	if (IO.KeyCtrl && IO.KeysDown[Keyboard::Keys::Z] && !Undos.empty() && IsNeed)
+	{
+		IsNeed = false;
+		undo();
+	}
+	else
+		IsNeed = true;
 
 	ImGui::SetNextWindowDockID(dockspaceID, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
@@ -200,7 +229,13 @@ void SDKInterface::Render()
 
 						for (auto It: Obj.second)
 						{
-							Application->getLevel()->Add(_TypeOfFile::MODELS, It);
+							auto newNode = Application->getLevel()->Add(_TypeOfFile::MODELS, It);
+							
+							// Need To Save It As New Object (or mark it)
+							newNode->SaveInfo->T = newNode->GM->GetType();
+							newNode->IsItChanged = true;
+							newNode->SaveInfo->IsVisible = newNode->GM->RenderIt;
+							newNode->SaveInfo->Pos = true; newNode->SaveInfo->Rot = true; newNode->SaveInfo->Scale = true;
 						}
 					}
 				}
@@ -227,7 +262,12 @@ void SDKInterface::Render()
 							OurNode->ID = path(It).filename().string();
 							OurNode->GM->SetScaleCoords(Vector3(0.01f, 0.01f, 0.01f));
 							OurNode->GM->SetPositionCoords(Cam->GetEyePt());
-							OurNode->GM->SetType(GameObjects::TYPE::Sound_Obj);
+							OurNode->GM->SetType(OurNode->SaveInfo->T = GameObjects::TYPE::Sound_Obj);
+							
+							// Need To Save It As New Object (or mark it)
+							OurNode->IsItChanged = true;
+							OurNode->SaveInfo->IsVisible = OurNode->GM->RenderIt;
+							OurNode->SaveInfo->Pos = true; OurNode->SaveInfo->Rot = true; OurNode->SaveInfo->Scale = true;
 						}
 					}
 				}
@@ -707,33 +747,17 @@ void SDKInterface::Render()
 					// Use it if we don't save the current file yet or offer to save this file and can change name
 				Application->getFS()->CreateProjectFile("New File");
 
-			ToDo("Add Dialogs For Open and Save actions");
 			// Needs To Shortcuts
-			//if (Application->getTrackerKeyboard().pressed.LeftControl && Application->getTrackerKeyboard().pressed.O)
-			//	ImGui::SetNextItemOpen(true, ImGuiCond_::ImGuiCond_Once);
 			if (ImGui::MenuItem("Open Project", "Ctrl+O"))
-			{
-				auto Obj = UI::GetWndDlgOpen(const_cast<LPSTR>(
-					Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
-				if (Obj.first) // If Dialog Wasn't Skip
-				{
-					if (Obj.second.empty())
-					{
-						ImGui::EndMenu();
-						ImGui::End();
-						return;
-					}
-
-					Application->getFS()->GetProject()->OpenFile(Obj.second.back());
-					Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
-				}
-			}
+				Open();
 			if (ImGui::BeginMenu("Open Recent"))
 			{
 				if (ImGui::MenuItem("Super Secret File Here (CLICK ME!!!).proj"))
 				{
-					MessageBoxA(Engine::GetHWND(), "You clicked this item but nothing happen!!! xD", "Just Joke!", MB_OK);
-					MessageBoxA(Engine::GetHWND(), "But just wait a second.... i need to think and decide...", "Just Joke!", MB_OK);
+					MessageBoxA(Engine::GetHWND(),
+						"You clicked this item but nothing happen!!! xD", "Just Joke!", MB_OK);
+					MessageBoxA(Engine::GetHWND(),
+						"But just wait a second.... i need to think and decide...", "Just Joke!", MB_OK);
 					MessageBoxA(Engine::GetHWND(),
 						"Yeah, i decided and... i wanna exit this application to you. I hope you're happy now, good bye! xD",
 						"Bye!", MB_OK);
@@ -754,18 +778,9 @@ void SDKInterface::Render()
 				ImGui::EndMenu();
 			}
 			if (ImGui::MenuItem("Save Project", "Ctrl+S"))
-				Application->getFS()->GetProject()->SaveCurrProj();
+				Save();
 			if (ImGui::MenuItem("Save Project As..", "Ctrl+Shift+S"))
-			{
-				auto Obj = UI::GetWndDlgSave(const_cast<LPSTR>(Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
-				if (Obj.first) // If Dialog Wasn't Skip
-				{
-					if (Obj.second.empty())
-						ImGui::EndMenu();
-				
-					Application->getFS()->GetProject()->SaveFile(path(Obj.second.back()));
-				}
-			}
+				SaveAs();
 
 			ImGui::Separator();
 			if (ImGui::MenuItem("Quit Programm", "Alt+F4"))
@@ -793,12 +808,20 @@ void SDKInterface::Render()
 			if (ImGui::TreeNode("Window Settings"))
 			{
 				ImGui::Text("Always Open:");
-				ImGui::Checkbox("List Of Game Objects", &LOGO);
-				//ImGui::Checkbox("Logic 'n' Cut - Scene", &CS);
-				ImGui::Checkbox("Hierarchy of Level", &HoL);
-				ImGui::Checkbox("File Resources", &FR);
-				ImGui::Checkbox("Lag Testing", &LagTest);
-				ImGui::Checkbox("Audio", &audio);
+				if (ImGui::Checkbox("List Of Game Objects", &LOGO))
+					IfNeedSave = true;
+
+				//if(ImGui::Checkbox("Logic 'n' Cut - Scene", &CS))
+				//	IfNeedSave = true;
+
+				if (ImGui::Checkbox("Hierarchy of Level", &HoL))
+					IfNeedSave = true;
+				if (ImGui::Checkbox("File Resources", &FR))
+					IfNeedSave = true;
+				if (ImGui::Checkbox("Lag Testing", &LagTest))
+					IfNeedSave = true;
+				if (ImGui::Checkbox("Audio", &audio))
+					IfNeedSave = true;
 				ImGui::TreePop();
 			}
 			ImGui::Separator();
@@ -816,12 +839,18 @@ void SDKInterface::Render()
 				ImGui::SameLine();
 				bool BLook = ImGui::DragFloat2("##Look", (float *)&Look);
 				if (BPos || BLook)
+				{
+					IfNeedSave = true;
 					Cam->Teleport(Pos, Look);
+				}
 
 				ImGui::Separator();
 				IsFreeCam = Cam->GetIsFreeCam();
 				if (Combobox::Combo("Is Free Cam?", (int *)&IsFreeCam, TrueFalse))
+				{
+					IfNeedSave = true;
 					Cam->SetFreeMoveCam(IsFreeCam);
+				}
 				ImGui::Separator();
 
 				ImGui::TreeNodeEx("Move Senses:", ImGuiTreeNodeFlags_Leaf |
@@ -835,25 +864,32 @@ void SDKInterface::Render()
 				ImGui::SameLine();
 				bool RSense = ImGui::DragFloat("##RSense", &RotSense);
 				if (MSense || RSense)
+				{
+					IfNeedSave = true;
 					Cam->SetScalers(RotSense, MovSense);
+				}
 				ImGui::TreePop();
 			}
+
 			ImGui::Separator();
-			if (ImGui::Button("Save"))
+			if (IfNeedSave)
 			{
+				getPos.clear();
+				getLook.clear();
 				getTextFloat3(getPos, ",", vector<float>{Pos.x, Pos.y, Pos.z});
 				getTextFloat3(getLook, ",", vector<float>{Look.x, Look.y, Look.z});
-				Save();
+				SaveSettings();
+				IfNeedSave = false;
 			}
 			ImGui::EndMenu();
 		}
 		//if (ImGui::BeginMenu("Disabled", false)) {} // Disabled
 		//if (ImGui::MenuItem("Checked", NULL, true)) {}
 
-		ToDo("Undo");
 		if (ImGui::BeginMenu("Edit"))
 		{
-			if (ImGui::MenuItem("Undo", "CTRL+Z", false, false)) {}
+			if (ImGui::MenuItem("Undo", "CTRL+Z", false, false))
+				undo();
 			if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
 			ImGui::Separator();
 			if (ImGui::MenuItem("Cut", "CTRL+X")) {}
@@ -865,7 +901,7 @@ void SDKInterface::Render()
 	}
 }
 
-void SDKInterface::Load(boost::property_tree::ptree fData)
+void SDKInterface::LoadSettings(boost::property_tree::ptree fData)
 {
 	if (fData.empty()) return;
 
@@ -886,7 +922,7 @@ void SDKInterface::Load(boost::property_tree::ptree fData)
 	getPos = fData.get<string>("application.pos", "0,0,0");
 	getLook = fData.get<string>("application.look", "0,0,0");
 }
-void SDKInterface::Save()
+void SDKInterface::SaveSettings()
 {
 	vector<pair<string, string>> Settings =
 	{
@@ -909,4 +945,87 @@ void SDKInterface::Save()
 	};
 
 	Application->getFS()->SaveSettings(Settings);
+}
+
+void SDKInterface::Save()
+{
+	Application->getFS()->GetProject()->SaveCurrProj();
+}
+
+void SDKInterface::SaveAs()
+{
+	auto Obj = UI::GetWndDlgSave(const_cast<LPSTR>(
+		Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
+	if (Obj.first) // If Dialog Wasn't Skip
+	{
+		if (Obj.second.empty())
+			ImGui::EndMenu();
+
+		Application->getFS()->GetProject()->SaveFile(path(Obj.second.back()));
+	}
+}
+
+void SDKInterface::Open()
+{
+	auto Obj = UI::GetWndDlgOpen(const_cast<LPSTR>(
+		Application->getFS()->getPathFromType(_TypeOfFile::LEVELS).c_str()));
+	if (Obj.first) // If Dialog Wasn't Skip
+	{
+		if (Obj.second.empty())
+		{
+			ImGui::EndMenu();
+			ImGui::End();
+			return;
+		}
+
+		Application->getFS()->GetProject()->OpenFile(Obj.second.back());
+		Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
+	}
+}
+
+void SDKInterface::undo()
+{
+	if (Undos.empty()) return;
+
+	auto It = Undos.back();
+	string ID = It.second.Desc;
+	deleteWord(ID, ": ", ModeProcessString::UntilTheBegin);
+	auto Obj = Application->getLevel()->getChild()->getNodeByID(ID);
+	if (Obj)
+	{
+		vector<float> ret;
+		getFloat3Text(It.second.Fst, ", ", ret);
+		if (contains(It.second.Desc, "Removed"))
+			Obj->SaveInfo->IsRemoved = false;
+		
+		if (contains(It.second.Desc, "Pos"))
+			Obj->GM->SetPositionCoords(Vector3(ret.front(), ret.at(1), ret.back()));
+		if (contains(It.second.Desc, "Rotation"))
+			Obj->GM->SetRotationCoords(Vector3(ret.front(), ret.at(1), ret.back()));
+		if (contains(It.second.Desc, "Scale"))
+			Obj->GM->SetScaleCoords(Vector3(ret.front(), ret.at(1), ret.back()));
+
+		Undos.pop_back(); // Rework it to Redo Act!
+	}
+}
+
+void SDKInterface::AddToUndo(string Desc, string BeforeVal, string AfterVal)
+{
+	if (BeforeVal == AfterVal) return;
+	
+	Und undo;
+	undo.AddDesc(Desc)->AddFst(BeforeVal)->AddSec(AfterVal);
+	Undos.push_back(pair<UINT, Und>(Undos.size() + 1, undo));
+}
+
+void SDKInterface::AddToUndo(string Desc, Vector3 BeforeVal, Vector3 AfterVal)
+{
+	Und undo;
+	string ResB, ResA;
+	getTextFloat3(ResB, ", ", vector<float>{BeforeVal.x, BeforeVal.y, BeforeVal.z});
+	getTextFloat3(ResA, ", ", vector<float>{AfterVal.x, AfterVal.y, AfterVal.z});
+	if (ResB == ResA) return;
+
+	undo.AddDesc(Desc)->AddFst(ResB)->AddSec(ResA);
+	Undos.push_back(pair<UINT, Und>(Undos.size() + 1, undo));
 }

@@ -17,7 +17,7 @@ private:
 		struct NewInfo
 		{
 			bool Pos = false, Scale = false, Rot = false; // If We Change These Params
-			bool IsVisible = false;
+			bool IsVisible = false, IsRemoved = false;
 			TYPE T = TYPE::NONE;
 		};
 

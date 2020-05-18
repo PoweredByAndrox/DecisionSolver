@@ -1164,11 +1164,12 @@ void File_system::ProjectFile::SaveCurrProj()
 	auto Nodes = MainChild->GetNodes();
 
 	shared_ptr<tinyxml2::XMLDocument> Doc = Application->getLevel()->getDocXMLFile();
-	for (size_t i = 0; i < Nodes.size(); i++)
+	for (auto It: Nodes)
 	{
-		auto Node = Nodes.at(i);
-		if (Node->IsItChanged)
-			Buff = Application->getLevel()->Save(Doc, Node);
+		if (It->IsItChanged || It->SaveInfo->IsRemoved)
+			Buff = Application->getLevel()->Save(Doc, It);
+		if (It->SaveInfo->IsRemoved)
+			Application->getLevel()->Remove(It->ID);
 	}
 
 	*make_shared<boost::filesystem::ofstream>(CurrentProj, std::ofstream::out) << Buff;
@@ -1213,7 +1214,7 @@ void File_system::ProjectFile::CheckForSameFile(path Path)
 	Resort();
 }
 
-boost::property_tree::ptree File_system::LoadSettings()
+boost::property_tree::ptree File_system::LoadSettingsFile()
 {
 	bool IfRead = false;
 	void *File; size_t Size;

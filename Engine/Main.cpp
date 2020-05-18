@@ -78,7 +78,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"Application::Init() Failed!");
 		return 5;
 	}
-	SDK->Load(Application->getFS()->LoadSettings());
+	SDK->LoadSettings(Application->getFS()->LoadSettingsFile());
 
 	// ***********
 	// INITIALIZATION ALL THE CLASSES

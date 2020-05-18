@@ -579,7 +579,7 @@ public:
 	 */
 
 	void CreateProject(path CurrFile) { Project = make_shared<ProjectFile>(CurrFile); }
-	boost::property_tree::ptree LoadSettings();
+	boost::property_tree::ptree LoadSettingsFile();
 	void SaveSettings(vector<pair<string, string>> ToFile);
 protected:
 	/** \brief	The work dir */

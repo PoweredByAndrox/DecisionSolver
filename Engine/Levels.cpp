@@ -146,17 +146,19 @@ void Levels::Process()
 				to_lower(ID_TEXT);
 			}
 
-			if (FirstAttr && ID_TEXT == "id")
+			if (FirstAttr && contains(ID_TEXT, "id"))
 			{
 				ModelName = FirstAttr->Value();
 
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
+				ID_TEXT = FirstAttr->Name();
+				to_lower(ID_TEXT);
 			}
 
 			vector<float> Result;
-			if (FirstAttr && ID_TEXT == "scale")
+			if (FirstAttr && contains(ID_TEXT, "scale"))
 			{
 				Result.clear();
 				getFloat3Text(FirstAttr->Value(), ",", Result);
@@ -165,8 +167,10 @@ void Levels::Process()
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
+				ID_TEXT = FirstAttr->Name();
+				to_lower(ID_TEXT);
 			}
-			if (FirstAttr && ID_TEXT == "rotate")
+			if (FirstAttr && contains(ID_TEXT, "rotate"))
 			{
 				Result.clear();
 				getFloat3Text(FirstAttr->Value(), ",", Result);
@@ -175,9 +179,11 @@ void Levels::Process()
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
+				ID_TEXT = FirstAttr->Name();
+				to_lower(ID_TEXT);
 			}
 
-			if (FirstAttr && ID_TEXT == "pos")
+			if (FirstAttr && contains(ID_TEXT, "pos"))
 			{
 				Result.clear();
 				getFloat3Text(FirstAttr->Value(), ",", Result);
@@ -186,6 +192,8 @@ void Levels::Process()
 				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
 				if (!FirstAttr)
 					break;
+				ID_TEXT = FirstAttr->Name();
+				to_lower(ID_TEXT);
 			}
 		}
 		Add(_TypeOfFile::MODELS, make_shared<GameObjects::Object>(ModelName, ModelName, nullptr,
@@ -230,9 +238,11 @@ void Levels::AddTo(shared_ptr<Node> nd, shared_ptr<SimpleLogic> Logic)
 		nd->GM->SetLogic(Logic);
 }
 
+#include "Audio.h"
 void Levels::Remove(string ID)
 {
 	MainChild->DeleteNode(ID);
+	Application->getSound()->Remove(ID);
 }
 
 void Levels::Destroy()
@@ -251,122 +261,154 @@ void Levels::Destroy()
 	//}
 }
 
-ToDo("Add Struct To Save Local Obj To File");
 string Levels::Save(shared_ptr<tinyxml2::XMLDocument> Doc, shared_ptr<Node> Node)
 {
-	/// <scene>
-	vector<XMLElement *> Attrib = { Doc->RootElement()->FirstChild()->ToElement() };
-	string cache = Doc->RootElement()->FirstChild()->ToElement()->Value();
-	to_lower(cache);
+	XMLNode *scene = Doc->FirstChildElement("scene"), // We're now at <scene>
+		*models = nullptr,
+		*s_objs = nullptr,
+		*model = nullptr,
+		*s_obj = nullptr;
 
-	/// <model>
-	if (strcmp(cache.c_str(), "model") == 0)
+	if (scene && (!scene->FirstChildElement("s_objs") || !scene->LastChildElement("s_objs")))
 	{
-		if (!Attrib.back()->FirstChild())
-			return "";
-
-		Attrib.push_back(Attrib.back()->FirstChild()->ToElement());
+		s_objs = scene->InsertEndChild(Doc->NewElement("s_objs"));
+		XMLElement *s_obj = s_objs->InsertEndChild(Doc->NewElement(Node->ID.c_str()))->ToElement();
+		s_obj->SetAttribute("id", Node->ID.c_str());
+		s_obj->SetAttribute("pos", "0.000000, 0.000000, 0.000000");
+		s_obj->SetAttribute("scale", "0.000000, 0.000000, 0.000000");
+		s_obj->SetAttribute("rotate", "0.000000, 0.000000, 0.000000");
+	}
+	else if (Node->SaveInfo->T == GameObjects::TYPE::Sound_Obj)
+	{
+		s_objs = scene->FirstChildElement("s_objs");
+		auto Needed = s_objs->FirstChildElement();
 		for (;;)
 		{
-			GameObjects::TYPE type;
-			if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "model") == 0)
+			string Name = Needed->FirstAttribute()->Value();
+			to_lower(Name);
+			if (Name == Node->ID.c_str())
 			{
-				type = GameObjects::TYPE::Model;
-			}
-			else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "s_obj") == 0)
-			{
-				type = GameObjects::TYPE::Sound_Obj;
-			}
-			//else if (Attrib.back()->Parent() && strcmp(Attrib.back()->Parent()->Value(), "npc") == 0)
-			//	type = GameObjects::TYPE::NPC;
-			else
-			{
-				type = GameObjects::TYPE::NONE;
+				s_obj = models->FirstChild();
+				break;
 			}
 
-			/// <id="ak47"\>
-			//XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(Attrib.back()->ToElement()->FirstAttribute());
-			//for (;;) // Count Of Arguments
-			//{
-			//	if (FirstAttr && strcmp(FirstAttr->Name(), "id") == 0)
-			//	{
-			//		ModelName = FirstAttr->Value();
-			//		FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
-			//		if (!FirstAttr)
-			//			break;
-			//	}
-			//}
-			/// <id="ak47"\>
-			/// <scale>0,0,0</>
-			vector<XMLNode *> xmlNode = { Attrib.back()->FirstChild() };
-			for (;;) // Count Of Nodes
-			{
-				vector<float> Pass;
-				string Result;
-				if (Node->SaveInfo->Scale && xmlNode.back() && strcmp(xmlNode.back()->Value(), "scale") == 0)
-				{
-					Pass.push_back(Node->GM->GetScaleCord().x);
-					Pass.push_back(Node->GM->GetScaleCord().y);
-					Pass.push_back(Node->GM->GetScaleCord().z);
-
-					getTextFloat3(Result, ", ", Pass);
-					xmlNode.back()->FirstChild()->SetValue(Result.c_str());
-
-					if (!xmlNode.back()->NextSibling())
-						break;
-					else
-						xmlNode.push_back(xmlNode.back()->NextSibling());
-					Node->SaveInfo->Scale = false;
-				}
-				else if (Node->SaveInfo->Rot && xmlNode.back() && strcmp(xmlNode.back()->Value(), "rotate") == 0)
-				{
-					Pass.push_back(Node->GM->GetRotCord().x);
-					Pass.push_back(Node->GM->GetRotCord().y);
-					Pass.push_back(Node->GM->GetRotCord().z);
-
-					getTextFloat3(Result, ", ", Pass);
-					xmlNode.back()->FirstChild()->SetValue(Result.c_str());
-
-					Node->SaveInfo->Rot = false;
-					if (!xmlNode.back()->NextSibling())
-						break;
-					else
-						xmlNode.push_back(xmlNode.back()->NextSibling());
-				}
-				else if (Node->SaveInfo->Pos && xmlNode.back() && strcmp(xmlNode.back()->Value(), "pos") == 0)
-				{
-					Pass.clear();
-					Result.clear();
-					Pass.push_back(Node->GM->GetPositionCord().x);
-					Pass.push_back(Node->GM->GetPositionCord().y);
-					Pass.push_back(Node->GM->GetPositionCord().z);
-
-					getTextFloat3(Result, ", ", Pass);
-					xmlNode.back()->FirstChild()->SetValue(Result.c_str());
-
-					Node->SaveInfo->Pos = false;
-					if (!xmlNode.back()->NextSibling())
-						break;
-					else
-						xmlNode.push_back(xmlNode.back()->NextSibling());
-				}
-				else
-					// If everything is same exit from this loop
-					if (!xmlNode.back()->NextSibling())
-						break;
-					else
-						xmlNode.push_back(xmlNode.back()->NextSibling());
-			}
-
-			if (Attrib.front()->LastChild()->Value() == Attrib.back()->Value())
+			if (!Needed->NextSibling())
 				break;
 
-			if (Attrib.back()->NextSibling())
-				Attrib.push_back(Attrib.back()->NextSibling()->ToElement());
+			Needed = Needed->NextSibling()->ToElement();
+			if (!Needed)
+				break;
 		}
 	}
 
-	return "";
+	if (scene && (!scene->FirstChildElement("models") || !scene->LastChildElement("models")))
+	{
+		models = scene->InsertEndChild(Doc->NewElement("models"));
+		XMLElement *model = models->InsertEndChild(Doc->NewElement(Node->ID.c_str()))->ToElement();
+		model->SetAttribute("id", Node->ID.c_str());
+		model->SetAttribute("pos", "0.000000, 0.000000, 0.000000");
+		model->SetAttribute("scale", "0.000000, 0.000000, 0.000000");
+		model->SetAttribute("rotate", "0.000000, 0.000000, 0.000000");
+	}
+	else if (Node->SaveInfo->T == GameObjects::TYPE::Model)
+	{
+		models = scene->FirstChildElement("models");
+		auto Needed = models->FirstChildElement();
+		for (;;)
+		{
+			string Name = Needed->FirstAttribute()->Value(), id = Node->ID;
+			to_lower(Name);
+			to_lower(id);
+			if (contains(Name, id))
+			{
+				model = Needed;
+				break;
+			}
+
+			if (!Needed->NextSibling())
+				break;
+
+			Needed = Needed->NextSibling()->ToElement();
+			if (!Needed)
+				break;
+		}
+	}
+	
+	if (Node->SaveInfo->IsRemoved)
+	{
+		if (Node->SaveInfo->T == GameObjects::TYPE::Model && (models && model))
+			models->DeleteChild(model);
+		else if (Node->SaveInfo->T == GameObjects::TYPE::Sound_Obj && (s_objs && s_obj))
+			s_objs->DeleteChild(s_obj);
+	}
+
+	if (!Node->SaveInfo->IsRemoved)
+	{
+		XMLAttribute *FirstAttr = const_cast<XMLAttribute *>(model->ToElement()->FirstAttribute());
+		for (;;) // Count Of Nodes
+		{
+			vector<float> Pass;
+			string Result,
+				nameNode = FirstAttr->Name();
+			to_lower(nameNode);
+
+			if (Node->SaveInfo->Scale && contains(nameNode, "scale"))
+			{
+				Pass.push_back(Node->GM->GetScaleCord().x);
+				Pass.push_back(Node->GM->GetScaleCord().y);
+				Pass.push_back(Node->GM->GetScaleCord().z);
+
+				getTextFloat3(Result, ", ", Pass);
+				FirstAttr->SetAttribute(Result.c_str());
+
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+				Node->SaveInfo->Scale = false;
+			}
+			else if (Node->SaveInfo->Rot && contains(nameNode, "rotate"))
+			{
+				Pass.push_back(Node->GM->GetRotCord().x);
+				Pass.push_back(Node->GM->GetRotCord().y);
+				Pass.push_back(Node->GM->GetRotCord().z);
+
+				getTextFloat3(Result, ", ", Pass);
+				FirstAttr->SetAttribute(Result.c_str());
+
+				Node->SaveInfo->Rot = false;
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+			else if (Node->SaveInfo->Pos && contains(nameNode, "pos"))
+			{
+				Pass.clear();
+				Result.clear();
+				Pass.push_back(Node->GM->GetPositionCord().x);
+				Pass.push_back(Node->GM->GetPositionCord().y);
+				Pass.push_back(Node->GM->GetPositionCord().z);
+
+				getTextFloat3(Result, ", ", Pass);
+				FirstAttr->SetAttribute(Result.c_str());
+
+				Node->SaveInfo->Pos = false;
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+			else
+			{
+				FirstAttr = const_cast<XMLAttribute *>(FirstAttr->Next());
+				if (!FirstAttr)
+					break;
+			}
+		}
+	}
+	XMLPrinter Prntr;
+	Doc->Print(&Prntr);
+	doc = Doc; // Update Our New XML Construction Of File
+
+	return Prntr.CStr();
 }
 
 HRESULT Levels::Init()
@@ -408,7 +450,7 @@ void Levels::Child::Update()
 	for (size_t i = 0; i < Nodes.size(); i++)
 	{
 		auto it = Nodes.at(i)->GM;
-		if (!it->RenderIt)
+		if (!it->RenderIt || Nodes.at(i)->SaveInfo->IsRemoved)
 			continue;
 
 		auto Model = it->GetModel();

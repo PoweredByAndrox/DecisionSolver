@@ -59,6 +59,11 @@ void Multiplayer::UpdateUI()
 			tbox->getMassComponents().back()
 			->FindComponentUText("##MP_Chat")->ClearText();
 
+		if (Comp->FindComponentIText("##MP_IText")->PressedEnter())
+			tbox->getMassComponents().back()
+			->FindComponentUText("##MP_Chat")->AddText(Type::Normal,
+				Comp->FindComponentIText("##MP_IText")->GetText());
+
 		tbox->setSize(ImVec2(450, 120));
 		tbox->setAutoScroll(true);
 
