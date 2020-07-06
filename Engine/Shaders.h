@@ -6,10 +6,10 @@
 class Shaders
 {
 public:
-	static HRESULT CompileShaderFromFile(wstring *FileName, string *FunctionName, string *VersionShader,
+	static HRESULT CompileShaderFromFile(string FileName, string FunctionName, string VersionShader,
 		ID3DBlob **ppBlobOut);
 	static vector<void *> CompileShaderFromFile(vector<ID3DBlob *> Things);
-	static vector<ID3DBlob *> CreateShaderFromFile(vector<wstring> FileName, vector<string> FunctionName,
+	static vector<ID3DBlob *> CreateShaderFromFile(vector<string> FileName, vector<string> FunctionName,
 		vector<string> VersionShader, DWORD ShaderFlags = 0);
 
 private:

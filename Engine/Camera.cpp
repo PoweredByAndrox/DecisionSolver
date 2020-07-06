@@ -15,8 +15,11 @@ HRESULT Camera::Init(float W, float H, float FOV)
 		// Setup the projection matrix
 	SetProjParams(FOV, W / H, 1.0f, 1000.0f);
 
-	C_CT = make_shared<Camera_Control>();
-	C_CT->Init();
+	if (Application->getPhysics().operator bool())
+	{
+		C_CT = make_shared<Camera_Control>();
+		C_CT->Init();
+	}
 
 	return S_OK;
 }
@@ -72,6 +75,45 @@ void Camera::SetViewParams(Vector3 vEyePt, Vector3 vLookatPt)
 	m_fCameraYawAngle = atan2f(zBasis.x, zBasis.z);
 }
 
+XMMATRIX XM_CALLCONV PerspectiveFovLH(float FovAngleY, float AspectRatio, float NearZ, float FarZ)
+{
+	float    SinFov;
+	float    CosFov;
+	XMScalarSinCos(&SinFov, &CosFov, 0.5f * FovAngleY);
+
+	float fRange = FarZ / (FarZ - NearZ);
+	// Note: This is recorded on the stack
+	float Height = CosFov / SinFov;
+	XMVECTOR rMem = {
+		Height / AspectRatio,
+		Height,
+		fRange,
+		-fRange * NearZ
+	};
+	// Copy from memory to SSE register
+	XMVECTOR vValues = rMem;
+	XMVECTOR vTemp = _mm_setzero_ps();
+	// Copy x only
+	vTemp = _mm_move_ss(vTemp, vValues);
+	// CosFov / SinFov,0,0,0
+	XMMATRIX M;
+	M.r[0] = vTemp;
+	// 0,Height / AspectRatio,0,0
+	vTemp = vValues;
+	vTemp = _mm_and_ps(vTemp, g_XMMaskY);
+	M.r[1] = vTemp;
+	// x=fRange,y=-fRange * NearZ,0,1.0f
+	vTemp = _mm_setzero_ps();
+	vValues = _mm_shuffle_ps(vValues, g_XMIdentityR3, _MM_SHUFFLE(3, 2, 3, 2));
+	// 0,0,fRange,1.0f
+	vTemp = _mm_shuffle_ps(vTemp, vValues, _MM_SHUFFLE(3, 0, 0, 0));
+	M.r[2] = vTemp;
+	// 0,0,-fRange * NearZ,0.0f
+	vTemp = _mm_shuffle_ps(vTemp, vValues, _MM_SHUFFLE(2, 1, 0, 0));
+	M.r[3] = vTemp;
+	return M;
+}
+
 void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fFarPlane)
 {
 		// Set attributes for the projection matrix
@@ -80,13 +122,25 @@ void Camera::SetProjParams(float fFOV, float fAspect, float fNearPlane, float fF
 	m_fNearPlane = fNearPlane;
 	m_fFarPlane = fFarPlane;
 	
-	XMStoreFloat4x4(&m_mProj, XMMatrixPerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
+	XMStoreFloat4x4(&m_mProj, PerspectiveFovLH(fFOV, fAspect, fNearPlane, fFarPlane));
 }
 
 void Camera::Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx)
 {
 	if (C_CT.operator bool() && !NoTPPhysx && (NewPos != Vector3::Zero))
 		C_CT->getController()->setPosition(PxExtendedVec3(NewPos.x, NewPos.y, NewPos.z));
+	if ((isnan<float>(NewPos.x) || isinf<float>(NewPos.x)) &&
+		(isnan<float>(NewPos.y) || isinf<float>(NewPos.y)) &&
+		(isnan<float>(NewPos.z) || isinf<float>(NewPos.z)))
+		NewPos = Vector3::Zero;
+	if ((isnan<float>(NewLook.x) || isinf<float>(NewLook.x)) &&
+		(isnan<float>(NewLook.y) || isinf<float>(NewLook.y)) &&
+		(isnan<float>(NewLook.z) || isinf<float>(NewLook.z)))
+		NewLook = Vector3::Zero;
+	if ((isnan<float>(m_vEye.x) || isinf<float>(m_vEye.x)) &&
+		(isnan<float>(m_vEye.y) || isinf<float>(m_vEye.y)) &&
+		(isnan<float>(m_vEye.z) || isinf<float>(m_vEye.z)))
+		Reset();
 
 	SetViewParams(NewPos, NewLook);
 }
@@ -137,10 +191,9 @@ float Camera::getRotateScale()
 	return m_fRotationScaler;
 }
 
-#include "Console.h"
 void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 {
-	if (Application->getKeyboard()->IsConnected())
+	if (!DisableCameraCtrl && Application->getKeyboard()->IsConnected())
 	{
 		m_vKeyboardDirection = Vector3::Zero;
 		float speed = 2.0f * Application->getframeTime();
@@ -178,14 +231,17 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 				m_vKeyboardDirection.y -= speed;
 		}
 
-		if (!FreeCamMove)
+		if (!FreeCamMove && C_CT.operator bool())
 			C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
 	}
 	else
-		Engine::LogError("Camera::GetInput failed.", "Camera::GetInput failed.",
-			"Something is wrong with your Keyboard!");
+	{
+		m_vKeyboardDirection = Vector3::Zero;
+		if (!FreeCamMove && C_CT.operator bool())
+			C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
+	}
 
-	if (((Application->getMouse()->GetState().leftButton && Left) ||
+	if (!DisableCameraCtrl && ((Application->getMouse()->GetState().leftButton && Left) ||
 		(Application->getMouse()->GetState().rightButton && Right)) != WithoutButton)
 		UpdateMouseDelta();
 }
@@ -193,8 +249,8 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 void Camera::UpdateMouseDelta()
 {
 		// Get current position of mouse
-	ptCurMousePos.x = Application->getMouse()->GetState().x;
-	ptCurMousePos.y = Application->getMouse()->GetState().y;
+	ptCurMousePos.x = static_cast<float>(Application->getMouse()->GetState().x);
+	ptCurMousePos.y = static_cast<float>(Application->getMouse()->GetState().y);
 
 		// Calc how far it's moved since last frame
 	ptCurMouseDelta = ptCurMousePos - m_ptLastMousePosition;
@@ -204,10 +260,10 @@ void Camera::UpdateMouseDelta()
 
 	if (m_bResetCursorAfterMove)
 	{
-		Vector2 ptCenter = Vector2(Application->getWorkAreaSize(Application->GetHWND()).x,
-			Application->getWorkAreaSize(Application->GetHWND()).y) / 2;
+		Vector2 ptCenter = Vector2(static_cast<float>(Application->getWorkAreaSize(Application->GetHWND()).x),
+			static_cast<float>(Application->getWorkAreaSize(Application->GetHWND()).y)) / 2.f;
 
-		::SetCursorPos(ptCenter.x, ptCenter.y);
+		::SetCursorPos(static_cast<int>(ptCenter.x), static_cast<int>(ptCenter.y));
 		m_ptLastMousePosition = ptCenter;
 	}
 
@@ -273,18 +329,18 @@ void Camera::Reset()
 	Teleport(m_vDefaultEye, m_vDefaultLookAt);
 }
 
-#include "GrabThing.h"
-shared_ptr<GrabThing> GThing = make_shared<GrabThing>();
+#include "DebugDraw.h"
+//shared_ptr<GrabThing> GThing = make_shared<GrabThing>();
 void Camera::FrameMove(float fElapsedTime)
 {
 	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Home))
 		Reset();
-	else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::G))
-		GThing->Grab();
-	else if (Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Keys::F))
-		GThing->CheckType(-1);
-	else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::B))
-		GThing->Drop();
+	//else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::G))
+	//	GThing->Grab();
+	//else if (Application->getTrackerKeyboard().IsKeyPressed(Keyboard::Keys::F))
+	//	GThing->CheckType(-1);
+	//else if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::B))
+	//	GThing->Drop();
 
 		// Get keyboard/mouse/gamepad input
 	GetInput(m_bEnablePositionMovement, true);
@@ -293,7 +349,7 @@ void Camera::FrameMove(float fElapsedTime)
 	UpdateVelocity(fElapsedTime);
 
 		// If rotating the camera
-	if (((Application->getMouse()->GetState().leftButton && Left ||
+	if (!DisableCameraCtrl && ((Application->getMouse()->GetState().leftButton && Left ||
 		Application->getMouse()->GetState().rightButton && Right)
 		!= WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
 	{
@@ -326,7 +382,7 @@ void Camera::FrameMove(float fElapsedTime)
 
 	Vector3 vEye = XMLoadFloat3(&m_vEye);
 
-	if (!FreeCamMove)
+	if (Application->getPhysics().operator bool() && C_CT.operator bool() && !FreeCamMove)
 		vEye = C_CT->Update(XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot), fElapsedTime, Vector3::Up);
 	else
 		vEye += XMVector3TransformCoord(m_vVelocity * fElapsedTime, mCameraRot);
@@ -369,9 +425,6 @@ Vector3 Camera::GetEyePt() const
 	return XMLoadFloat3(reinterpret_cast<const Vector3 *>(&m_mCameraWorld._41));
 }
 
-ToDo("Need To Reformatting Class Below!")
-// // // // // // // //
-	// Another Class!!!
 void Frustum::ConstructFrustum(float screenDepth, Matrix projectionMatrix, Matrix viewMatrix)
 {
 	float zMinimum = 0.f, r = 0.f;

@@ -29,12 +29,14 @@ font="rodc" sizefont="22" brightness="0.9">
 	texthint=""/>
 	<Button id="##MP_Connect" text="Connect" visible="true"/>
 </gui>
-<gui id="MPConnection" width="820" height="420" visible="false" resize="true" 
+<gui id="MPConnection" width="820" height="420" visible="false" resize="false" 
 show_title="true" moveble="true" collapsible="false" bring_to_font="false"
 font="rodc" sizefont="22" brightness="0.9">
+	<ChildDialog id="##MP_TextBox" border="true" horizontal_scroll="true">
+		<UnformatedText id="##MP_Chat"/>
+	</ChildDialog>
 	<InputText id="##MP_IText" text="Send A Message" visible="true" history="true" hint="false"
 	texthint="Send A Message Here"/>
-	<InputTextMultiline id="##MP_Chat" visible="true" text="##Chat" readonly="true"/>
 	<Button id="##MP_Send" text="Send" visible="true"/>
 	<Button id="##MP_CreateServer" text="Create Server" visible="true"/>
 	<Button id="##MP_Connect" text="Connect" visible="true"/>
@@ -52,7 +54,7 @@ font="capture-it" sizefont="24" brightness="0.9">
 	<InputText id="##Console_CmdIText" text="" visible="true" history="true" hint="true"
 	texthint="Input Command Here!"/>
 	<ListBox id="##HintCmd" label="##ForHintCmd" visible="true"/>
-	<ChildDialog id="ConsoleText" border="true" horizontal_scroll="true">
+	<ChildDialog id="##ConsoleTextBox" border="true" horizontal_scroll="true">
 		<UnformatedText id="##CText"/>
 	</ChildDialog>
 </gui>

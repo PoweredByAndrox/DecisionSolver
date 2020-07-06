@@ -20,12 +20,12 @@ void SimpleLogic::AddNewPoint(Vector3 Pos, Vector3 Rotate, LogicMode TestState)
 	Points.push_back(make_shared<Point>(Pos, Rotate, TestState));
 }
 
-void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot)
+void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot, float dTime)
 {
-	if (Points.empty())
+	if (Points.empty() || isPaused)
 		return;
 
-	if ((size_t)Progress >= Points.size())
+	if ((size_t)Progress > Points.size()-1)
 		Progress = 0;
 
 	auto _Point = Points.at(Progress);
@@ -38,8 +38,22 @@ void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot)
 
 	if (_Point->GetState() != Stay)
 	{
-		Pos = Vector3::SmoothStep(Pos, _Point->GetPos(), Application->getframeTime() + 0.85f);
-		Rot = Vector3::SmoothStep(Rot, _Point->GetRotate(), Application->getframeTime() + 0.85f);
+		Vector3 Scale = XMVectorReplicate(dTime);
+		Vector3 LengthPos = XMVectorSubtract(_Point->GetPos(), Pos),
+			LengthRot = XMVectorSubtract(_Point->GetRotate(), Rot);
+		Pos = XMVectorMultiplyAdd(Scale, LengthPos, Pos);
+		Rot = XMVectorMultiplyAdd(Scale, LengthRot, Rot);
+
+		Pos = XMVectorLerp(Pos, _Point->GetPos(), dTime);
+		Rot = XMVectorLerp(Rot, _Point->GetRotate(), dTime);
+		if ((isnan<float>(Pos.x) || isinf<float>(Pos.x)) &&
+			(isnan<float>(Pos.y) || isinf<float>(Pos.y)) &&
+			(isnan<float>(Pos.z) || isinf<float>(Pos.z)))
+			Pos = _Point->GetPos();
+		if ((isnan<float>(Rot.x) || isinf<float>(Rot.x)) &&
+			(isnan<float>(Rot.y) || isinf<float>(Rot.y)) &&
+			(isnan<float>(Rot.z) || isinf<float>(Rot.z)))
+			Rot = _Point->GetRotate();
 
 		if (XMVector3NearEqual(_Point->GetPos(), Pos, Vector3(0.001f, 0.001f, 0.001f)) &&
 			XMVector3NearEqual(_Point->GetRotate(), Rot, Vector3(0.001f, 0.001f, 0.001f)))
@@ -47,9 +61,4 @@ void SimpleLogic::Update(Vector3 &Pos, Vector3 &Rot)
 	}
 	else
 		Progress++;
-}
-
-void SimpleLogic::ChangeSec(float Time)
-{
-	//timer_1->SetTargetElapsedSeconds(Time);
 }

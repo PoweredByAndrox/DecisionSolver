@@ -56,10 +56,10 @@ void Timer::Tick(function<void(void)> update)
 					m_frameCount++;
 
 					if (m_func)
-			//		{
+						//		{
 						m_func();
-						//this_thread::sleep_until(timeDelta);
-			//		}
+					//this_thread::sleep_until(timeDelta);
+		//		}
 				}
 
 				//if (!SkipDial)
@@ -96,10 +96,10 @@ void Timer::Tick(function<void(void)> update)
 				m_frameCount++;
 
 				if (m_func)
-			//	{
+					//	{
 					m_func();
-			//		this_thread::sleep_until(timeDelta);
-			//	}
+				//		this_thread::sleep_until(timeDelta);
+				//	}
 			}
 
 			// Track the current framerate.

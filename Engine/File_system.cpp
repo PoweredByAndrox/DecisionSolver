@@ -15,7 +15,8 @@ File_system::File_system()
 	WorkDir = _getcwd(nullptr, 1024);
 	if (WorkDir.empty())
 		Engine::LogError("File System::File_system Failed!",
-			"File System::File_system Failed!", "File System: Something is wrong with Get Resource Folder or Path!");
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"File System: Something is wrong with Get Resource Folder or Path!");
 
 	WorkDir.swap(WorkDir.generic_path());
 
@@ -23,214 +24,6 @@ File_system::File_system()
 		((WorkDir.generic_string().back() == '/') ? "" : "/") + LogFName.string();
 	CreateLog();
 	ScanFiles();
-
-	//string buf = "";
-	//CompressFile(string("G:/DecisionSolver/Engine/resource/maps/first_level.xml"), buf);
-}
-
-int GetMaxCompressedLen(int nLenSrc)
-{
-	int n16kBlocks = (nLenSrc + 16383) / 16384; // round up any fraction of a block
-	return (nLenSrc + 6 + (n16kBlocks * 5));
-}
-
-int GetMaxDeCompressedLen(int nLenSrc)
-{
-	int n16kBlocks = (nLenSrc + 16383) / 16384; // round up any fraction of a block
-	return (nLenSrc - 6 - (n16kBlocks * 5));
-}
-
-int CompressData(const BYTE *abSrc, int nLenSrc, BYTE *abDst, int nLenDst)
-{
-	z_stream stream;
-	int err;
-	const uInt max = (uInt)-1;
-	uLong left;
-
-	left = nLenDst;
-	nLenDst = 0;
-
-	stream.zalloc = (alloc_func)0;
-	stream.zfree = (free_func)0;
-	stream.opaque = (voidpf)0;
-
-	err = deflateInit(&stream, Z_BEST_COMPRESSION);
-	if (err != Z_OK) return err;
-
-	stream.next_out = abDst;
-	stream.avail_out = 0;
-	stream.next_in = (Bytef *)abSrc;
-	stream.avail_in = 0;
-
-	do
-	{
-		if (stream.avail_out == 0) {
-			stream.avail_out = left > (uLong)max ? max : (uInt)left;
-			left -= stream.avail_out;
-		}
-		if (stream.avail_in == 0) {
-			stream.avail_in = nLenSrc > (uLong)max ? max : (uInt)nLenSrc;
-			nLenSrc -= stream.avail_in;
-		}
-		err = deflate(&stream, nLenSrc ? Z_NO_FLUSH : Z_FINISH);
-	}
-	while (err == Z_OK);
-
-	nLenDst = stream.total_out;
-	deflateEnd(&stream);
-	return err == Z_STREAM_END ? Z_OK : err;
-}
-
-int UncompressData(const BYTE *abSrc, int nLenSrc, BYTE *abDst, int nLenDst)
-{
-	z_stream stream;
-	int err;
-	const uInt max = (uInt)-1;
-	uLong len, left;
-	Byte buf[1];    /* for detection of incomplete stream when *destLen == 0 */
-
-	len = nLenSrc;
-	if (nLenDst)
-	{
-		left = nLenDst;
-		nLenDst = 0;
-	}
-	else
-	{
-		left = 1;
-		abDst = buf;
-	}
-
-	stream.next_in = (z_const Bytef *)abSrc;
-	stream.avail_in = 0;
-	stream.zalloc = (alloc_func)0;
-	stream.zfree = (free_func)0;
-	stream.opaque = (voidpf)0;
-
-	err = inflateInit(&stream);
-	if (err != Z_OK) return err;
-
-	stream.next_out = abDst;
-	stream.avail_out = 0;
-
-	do
-	{
-		if (stream.avail_out == 0)
-		{
-			stream.avail_out = left > (uLong)max ? max : (uInt)left;
-			left -= stream.avail_out;
-		}
-		if (stream.avail_in == 0)
-		{
-			stream.avail_in = len > (uLong)max ? max : (uInt)len;
-			len -= stream.avail_in;
-		}
-		err = inflate(&stream, Z_NO_FLUSH);
-	}
-	while (err == Z_OK);
-
-	nLenSrc -= len + stream.avail_in;
-	if (abDst != buf)
-		nLenDst = stream.total_out;
-	else if (stream.total_out && err == Z_BUF_ERROR)
-		left = 1;
-
-	inflateEnd(&stream);
-	return err == Z_STREAM_END ? Z_OK :
-		err == Z_NEED_DICT ? Z_DATA_ERROR :
-		err == Z_BUF_ERROR && left + stream.avail_out ? Z_DATA_ERROR :
-		err;
-}
-
-//Use it only to save files
-void File_system::CompressFile(string File, string &Buffer)
-{
-	BYTE *In = {}, *Out = {};
-	size_t InLen = 0,
-		OutLen = 0;
-
-	// Get Full Path File
-	auto thisFile = File.c_str();
-	ReadFileMemory(thisFile, (size_t *)&InLen, (void **)&In);
-
-	OutLen = GetMaxCompressedLen(InLen);
-	Out = (BYTE *)malloc(OutLen);
-	
-	if (CompressData(In, InLen, Out, OutLen) != Z_OK)
-		throw exception("HERE!!!");
-	
-	reinterpret_cast<char *>(Out)[OutLen] = '\0';
-
-	ToDo("Delete This!");
-	strcat_s(const_cast<char *>(thisFile), strlen(".Compress"), ".Compress");
-	auto res = boost::filesystem::remove(path(thisFile));
-
-	std::ofstream(thisFile, std::ofstream::binary).write(reinterpret_cast<char *>(Out), OutLen);
-
-	Buffer = reinterpret_cast<char *>(Out);
-}
-string File_system::CompressBuf(string SrcBuffer)
-{
-	if (SrcBuffer.empty()) return "";
-	BYTE *In = reinterpret_cast<BYTE *>(const_cast<char *>(SrcBuffer.c_str())),
-		*Out = {};
-	size_t InLen = 0,
-		OutLen = 0;
-
-	OutLen = GetMaxCompressedLen(SrcBuffer.length());
-	Out = (BYTE *)malloc(OutLen);
-
-	if (CompressData(In, SrcBuffer.length(), Out, OutLen) != Z_OK)
-		throw exception("HERE!!!");
-
-	reinterpret_cast<char *>(Out)[OutLen] = '\0';
-	return reinterpret_cast<char *>(Out);
-}
-
-//Use it only to open files
-void File_system::DecompressFile(string File, string &Buffer)
-{
-	BYTE *In = {}, *Out = {};
-	size_t InLen = 0,
-		OutLen = 0;
-
-	// Compress Input File And Read It To Its Buffer To Work It Later
-	ReadFileMemory(File.c_str(), (size_t *)&InLen, (void **)&Out);
-
-	auto thisFile = File.c_str();
-
-	OutLen = GetMaxDeCompressedLen(InLen);
-
-	In = (BYTE *)malloc(OutLen);
-	if (UncompressData(Out, InLen, In, OutLen) != Z_OK)
-		throw exception("Here!!!");
-
-	reinterpret_cast<char *>(In)[OutLen] = '\0';
-	
-	ToDo("Delete This!");
-	strcat_s(const_cast<char *>(thisFile), strlen(".DeCompress"), ".DeCompress");
-	auto res = boost::filesystem::remove(path(thisFile));
-
-	std::ofstream(thisFile, std::ofstream::binary).write(reinterpret_cast<char *>(Out), OutLen);
-
-	Buffer = reinterpret_cast<char *>(Out);
-}
-string File_system::DecompressBuf(string SrcBuffer)
-{
-	if(SrcBuffer.empty()) return "";
-	BYTE *In = reinterpret_cast<BYTE *>(const_cast<char *>(SrcBuffer.c_str())),
-		*Out = {};
-	size_t InLen = 0,
-		OutLen = 0;
-
-	OutLen = GetMaxDeCompressedLen(SrcBuffer.length());
-
-	In = (BYTE *)malloc(OutLen);
-	if (UncompressData(Out, SrcBuffer.length(), In, OutLen) != Z_OK)
-		throw exception("Here!!!");
-
-	reinterpret_cast<char *>(In)[OutLen] = '\0';
-	return reinterpret_cast<char *>(Out);
 }
 
 void File_system::ScanFiles()
@@ -341,7 +134,8 @@ void File_system::RescanFilesByType(_TypeOfFile Type)
 
 _TypeOfFile File_system::GetTypeFileByExt(path File)
 {
-	if (File.extension().string() == ".obj" || File.extension().string() == ".3ds")
+	if (File.extension().string() == ".obj" || File.extension().string() == ".3ds" ||
+		File.extension().string() == ".fbx")
 		return MODELS;
 	else if (File.extension().string() == ".hlsl" || File.extension().string() == ".fx"
 		|| File.extension().string() == ".vs" || File.extension().string() == ".ps")
@@ -383,6 +177,7 @@ _TypeOfFile File_system::GetTypeFileByExt(path File)
 	}
 	else
 		return NONE;
+	return NONE;
 }
 
 void File_system::CreateLog()
@@ -483,7 +278,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		if (contains(Files, File.string() + ".obj"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -494,7 +289,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		if (contains(Files, File.string() + ".3ds"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -502,12 +297,23 @@ shared_ptr<File_system::File> File_system::Find(path File)
 			NewObj->TypeOfFile = _TypeOfFile::MODELS;
 			NewObj->ExtA = ".3ds";
 		}
+		if (contains(Files, File.string() + ".fbx"))
+		{
+			auto F = GetFileByPath(Files);
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
+				return F;
+
+			// If need to add it to engine
+			NewObj->PathA = Files;
+			NewObj->TypeOfFile = _TypeOfFile::MODELS;
+			NewObj->ExtA = ".fbx";
+		}
 
 		// Textures
 		else if (contains(Files, File.string() + ".dds"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -518,7 +324,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".png"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -529,7 +335,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".bmp"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -540,7 +346,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".jpg"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -553,7 +359,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".hlsl"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -564,7 +370,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".fx"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -575,7 +381,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".vs"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -586,7 +392,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".ps"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -599,7 +405,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".wav"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -612,7 +418,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".xml"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -631,7 +437,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".lua"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -644,7 +450,7 @@ shared_ptr<File_system::File> File_system::Find(path File)
 		else if (contains(Files, File.string() + ".ttf"))
 		{
 			auto F = GetFileByPath(Files);
-			if (!F->FileA.empty() || !F->FileW.empty())
+			if (!F || !F->FileA.empty() || !F->FileW.empty())
 				return F;
 
 			// If need to add it to engine
@@ -783,7 +589,7 @@ shared_ptr<File_system::File> File_system::GetFile(path File)
 		File.has_root_name() && File.has_root_path() && File.has_extension() && File.has_filename())
 	{
 		auto Obj = GetFileByPath(Fname);
-		if (Obj->Size != 0)
+		if (Obj && Obj->Size > 0)
 			return Obj;
 		if (File.has_extension())
 			deleteWord(Fname, File.extension().string());
@@ -799,7 +605,7 @@ shared_ptr<File_system::File> File_system::GetFile(path File)
 			deleteWord(Fname, File.extension().string());
 
 		auto Obj = Find(Fname);
-		if (Obj->Size != 0)
+		if (Obj && Obj->Size > 0)
 			return Obj;
 	}
 
@@ -828,7 +634,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 
 		// Try to find this file in Engine if it was find then return it
 		auto Obj = GetFileByPath(PathFile);
-		if (Obj->Size != 0)
+		if (Obj && Obj->Size > 0)
 			return Obj;
 	}
 
@@ -836,7 +642,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 	else if (!File.has_extension() && File.has_filename())
 	{
 		auto Obj = Find(Fname);
-		if (Obj->Size == 0)
+		if (Obj && Obj->Size == 0)
 		{
 			T = Obj->TypeOfFile;
 			PathFile = Obj->PathA;
@@ -854,6 +660,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Models.back().first->ExtW = path(PathFile).extension().wstring();
 		Models.back().first->FileW = File.filename().wstring();
 		Models.back().first->PathW = path(PathFile).wstring();
+		return Models.back().first;
 		break;
 	case TEXTURES:
 		Textures.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -861,6 +668,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Textures.back().first->ExtW = path(PathFile).extension().wstring();
 		Textures.back().first->FileW = File.filename().wstring();
 		Textures.back().first->PathW = path(PathFile).wstring();
+		return Textures.back().first;
 		break;
 	case LEVELS:
 		Levels.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -868,6 +676,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Levels.back().first->ExtW = path(PathFile).extension().wstring();
 		Levels.back().first->FileW = File.filename().wstring();
 		Levels.back().first->PathW = path(PathFile).wstring();
+		return Levels.back().first;
 		break;
 	case DIALOGS:
 		Dialogs.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -875,6 +684,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Dialogs.back().first->ExtW = path(PathFile).extension().wstring();
 		Dialogs.back().first->FileW = File.filename().wstring();
 		Dialogs.back().first->PathW = path(PathFile).wstring();
+		return Dialogs.back().first;
 		break;
 	case SOUNDS:
 		Sounds.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -882,6 +692,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Sounds.back().first->ExtW = path(PathFile).extension().wstring();
 		Sounds.back().first->FileW = File.filename().wstring();
 		Sounds.back().first->PathW = path(PathFile).wstring();
+		return Sounds.back().first;
 		break;
 	case SHADERS:
 		Shaders.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -889,6 +700,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Shaders.back().first->ExtW = path(PathFile).extension().wstring();
 		Shaders.back().first->FileW = File.filename().wstring();
 		Shaders.back().first->PathW = path(PathFile).wstring();
+		return Shaders.back().first;
 		break;
 	case UIS:
 		Uis.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -896,6 +708,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Uis.back().first->ExtW = path(PathFile).extension().wstring();
 		Uis.back().first->FileW = File.filename().wstring();
 		Uis.back().first->PathW = path(PathFile).wstring();
+		return Uis.back().first;
 		break;
 	case SCRIPTS:
 		Scripts.push_back(make_pair(make_shared<File_system::File>(PathFile, path(PathFile).extension().string(),
@@ -903,6 +716,7 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Scripts.back().first->ExtW = path(PathFile).extension().wstring();
 		Scripts.back().first->FileW = File.filename().wstring();
 		Scripts.back().first->PathW = path(PathFile).wstring();
+		return Scripts.back().first;
 		break;
 	case FONTS:
 		Fonts.push_back(make_pair(make_shared<File_system::File>(PathFile, File.extension().string(),
@@ -910,10 +724,12 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 		Fonts.back().first->ExtW = File.extension().wstring();
 		Fonts.back().first->FileW = File.filename().wstring();
 		Fonts.back().first->PathW = File.wstring().c_str();
+		return Fonts.back().first;
 		break;
 	}
 
-	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n", string(__FILE__) + ": " + to_string(__LINE__),
+	Engine::LogError("File System: ERROR_FILE_NOT_FOUND!\n",
+		string(__FILE__) + ": " + to_string(__LINE__),
 		"File: " + Fname + " not found\n");
 	return shared_ptr<File_system::File>();
 }
@@ -923,7 +739,7 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder, bool Recursive, bo
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != nullptr)
 		ResPath = Folder;	// If found
 	else
 		ResPath = WorkDirSourcesW + Folder;	// No!
@@ -964,7 +780,7 @@ vector<wstring> File_system::getFilesInFolder(wstring Folder)
 	vector<wstring> files;
 	wstring ResPath;
 
-	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != NULL)
+	if (wcsstr(Folder.c_str(), (WorkDirSourcesW).c_str()) != nullptr)
 		ResPath = Folder;	// If found
 	else
 		ResPath = WorkDirSourcesW + Folder;	// No!
@@ -981,7 +797,7 @@ vector<string> File_system::getFilesInFolder(string Folder, bool Recursive, bool
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != NULL)
+	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != nullptr)
 		ResPath = Folder;	// If found
 	else
 		ResPath = WorkDirSourcesA + Folder;	// No!
@@ -1022,7 +838,7 @@ vector<string> File_system::getFilesInFolder(string Folder)
 	vector<string> files;
 	string ResPath;
 
-	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != NULL)
+	if (strstr(Folder.c_str(), (WorkDirSourcesA).c_str()) != nullptr)
 		ResPath = Folder;	// If found
 	else
 		ResPath = WorkDirSourcesA + Folder;	// No!
@@ -1045,7 +861,7 @@ string File_system::getDataFromFile(string File, string start, string end)
 	streamObj >> noskipws;
 	if (streamObj.is_open())
 	{
-		copy(istream_iterator<char>(streamObj), istream_iterator<char>(), back_inserter(Returned_val));
+		copy(istream_iterator<char>(streamObj), istream_iterator<char>(), std::back_inserter(Returned_val));
 
 		if (!Returned_val.empty())
 			if (!start.empty() & !end.empty())
@@ -1058,7 +874,7 @@ string File_system::getDataFromFile(string File, string start, string end)
 		else
 		{
 			Engine::LogError("File System::getDataFromFile Failed!",
-				"File System::getDataFromFile Failed!",
+				string(__FILE__) + ": " + to_string(__LINE__),
 				"File System: Something is wrong with File System Function (getDataFromFile)!");
 			return "";
 		}
@@ -1066,7 +882,7 @@ string File_system::getDataFromFile(string File, string start, string end)
 	else
 	{
 		Engine::LogError("File System::getDataFromFile Failed!",
-			"File System::getDataFromFile Failed!",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"File System: Something is wrong with File System Function (getDataFromFile)!");
 		return "";
 	}
@@ -1097,58 +913,58 @@ vector<string> File_system::getDataFromFileVector(string File, bool LineByline)
 
 	return vector<string>();
 }
-bool File_system::ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FilePtr)
+bool File_system::ReadFileMemory(LPCSTR filename, size_t &FileSize, vector<BYTE> &FilePtr)
 {
-	std::ifstream is(filename, std::ifstream::binary);
+	if (!exists(filename) || file_size(filename) == 0) return false;
+	std::ifstream is(filename, ios::binary);
 	if (is)
 	{
+		is.unsetf(std::ios::skipws);
 		is.seekg(0, is.end);
-		*FileSize = is.tellg();
+		FileSize = static_cast<size_t>(is.tellg());
 		is.seekg(0, is.beg);
 
-		*FilePtr = new char[*FileSize];
-		reinterpret_cast<char *>(*FilePtr)[*FileSize] = '\0';
+		FilePtr.reserve(FileSize+1);
 
-		is.read((char *)*FilePtr, *FileSize);
-
-		if (!is)
-		{
-			is.close();
-			return false;
-		}
+		// read the data:
+		FilePtr.insert(FilePtr.begin(),
+			std::istream_iterator<BYTE>(is),
+			std::istream_iterator<BYTE>());
+		FilePtr.push_back('\0');
 	}
+	else
+		return false;
 
-	is.close();
 	return true;
 }
 
-ToDo("Add Here Decompress File")
+ToDo("Add To Open Proj File Itself (From Recent)");
 #include "Levels.h"
-void File_system::ProjectFile::OpenFile(path File)
+HRESULT File_system::ProjectFile::OpenFile(path File)
 {
-	// Add Here Uncompress Algorytm File
-	// string buf = "";
-	// Application->getFS()->DecompressFile(file.string(), buf);
-	//Application->getLevel()->LoadXML(buf.c_str());
-	
-	void *Buf = { 0 };
+	vector<BYTE> Buf;
 	size_t n = 0;
-	Application->getFS()->ReadFileMemory(File.string().c_str(), &n, &Buf);
-	Application->getLevel()->LoadXML(reinterpret_cast<char *>(Buf));
+	if (Application->getFS()->ReadFileMemory(File.string().c_str(), n, Buf))
+		EngineTrace(Application->getLevel()->Load(reinterpret_cast<char *>(Buf.data())));
+	return S_OK;
 }
 
 #include "GameObjects.h"
 void File_system::ProjectFile::SaveFile(path File)
 {
+	if (!File.empty() && File.extension().string().find(".*") != string::npos)
+			File.replace_extension(".proj");
+
+	SaveProj(File);
 }
 
 ToDo("Check It If We Use Dialog To Open File And Pass It")
 void File_system::CreateProjectFile(string FName)
 {
-	path Fname = "";
+	path Fname;
 	
 	string BuffCmp;
-	BuffCmp = CompressBuf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<scene>\n</scene>\n");
+	BuffCmp = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<scene>\n</scene>\n";
 	// Create File
 	*make_shared<boost::filesystem::ofstream>(Fname = (getPathFromType(_TypeOfFile::LEVELS) + (FName + ".proj")),
 		std::ofstream::out) << BuffCmp;
@@ -1156,24 +972,39 @@ void File_system::CreateProjectFile(string FName)
 	Project->SetCurProject(Fname);
 }
 
-void File_system::ProjectFile::SaveCurrProj()
+void File_system::ProjectFile::SaveProj(path File)
 {
 	string Buff;
 	auto MainChild = Application->getLevel()->getChild();
 	auto Nodes = MainChild->GetNodes();
 
 	shared_ptr<tinyxml2::XMLDocument> Doc = Application->getLevel()->getDocXMLFile();
-	for (size_t i = 0; i < Nodes.size(); i++)
+
+	for (auto It: Nodes)
 	{
-		auto Node = Nodes.at(i);
-		if (Node->IsItChanged)
-			Buff = Application->getLevel()->SomeFunc(Doc, Node);
+		if (!File.empty())
+		{
+			if (!It->SaveInfo->IsRemoved)
+			{
+				It->SaveInfo->Pos = true;
+				It->SaveInfo->Rot = true;
+				It->SaveInfo->Scale = true;
+				It->IsItChanged = true;
+			}
+		}
+
+		if (Application->getLevel()->IsNotSaved() || (It->IsItChanged || It->SaveInfo->IsRemoved))
+			Buff = Application->getLevel()->Save(Doc, It);
+		if (It->SaveInfo->IsRemoved)
+			Application->getLevel()->Remove(It->ID);
 	}
 
-	*make_shared<boost::filesystem::ofstream>(CurrentProj, std::ofstream::out) << Buff;
-	
-	// string BuffCmp = CompressBuf(Buff);
-	// string BuffDeCmp = DecompressBuf(BuffCmp);
+	if (CurrentProj.empty())
+	{
+		Buff = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + Buff;
+		Application->getFS()->CreateProjectFile("New File");
+	}
+	*make_shared<boost::filesystem::ofstream>(File.empty() ? CurrentProj : File, std::ofstream::out) << Buff;
 }
 
 void File_system::ProjectFile::SetCurProject(path File)
@@ -1210,4 +1041,146 @@ void File_system::ProjectFile::CheckForSameFile(path Path)
 
 	RecentFiles.push_back({ (int)RecentFiles.size(), Path });
 	Resort();
+}
+
+boost::property_tree::ptree File_system::LoadSettingsFile()
+{
+	if (!boost::filesystem::exists(GetCurrentPath() + "settings.cfg")) return boost::property_tree::ptree();
+
+	bool IfRead = false;
+	vector<BYTE> File; size_t Size = 0;
+	boost::property_tree::ptree fData;
+	if (IfRead = File_system::ReadFileMemory((GetCurrentPath() + "settings.cfg").c_str(), Size, File))
+	{
+		string Data = reinterpret_cast<char *>(File.data());
+		to_lower(Data);
+
+		std::istringstream ini(Data);
+		boost::property_tree::ini_parser::read_ini(ini, fData);
+	}
+
+	return fData;
+}
+
+void File_system::SaveSettings(vector<pair<string, string>> ToFile)
+{
+	path p(GetCurrentPath() + "settings.cfg");
+	remove(p);
+
+	boost::property_tree::ptree fData;
+	
+	for (auto Auto: ToFile)
+	{
+		fData.add<string>(Auto.first, Auto.second);
+	}
+
+	boost::property_tree::ini_parser::write_ini(p.string(), fData);
+}
+
+bool File_system::compressFile(path data, string where)
+{
+	if (!where.empty())
+		boost::filesystem::create_directories(where);
+	try
+	{
+		std::ifstream file(data.string().c_str(), ios::binary | ios::in);
+		if (file)
+		{
+			boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
+			inbuf.push(gz_com(gzip_params(zlib::best_compression, zlib::deflated, zlib::default_window_bits,
+				zlib::default_mem_level, zlib::default_strategy, data.string(), "Comment")));
+			inbuf.push(file);
+
+			auto output = (!where.empty() ? (where + "/") : "") + data.filename().string();
+
+			if (gz_com *gz = inbuf.component<0, gz_com>())
+			{
+				OutputDebugStringA(("Writing " + output + "\n").c_str());
+				std::ofstream ofs(output.c_str(), std::ios::binary | ios::out);
+				ofs << 'Ÿ';
+				boost::iostreams::copy(inbuf, ofs);
+				rename(output, output + ".gz");
+			}
+		}
+		else
+			return false;
+
+		return true;
+	}
+	catch (const gzip_error& e)
+	{
+		switch (e.error())
+		{
+		case gzip::bad_header: // 4
+			throw exception("4");
+			break;
+		case gzip::bad_crc: // 2
+			throw exception("2");
+			break;
+		case gzip::bad_footer: // 5
+			throw exception("5");
+			break;
+		case gzip::bad_length: // 3
+			throw exception("3");
+			break;
+		case gzip::bad_method: // 6
+			throw exception("6");
+			break;
+		}
+	}
+
+	return false;
+}
+
+bool File_system::decompressFile(path data, string where)
+{
+	if (!where.empty())
+		boost::filesystem::create_directories(where);
+	try
+	{
+		std::ifstream file(data.string().c_str(), ios::binary | ios::in);
+		boost::iostreams::filtering_streambuf<boost::iostreams::input> inbuf;
+		inbuf.push(gz_decom());
+		inbuf.push(file);
+		if (gz_decom *gz = inbuf.component<0, gz_decom>())
+		{
+			auto output = (!where.empty() ? (where + "/") : "") + data.filename().string();
+			{
+				OutputDebugStringA(("Writing " + output).c_str());
+				std::ofstream ofs(output.c_str(), std::ios::binary);
+				boost::iostreams::copy(inbuf, ofs);
+			}
+
+			OutputDebugStringA(("Original filename: " + gz->file_name() + "\n").c_str());
+			OutputDebugStringA(("Original mtime: " + to_string(gz->mtime()) + "\n").c_str());
+			OutputDebugStringA(("Zip comment: " + gz->comment() + "\n").c_str());
+			if (!gz->file_name().empty())
+				rename(output, where + "/" + path(gz->file_name()).filename().string());
+		}
+
+		return true;
+	}
+	catch (const gzip_error& e)
+	{
+		switch (e.error())
+		{
+		case gzip::bad_header: // 4
+			throw exception("4");
+			break;
+		case gzip::bad_crc: // 2
+			throw exception("2");
+			break;
+		case gzip::bad_footer: // 5
+			throw exception("5");
+			break;
+		case gzip::bad_length: // 3
+			throw exception("3");
+			break;
+		case gzip::bad_method: // 6
+			throw exception("6");
+			break;
+		}
+	}
+
+	return false;
 }

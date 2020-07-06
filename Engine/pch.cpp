@@ -5,7 +5,7 @@ bool FindSubStr(wstring context, wstring const from)
 	if (context.empty() || from.empty())
 		return false;
 
-	if (context.find(from) != std::string::npos)
+	if (context.find(from) != string::npos)
 		//found
 		return true;
 	else
@@ -18,7 +18,7 @@ bool FindSubStr(string context, string const from)
 	if (context.empty() || from.empty())
 		return false;
 
-	if (context.find(from) != std::string::npos)
+	if (context.find(from) != string::npos)
 		//found
 		return true;
 	else

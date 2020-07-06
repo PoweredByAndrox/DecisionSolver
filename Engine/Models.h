@@ -67,19 +67,7 @@ public:
 	Models() {}
 	Models(string Filename);
 
-	void Release()
-	{
-		while (!Textures_loaded.empty())
-		{
-			SAFE_DELETE(Textures_loaded.front().TextureRes);
-			SAFE_DELETE(Textures_loaded.front().TextureSHRes);
-			Textures_loaded.erase(Textures_loaded.begin());
-		}
-
-		SAFE_DELETE(importer);
-		SAFE_DELETE(pScene);
-		SAFE_DELETE(mesh);
-	}
+	void Release();
 
 	void setRotation(Vector3 rotaxis);
 	void setScale(Vector3 Scale);

@@ -41,21 +41,20 @@ public:
 	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error);
 } voiceCallback;
 
-ToDo("Error Hanging!")
 HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
 {
 	mmio = mmioOpenA(const_cast<LPSTR>(filename.c_str()), nullptr, MMIO_READ);
 
 	if (!mmio)
-		return HRESULT_FROM_WIN32(GetLastError());
+		return HRESULT_FROM_WIN32(ERROR_OPEN_FAILED);
 
 	riff.fccType = mmioFOURCC('W', 'A', 'V', 'E');
 	if (mmioDescend(mmio, &riff, nullptr, MMIO_FINDRIFF) != MMSYSERR_NOERROR)
 	{
 		Engine::LogError("Audio: " + filename + ": Isn't a WAV File",
-			filename + ": Isn't a WAV File",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"Something is wrong with Audio: " + filename + ": Isn't a WAV File");
-		return HRESULT_FROM_WIN32(GetLastError());
+		return HRESULT_FROM_WIN32(E_FAIL);
 	}
 
 	fmt.ckid = mmioFOURCC('f', 'm', 't', ' ');
@@ -63,25 +62,37 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 	if (mmioDescend(mmio, &fmt, &riff, MMIO_FINDCHUNK) != MMSYSERR_NOERROR)
 	{
 		Engine::LogError("Audio: " + filename + ": Hasn't a FMT",
-			filename + ": Hasn't a FMT",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"Something is wrong with Audio: " + filename + ": Hasn't a FMT");
-		return HRESULT_FROM_WIN32(GetLastError());
+		return HRESULT_FROM_WIN32(E_FAIL);
 	}
 
 	LONG readSize = mmioRead(mmio, reinterpret_cast<HPSTR>(&WaveFormEx), fmt.cksize);
 	switch (readSize)
 	{
 	case 0:
-		MessageBoxA(0, "FMT0", "Error", MB_OK);
-		break;
+	{
+		Engine::LogError("Audio: " + filename + ": Hasn't a FMT",
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"Something is wrong with Audio: " + filename + ": Has The Wrong FMT Size (= 0)");
+		return HRESULT_FROM_WIN32(E_FAIL);
+	}
+	break;
 	case -1:
-		MessageBoxA(0, "FMT-1", "Error", MB_OK);
-		break;
+	{
+		Engine::LogError("Audio: " + filename + ": Hasn't a FMT",
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"Something is wrong with Audio: " + filename + ": Has The Wrong FMT Size (= -1)");
+		return HRESULT_FROM_WIN32(E_FAIL);
+	}
+	break;
 	default:
 		if ((unsigned)readSize != fmt.cksize)
 		{
-			MessageBoxA(0, "DEF_FMT", "Error", MB_OK);
-			return false;
+			Engine::LogError("Audio: " + filename + ": Hasn't a FMT",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"Something is wrong with Audio: " + filename + ": Has The Wrong FMT Size (readSize != fmt.cksize)");
+			return HRESULT_FROM_WIN32(E_FAIL);
 		}
 	}
 
@@ -90,9 +101,9 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 	data.ckid = mmioFOURCC('d', 'a', 't', 'a');
 
 	if (mmioDescend(mmio, &data, &riff, MMIO_FINDCHUNK) != MMSYSERR_NOERROR)
-		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Has a Bad Data.")
-			% filename.c_str()).str(),
-			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File! It Has a Bad Data");
+		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Has a Bad Data.") % filename.c_str()).str(),
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"Sound: Something is wrong with Load WAV File! It Has a Bad Data");
 
 	pDataBuffer.resize(data.cksize);
 
@@ -100,8 +111,9 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 		mmio,
 		reinterpret_cast<HPSTR>(&pDataBuffer[0]), data.cksize) != (signed)data.cksize)
 		Engine::LogError((boost::format("Audio::LoadWAV()-> This File: %s Isn't a WAV File.") % filename).str(),
-			"Audio::LoadWAV() failed!!!", "Sound: Something is wrong with Load WAV File! It Isn't a WAV File");
-	
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"Sound: Something is wrong with Load WAV File! It Isn't a WAV File");
+
 	mmioClose(mmio, MMIO_FHOPEN);
 
 	buffer.AudioBytes = pDataBuffer.size();
@@ -110,17 +122,25 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 
 	return S_OK;
 }
+
+HRESULT Audio::hr = S_OK;
 HRESULT Audio::AudioFile::Load(string FName, int Channels)
 {
+	if (FName.empty() || Channels == 0) return ERROR_BAD_ARGUMENTS;
+	
+	hr = S_OK;
 	SecureZeroMemory(&buffer, sizeof(buffer));
 	SecureZeroMemory(&WaveFormEx, sizeof(WaveFormEx));
-
-	EngineTrace(loadWAVFile(FName, wfx, buffer));
+	hr = loadWAVFile(FName, wfx, buffer);
+	if (FAILED(hr))
+		return hr;
 
 	if (Repeat)
 		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 
-	EngineTrace(pXAudio2->CreateSourceVoice(&source, &WaveFormEx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &voiceCallback));
+	hr = pXAudio2->CreateSourceVoice(&source, &WaveFormEx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &voiceCallback);
+	if (FAILED(hr))
+		return hr;
 
 	source->Stop();
 	source->FlushSourceBuffers();
@@ -130,6 +150,7 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 
 void Audio::AudioFile::Update()
 {
+	if (!source) return;
 	source->SetOutputMatrix(nullptr, DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount,
 		DSPSettings.pMatrixCoefficients);
 	source->SetFrequencyRatio(DSPSettings.DopplerFactor);
@@ -146,10 +167,15 @@ HRESULT Audio::Init()
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
 	EngineTrace(XAudio2Create(&pXAudio2));
 
+	UINT32 pCound;
+	pXAudio2->GetDeviceCount(&pCound);
+	pXAudio2->GetDeviceDetails(0, &DEVICE_Details);
+
+	if (pCound == 0) return S_OK; // DNS_ERROR_RRL_INVALID_WINDOW_SIZE
+
 	EngineTrace(pXAudio2->CreateMasteringVoice(&master));
 
 	master->GetVoiceDetails(&VOICE_Details);
-	pXAudio2->GetDeviceDetails(0, &DEVICE_Details);
 
 	X3DAudioInitialize(DEVICE_Details.OutputFormat.dwChannelMask, X3DAUDIO_SPEED_OF_SOUND, X3DInstance);
 	if (!Lnr.operator bool()) Lnr = make_shared<Listerner>();
@@ -301,11 +327,7 @@ void Audio::ReleaseAudio()
 {
 	SAFE_DELETE_ARRAY(DSPSettings.pMatrixCoefficients);
 	doStop();
-	//if (g_audioState.pSubmixVoice)
-	//{
-	//	g_audioState.pSubmixVoice->DestroyVoice();
-	//	g_audioState.pSubmixVoice = NULL;
-	//}
+
 	for (size_t i = 0; i < Src.size(); i++)
 	{
 		Src.at(i).first->Stop();
@@ -320,9 +342,6 @@ void Audio::ReleaseAudio()
 		pXAudio2->StopEngine();
 
 	SecureZeroMemory(&DSPSettings, sizeof(X3DAUDIO_DSP_SETTINGS));
-	//SecureZeroMemory(&Emitter, sizeof(X3DAUDIO_EMITTER));
-	//SecureZeroMemory(&EmitterCone, sizeof(X3DAUDIO_CONE));
-	//SecureZeroMemory(&Emitter_LFE_Curve, sizeof(X3DAUDIO_DISTANCE_CURVE));
 }
 
 HRESULT Audio::changeVol(float Vol)
@@ -331,6 +350,7 @@ HRESULT Audio::changeVol(float Vol)
 	{
 		EngineTrace(It.first->GetAUDFile()->getSOURCE()->SetVolume(Vol));
 	}
+	return S_OK;
 }
 
 HRESULT Audio::changePitch(float Pitch)
@@ -339,6 +359,7 @@ HRESULT Audio::changePitch(float Pitch)
 	{
 		EngineTrace(It.first->GetAUDFile()->getSOURCE()->SetFrequencyRatio(Pitch));
 	}
+	return S_OK;
 }
 
 HRESULT Audio::changePan(float Pan)
@@ -384,6 +405,7 @@ HRESULT Audio::changePan(float Pan)
 		EngineTrace(It.first->GetAUDFile()->getSOURCE()->SetOutputMatrix(nullptr,
 			DSPSettings.SrcChannelCount, DSPSettings.DstChannelCount, matrix));
 	}
+	return S_OK;
 }
 
 HRESULT Audio::PlayFile(string File, bool RepeatIt, bool NeedFind)
@@ -391,7 +413,7 @@ HRESULT Audio::PlayFile(string File, bool RepeatIt, bool NeedFind)
 	if (File.empty())
 	{
 		Engine::LogError("Something is wrong with Engine::PlayFile",
-			"Something is wrong with Engine::PlayFile",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			(boost::format("LUA (Audio):\nFile: %s Doesn't Exist") % File).str());
 		return E_FAIL;
 	}

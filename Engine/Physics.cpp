@@ -153,7 +153,7 @@ void Physics::Simulation(float Timestep)
 	//Render
 	for (size_t i = 0; i < Cobes.size(); i++)
 	{
-		for (auto it : DynCobes)
+		for (auto it: DynCobes)
 		{
 			PxQuat aq = it->getGlobalPose().q;
 			PxVec3 pos = it->getGlobalPose().p;

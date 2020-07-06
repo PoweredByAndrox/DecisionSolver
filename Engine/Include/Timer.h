@@ -5,6 +5,7 @@
 
 #pragma once
 #include "..\pch.h"
+#include <mutex>
 
 /**
  *  Create asynchronous timers which execute specified
@@ -135,4 +136,5 @@ private:
 	UINT64 m_targetElapsedTicks;
 
 	chrono::time_point<chrono::steady_clock> begin, end;
+	condition_variable wait;
 };

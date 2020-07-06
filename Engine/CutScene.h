@@ -21,6 +21,8 @@ public:
 	void Update();
 
 	void Restart();
+	void Pause(bool p) { IsPause = p; }
+
 
 	bool getIsStart() { return IsStart; }
 	bool getIsPause() { return IsPause; }

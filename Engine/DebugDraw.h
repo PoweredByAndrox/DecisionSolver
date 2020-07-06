@@ -20,10 +20,11 @@
 class DebugDraw
 {
 public:
-	void MainRender(Matrix View, Matrix Proj);
+	void MainRender(Vector3 Pos, Matrix View, Matrix Proj);
 
 	void AddTriangle(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector4 color);
 	void AddBox(Vector3 Pos, Vector3 Size, Vector4 color);
+	void AddSphere(Vector3 Pos, float Radius, Vector4 color);
 
 	//void DrawCube(const BoundingBox &box, Vector4 color);
 
@@ -83,16 +84,6 @@ private:
 		UINT SizeVrtx = 0ul;
 	};
 
-	/*
-	class Cobe: public BaseRender
-	{
-	public:
-
-	private:
-
-	};
-	*/
-
 	class TriangleDraw: public BaseRender
 	{
 	public:
@@ -103,13 +94,23 @@ private:
 	class Box: public BaseRender
 	{
 	public:
-		void Draw(Matrix View, Matrix Proj);
+		void Draw(Vector3 Pos, Matrix View, Matrix Proj);
 		void Init(BoundingBox Box, Vector4 color);
 	
 	private:
 		BoundingBox _Box;
 	};
+	class Sphere: public BaseRender
+	{
+	public:
+		void Draw(Vector3 Pos, Matrix View, Matrix Proj);
+		void Init(BoundingSphere Sphere, Vector4 color);
+
+	private:
+		BoundingSphere _Sphere;
+	};
 
 	vector<shared_ptr<TriangleDraw>> triangle;
 	vector<shared_ptr<Box>> boxes;
+	vector<shared_ptr<Sphere>> spheres;
 };

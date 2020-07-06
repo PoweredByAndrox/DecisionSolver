@@ -31,13 +31,13 @@ HRESULT Console::Init()
 
 	for (size_t i = 0; i < Log.size(); i++)
 	{
-		auto Cmp = Dialog->getComponents()->FindComponentChild("ConsoleText")->getComponents().front();
+		auto Cmp = Dialog->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().back();
 		if (Log.at(i).find("[ERROR]") != string::npos)
-			Cmp->FindComponentUText("##CText")->AddCLText(Type::Error, Log.at(i));
+			Cmp->FindComponentUText("##CText")->AddText(Type::Error, Log.at(i));
 		else if (Log.at(i).find("[INFO]") != string::npos)
-			Cmp->FindComponentUText("##CText")->AddCLText(Type::Information, Log.at(i));
+			Cmp->FindComponentUText("##CText")->AddText(Type::Information, Log.at(i));
 		else
-			Cmp->FindComponentUText("##CText")->AddCLText(Type::Normal, Log.at(i));
+			Cmp->FindComponentUText("##CText")->AddText(Type::Normal, Log.at(i));
 	}
 
 	InitClass = true;
@@ -46,7 +46,7 @@ HRESULT Console::Init()
 
 void Console::Reload()
 {
-	Application->getUI()->ReloadXML(Application->getFS()->GetFile(string("All.xml"))->PathA.c_str());
+	Application->getUI()->ReloadXML(Application->getFS()->GetFile("All.xml")->PathA.c_str());
 	Dialog = Application->getUI()->getDialog("Console");
 }
 
@@ -115,8 +115,8 @@ void Console::Render()
 					if (!TextList->FindInItems(cmd->CommandStr))
 						TextList->addItem(cmd->CommandStr);
 				}
-				else if (!TextList->FindInItems(cmd->CommandStr + string(" ") + cmd->CommandNeededParams))
-						TextList->addItem(cmd->CommandStr + string(" ") + cmd->CommandNeededParams);
+				else if (!TextList->FindInItems(cmd->CommandStr + " " + cmd->CommandNeededParams))
+						TextList->addItem(cmd->CommandStr + " " + cmd->CommandNeededParams);
 			}
 			else
 				TextList->clearItems();
@@ -125,7 +125,7 @@ void Console::Render()
 
 	const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 	if (!Dialog->getComponents()->childs.empty())
-		Dialog->getComponents()->FindComponentChild("ConsoleText")->setSize(ImVec2(0, -footer_height_to_reserve));
+		Dialog->getComponents()->FindComponentChild("##ConsoleTextBox")->setSize(ImVec2(0, -footer_height_to_reserve));
 }
 
 void Console::OpenConsole()
@@ -161,14 +161,14 @@ void Console::LogError(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Error);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->FindComponentUText("##CText")->
-		AddCLText(Type::Error, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Error, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Error);
 }
@@ -182,14 +182,14 @@ void Console::LogInfo(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Information);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->FindComponentUText("##CText")->
-		AddCLText(Type::Information, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Information, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Information);
 }
@@ -203,14 +203,14 @@ void Console::LogNormal(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Normal);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getComponents().front()->FindComponentUText("##CText")->
-		AddCLText(Type::Normal, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Normal, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Normal);
 }

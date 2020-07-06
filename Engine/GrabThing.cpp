@@ -15,6 +15,7 @@ PxFixedJoint *joint = nullptr;
 
 void GrabThing::CheckType(int ID)
 {
+	if (!Application->getPhysics() || !Application->getCamera()) return;
 	Application->getPhysics()->SpawnObject(ToPxVec3(Application->getCamera()->GetEyePt() + Vector3(0, 2.5f, -5.f)));
 }
 
@@ -26,6 +27,8 @@ void GrabThing::Drop(int ID)
 void GrabThing::Grab()
 {
 	auto mActor = Application->getCamera()->getPCam()->getController();
+	if (!Application->getCamera()->getPCam() || !mActor) return;
+
 	PxRigidDynamic *actor = mActor->getActor();
 
 	PxI32 attachNum = 5;

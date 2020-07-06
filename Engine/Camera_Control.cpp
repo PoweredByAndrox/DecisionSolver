@@ -72,6 +72,7 @@ void Camera_Control::PosControllerHead()
 }
 //PCam->Update(); // Stand up and crouch
 
+ToDo("Run By Shift");
 Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 {
 	if (!C_Control) return camPos;

@@ -10,6 +10,8 @@
 #include "resource.h"
 #include "Timer.h"
 
+#include "Thread/ThreadPool.h"
+
 class DebugDraw;
 
 class CLua;
@@ -35,13 +37,13 @@ private:
 	static HWND hwnd;
 	bool WireFrame = false,
 		IsSimulation = false;
-	static bool isQuit;
+	static bool isQuit, IsLogError;
 	MSG msg = {};
 
 	XMVECTORF32 _ColorBuffer = DirectX::Colors::SkyBlue;
 	HRESULT hr = S_OK;
-	string NameWnd = "";
-	wstring ClassWND = L"";
+	string NameWnd;
+	wstring ClassWND;
 
 	float fps = 0.f, frameTime = 0.f;
 
@@ -152,7 +154,7 @@ public:
 
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 	shared_ptr<Multiplayer> getMPL() { return MPL; }
-	shared_ptr<Timer> getMainThread() { return MainThread; };
+	shared_ptr<Timer> getMainThread() { return MainThread; }
 
 	void setUI(shared_ptr<UI> ui)
 	{
@@ -293,6 +295,8 @@ public:
  * \param ##3 It'll Write In Log File This Text
  */
 	static void LogError(string DebugText, string ExceptionText, string LogText);
+
+	void SetLogErr(bool B) { IsLogError = B; }
 
 /*!
  * \brief Here's Keybord Key Down Function For Lua

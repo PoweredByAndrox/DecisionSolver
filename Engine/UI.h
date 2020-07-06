@@ -35,6 +35,26 @@ class Column;
 class Selectable;
 class Combobox;
 
+static Vector3 GetColor(ImVec4 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return Vector3(R, G, B);
+}
+static ImVec4 GetColorIm(ImVec4 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return ImVec4(R, G, B, 1.f);
+}
+
+static Vector3 GetColor(Vector3 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return Vector3(R, G, B);
+}
+
 struct AllTheComponent
 {
 	//			ID		Pointer to Component
@@ -152,16 +172,32 @@ struct XMLDial
 class BaseComponent
 {
 public:
+	struct ColorText
+	{
+		Type type = Type::Normal;
+		string str;
+
+		ColorText(Type type, string str) : type(type), str(str) {}
+	};
+
 	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeID(string ID);
 	void ChangeText(string Text) { this->Text = Text; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
 	void setVisible(bool Visible) { IsVisible = Visible; }
 
 	static void SetOnlyRenderID(bool b) { OnlyRenderID = b; }
-
 	void MergeComponents(shared_ptr<AllTheComponent> Component);
+	void setComponent(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
+
+	vector<ColorText> getCLText() { return clText; }
+	void AddText(Type type, string str) { clText.push_back(ColorText(type, str)); }
+
+	void ClearText()
+	{
+		Text.clear();
+		clText.clear();
+	}
 
 	const string GetText()
 	{
@@ -180,7 +216,7 @@ public:
 	const int getCountOrderRenderInDial() { return OrderlyRenderInDial; }
 	const int getRenderOrder() { return OrderlyRender; }
 	const string GetID() { return ID; }
-	vector<shared_ptr<AllTheComponent>> getComponents() { return Components; }
+	shared_ptr<AllTheComponent> getComponent() { return Component; }
 	bool GetVisible() { return IsVisible; }
 
 	bool IsClicked() { return clicked; }
@@ -193,7 +229,8 @@ protected:
 		pressEnter = false;
 	string Text;
 	const string ID;
-	vector<shared_ptr<AllTheComponent>> Components;
+	shared_ptr<AllTheComponent> Component;
+	vector<ColorText> clText;
 };
 
 class Combobox: public BaseComponent
@@ -246,61 +283,6 @@ struct TabItem
 	vector<string> Name;
 	vector<shared_ptr<AllTheComponent>> TabItemComp;
 };
-class Column: public BaseComponent
-{
-public:
-	Column() {}
-	Column(int CountColumn): CountColumn(CountColumn) {}
-
-	int getCountColumn() { return CountColumn; }
-	bool GetBorder() { return Border; }
-
-	void ChangeCountColumn(int Count) { CountColumn = Count; }
-
-	void SetBorder(bool Border) { this->Border = Border; }
-private:
-	int CountColumn = 0;
-	bool Border = false;
-};
-class Tab: public BaseComponent
-{
-public:
-	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
-	void setCloseMidMouse(bool CloseMidMouse) { this->CloseMidMouse = CloseMidMouse; }
-	void setASelectNewTab(bool ASelectNewTab) { this->ASelectNewTab = ASelectNewTab; }
-
-	vector<shared_ptr<TabItem>> getTabItem() { return TBItm; }
-
-	Tab() {}
-	Tab(string ID, bool DragTabs = false, bool ASelectNewTab = false, bool CloseMidMouse = false):
-		DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse)
-	{
-		ChangeID(ID);
-	}
-
-	void Render();
-private:
-	bool DragTabs = false, ASelectNewTab = false, CloseMidMouse = false;
-	ImVec2 size = { 0.f, 0.f };
-
-	ImGuiTabBarFlags Flags = 0;
-	vector<shared_ptr<TabItem>> TBItm { make_shared<TabItem>() };
-};
-class TreeNode: public BaseComponent
-{
-public:
-	TreeNode() {}
-	TreeNode(string ID, bool HasFlag = false): HasFlags(HasFlag)
-	{
-		ChangeID(ID);
-	}
-
-	void Render();
-private:
-	bool HasFlags = false;
-
-	ImGuiTreeNodeFlags Flags = 0;
-};
 class TextList: public BaseComponent
 {
 public:
@@ -333,7 +315,7 @@ public:
 	string getSelectedIndxString(int Index)
 	{
 		if (Items.empty() || (Index < 0 || Index >= (int)Items.size()))
-			return string();
+			return "";
 			
 		return Items.at(Index);
 	}
@@ -368,62 +350,131 @@ class UnformatedText: public BaseComponent
 public:
 	UnformatedText() {}
 	UnformatedText(string ID) { this->ChangeID(ID); }
-	class ColorText
-	{
-	public:
-		ColorText() {}
-		ColorText(Type type, string CText): type(type), CText(CText) {}
 
-		Type getType() { return type; }
-		string GetText() { return CText; }
-	private:
-		Type type = Type::Normal;
-		string CText;
-	};
-	vector<shared_ptr<ColorText>> clText;
-
-	void ClearBuffer()
-	{
-		Buffer.clear();
-		clText.clear();
-	}
-	vector<shared_ptr<ColorText>> getCLText() { return clText; }
-	void AddCLText(Type type, string str)
-	{
-			// Check if we typed the same string
-		for (size_t i = 0; i < clText.size(); i++)
-		{
-			if (clText.at(i)->GetText() == str)
-			{
-				addTextToBuffer(str);
-				return;
-			}
-		}
-
-			// Else add him our color text buffer and type the string in log
-		clText.push_back(make_shared<ColorText>(type, str));
-		addTextToBuffer(str);
-	}
-
-	shared_ptr<ColorText> getString(string Text)
+	ColorText getString(string Text)
 	{
 		for (size_t i = 0; i < clText.size(); i++)
 		{
-			if ((clText.at(i)->GetText() + string("\n")) == Text)
+			if (clText.at(i).str == Text)
 				return clText.at(i);
 		}
 	
-		return make_shared<ColorText>();
+		return ColorText(Type::Normal, "###");
 	}
+	void Render();
+};
 
-	void addTextToBuffer(string Text)
+class Tab: public BaseComponent
+{
+public:
+	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
+	void setCloseMidMouse(bool CloseMidMouse) { this->CloseMidMouse = CloseMidMouse; }
+	void setASelectNewTab(bool ASelectNewTab) { this->ASelectNewTab = ASelectNewTab; }
+
+	vector<shared_ptr<TabItem>> getTabItem() { return TBItm; }
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
+
+	Tab() {}
+	Tab(string ID, bool DragTabs = false, bool ASelectNewTab = false, bool CloseMidMouse = false) :
+		DragTabs(DragTabs), ASelectNewTab(ASelectNewTab), CloseMidMouse(CloseMidMouse)
 	{
-		Buffer.push_back(Text + string("\n"));
+		ChangeID(ID);
 	}
 
 	void Render();
 private:
-	vector<string> Buffer;
+	bool DragTabs = false, ASelectNewTab = false, CloseMidMouse = false;
+	ImVec2 size = { 0.f, 0.f };
+
+	ImGuiTabBarFlags Flags = 0;
+	vector<shared_ptr<TabItem>> TBItm{ make_shared<TabItem>() };
+	vector<shared_ptr<AllTheComponent>> Components;
+};
+class TreeNode: public BaseComponent
+{
+public:
+	TreeNode() {}
+	TreeNode(string ID, bool HasFlag = false) : HasFlags(HasFlag)
+	{
+		ChangeID(ID);
+	}
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
+
+	void Render();
+private:
+	bool HasFlags = false;
+
+	ImGuiTreeNodeFlags Flags = 0;
+	vector<shared_ptr<AllTheComponent>> Components;
+};
+class CollapsingHeaders: public BaseComponent
+{
+public:
+	void setCollapse(bool Collapse) { IsCollapse = Collapse; }
+	void setSelDefault(bool SelDef) { this->SelDef = SelDef; }
+
+	bool Collapse() { return IsCollapse; }
+
+	CollapsingHeaders() {}
+	CollapsingHeaders(string ID, bool SelDef = false, bool IsCollapse = true) : SelDef(SelDef),
+		IsCollapse(IsCollapse)
+	{
+		ChangeID(ID);
+	}
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
+
+	void Render();
+private:
+	bool SelDef = false, IsCollapse = true;
+	ImGuiTreeNodeFlags Flags = 0;
+	vector<shared_ptr<AllTheComponent>> Components;
+};
+class Child: public BaseComponent
+{
+public:
+	void setHScroll(bool HScroll) { IsHScroll = HScroll; }
+	void setSize(ImVec2 size) { this->size = size; }
+	void setBorder(bool Border) { IsBorder = Border; }
+	void setAutoScroll(bool AScrl) { AutoScroll = AScrl; }
+
+	Child() {}
+	Child(string ID, ImVec2 size = { 0, 0 }, bool IsHScroll = false, bool IsBorder = false) :
+		IsHScroll(IsHScroll), IsBorder(IsBorder), size(size)
+	{
+		ChangeID(ID);
+	}
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
+
+	void Render();
+private:
+	bool IsHScroll = false, IsBorder = false, AutoScroll = false;
+	ImVec2 size = { 0.f, 0.f };
+
+	ImGuiTreeNodeFlags Flags = 0;
+	vector<shared_ptr<AllTheComponent>> Components;
+};
+class Column: public BaseComponent
+{
+public:
+	Column() {}
+	Column(int CountColumn) : CountColumn(CountColumn) {}
+	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
+
+	int getCountColumn() { return CountColumn; }
+	bool GetBorder() { return Border; }
+
+	void ChangeCountColumn(int Count) { CountColumn = Count; }
+
+	void SetBorder(bool Border) { this->Border = Border; }
+private:
+	int CountColumn = 0;
+	bool Border = false;
+	vector<shared_ptr<AllTheComponent>> Components;
 };
 
 class IText: public BaseComponent
@@ -466,11 +517,6 @@ class ITextMulti: public BaseComponent
 public:
 	void setReadOnly(bool ReadOnly) { this->ReadOnly = ReadOnly; }
 
-	vector<ColorText> getCLText() { return clText; }
-	void AddText(Type type, string str) { clText.push_back(ColorText(type, str)); }
-
-	void ClearText() { clText.clear(); }
-
 	ITextMulti() {}
 	ITextMulti(string ID, bool IsVisible = true, bool ReadOnly = false, bool IsCtrlNewLine = false):
 		ReadOnly(ReadOnly), IsCtrlNewLine(IsCtrlNewLine)
@@ -484,15 +530,6 @@ private:
 	bool ReadOnly = false, IsCtrlNewLine = false;
 
 	ImGuiInputTextFlags Flags = 0;
-	struct ColorText
-	{
-		Type type = Type::Normal;
-		string str;
-
-		ColorText(Type type, string str): type(type), str(str) {}
-	};
-
-	vector<ColorText> clText;
 };
 class Labels: public BaseComponent
 {
@@ -504,8 +541,6 @@ public:
 		NeedToChangeColor = true;
 	}
 
-	
-
 	Labels() {}
 	Labels(string ID, bool IsVisible = true)
 	{
@@ -516,8 +551,8 @@ public:
 	void Render()
 	{
 		if (NeedToChangeColor)
-			ImGui::PushStyleColor(ImGuiCol_Text, Color);
-			
+			ImGui::PushStyleColor(ImGuiCol_Text, GetColorIm(Color));
+
 		ImGui::Text(GetText().c_str());
 
 		if (NeedToChangeColor)
@@ -545,47 +580,6 @@ public:
 			clicked = false;
 	}
 };
-class CollapsingHeaders: public BaseComponent
-{
-public:
-	void setCollapse(bool Collapse) { IsCollapse = Collapse; }
-	void setSelDefault(bool SelDef) { this->SelDef = SelDef; }
-
-	bool Collapse() { return IsCollapse; }
-	
-	CollapsingHeaders() {}
-	CollapsingHeaders(string ID, bool SelDef = false, bool IsCollapse = true): SelDef(SelDef),
-		IsCollapse(IsCollapse)
-	{
-		ChangeID(ID);
-	}
-
-	void Render();
-private:
-	bool SelDef = false, IsCollapse = true;
-	ImGuiTreeNodeFlags Flags = 0;
-};
-class Child: public BaseComponent
-{
-public:
-	void setHScroll(bool HScroll) { IsHScroll = HScroll; }
-	void setSize(ImVec2 size) { this->size = size; }
-	void setBorder(bool Border) { IsBorder = Border; }
-
-	Child() {}
-	Child(string ID, ImVec2 size = {0, 0}, bool IsHScroll = false, bool IsBorder = false) :
-		IsHScroll(IsHScroll), IsBorder(IsBorder), size(size)
-	{
-		ChangeID(ID);
-	}
-
-	void Render();
-private:
-	bool IsHScroll = false, IsBorder = false;
-	ImVec2 size = { 0.f, 0.f };
-
-	ImGuiTreeNodeFlags Flags = 0;
-};
 class dialogs
 {
 public:
@@ -606,6 +600,8 @@ public:
 
 	bool getVisible() { return IsVisible; }
 	bool getIsFullScreen() { return IsFullScreen; }
+
+	bool getIsClosed() { return IsClosed; }
 
 	int getOrderCount() { return OrderlyRender; }
 
@@ -639,7 +635,8 @@ private:
 		IsCollapsible = false,
 		IsNeedBringToFont = false,
 		IsFullScreen = false,
-		IsVisible = false;
+		IsVisible = false,
+		IsClosed = false;
 
 	ImGuiWindowFlags window_flags = 0;
 
@@ -667,7 +664,7 @@ public:
 
 	auto getDialogs() { return Dialogs; }
 
-	HRESULT LoadXmlUI(string File);
+	HRESULT LoadFileUI(string File);
 	void ProcessXML();
 
 	void ReloadXML(string File);
@@ -682,15 +679,21 @@ public:
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	static void HelpMarker(const char *desc)
+	static void HelpMarker(const char *desc, ImVec4 Color = ImVec4(1.f, 1.f, 1.f, 1.f))
 	{
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
+
+			ImGui::PushStyleColor(ImGuiCol_Text, GetColorIm(Color));
+
 			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 			ImGui::TextUnformatted(desc);
 			ImGui::PopTextWrapPos();
+
+			ImGui::PopStyleColor();
+
 			ImGui::EndTooltip();
 		}
 	}
@@ -704,7 +707,7 @@ public:
 		// return pair::first bool when it clicks on the OK btn and pair::second vector<string>
 		// when has some path files are there
 	static pair<bool, vector<string>> GetWndDlgSave(LPSTR DirByDef = "C://",
-		LPSTR NameOfWnd = "Dialog Save Files", LPSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0");
+		LPSTR NameOfWnd = "Dialog Save Files", LPCSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0");
 
 	// Set All The Component's name to ID (Using for debug)
 	static void SetRenderOnlyID(bool b);
@@ -726,41 +729,34 @@ protected:
 
 	vector<shared_ptr<XMLDial>> XMLDialogs;
 
-	INT64 g_Time = 0, g_TicksPerSecond = 0;
-	ImGuiMouseCursor g_LastMouseCursor = ImGuiMouseCursor_COUNT;
-	bool g_HasGamepad = false, g_WantUpdateHasGamepad = true;
-	void Gamepads();
-	static bool UpdateMouseCursor();
-	void UpdateMousePos();
+	void WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllTheComponent> DoneComponent, int &CountOrder);
 
-	void WorkOnComponents(shared_ptr<XMLComponents> Component, shared_ptr<AllTheComponent> &DoneComponent, int &CountOrder);
+	void XMLPreparing(shared_ptr<XMLDial> InDial, XMLNode *everything, int &countComp);
+	void XMLPreparingCollps(shared_ptr<XMLDial> InCHead, XMLNode *everything, int &countComp);
+	void XMLPreparingChild(shared_ptr<XMLDial> InChild, XMLNode *everything, int &countComp);
+	void XMLPreparingTNode(shared_ptr<XMLDial> InTNode, XMLNode *everything, int &countComp);
+	void XMLPreparingTab(shared_ptr<XMLDial> InTab, XMLNode *everything, int &countComp);
+	void XMLPreparingColumn(shared_ptr<XMLDial> InColumn, XMLNode *everything, int &countComp);
+	void XMLPreparingRecursion(shared_ptr<XMLComponents> InCHead, XMLNode *everything, int &countComp);
 
-	void XMLPreparing(shared_ptr<XMLDial> &InDial, XMLNode *everything, int &countComp);
-	void XMLPreparingCollps(shared_ptr<XMLDial> &InCHead, XMLNode *everything, int &countComp);
-	void XMLPreparingChild(shared_ptr<XMLDial> &InChild, XMLNode *everything, int &countComp);
-	void XMLPreparingTNode(shared_ptr<XMLDial> &InTNode, XMLNode *everything, int &countComp);
-	void XMLPreparingTab(shared_ptr<XMLDial> &InTab, XMLNode *everything, int &countComp);
-	void XMLPreparingColumn(shared_ptr<XMLDial> &InColumn, XMLNode *everything, int &countComp);
-	void XMLPreparingRecursion(shared_ptr<XMLComponents> &InCHead, XMLNode *everything, int &countComp);
+	void GetParam(XMLNode *Nods, shared_ptr<TreeNode> InTNode);
+	void GetParam(XMLNode *Nods, shared_ptr<Tab> InTab);
+	void GetParam(XMLNode *Nods, shared_ptr<CollapsingHeaders> InCollaps);
+	void GetParam(XMLNode *Nods, shared_ptr<Child> InChild);
+	void GetParam(XMLNode *Nods, shared_ptr<Column> column);
+	void GetParam(XMLNode *Nods, shared_ptr<Selectable> select);
 
-	void GetParam(XMLNode *Nods, shared_ptr<TreeNode> &InTNode);
-	void GetParam(XMLNode *Nods, shared_ptr<Tab> &InTab);
-	void GetParam(XMLNode *Nods, shared_ptr<CollapsingHeaders> &InCollaps);
-	void GetParam(XMLNode *Nods, shared_ptr<Child> &InChild);
-	void GetParam(XMLNode *Nods, shared_ptr<Column> &column);
-	void GetParam(XMLNode *Nods, shared_ptr<Selectable> &select);
+	void GetParam(XMLElement *Nods, shared_ptr<Buttons> btn);
+	void GetParam(XMLElement *Nods, shared_ptr<TextList> TList);
+	void GetParam(XMLElement *Nods, shared_ptr<Combobox> Combo);
+	void GetParam(XMLElement *Nods, shared_ptr<Labels> Label);
+	void GetParam(XMLElement *Nods, shared_ptr<IText> Itext);
+	void GetParam(XMLElement *Nods, shared_ptr<ITextMulti> ItextMul);
+	void GetParam(XMLElement *Nods, shared_ptr<UnformatedText> UText);
 
-	void GetParam(XMLElement *Nods, shared_ptr<Buttons> &btn);
-	void GetParam(XMLElement *Nods, shared_ptr<TextList> &TList);
-	void GetParam(XMLElement *Nods, shared_ptr<Combobox> &Combo);
-	void GetParam(XMLElement *Nods, shared_ptr<Labels> &Label);
-	void GetParam(XMLElement *Nods, shared_ptr<IText> &Itext);
-	void GetParam(XMLElement *Nods, shared_ptr<ITextMulti> &ItextMul);
-	void GetParam(XMLElement *Nods, shared_ptr<UnformatedText> &UText);
-
-	void GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents, shared_ptr<XMLComponents> &SomeComponent);
-	void GetRecursionForAddComponents(shared_ptr<dialogs> &RequiredComponent, shared_ptr<XMLComponents> &SomeComponent);
-	void GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> &AllComponent,
+	void GetRecursion(vector<XMLNode *> SomeComponents, int &countComponents, shared_ptr<XMLComponents> SomeComponent);
+	void GetRecursionForAddComponents(shared_ptr<dialogs> RequiredComponent, shared_ptr<XMLComponents> SomeComponent);
+	void GetRecursionAdd(shared_ptr<XMLComponents> SomeComponent, shared_ptr<AllTheComponent> AllComponent,
 		int &Count);
 };
 #endif // !__UI_H__
