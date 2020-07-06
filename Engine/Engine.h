@@ -10,6 +10,8 @@
 #include "resource.h"
 #include "Timer.h"
 
+#include "Thread/ThreadPool.h"
+
 class DebugDraw;
 
 class CLua;
@@ -152,7 +154,7 @@ public:
 
 	shared_ptr<DebugDraw> getDebugDraw() { return dDraw; }
 	shared_ptr<Multiplayer> getMPL() { return MPL; }
-	shared_ptr<Timer> getMainThread() { return MainThread; };
+	shared_ptr<Timer> getMainThread() { return MainThread; }
 
 	void setUI(shared_ptr<UI> ui)
 	{

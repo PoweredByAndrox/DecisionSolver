@@ -18,6 +18,7 @@ private:
 		{
 			bool Pos = false, Scale = false, Rot = false; // If We Change These Params
 			bool IsVisible = false, IsRemoved = false;
+			Vector3 _Pos, _Scale, _Rot; // To Set It When Change From SDK
 			TYPE T = TYPE::NONE;
 		};
 
@@ -29,6 +30,7 @@ private:
 
 		bool IsItChanged = false; // Needed To Save Action
 		string ID; // Only ID Of Node
+		string RenderName;
 		shared_ptr<NewInfo> SaveInfo = make_shared<NewInfo>();
 	};
 	struct Child
@@ -57,6 +59,7 @@ public:
 	void AddTo(string ID, shared_ptr<SimpleLogic> Logic);
 	void AddTo(shared_ptr<Node> nd, shared_ptr<SimpleLogic> Logic);
 	void Remove(string ID);
+	void RemoveFrom(shared_ptr<Node> nd);
 
 	auto getChild() { return MainChild; }
 	void Destroy();
@@ -64,9 +67,13 @@ public:
 	shared_ptr<tinyxml2::XMLDocument> getDocXMLFile() { return doc; }
 
 	string Save(shared_ptr<tinyxml2::XMLDocument> Doc, shared_ptr<Node> Node);
+
+	void SetNotSaved(bool b) { NotSaved = b; }
+	bool IsNotSaved() { return NotSaved; }
 protected:
 	// **********
-	shared_ptr<tinyxml2::XMLDocument> doc = make_shared<tinyxml2::XMLDocument>();	
+	shared_ptr<tinyxml2::XMLDocument> doc = make_shared<tinyxml2::XMLDocument>();
 	static void Spawn(Vector3 pos, GameObjects::TYPE type);
+	bool NotSaved = false;
 };
 #endif // !__LEVELS__H_

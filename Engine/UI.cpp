@@ -56,8 +56,8 @@ void UI::ResizeWnd()
 	{
 		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
 		Application->getUI()->getDialog("Console")->ChangeSize(
-			Application->getWorkAreaSize(Application->GetHWND()).x,
-			Application->getWorkAreaSize(Application->GetHWND()).y / 3);
+			(float)Application->getWorkAreaSize(Application->GetHWND()).x,
+			(float)Application->getWorkAreaSize(Application->GetHWND()).y / 3.0f);
 	}
 }
 
@@ -87,8 +87,9 @@ HRESULT UI::LoadFileUI(string File)
 	doc->LoadFile(File.c_str());
 	if (doc->ErrorID() != XML_SUCCESS)
 	{
-		Engine::LogError("", (boost::format("UI::LoatXmlUI() ErrorID > 0!\nReturn Error ID: %s") %
+		Engine::LogError((boost::format("UI::LoatXmlUI() ErrorID > 0!\nReturn Error ID: %s") %
 			to_string(doc->ErrorID())).str(),
+			string(__FILE__) + ": " + to_string(__LINE__),
 			(boost::format("UI: Something is wrong with load XML File!\nReturn Error Text: %s"\
 				"\nErrorID(see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
 #if defined (_DEBUG)
@@ -98,8 +99,9 @@ HRESULT UI::LoadFileUI(string File)
 	}
 	if (doc->Parse(Application->getFS()->getDataFromFile(File).c_str()) > 0)
 	{
-		Engine::LogError("", (boost::format("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error ID: %s")
+		Engine::LogError((boost::format("UI::LoatXmlUI() Parse File ErrorID > 0!\nReturn Error ID: %s")
 			% to_string(doc->ErrorID())).str(),
+			string(__FILE__) + ": " + to_string(__LINE__),
 			(boost::format("UI: Something is wrong with Parse XML File!\nReturn Error Text: %s"
 				"\nErrorID (see tinyXml doc): %s") % doc->ErrorStr() % to_string(doc->ErrorID())).str());
 #if defined (_DEBUG)
@@ -2170,7 +2172,8 @@ pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LP
 	// Check for the error
 	if (dwError != 0)
 	{
-		Engine::LogError("UI::GetWndDlgOpen Error Is: " + to_string(dwError), string(__FILE__) + to_string(__LINE__),
+		Engine::LogError("UI::GetWndDlgOpen Error Is: " + to_string(dwError),
+			string(__FILE__) + to_string(__LINE__),
 			"Something is wrong with Open File Dialog. It returns: " + to_string(dwError));
 		return RetVal;
 	}
@@ -2212,7 +2215,7 @@ pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LP
 }
 
 ToDo("Check IT!!!");
-pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LPSTR FilterFilesExt)
+pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LPCSTR FilterFilesExt)
 {
 	char szFile[1024];
 	pair<bool, vector<string>> RetVal = make_pair(true, vector<string>());
@@ -2226,6 +2229,7 @@ pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LP
 	ofn.lpstrFile[0] = '\0';
 	ofn.nMaxFile = sizeof(szFile);
 	ofn.lpstrFilter = FilterFilesExt;
+
 	ofn.nFilterIndex = 1;
 	ofn.lpstrTitle = NameOfWnd;
 	ofn.lpstrInitialDir = DirByDef;
@@ -2240,7 +2244,8 @@ pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LP
 	// Check for the error
 	if (dwError != 0)
 	{
-		Engine::LogError("UI::GetWndDlgSave Error Is: " + to_string(dwError), string(__FILE__) + to_string(__LINE__),
+		Engine::LogError("UI::GetWndDlgSave Error Is: " + to_string(dwError),
+			string(__FILE__) + to_string(__LINE__),
 			"Something is wrong with Save File Dialog. It returns: " + to_string(dwError));
 		return RetVal;
 	}
@@ -2252,6 +2257,15 @@ pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LP
 	if (path(string(szFile)).has_extension())
 	{
 		RetVal.second.push_back(string(szFile));
+		return RetVal;
+	}
+	else
+	{
+		if (ofn.nFileExtension == 0)
+			RetVal.second.push_back(string(szFile) + ".*");
+		else
+			RetVal.second.push_back(string(szFile) + '.' + ofn.lpstrDefExt);
+
 		return RetVal;
 	}
 
@@ -2282,6 +2296,8 @@ void UI::SetRenderOnlyID(bool b)
 
 shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: Btn)
 	{
 		if (it.first == CmpName)
@@ -2289,13 +2305,15 @@ shared_ptr<Buttons> AllTheComponent::FindComponentBtn(string CmpName, bool NeedL
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Buttons>();
 }
 
 shared_ptr<Labels> AllTheComponent::FindComponentLabel(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: Label)
 	{
 		if (it.first == CmpName)
@@ -2303,13 +2321,15 @@ shared_ptr<Labels> AllTheComponent::FindComponentLabel(string CmpName, bool Need
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Labels>();
 }
 
 shared_ptr<ITextMulti> AllTheComponent::FindComponentITextMul(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: Itextmul)
 	{
 		if (it.first == CmpName)
@@ -2317,13 +2337,15 @@ shared_ptr<ITextMulti> AllTheComponent::FindComponentITextMul(string CmpName, bo
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<ITextMulti>();
 }
 
 shared_ptr<IText> AllTheComponent::FindComponentIText(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: Itext)
 	{
 		if (it.first == CmpName)
@@ -2331,13 +2353,15 @@ shared_ptr<IText> AllTheComponent::FindComponentIText(string CmpName, bool NeedL
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<IText>();
 }
 
 shared_ptr<UnformatedText> AllTheComponent::FindComponentUText(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: UText)
 	{
 		if (it.first == CmpName)
@@ -2345,13 +2369,15 @@ shared_ptr<UnformatedText> AllTheComponent::FindComponentUText(string CmpName, b
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<UnformatedText>();
 }
 
 shared_ptr<TextList> AllTheComponent::FindComponentTList(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: TList)
 	{
 		if (it.first == CmpName)
@@ -2359,13 +2385,15 @@ shared_ptr<TextList> AllTheComponent::FindComponentTList(string CmpName, bool Ne
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<TextList>();
 }
 
 shared_ptr<Selectable> AllTheComponent::FindComponentSelectable(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: selectable)
 	{
 		if (it.first == CmpName)
@@ -2373,13 +2401,15 @@ shared_ptr<Selectable> AllTheComponent::FindComponentSelectable(string CmpName, 
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Selectable>();
 }
 
 shared_ptr<Combobox> AllTheComponent::FindComponentCombo(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: combo)
 	{
 		if (it.first == CmpName)
@@ -2387,13 +2417,15 @@ shared_ptr<Combobox> AllTheComponent::FindComponentCombo(string CmpName, bool Ne
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Combobox>();
 }
 
 shared_ptr<TreeNode> AllTheComponent::FindComponentTreeNode(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: TNode)
 	{
 		if (it.first == CmpName)
@@ -2401,13 +2433,15 @@ shared_ptr<TreeNode> AllTheComponent::FindComponentTreeNode(string CmpName, bool
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<TreeNode>();
 }
 
 shared_ptr<Tab> AllTheComponent::FindComponentTab(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: Tabs)
 	{
 		if (it.first == CmpName)
@@ -2415,13 +2449,15 @@ shared_ptr<Tab> AllTheComponent::FindComponentTab(string CmpName, bool NeedLog)
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Tab>();
 }
 
 shared_ptr<Child> AllTheComponent::FindComponentChild(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: childs)
 	{
 		if (it.first == CmpName)
@@ -2429,13 +2465,15 @@ shared_ptr<Child> AllTheComponent::FindComponentChild(string CmpName, bool NeedL
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Child>();
 }
 
 shared_ptr<CollapsingHeaders> AllTheComponent::FindComponentCHeader(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: CollpsHeader)
 	{
 		if (it.first == CmpName)
@@ -2443,13 +2481,15 @@ shared_ptr<CollapsingHeaders> AllTheComponent::FindComponentCHeader(string CmpNa
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<CollapsingHeaders>();
 }
 
 shared_ptr<Column> AllTheComponent::FindComponentColumn(string CmpName, bool NeedLog)
 {
+	if (CmpName.find("##") == string::npos)
+		CmpName = "##" + CmpName;
 	for (auto it: column)
 	{
 		if (it.first == CmpName)
@@ -2457,7 +2497,7 @@ shared_ptr<Column> AllTheComponent::FindComponentColumn(string CmpName, bool Nee
 	}
 	if (NeedLog)
 		Engine::LogError("UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
-			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"UI::FindComponent: Component:" + CmpName + " Cannot found!\n");
 	return make_shared<Column>();
 }
@@ -2475,7 +2515,7 @@ void dialogs::Render()
 	if (!IsCollapsible)
 		window_flags |= ImGuiWindowFlags_NoCollapse;
 
-	if (IsVisible)
+	if (IsVisible /*&& !IsClosed*/)
 	{
 		if (PosX != PosX_Last || PosY != PosY_Last)
 		{
@@ -2495,10 +2535,19 @@ void dialogs::Render()
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 			ImGui::Begin(IDTitle.c_str(), &IsVisible, window_flags);
+			//	IsClosed = false;
+			//else
+			//	IsClosed = true;
+
 			ImGui::PopStyleVar(3);
 		}
 		else
+		{
 			ImGui::Begin(IDTitle.c_str(), &IsVisible, window_flags);
+				//IsClosed = false;
+			//else
+			//	IsClosed = true;
+		}
 
 		if (IsNeedBringToFont)
 		{
@@ -2579,7 +2628,7 @@ void TreeNode::Render()
 
 	if (!HasFlags)
 		Flags = ImGuiTreeNodeFlags_::ImGuiTreeNodeFlags_None;
-	ToDo("Add Some More Flags Upper")
+
 	if (ImGui::TreeNodeEx(GetText().c_str(), Flags))
 	{
 		int Count = getRenderOrder(), now = 0;
@@ -2652,7 +2701,7 @@ void IText::Render()
 	Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
 
 	if (IsNeedHint)
-		if (pressEnter = ImGui::InputTextWithHint(TextHint.c_str(), TextHint.c_str(), &Text, Flags))
+		if (pressEnter = ImGui::InputTextWithHint("", TextHint.c_str(), &Text, Flags))
 			IsTextChange = true;
 		else
 			IsTextChange = false;
@@ -2868,6 +2917,8 @@ void BaseComponent::MergeComponents(shared_ptr<AllTheComponent> Component)
 
 shared_ptr<CollapsingHeaders> AllTheComponent::AddCollps(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (CollpsHeader.empty())
 	{
 		CollpsHeader.push_back(make_pair(ID, make_shared<CollapsingHeaders>(ID)));
@@ -2891,6 +2942,8 @@ shared_ptr<CollapsingHeaders> AllTheComponent::AddCollps(string ID)
 
 shared_ptr<Child> AllTheComponent::AddChild(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (childs.empty())
 	{
 		childs.push_back(make_pair(ID, make_shared<Child>(ID)));
@@ -2914,6 +2967,8 @@ shared_ptr<Child> AllTheComponent::AddChild(string ID)
 
 shared_ptr<TreeNode> AllTheComponent::AddTNode(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (TNode.empty())
 	{
 		TNode.push_back(make_pair(ID, make_shared<TreeNode>(ID)));
@@ -2937,6 +2992,8 @@ shared_ptr<TreeNode> AllTheComponent::AddTNode(string ID)
 
 shared_ptr<Tab> AllTheComponent::AddTab(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (Tabs.empty())
 	{
 		Tabs.push_back(make_pair(ID, make_shared<Tab>(ID)));
@@ -2960,6 +3017,8 @@ shared_ptr<Tab> AllTheComponent::AddTab(string ID)
 
 shared_ptr<Column> AllTheComponent::AddColumn(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (column.empty())
 	{
 		column.push_back(make_pair(ID, make_shared<Column>()));
@@ -2983,6 +3042,8 @@ shared_ptr<Column> AllTheComponent::AddColumn(string ID)
 
 shared_ptr<Selectable> AllTheComponent::AddSelectable(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (selectable.empty())
 	{
 		selectable.push_back(make_pair(ID, make_shared<Selectable>(ID)));
@@ -3006,6 +3067,8 @@ shared_ptr<Selectable> AllTheComponent::AddSelectable(string ID)
 
 shared_ptr<Buttons> AllTheComponent::AddBtn(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (Btn.empty())
 	{
 		Btn.push_back(make_pair(ID, make_shared<Buttons>(ID)));
@@ -3029,6 +3092,8 @@ shared_ptr<Buttons> AllTheComponent::AddBtn(string ID)
 
 shared_ptr<TextList> AllTheComponent::AddTList(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (TList.empty())
 	{
 		TList.push_back(make_pair(ID, make_shared<TextList>(ID)));
@@ -3052,6 +3117,8 @@ shared_ptr<TextList> AllTheComponent::AddTList(string ID)
 
 shared_ptr<Combobox> AllTheComponent::AddCombo(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (combo.empty())
 	{
 		combo.push_back(make_pair(ID, make_shared<Combobox>(ID)));
@@ -3075,6 +3142,8 @@ shared_ptr<Combobox> AllTheComponent::AddCombo(string ID)
 
 shared_ptr<Labels> AllTheComponent::AddLabel(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (Label.empty())
 	{
 		Label.push_back(make_pair(ID, make_shared<Labels>(ID)));
@@ -3098,6 +3167,8 @@ shared_ptr<Labels> AllTheComponent::AddLabel(string ID)
 
 shared_ptr<IText> AllTheComponent::AddIText(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (Itext.empty())
 	{
 		Itext.push_back(make_pair(ID, make_shared<IText>(ID)));
@@ -3121,6 +3192,8 @@ shared_ptr<IText> AllTheComponent::AddIText(string ID)
 
 shared_ptr<ITextMulti> AllTheComponent::AddITextMul(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (Itextmul.empty())
 	{
 		Itextmul.push_back(make_pair(ID, make_shared<ITextMulti>(ID)));
@@ -3144,6 +3217,8 @@ shared_ptr<ITextMulti> AllTheComponent::AddITextMul(string ID)
 
 shared_ptr<UnformatedText> AllTheComponent::AddUText(string ID)
 {
+	if (ID.find("##") == string::npos)
+		ID = "##" + ID;
 	if (UText.empty())
 	{
 		UText.push_back(make_pair(ID, make_shared<UnformatedText>(ID)));

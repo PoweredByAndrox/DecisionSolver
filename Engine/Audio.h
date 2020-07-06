@@ -140,5 +140,7 @@ private:
 	static X3DAUDIO_HANDLE X3DInstance;
 
 	static X3DAUDIO_DSP_SETTINGS DSPSettings;
+
+	static HRESULT hr;
 };
 #endif // !__SOUND_SYSTEM_H__

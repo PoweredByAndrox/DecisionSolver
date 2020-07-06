@@ -12,16 +12,17 @@ extern shared_ptr<Engine> Application;
 bool Models::LoadFromFile(string Filename)
 {	
 	importer = new Assimp::Importer;
-
 	pScene = importer->ReadFile(Filename.c_str(),
-		aiProcess_Triangulate |
-		aiProcess_ConvertToLeftHanded |
-		aiProcess_JoinIdenticalVertices);
-	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded
+		| aiProcess_OptimizeMeshes | aiProcess_SortByPType | aiProcess_FindInvalidData
+		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
+	if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode || !pScene->HasMeshes())
 	{
-		Engine::LogError((boost::format("Model: Scene return nullptr with text: %s") % importer->GetErrorString()).str(),
-			"Models::pScene == nullptr!!!",
-			(boost::format("Model: Scene return nullptr with text:") % importer->GetErrorString()).str());
+		Engine::LogError(string("Model: Scene return nullptr with text: ") + (!importer->GetErrorString()
+			? "flag: " + to_string(pScene->mFlags) : string("text: ") + importer->GetErrorString()),
+			string(__FILE__) + ": " + to_string(__LINE__),
+			string("Model: Scene return nullptr with text: ") + (!importer->GetErrorString()
+				? "flag: " + to_string(pScene->mFlags) : string("text: ") + importer->GetErrorString()));
 		return false;
 	}
 
@@ -39,10 +40,10 @@ bool Models::LoadFromFile(string Filename)
 	Application->getDevice()->CreateSamplerState(&sampDesc, &TexSamplerState);
 
 	vector<ID3DBlob *> Buffer_blob;
-	vector<wstring> FileShaders =
+	vector<string> FileShaders =
 	{
-		Application->getFS()->GetFile("VertexShader.hlsl")->PathW,
-		Application->getFS()->GetFile("PixelShader.hlsl")->PathW
+		Application->getFS()->GetFile("VertexShader.hlsl")->PathA,
+		Application->getFS()->GetFile("PixelShader.hlsl")->PathA
 	};
 	vector<string> Functions =
 	{
@@ -93,11 +94,11 @@ bool Models::LoadFromAllModels()
 		aiProcess_Triangulate | aiProcess_ConvertToLeftHanded 
 		| aiProcess_OptimizeMeshes | aiProcess_SortByPType | aiProcess_FindInvalidData
 		| aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_OptimizeGraph);
-		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode)
+		if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode || !pScene->HasMeshes())
 		{
-			Engine::LogError((boost::format("Model: Scene return nullptr with text: %s") % importer->GetErrorString()).str(),
-				"Models::pScene == nullptr!!!",
-				(boost::format("Model: Scene return nullptr with text:") % importer->GetErrorString()).str());
+			Engine::LogError(string("Model: Scene return nullptr with text: ") + importer->GetErrorString(),
+				string(__FILE__) + ": " + to_string(__LINE__),
+				string("Model: Scene return nullptr with text: ") + importer->GetErrorString());
 			return false;
 		}
 
@@ -111,6 +112,8 @@ bool Models::LoadFromAllModels()
 
 void Models::Render(Matrix View, Matrix Proj)
 {
+	if (!Application->getDeviceContext()) return;
+
 	ConstantBuffer cb;
 	auto Mrx = scale * position * rotate;
 	cb.World = XMMatrixTranspose(Mrx);
@@ -135,19 +138,38 @@ Models::Models(string Filename)
 {
 	if (Filename.empty())
 		Engine::LogError((boost::format("Model File: %s not found And Can't Be Load!") % Filename).str(),
-			"Models: File Not Found!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			(boost::format("Model File: %s not found And Can't Be Load!") % Filename).str());
 	if (!LoadFromFile(Filename))
 		Engine::LogError((boost::format("Model File: %s Can't Be Load!") % Filename).str(),
-			"Models::LoadFromFile == false!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			(boost::format("Model File: %s Can't Be Load!") % Filename).str());
 }
+
+void Models::Release()
+{
+	while (!Textures_loaded.empty())
+	{
+		SAFE_DELETE(Textures_loaded.front().TextureRes);
+		SAFE_DELETE(Textures_loaded.front().TextureSHRes);
+		Textures_loaded.erase(Textures_loaded.begin());
+	}
+
+	if (importer)
+	{
+		importer->FreeScene();
+		SAFE_DELETE(importer);
+	}
+	SAFE_DELETE(pScene);
+	SAFE_DELETE(mesh);
+}
+
 
 vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName,
 	const aiScene *Scene)
 {
 	vector<Texture> textures;
-	string PathTexture = "";
+	string PathTexture;
 
 	for (UINT i = 0; i < mat->GetTextureCount(type); i++)
 	{
@@ -156,7 +178,7 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 		bool skip = false;
 		for (size_t j = 0; j < Textures_loaded.size(); j++)
 		{
-			if (strcmp(Textures_loaded.at(j).path.c_str(), str.C_Str()) == 0)
+			if (contains(Textures_loaded.at(j).path, path(str.C_Str()).filename().string()))
 			{
 				textures.push_back(Textures_loaded.at(j));
 				skip = true;
@@ -170,40 +192,24 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 				texture.TextureSHRes = getTextureFromModel(Scene, getTextureIndex(&str));
 			else
 			{
-				string TName = str.C_Str();
+				string TName = path(str.C_Str()).filename().string();
 				to_lower(TName);
 				auto textr = Application->getFS()->GetFile(TName);
 				if (textr.operator bool())
 				{
 					PathTexture = textr->PathA;
-
+					to_lower(PathTexture);
 					if (FindSubStr(textr->ExtA, ".dds"))
 					{
 						if (FAILED(CreateDDSTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
 							&texture.TextureRes, &texture.TextureSHRes)))
-						{
-#if defined (_DEBUG)
-//							DebugTrace("Models::CreateDDSTextureFromFile() create failed");
-#endif
-#if defined (ExceptionWhenEachError)
-							throw exception("Create failed!!!");
-#endif
 							Console::LogInfo(string("Something is wrong with this texture: ") + textr->FileA);
-						}
 					}
 					else
 					{
 						if (FAILED(CreateWICTextureFromFile(Application->getDevice(), textr->PathW.c_str(),
 							&texture.TextureRes, &texture.TextureSHRes)))
-						{
-#if defined (_DEBUG)
-//							DebugTrace("Models::CreateWICTextureFromFile() create failed");
-#endif
-#if defined (ExceptionWhenEachError)
-							throw exception("Create failed!!!");
-#endif
 							Console::LogInfo(string("Something is wrong with Create the texture: ") + textr->FileA);
-						}
 					}
 				}
 			}
@@ -231,9 +237,10 @@ void Models::processNode(aiNode *node, const aiScene *Scene)
 		if (mesh->mMaterialIndex >= 0)
 		{
 			aiMaterial *mat = Scene->mMaterials[mesh->mMaterialIndex];
-			
+			string name = string(mat->GetName().C_Str());
+
 			if (Textype.empty())
-				Textype = determineTextureType(Scene, string(mat->GetName().C_Str()), mat);
+				Textype = determineTextureType(Scene, name, mat);
 		}
 
 		for (UINT i = 0; i < mesh->mNumVertices; i++)
@@ -332,12 +339,6 @@ ID3D11ShaderResourceView *Models::getTextureFromModel(const aiScene *Scene, int 
 	if (FAILED(CreateWICTextureFromMemory(Application->getDevice(),
 		reinterpret_cast<unsigned char*>(Scene->mTextures[Textureindex]->pcData), *size, nullptr, &texture)))
 	{
-#if defined (_DEBUG)
-//		DebugTrace("Models::CreateWICTextureFromFile() create failed");
-#endif
-#if defined (ExceptionWhenEachError)
-		throw exception("Create failed!!!");
-#endif
 		Console::LogInfo(string("Something is wrong with this texture: ") +
 			Scene->mTextures[Textureindex]->mFilename.C_Str());
 
@@ -399,13 +400,10 @@ void Models::Mesh::Draw()
 	UINT stride = sizeof(Things);
 	UINT offset = 0;
 
-	//2
 	Application->getDeviceContext()->IASetVertexBuffers(0, 1, &VertexBuffer, &stride, &offset);
-	//4
 	Application->getDeviceContext()->IASetIndexBuffer(IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	if (!textures.empty() && textures[0].TextureSHRes)
-		//8
 		Application->getDeviceContext()->PSSetShaderResources(0, 1, &textures[0].TextureSHRes);
 
 	if (Application->IsWireFrame())

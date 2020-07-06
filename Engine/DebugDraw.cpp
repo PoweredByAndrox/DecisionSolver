@@ -77,10 +77,10 @@ void DebugDraw::TriangleDraw::Init(Vector3 pointA, Vector3 pointB, Vector3 point
 void DebugDraw::BaseRender::Init(vector<SimpleVertex> verts, vector<WORD> s_indices)
 {
 	vector<ID3DBlob *> Buffer_blob;
-	vector<wstring> FileShaders =
+	vector<string> FileShaders =
 	{
-		Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathW,
-		Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathW
+		Application->getFS()->GetFile(string("VertexShader.hlsl"))->PathA,
+		Application->getFS()->GetFile(string("PixelShader.hlsl"))->PathA
 	};
 	vector<string> Functions =
 	{
@@ -140,10 +140,10 @@ void DebugDraw::BaseRender::Init(vector<SimpleVertex> verts, vector<WORD> s_indi
 	//	ThrowIfFailed(hr);
 }
 
-void DebugDraw::Box::Draw(Matrix View, Matrix Proj)
+void DebugDraw::Box::Draw(Vector3 Pos, Matrix View, Matrix Proj)
 {
 	ConstantBuffer cb{};
-	cb.World = XMMatrixTranspose(Matrix::CreateTranslation(0.f, 0.f, 0.f));
+	cb.World = XMMatrixTranspose(Matrix::CreateTranslation(Pos));
 	cb.View = XMMatrixTranspose(View);
 	cb.Proj = XMMatrixTranspose(Proj);
 	Application->getDeviceContext()->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
@@ -195,7 +195,89 @@ void DebugDraw::Box::Init(BoundingBox Box, Vector4 color)
 	BaseRender::Init(verts, s_indices);
 }
 
-void DebugDraw::MainRender(Matrix View, Matrix Proj)
+void DebugDraw::Sphere::Draw(Vector3 Pos, Matrix View, Matrix Proj)
+{
+	ConstantBuffer cb{};
+	cb.World = XMMatrixTranspose(Matrix::CreateTranslation(Pos));
+	cb.View = XMMatrixTranspose(View);
+	cb.Proj = XMMatrixTranspose(Proj);
+	Application->getDeviceContext()->UpdateSubresource(g_pConstantBuffer, 0, NULL, &cb, 0, 0);
+	Application->getDeviceContext()->VSSetConstantBuffers(0, 1, &g_pConstantBuffer);
+
+	Application->getDeviceContext()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+
+	BaseRender::Render();
+	Application->getDeviceContext()->DrawIndexed(SizeVrtx, 0, 0);
+}
+
+void DebugDraw::Sphere::Init(BoundingSphere Sphere, Vector4 color)
+{
+	_Sphere = Sphere;
+	WORD tessellation = 3;
+	WORD verticalSegments = 3;
+	WORD horizontalSegments = tessellation * 2;
+
+	float radius = 10.f / 2;
+	
+	vector<WORD> s_indices;
+	vector<SimpleVertex> verts;
+
+	// Create rings of vertices at progressively higher latitudes.
+	for (WORD i = 0; i <= verticalSegments; i++)
+	{
+		float v = 1 - float(i) / float(verticalSegments);
+
+		float latitude = (float(i) * XM_PI / float(verticalSegments)) - XM_PIDIV2;
+		float dy, dxz;
+
+		XMScalarSinCos(&dy, &dxz, latitude);
+
+		// Create a single ring of vertices at this latitude.
+		for (WORD j = 0; j <= horizontalSegments; j++)
+		{
+			float u = float(j) / float(horizontalSegments);
+
+			float longitude = float(j) * XM_2PI / float(horizontalSegments);
+			float dx, dz;
+
+			XMScalarSinCos(&dx, &dz, longitude);
+
+			dx *= dxz;
+			dz *= dxz;
+
+			verts.push_back(SimpleVertex(Vector3::Transform(Vector3(longitude), Matrix::CreateScale(Vector3(radius))),
+				color));
+		}
+	}
+
+	// Fill the index buffer with triangles joining each pair of latitude rings.
+	WORD stride = horizontalSegments + 1;
+
+	for (WORD i = 0; i < verticalSegments; i++)
+	{
+		for (WORD j = 0; j <= horizontalSegments; j++)
+		{
+			WORD nextI = i + 1;
+			WORD nextJ = (j + 1) % stride;
+
+			s_indices.push_back(i * stride + j);
+			s_indices.push_back(nextI * stride + j);
+			s_indices.push_back(i * stride + nextJ);
+
+			s_indices.push_back(i * stride + nextJ);
+			s_indices.push_back(nextI * stride + j);
+			s_indices.push_back(nextI * stride + nextJ);
+		}
+	}
+	for (auto it = s_indices.begin(); it != s_indices.end(); it += 3)
+	{
+		std::swap(*it, *(it + 2));
+	}
+
+	BaseRender::Init(verts, s_indices);
+}
+
+void DebugDraw::MainRender(Vector3 Pos, Matrix View, Matrix Proj)
 {
 	for (auto it: triangle)
 	{
@@ -203,7 +285,11 @@ void DebugDraw::MainRender(Matrix View, Matrix Proj)
 	}
 	for (auto it: boxes)
 	{
-		it->Draw(View, Proj);
+		it->Draw(Pos, View, Proj);
+	}
+	for (auto it: spheres)
+	{
+		it->Draw(Pos, View, Proj);
 	}
 }
 
@@ -221,6 +307,16 @@ void DebugDraw::AddBox(Vector3 Pos, Vector3 Size, Vector4 color)
 	_Box.Center = Pos;
 	_Box.Extents = Size;
 	boxes.back()->Init(_Box, color);
+}
+
+void DebugDraw::AddSphere(Vector3 Pos, float Radius, Vector4 color)
+{
+	spheres.push_back(make_shared<Sphere>());
+
+	BoundingSphere _Sphere;
+	_Sphere.Center = Pos;
+	_Sphere.Radius = Radius;
+	spheres.back()->Init(_Sphere, color);
 }
 
 //void DebugDraw::DrawCube(const BoundingBox &box, Vector4 color)

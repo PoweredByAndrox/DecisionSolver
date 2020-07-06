@@ -63,10 +63,21 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	if (FAILED(CoInitializeEx(nullptr, COINIT_MULTITHREADED)))
 	{
 		Engine::LogError("wWinMain::CoInitializeEx() Failed.",
-			"wWinMain::CoInitializeEx() Failed!!!",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"CoInitializeEx() Failed!");
 		return 3;
 	}
+
+	// Release
+	// Disable Every Class Become 12%CPU
+
+	// With Only DX 15-16%CPU
+
+	// Debug With Every Class
+	// Within DX Will Be ~30-33%CPU
+
+	// With Only DX 17-20%CPU
+
 
 	//	// FS (File System)!!!
 	Application->setFS(make_shared<File_system>());
@@ -74,11 +85,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	if (FAILED(Application->Init("DecisionEngine", hInstance)))
 	{
 		Engine::LogError("wWinMain::Application->Init() is failed.",
-			"wWinMain::Application->Init() is failed!!!",
+			string(__FILE__) + ": " + to_string(__LINE__),
 			"Application::Init() Failed!");
 		return 5;
 	}
-	SDK->LoadSettings(Application->getFS()->LoadSettingsFile());
 
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
@@ -86,100 +96,107 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	//Application->setCLua(make_shared<CLua>());
 	//Application->getCLua()->Init();
 
-	//	// GUI!!!
-	Application->setUI(make_shared<UI>());
-	if (FAILED(Application->getUI()->Init()))
-	{
-		Engine::LogError("wWinMain::getUI()->Init() Failed.",
-			"getUI()->Init() is failed!!!", "UI: Init Failed!");
-		return 5;
-	}
-	Application->getUI()->LoadFileUI(Application->getFS()->GetFile("All.xml")->PathA.c_str());
-
-	//	// Console Class!!!
-	Application->setConsole(make_shared<Console>());
-	Application->getConsole()->Init();
-	if (Application->getUI().operator bool())
-	{
-		Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
-		Application->getUI()->getDialog("Console")->ChangeSize(
-			Application->getWorkAreaSize(Application->GetHWND()).x,
-			Application->getWorkAreaSize(Application->GetHWND()).y / 3);
-	}
-
 	Application->setPhysics(make_shared<Physics>());
-	if (FAILED(Application->getPhysics()->Init()))
-	{
-		Engine::LogError("wWinMain::getPhysics()->Init() is failed.",
-			"getPhysics()->Init() Failed!!!", "PhysX: Init Failed!");
-		return 5;
-	}
+	if (Application->getPhysics().operator bool())
+		if (FAILED(Application->getPhysics()->Init()))
+		{
+			Engine::LogError("wWinMain::getPhysics()->Init() is failed.",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"PhysX: Init Failed!");
+			return 5;
+		}
 
 	//	// Audio (Sound) Class!!!
 	Application->setSound(make_shared<Audio>());
-	if (FAILED(Application->getSound()->Init()))
-	{
-		Engine::LogError("wWinMain::getSound()->Init() Failed.", "getSound()->Init() Failed!!!",
-			"Sound: Something is wrong with Init Sound!");
-		return 5;
-	}
-
-	//	// Main Actor Class!!!
-	Application->setActor(make_shared<Actor>());
-	if (FAILED(Application->getActor()->Init()))
-	{
-		Engine::LogError("wWinMain::getActor()->Init() Failed.", "getActor()->Init() Failed!!!",
-			"Actor: Init Failed!");
-		return 5;
-	}
+	if (Application->getSound().operator bool())
+		if (FAILED(Application->getSound()->Init()))
+		{
+			Engine::LogError("wWinMain::getSound()->Init() Failed.",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"Sound: Something is wrong with Init Sound!");
+			return 5;
+		}
 
 	//	// Debug Draw!!!
 	//Application->setDebugDraw(make_shared<DebugDraw>());
-	//Application->getDebugDraw()->Init();
+
+	//	// Main Actor Class!!!
+	Application->setActor(make_shared<Actor>());
+	if (Application->getActor().operator bool())
+		if (FAILED(Application->getActor()->Init()))
+		{
+			Engine::LogError("wWinMain::getActor()->Init() Failed.",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"Actor: Init Failed!");
+			return 5;
+		}
+
+	//	// GUI!!!
+	Application->setUI(make_shared<UI>());
+	if (Application->getUI())
+	{
+		if (FAILED(Application->getUI()->Init()))
+		{
+			Engine::LogError("wWinMain::getUI()->Init() Failed.",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"UI: Init Failed!");
+			return 5;
+		}
+		Application->getUI()->LoadFileUI(Application->getFS()->GetFile("All.xml")->PathA.c_str());
+
+		//	// Console Class!!!
+		Application->setConsole(make_shared<Console>());
+		if (Application->getConsole().operator bool())
+		{
+			Application->getConsole()->Init();
+			Application->getUI()->getDialog("Console")->ChangePosition(0.f, 0.f);
+			Application->getUI()->getDialog("Console")->ChangeSize(
+				(float)Application->getWorkAreaSize(Application->GetHWND()).x,
+				(float)Application->getWorkAreaSize(Application->GetHWND()).y / 3.0f);
+		}
+	}
+
+	if (SDK && Application->getFS())
+		SDK->LoadSettings(Application->getFS()->LoadSettingsFile());
 
 	//Application->setPick(make_shared<Picking>());
 	// ***********
 
 	//	// Level Class
 	Application->setLevel(make_shared<Levels>());
-	if (FAILED(Application->getLevel()->Init()))
+	if (Application->getLevel().operator bool())
 	{
-		Engine::LogError("wWinMain::getLevel()->Init() Failed.", "getLevel()->Init() Failed!!!",
-			"Levels: Init Failed!");
-		return 5;
+		if (FAILED(Application->getLevel()->Init()))
+		{
+			Engine::LogError("wWinMain::getLevel()->Init() Failed.",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"Levels: Init Failed!");
+			return 5;
+		}
+		//auto Obj = Application->getFS()->GetFile(string("New File"));
+		//if (Obj)
+		//{
+		//	Application->getFS()->GetProject()->SetCurProject(path(Obj->PathA));
+		//	Application->getFS()->GetProject()->OpenFile(Obj->PathA);
+		//}
 	}
-
-	Application->getFS()->GetProject()->SetCurProject(path(Application->getFS()->GetFile(string("first_level"))->PathA));
-	Application->getFS()->GetProject()->OpenFile(Application->getFS()->GetFile(string("first_level"))->PathA);
-
-	Application->setMultiplayer(make_shared<Multiplayer>());
-	EngineTrace(Application->getMPL()->Init());
+	//Application->setMultiplayer(make_shared<Multiplayer>());
+	//EngineTrace(Application->getMPL()->Init());
 	
 	// Start The Main Thread And Wait For While Message From System (WM_QUIT) Will Be
-	
 	Application->Render();
 	MSG msg = { 0 };
 	while (!Application->IsQuit())
 	{
-		Application->setMessage(msg);
 		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 		}
+		else
+			Application->setMessage(msg);
 	}
 
-	Application->getMainThread()->stop();
-	Application->getPhysics()->Destroy();
-
-	if (Application->getUI().operator bool())
-	{
-		Application->getUI()->getThread()->stop();
-		Application->getUI()->Destroy();
-	}
-
-	if (Application->getSound().operator bool())
-		Application->getSound()->ReleaseAudio();
 	Application->Destroy();
 
 	return 0;

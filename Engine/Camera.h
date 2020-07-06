@@ -19,7 +19,11 @@ public:
 
 	void Teleport(Vector3 NewPos, Vector3 NewLook, bool NoTPPhysx = true);
 
-	void SetFreeMoveCam(bool FreeMove) { FreeCamMove = FreeMove; m_bEnableYAxisMovement = true; }
+	void SetFreeMoveCam(bool FreeMove)
+	{
+		FreeCamMove = FreeMove;
+		m_bEnableYAxisMovement = FreeMove;
+	}
 
 	// Functions to change behavior
 	void SetInvertPitch(bool bInvertPitch) { m_bInvertPitch = bInvertPitch; }
@@ -119,6 +123,11 @@ public:
 	Vector3 GetWorldAhead() const;
 	Vector3 GetEyePt() const;
 
+	void DisableCameraControl(bool b)
+	{
+		DisableCameraCtrl = b;
+	}
+
 	void SetCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
 	{
 		Left = LeftM;
@@ -127,10 +136,13 @@ public:
 	}
 
 	auto GetCCT() { return C_CT; }
+	bool getIsLeftCtrlBtn() { return Left; }
+	bool getIsRightCtrlBtn() { return Right; }
+	bool getIsWithoutButtonCtrl() { return WithoutButton; }
 protected:
 	Matrix m_mCameraWorld = {};
 
-	bool Left = false, Right = false, WithoutButton = false;
+	bool Left = false, Right = false, WithoutButton = false, DisableCameraCtrl = false;
 
 	shared_ptr<Camera_Control> C_CT;
 };

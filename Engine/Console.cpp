@@ -161,14 +161,14 @@ void Console::LogError(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Error);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->FindComponentUText("##CText")->
-		AddText(Type::Error, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Error, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Error);
 }
@@ -182,14 +182,14 @@ void Console::LogInfo(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Information);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->FindComponentUText("##CText")->
-		AddText(Type::Information, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Information, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Information);
 }
@@ -203,14 +203,14 @@ void Console::LogNormal(string Msg)
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()
 		|| !Consl.operator bool()
 		|| Consl->getComponents()->childs.empty()
-		|| Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->UText.empty())
+		|| Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->GetID().empty())
 	{
 		File_system::AddTextToLog(Msg, Type::Normal);
 		return;
 	}
 
-	Consl->getComponents()->FindComponentChild("ConsoleText")->getMassComponents().front()->FindComponentUText("##CText")->
-		AddText(Type::Normal, Msg);
+	Consl->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
+		FindComponentUText("##CText")->AddText(Type::Normal, Msg);
 
 	File_system::AddTextToLog(Msg, Type::Normal);
 }

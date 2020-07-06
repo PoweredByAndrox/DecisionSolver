@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scene>
+    <models>
+        <model id="0" file_name="Trigger.obj" pos="16.120001, 7.000000, -0.017000" scale="0.011000, 0.258000, 1.000000" rotate="0.000000, 0.000000, 0.000000"/>
+        <model id="1" file_name="Trigger.obj" pos="2.000000, -0.338000, 0.000000" scale="0.015000, 0.798000, 1.000430" rotate="0.000000, 0.000000, 1.582000"/>
+        <model id="2" file_name="Trigger.obj" pos="-15.436000, 7.000000, -0.017000" scale="0.011000, 0.258000, 1.000000" rotate="0.000000, 0.000000, 0.000000"/>
+        <model id="3" file_name="Trigger.obj" pos="-0.312000, 7.000000, 15.599000" scale="0.011000, 0.258000, 0.800000" rotate="0.000000, -1.575000, 0.008000"/>
+        <model id="4" file_name="Trigger.obj" pos="-39.875000, 7.000000, 16.073999" scale="0.011000, 0.258000, 0.798000" rotate="0.000000, -1.582000, 0.000000"/>
+    </models>
+    <s_objs/>
+</scene>

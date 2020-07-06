@@ -30,19 +30,23 @@ public:
 	};
 
 	SimpleLogic();
-	void Update(Vector3 &Pos, Vector3 &Rot);
+	void Update(Vector3 &Pos, Vector3 &Rot, float dTime);
+	void Pause(bool p) { isPaused = p; }
+	
+	void Restart()
+	{
+		isPaused = false;
+		Progress = 0;
+	}
 
-	void Restart() { Progress = 0; }
-
-	void ChangeSec(float Time);
 	void AddNewPoint(Vector3 Pos, Vector3 Rotate, LogicMode TestState);
 
+	bool isPause() { return isPaused; }
 	int getCurrentPoint() { return Progress; }
-	vector<shared_ptr<Point>> GetPoints() { return Points; }
+	vector<shared_ptr<Point>> &GetPoints() { return Points; }
 private:
-	float Time = 0.5f;
-	Vector3 NeededPos = Vector3::Zero;
 	int Progress = 0;
+	bool isPaused = false;
 	LogicMode CurrentModes;
 	vector<shared_ptr<Point>> Points;
 };

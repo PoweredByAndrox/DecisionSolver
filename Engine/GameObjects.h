@@ -5,6 +5,7 @@
 
 class Models;
 class SimpleLogic;
+class Timer;
 class GameObjects
 {
 public:
@@ -12,12 +13,12 @@ public:
 	struct Object
 	{
 	private:
-		static int ID;
+		//static int ID;
 
 		TYPE type = (TYPE)NONE;
 
 		// Use To Load File (e.g. file name of model)
-		string ID_TEXT = "";
+		string ID_TEXT, ModelNameFile;
 
 		Vector3 PosCoords = Vector3::Zero;
 
@@ -34,6 +35,7 @@ public:
 		shared_ptr<Models> model;
 		shared_ptr<SimpleLogic> Logic;
 		//PxRigidDynamic *PH = nullptr;
+		shared_ptr<Timer> time;
 	public:
 		Object() {}
 		Object(string ID_TEXT, string ModelNameFile, shared_ptr<SimpleLogic> Logic,
@@ -53,14 +55,16 @@ public:
 		void SetModel(shared_ptr<Models> model) { this->model = model; }
 		void SetType(TYPE type) { this->type = type; }
 		void SetLogic(shared_ptr<SimpleLogic> Logic);
+		void RemoveLogic();
 		//void SetPH(PxRigidDynamic *PH) { this->PH = PH; }
 
-		int GetID() { return ID; }
+		//int GetID() { return ID; }
 		auto GetType() { return type; }
 
 		bool GetScale() { return HasScale; }
 		bool GetRotation() { return HasRotation; }
 		string GetIdText() { return ID_TEXT; }
+		string GetModelNameFile() { return ModelNameFile; }
 
 		Vector3 GetRotCord() { return RotationCoords; }
 		Vector3 GetScaleCord() { return ScaleCoords; }

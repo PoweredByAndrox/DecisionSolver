@@ -35,6 +35,26 @@ class Column;
 class Selectable;
 class Combobox;
 
+static Vector3 GetColor(ImVec4 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return Vector3(R, G, B);
+}
+static ImVec4 GetColorIm(ImVec4 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return ImVec4(R, G, B, 1.f);
+}
+
+static Vector3 GetColor(Vector3 color)
+{
+	float R = 0.f, G = 0.f, B = 0.f;
+	ImGui::ColorConvertHSVtoRGB(color.x, color.y, color.z, R, G, B);
+	return Vector3(R, G, B);
+}
+
 struct AllTheComponent
 {
 	//			ID		Pointer to Component
@@ -521,8 +541,6 @@ public:
 		NeedToChangeColor = true;
 	}
 
-	
-
 	Labels() {}
 	Labels(string ID, bool IsVisible = true)
 	{
@@ -533,8 +551,8 @@ public:
 	void Render()
 	{
 		if (NeedToChangeColor)
-			ImGui::PushStyleColor(ImGuiCol_Text, Color);
-			
+			ImGui::PushStyleColor(ImGuiCol_Text, GetColorIm(Color));
+
 		ImGui::Text(GetText().c_str());
 
 		if (NeedToChangeColor)
@@ -583,6 +601,8 @@ public:
 	bool getVisible() { return IsVisible; }
 	bool getIsFullScreen() { return IsFullScreen; }
 
+	bool getIsClosed() { return IsClosed; }
+
 	int getOrderCount() { return OrderlyRender; }
 
 	void setResizeble(bool Resizeble) { IsResizeble = Resizeble; }
@@ -615,7 +635,8 @@ private:
 		IsCollapsible = false,
 		IsNeedBringToFont = false,
 		IsFullScreen = false,
-		IsVisible = false;
+		IsVisible = false,
+		IsClosed = false;
 
 	ImGuiWindowFlags window_flags = 0;
 
@@ -658,15 +679,21 @@ public:
 	static void ResizeWnd();
 	static LRESULT CALLBACK MsgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	static void HelpMarker(const char *desc)
+	static void HelpMarker(const char *desc, ImVec4 Color = ImVec4(1.f, 1.f, 1.f, 1.f))
 	{
 		ImGui::TextDisabled("(?)");
 		if (ImGui::IsItemHovered())
 		{
 			ImGui::BeginTooltip();
+
+			ImGui::PushStyleColor(ImGuiCol_Text, GetColorIm(Color));
+
 			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
 			ImGui::TextUnformatted(desc);
 			ImGui::PopTextWrapPos();
+
+			ImGui::PopStyleColor();
+
 			ImGui::EndTooltip();
 		}
 	}
@@ -680,7 +707,7 @@ public:
 		// return pair::first bool when it clicks on the OK btn and pair::second vector<string>
 		// when has some path files are there
 	static pair<bool, vector<string>> GetWndDlgSave(LPSTR DirByDef = "C://",
-		LPSTR NameOfWnd = "Dialog Save Files", LPSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0");
+		LPSTR NameOfWnd = "Dialog Save Files", LPCSTR FilterFilesExt = "Proj Files\0*.proj\0All\0*.*\0");
 
 	// Set All The Component's name to ID (Using for debug)
 	static void SetRenderOnlyID(bool b);

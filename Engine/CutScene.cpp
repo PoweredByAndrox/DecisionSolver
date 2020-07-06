@@ -28,8 +28,8 @@ void CutScene::Pause()
 
 void CutScene::Restart()
 {
+	Start();
 	curPos = 0;
-	Application->getCamera()->Teleport(Points.at(curPos).Pos, Points.at(curPos).Look);
 }
 
 void CutScene::Reset()
@@ -40,21 +40,24 @@ void CutScene::Reset()
 
 void CutScene::Update()
 {
-	if (IsPause || Points.empty() || Points.size() <= (size_t)curPos)
+	if (IsPause || Points.empty())
 		return;
 
-	auto Cam = Application->getCamera();
-	auto CurrentPoint = Points.at(curPos),
-		EndPoint = Points.back();
+	if ((size_t)curPos > Points.size() - 1)
+		curPos = 0;
+
+	auto &Cam = Application->getCamera();
+	auto CurrentPoint = Points.at(curPos);
 	Vector3 CamPos = Cam->GetEyePt(), CamLook = Cam->GetLookAtPt();
 
 	if (!XMVector3NearEqual(CamPos, CurrentPoint.Pos, Vector3(0.001f, 0.001f, 0.001f)))
-		Cam->Teleport(Vector3::SmoothStep(CamPos, CurrentPoint.Pos, Application->getframeTime() * CurrentPoint.Time),
-			Vector3::SmoothStep(CamLook, CurrentPoint.Look, Application->getframeTime() * CurrentPoint.Time));
+		Cam->Teleport(Vector3::Lerp(CamPos, CurrentPoint.Pos, CurrentPoint.Time),
+			Vector3::Lerp(CurrentPoint.Look, CamLook, CurrentPoint.Time));
+
 	else
 	{
 		curPos++;
-		if ((size_t)curPos >= Points.size())
+		if ((size_t)curPos > Points.size()-1)
 			curPos = 0;
 	}
 }

@@ -38,9 +38,12 @@ void Multiplayer::Destroy()
 	::WSACleanup();
 }
 
+#include "SDKInterface.h"
+extern shared_ptr<SDKInterface> SDK;
 string Log, Pas;
 void Multiplayer::UpdateUI()
 {
+	if (!SDK->getMP()) return;
 	auto DialMPConn = Application->getUI()->getDialog("MPConnection");
 	auto DialMPLogin = Application->getUI()->getDialog("MPLogin");
 
@@ -130,7 +133,7 @@ DWORD WINAPI Multiplayer::Client::Update(LPVOID lpThreadParameter)
 		{
 			vector<string> strs;
 			boost::split(strs, Tmp, boost::is_any_of("|"));
-			CurrentUser->setID(atol(strs.at(1).c_str()));
+			//CurrentUser->setID(atol(strs.at(1).c_str()));
 		}
 		//else if (contains(Tmp, "Login=false"))
 		//{
@@ -140,6 +143,7 @@ DWORD WINAPI Multiplayer::Client::Update(LPVOID lpThreadParameter)
 		//	g_lock.unlock();
 		//}
 	}
+	return 0;
 }
 DWORD WINAPI Multiplayer::Server::Update(LPVOID lpThreadParameter)
 {

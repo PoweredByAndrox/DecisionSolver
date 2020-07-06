@@ -14,20 +14,23 @@ extern shared_ptr<Engine> Application;
 //{
 //}
 
-int GameObjects::Object::ID = 0;
-
 GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<SimpleLogic> Logic,
 	TYPE type, Vector3 PosCoords, Vector3 ScaleCoords, Vector3 RotationCoords)
 {
+	// Set Up The Render Model
+	auto File = Application->getFS()->GetFile(ModelNameFile);
+	if (File)
+		model = make_shared<Models>(File->PathA);
+	if (!File || !model.operator bool() || model->getMeshes().empty())
+	{
+		Engine::LogError("GameObjects:Object: Create a New Object is failed.",
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"GameObjects:Object: Create a New Object is Fail!");
+		return;
+	}
 	// Set Up The IDs
 	this->ID_TEXT = ID_TEXT;
-	ID++;
-	// Set Up The Render Model
-	SetModel(make_shared<Models>(Application->getFS()->GetFile(ModelNameFile)->PathA));
-	if (!model.operator bool())
-		Engine::LogError("GameObjects:Object: Create a New Object is failed.",
-			"GameObjects:Object: Create Model is failed!!!",
-			"GameObjects:Object: Create a New Object is Fail!");
+	this->ModelNameFile = path(ModelNameFile).filename().string();
 	// Set Up The Logic (By Default Not To Set Up It)
 	//SetLogic(Logic);
 	// Set Up The Physic
@@ -57,28 +60,22 @@ void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> Logic)
 		this->Logic = Logic;
 }
 
-void GameObjects::Object::UpdateLogic(float Time)
-
+void GameObjects::Object::RemoveLogic()
 {
-	if (GetAsyncKeyState(VK_NUMPAD1))
-		Test2 += 0.5f;
-	if (GetAsyncKeyState(VK_NUMPAD2))
-		Test2 -= 0.5f;
+	if (Logic.operator bool())
+		this->Logic = nullptr;
+}
+void GameObjects::Object::UpdateLogic(float Time)
+{
+	//if (GetAsyncKeyState(VK_NUMPAD5))
+	//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
 
-	Test1 += Time;
-	if (Test1 >= Test2)
-	{
-		Test1 = 0.0f;
-		//if (GetAsyncKeyState(VK_NUMPAD5))
-		//	Obj->GetLogic()->follow(Application->getCamera()->GetEyePt());
-
-		Vector3 newPos = ConstrainToBoundary(PosCoords,
-			Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
-			newRot = Vector3::Zero;
-		if (Logic.operator bool() && !Logic->GetPoints().empty())
-			Logic->Update(PosCoords, RotationCoords);
-		//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
-	}
+	//Vector3 newPos = ConstrainToBoundary(PosCoords,
+	//	Vector3(-100.f, 0.f, -100.f), Vector3(100.f, 50.f, 100.f)),
+	//	newRot = Vector3::Zero;
+	if (Logic.operator bool() && !Logic->GetPoints().empty())
+		Logic->Update(PosCoords, RotationCoords, Time);
+	//Obj->GetPH()->setGlobalPose(PxTransform(ToPxVec3(newPos)));
 }
 
 void GameObjects::Object::Destroy()

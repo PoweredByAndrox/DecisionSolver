@@ -10,13 +10,19 @@
 #include "pch.h"
 
 #include <fstream>
-#include "boost/filesystem.hpp"
+#include <Boost/filesystem.hpp>
 #include <algorithm>
-
-#include "zlib.h"
+#include <boost/iostreams/device/file.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <Boost/iostreams/filtering_streambuf.hpp>
+#include <Boost/iostreams/copy.hpp>
+#include <Boost/iostreams/filter/gzip.hpp>
+using gz_com = boost::iostreams::gzip_compressor;
+using gz_decom = boost::iostreams::gzip_decompressor;
 
 using namespace std;
 using namespace boost::filesystem;
+using namespace boost::iostreams;
 
 /**
  * \enum	_TypeOfFile
@@ -133,8 +139,6 @@ private:
 
 		auto GetCurrentProject() { return CurrentProj; }
 
-		ToDo("Add To Open Proj File Itself (From Recent)");
-
 		/**
 		 * \fn	void OpenFile(path file);
 		 *
@@ -146,7 +150,7 @@ private:
 		 * \param 	file	The file.
 		 */
 
-		void OpenFile(path file);
+		HRESULT OpenFile(path file);
 
 		/**
 		 * \fn	void SaveFile(path file);
@@ -171,7 +175,7 @@ private:
 		 * \date	29.02.2020
 		 */
 
-		void SaveCurrProj();
+		void SaveProj(path File = "");
 
 		/**
 		 * \fn	void SetCurProject(path File);
@@ -229,66 +233,6 @@ public:
 	File_system();
 	~File_system() {}
 
-	// ********************************
-		// ZLIB Comporession Files
-	/**
-	 * \fn	void File_system::DecompressFile(string File, string &Buffer);
-	 *
-	 * \brief	Decompress The File
-	 *
-	 * \author	PBAX
-	 * \date	25.02.2020
-	 *
-	 * \param 		  	File  	The file.
-	 * \param [in,out]	Buffer	The buffer.
-	 */
-
-	static void DecompressFile(string File, string &Buffer);
-
-	/**
-	 * \fn	static string File_system::DecompressBuf(string SrcBuffer);
-	 *
-	 * \brief	The Version Function Without Support File Decompress Buffer
-	 *
-	 * \author	PBAX
-	 * \date	05.03.2020
-	 *
-	 * \param 	SrcBuffer	Needed To Decompress Buffer.
-	 *
-	 * \returns	Decompress Buffer.
-	 */
-
-	static string DecompressBuf(string SrcBuffer);
-
-	/**
-	 * \fn	void File_system::CompressFile(string File, string &Buffer);
-	 *
-	 * \brief	Compress The File
-	 *
-	 * \author	PBAX
-	 * \date	25.02.2020
-	 *
-	 * \param 		  	File  	The file.
-	 * \param [in,out]	Buffer	The buffer.
-	 */
-
-	static void CompressFile(string File, string &Buffer);
-
-	/**
-	 * \fn	static string File_system::CompressBuf(string SrcBuffer);
-	 *
-	 * \brief	The Version Function Without Support File Compress Buffer
-	 *
-	 * \author	PBAX
-	 * \date	05.03.2020
-	 *
-	 * \param 	SrcBuffer	Needed To Compress Buffer.
-	 *
-	 * \returns	Compress Buffer.
-	 */
-
-	static string CompressBuf(string SrcBuffer);
-	
 	/**
 	 * \fn	void File_system::ScanFiles();
 	 *
@@ -472,7 +416,7 @@ public:
 	 * \returns	True if it succeeds, false if it fails.
 	 */
 
-	static bool ReadFileMemory(LPCSTR filename, size_t *FileSize, void **FilePtr);
+	static bool ReadFileMemory(LPCSTR filename, size_t &FileSize, vector<BYTE> &FilePtr);
 
 	/**
 	 * \fn	_TypeOfFile File_system::GetTypeFileByExt(path File);
@@ -581,6 +525,9 @@ public:
 	void CreateProject(path CurrFile) { Project = make_shared<ProjectFile>(CurrFile); }
 	boost::property_tree::ptree LoadSettingsFile();
 	void SaveSettings(vector<pair<string, string>> ToFile);
+
+	bool compressFile(path data, string where = "");
+	bool decompressFile(path data, string where = "");
 protected:
 	/** \brief	The work dir */
 	static path WorkDir;
