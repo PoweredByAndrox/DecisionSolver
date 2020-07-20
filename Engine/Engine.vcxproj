@@ -79,7 +79,8 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <CustomBuildAfterTargets>
     </CustomBuildAfterTargets>
-    <CustomBuildBeforeTargets>Rebuild</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
@@ -91,9 +92,11 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;IMGUI_DISABLE_WIN32_FUNCTIONS;BOOST_AUTO_LINK_TAGGED;ZLIB_WINAPI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;SOL_STRINGS_ARE_NUMBERS;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;IMGUI_DISABLE_WIN32_FUNCTIONS;BOOST_AUTO_LINK_TAGGED;ZLIB_WINAPI;PX_PHYSX_STATIC_LIB;PX_PHYSX_GPU_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnablePREfast>false</EnablePREfast>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DisableSpecificWarnings>4217;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link />
     <FxCompile>
@@ -108,21 +111,12 @@
     </FxCompile>
     <Link />
     <Link>
-      <AdditionalDependencies>Effects11d.lib;assimp-vc141-mtd.lib;tinyxml2d.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Effects11d.lib;assimp-vc141-mtd.lib;tinyxml2d.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXCooking_32.lib;XInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);$(SolutionDir)..\submodules\Boost\$(PlatformTarget);$(SolutionDir)..\submodules\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)..\submodules\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>MSVCRTD.lib</IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions>/ignore:4217 /ignore:4049 %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <CustomBuildStep>
-      <Command>copy "$(ProjectDir)dlls\lua\*.dll" "$(TargetDir)"
-copy "$(ProjectDir)dlls\physx\$(Configuration)\*.dll" "$(TargetDir)"
-copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
-copy "$(ProjectDir)..\submodules\ZLIB\$(Configuration)\*.dll" "$(TargetDir)"
-copy "$(ProjectDir)..\submodules\tinyXML2\$(Configuration)\*.dll" "$(TargetDir)"
-copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir)"</Command>
-      <Inputs>$(ProjectDir)dlls\lua;$(ProjectDir)dlls\physx\$(Configuration);$(ProjectDir)..\submodules\tinyXML2\$(Configuration);$(ProjectDir)..\submodules\ZLIB\$(Configuration);$(ProjectDir)..\submodules\Assimp\bin\$(Configuration);%(Inputs)</Inputs>
-      <TreatOutputAsContent>true</TreatOutputAsContent>
-      <RootFolder>$(TargetDir)</RootFolder>
-      <Outputs>$(SolutionDir)$(ProjectName).zip;%(Outputs)</Outputs>
-    </CustomBuildStep>
+    <CustomBuildStep />
     <PostBuildEvent>
       <Command>
       </Command>
@@ -146,15 +140,18 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN;BOOST_AUTO_LINK_TAGGED;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;ZLIB_WINAPI;IMGUI_DISABLE_WIN32_FUNCTIONS;SOL_STRINGS_ARE_NUMBERS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_ENABLE_EXTENDED_ALIGNED_STORAGE;ANSI;WIN32_LEAN_AND_MEAN;BOOST_AUTO_LINK_TAGGED;_WIN32_WINNT=0x0601;_WIN7_PLATFORM_UPDATE;WIN32;XINPUT_USE_9_1_0;ZLIB_WINAPI;IMGUI_DISABLE_WIN32_FUNCTIONS;SOL_STRINGS_ARE_NUMBERS;PX_PHYSX_STATIC_LIB;PX_PHYSX_GPU_STATIC</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXExtensions_static_32.lib;PhysXPvdSDK_static_32.lib;SceneQuery_static_32.lib;SimulationController_static_32.lib;PhysXCharacterKinematic_static_32.lib;PhysXCooking_32.lib;PhysXTask_static_32.lib;XInput.lib;zlibwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);$(SolutionDir)Lib\Boost\$(PlatformTarget);$(SolutionDir)Lib\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)Lib\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Effects11.lib;assimp-vc141-mt.lib;tinyxml2.lib;PhysX_32.lib;PhysXCommon_32.lib;PhysXFoundation_32.lib;PhysXCooking_32.lib;XInput.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\submodules\ZLIB\$(ConfigurationName);$(SolutionDir)..\submodules\Boost\$(PlatformTarget);$(SolutionDir)..\submodules\DirectX\$(PlatformTarget);$(SolutionDir)..\submodules\ASSIMP\Lib\$(ConfigurationName);$(SolutionDir)..\submodules\PhysX\$(PlatformTarget)\$(ConfigurationName);$(SolutionDir)..\submodules\DXTK\Bin\Desktop_2017\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\FX11\Bin\Desktop_2017_Win10\$(PlatformName)\$(ConfigurationName);$(SolutionDir)..\submodules\tinyXML2\$(ConfigurationName);$(SolutionDir)..\submodules\LuaJIT\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>/ignore:4217 /ignore:4049 %(AdditionalOptions)</AdditionalOptions>
+      <IgnoreSpecificDefaultLibraries>MSVCRT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent />
     <CustomBuildStep>

@@ -1,15 +1,15 @@
 /*
----------------------------------------------------------------------------
 Open Asset Import Library (assimp)
----------------------------------------------------------------------------
+----------------------------------------------------------------------
 
 Copyright (c) 2006-2020, assimp team
+
 
 All rights reserved.
 
 Redistribution and use of this software in source and binary forms,
-with or without modification, are permitted provided that the following
-conditions are met:
+with or without modification, are permitted provided that the
+following conditions are met:
 
 * Redistributions of source code must retain the above
   copyright notice, this list of conditions and the
@@ -36,29 +36,18 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
----------------------------------------------------------------------------
+
+----------------------------------------------------------------------
 */
+
+/** @file ColladaMetaData.h
+ * Declares common metadata constants used by Collada files
+ */
 #pragma once
-#ifndef AI_ASSERT_H_INC
-#define AI_ASSERT_H_INC
+#ifndef AI_COLLADAMETADATA_H_INC
+#define AI_COLLADAMETADATA_H_INC
 
-#include <assimp/defs.h>
+#define AI_METADATA_COLLADA_ID "Collada_id"
+#define AI_METADATA_COLLADA_SID "Collada_sid"
 
-#if defined(ASSIMP_BUILD_DEBUG)
-
-namespace Assimp
-{
-    // Assert violation behavior can be customized: see AssertHandler.h.
-    ASSIMP_API void aiAssertViolation(const char* failedExpression, const char* file, int line);
-}
-
-#    define ai_assert(expression) (void)((!!(expression)) || (Assimp::aiAssertViolation(#expression, __FILE__, __LINE__), 0))
-#    define ai_assert_entry() ai_assert(false)
-
-#else
-#   define  ai_assert(expression)
-#   define  ai_assert_entry() 
-#endif // ASSIMP_BUILD_DEBUG
-
-#endif // AI_ASSERT_H_INC
-
+#endif

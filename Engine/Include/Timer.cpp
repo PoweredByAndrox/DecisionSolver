@@ -1,11 +1,14 @@
 #include "..\pch.h"
 #include "Timer.h"
+#include <condition_variable>
+#include <future>
 
-void Timer::Tick(function<void(void)> update)
+std::atomic_bool m_threadExit{ false };
+
+void Timer::Tick(function<bool()> update)
 {
 	setFunc(update);
 
-	m_running = true;
 	m_thread = thread([&]()
 	{
 		while (m_running)
@@ -56,10 +59,11 @@ void Timer::Tick(function<void(void)> update)
 					m_frameCount++;
 
 					if (m_func)
-						//		{
-						m_func();
-					//this_thread::sleep_until(timeDelta);
-		//		}
+					{
+						m_running = m_func();
+						if (!m_running)
+							break;
+					}
 				}
 
 				//if (!SkipDial)
@@ -96,10 +100,11 @@ void Timer::Tick(function<void(void)> update)
 				m_frameCount++;
 
 				if (m_func)
-					//	{
-					m_func();
-				//		this_thread::sleep_until(timeDelta);
-				//	}
+				{
+					m_running = m_func();
+					if (!m_running)
+						break;
+				}
 			}
 
 			// Track the current framerate.
@@ -115,11 +120,14 @@ void Timer::Tick(function<void(void)> update)
 				m_qpcSecondCounter %= m_qpcFrequency.QuadPart;
 			}
 		}
+
+		m_threadExit = true;
+//		cv.notify_one();
 	});
 	m_thread.detach();
 }
 
-Timer *Timer::setFunc(function<void(void)> func)
+Timer *Timer::setFunc(function<bool()> func)
 {
 	if (!m_func.operator bool())
 		m_func = func;

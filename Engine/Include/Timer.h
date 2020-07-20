@@ -18,7 +18,7 @@
 class Timer
 {
 public:
-	Timer(std::function<void(void)> func) { m_func = func; }
+	Timer(std::function<bool()> func) { m_func = func; }
 	Timer():
 		m_elapsedTicks(0),
 		m_totalTicks(0),
@@ -44,7 +44,7 @@ public:
 	void stop()
 	{
 		m_running = false;
-		m_thread.~thread();
+		m_func = nullptr;
 	}
 
 	/*
@@ -54,6 +54,7 @@ public:
 	 */
 	bool isRunning() { return m_running; }
 
+	bool IsThreadEnd() { return m_thread.joinable(); }
 
 	/*
 	*  Set the method of the timer after
@@ -62,7 +63,7 @@ public:
 	*  @returns boolean is running
 	*  @return  Timer reference of this
 	*/
-	Timer *setFunc(std::function<void(void)> func);
+	Timer *setFunc(std::function<bool()> func);
 
 	// Get elapsed time since the previous Update call.
 	UINT64 GetElapsedTicks() const { return m_elapsedTicks; }
@@ -100,12 +101,14 @@ public:
 	void ResetElapsedTime();
 
 	// Update timer state, calling the specified Update function the appropriate number of times.
-	void Tick(std::function<void(void)> update);
+	void Tick(std::function<bool()> update);
 
 	void BeginTime() { begin = chrono::high_resolution_clock::now(); }
 
 	void EndTime() { end = chrono::high_resolution_clock::now(); }
 	chrono::duration<float> GetResultTime() { return end - begin; }
+
+	bool IsNotFunc() { return !m_func.operator bool(); }
 private:
 	// Source timing data uses QPC units.
 	LARGE_INTEGER m_qpcFrequency;
@@ -124,12 +127,12 @@ private:
 	UINT64 m_qpcSecondCounter;
 
 	// Function to be executed fater interval
-	std::function<void(void)> m_func;
+	std::function<bool()> m_func;
 
 	// Thread timer is running into
 	std::thread m_thread;
 	// Status if timer is running
-	bool m_running = false;
+	bool m_running = true;
 
 	// Members for configuring fixed timestep mode.
 	bool m_isFixedTimeStep, SkipDial = false;

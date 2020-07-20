@@ -245,6 +245,21 @@ void Physics::_createTriMesh(shared_ptr<Models> Model, bool stat_dyn)
 	}
 }
 
+void Physics::DestroyAllObj()
+{
+	while (!DynamicObjects.empty())
+	{
+		SAFE_release(DynamicObjects.at(0));
+		DynamicObjects.erase(DynamicObjects.begin());
+	}
+	while (!StaticObjects.empty())
+	{
+		SAFE_release(StaticObjects.at(0));
+		StaticObjects.erase(StaticObjects.begin());
+	}
+	Cobes.clear();
+}
+
 void Physics::SpawnObject(PxVec3 Pos)
 {
 	gBox = PxCreateDynamic(*gPhysics, PxTransform(Pos), PxBoxGeometry(PxVec3(5.f, 5.f, 5.f)), *gMaterial, 1.0f);
@@ -258,32 +273,25 @@ void Physics::SpawnObject(PxVec3 Pos)
 
 void Physics::Destroy()
 {
-	ClearAllObj();
+	DestroyAllObj();
+	SAFE_release(ControllerManager);
+//	SAFE_release(gPlane);
+	SAFE_release(gScene);
+	SAFE_release(gMaterial);
+	SAFE_release(gPhysics);
 
 #if defined (_DEBUG)
+
 	if (gPvd)
 	{
-		if (gPvd->getTransport() && gPvd->getTransport()->isConnected())
-			gPvd->getTransport()->flush();
-		if (gPvd->isConnected())
-			gPvd->disconnect();
-		if (transport)
-		{
-			if (transport->isConnected())
-				transport->disconnect();
-		}
+		PxPvdTransport *transport = gPvd->getTransport();
+		SAFE_release(transport);
 	}
+	pvdClient = nullptr;
+	SAFE_release(gPvd);
 #endif
-	if (ControllerManager)
-		ControllerManager->release();
-	if (gCooking)
-		gCooking->release();
-	if (gScene)
-		gScene->release();
-	if (gPhysics)
-		gPhysics->release();
-	if (gFoundation)
-		gFoundation->release();
+	SAFE_release(gCooking);
+	SAFE_release(gFoundation);
 }
 
 PxVec3 ToPxVec3(Vector3 var)

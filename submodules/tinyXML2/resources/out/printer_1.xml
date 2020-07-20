@@ -1,0 +1,14 @@
+<?version = '1.0' enconding = 'utf-8'?>
+<foo attrib-text="text">
+    <text>Tinyxml2</text>
+    <int>11</int>
+    <unsigned>12</unsigned>
+    <int64_t>13</int64_t>
+    <uint64_t>14</uint64_t>
+    <bool>true</bool>
+    <float>1.56</float>
+    <double>12.12</double>
+    <comment>
+        <!--this is Tinyxml2-->
+    </comment>
+</foo>

@@ -55,22 +55,26 @@ private:
 	 */
 
 	struct File
-		{
-			File() {}
-			File(wstring PathW, wstring ExtW, wstring FileW, size_t Size, _TypeOfFile TypeOfFile): PathW(PathW), ExtW(ExtW), FileW(FileW),
-				Size(Size), TypeOfFile(TypeOfFile) {}
+	{
+		File() {}
+		File(wstring PathW, wstring ExtW, wstring FileW, size_t Size, _TypeOfFile TypeOfFile,
+			bool HasTextures = false): PathW(PathW), ExtW(ExtW), FileW(FileW),
+			Size(Size), TypeOfFile(TypeOfFile), HasTextures(HasTextures) {}
 
-			File(string PathA, string ExtA, string FileA, size_t Size, _TypeOfFile TypeOfFile): PathA(PathA), ExtA(ExtA), FileA(FileA),
-				Size(Size), TypeOfFile(TypeOfFile) {}
+		File(string PathA, string ExtA, string FileA, size_t Size, _TypeOfFile TypeOfFile,
+			bool HasTextures = false): PathA(PathA), ExtA(ExtA), FileA(FileA),
+			Size(Size), TypeOfFile(TypeOfFile), HasTextures(HasTextures) {}
 
-			wstring PathW = L"", ExtW = L"", FileW = L"";
-			// Full Path To Required File
-			string PathA = "", ExtA = "", FileA = "";
+		wstring PathW = L"", ExtW = L"", FileW = L"";
+		// Full Path To Required File
+		string PathA = "", ExtA = "", FileA = "";
 
-			size_t Size = 0;
+		bool HasTextures = false;
 
-			_TypeOfFile TypeOfFile;
-		};
+		size_t Size = 0;
+
+		_TypeOfFile TypeOfFile;
+	};
 	vector<pair<shared_ptr<File>, string/*IDPath*/>>
 		Models,
 		Textures,
@@ -285,7 +289,8 @@ public:
 	 * \returns	A shared_ptr&lt;AllFile::File&gt;
 	 */
 
-	shared_ptr<File> AddFile(path File);
+	shared_ptr<File> AddFile(path File,
+		pair<string, vector<pair<bool, string>>> &ListTextures = pair<string, vector<pair<bool, string>>>());
 
 	/**
 	 * \fn	vector<pair<shared_ptr<AllFile::File>, string>> File_system::GetFileByType(_TypeOfFile T);
@@ -552,6 +557,6 @@ protected:
 	 * \returns	A shared_ptr&lt;File_system::AllFile::File&gt;
 	 */
 
-	shared_ptr<File_system::File> Find(path File);
+	shared_ptr<File_system::File> Find(path File, bool AlsoAddFile = true);
 };
 #endif // !__FILE_SYSTEM_H__

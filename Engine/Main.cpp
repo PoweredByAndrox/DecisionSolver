@@ -193,11 +193,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 		}
-		else
-			Application->setMessage(msg);
+		else if (Application->getThreadState() == Engine::ThreadStatus::_Quit)
+				Application->Destroy();
 	}
-
-	Application->Destroy();
 
 	return 0;
 }

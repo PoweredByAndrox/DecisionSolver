@@ -128,8 +128,6 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 				Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
 				FindComponentUText("##CText")->AddText(Type::Error, CMD + ": GetPhysDynamicObject() return NULL!!!");
 		}
-		else if (contains(CMD, "cleanphysbox"))
-			Application->getPhysics()->ClearAllObj();
 		//else if (contains(CMD, "reinit_lua"))
 		//	CLua::Reinit();
 	}

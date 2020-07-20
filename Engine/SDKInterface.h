@@ -4,7 +4,7 @@
 #include "pch.h"
 
 #include "UI.h"
-#include <any>
+#include <shellapi.h>
 
 class ptree;
 class SDKInterface
@@ -43,6 +43,7 @@ public:
 	void Information();
 
 	void WarningDial(string Name, std::function<void(void)> OK, std::function<void(void)> Cancel);
+	void SelectMissingFiles();
 
 	void LoadSettings(boost::property_tree::ptree fData);
 	void SaveSettings();

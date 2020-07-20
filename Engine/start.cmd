@@ -1,2 +1,2 @@
-@call release\SDKE.exe
+@call debug\SDKE.exe
 @pause

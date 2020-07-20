@@ -33,7 +33,17 @@ class Multiplayer;
  */
 class Engine
 {
+public:
+	enum ThreadStatus
+	{
+		_Quit = 0,
+		_ResizeWND,
+		_Work,
+		_Nothing
+	};
 private:
+	static ThreadStatus ThState;
+
 	static HWND hwnd;
 	bool WireFrame = false,
 		IsSimulation = false;
@@ -128,11 +138,13 @@ public:
  * \brief Here's Releasing All Objects Of Window And DirectX
  */
 	void Destroy();
-	static void Quit() { ::PostQuitMessage(0); isQuit = true; }
-
+	void Quit();
+public:
 	bool IsQuit() { return isQuit; }
 	Engine() {}
 	~Engine() {}
+
+	ThreadStatus getThreadState() { return ThState; }
 
 	static HWND GetHWND() { return hwnd; }
 
