@@ -13,6 +13,7 @@ extern shared_ptr<Engine> Application;
 #include "CutScene.h"
 
 state CLua::LuaState;
+string File;
 
 void CLua::Init()
 {
@@ -24,16 +25,17 @@ void CLua::Init()
 		"LogNormal", &Console::LogNormal);
 
 	// Audio System !!!
-	LuaState["Engine"].get_or_create<table>().new_usertype<Audio>("Sound", "PlayFile", &Audio::PlayFile,
-		"Stop", &Audio::doStop, "Pause", &Audio::doPause, "ChangeVolume", &Audio::changeSoundVol,
-		"Play", &Audio::doPlay);
+	//LuaState["Engine"].get_or_create<table>().new_usertype<Audio>("Sound", "PlayFile", &Audio::PlayFile,
+	//	"Stop", &Audio::doStop, "Pause", &Audio::doPause, "ChangeVolume", &Audio::changeSoundVol,
+	//	"Play", &Audio::doPlay);
 
 	// Camera !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<Camera>("Camera", "ChangePos", &Camera::Teleport,
 		"GetPos", &Camera::GetEyePt, "GetLook", &Camera::GetLookAtPt);
 
 	// File System !!!
-	LuaState["Engine"].get_or_create<table>().new_usertype<File_system>("FS", "GetCurPath", &File_system::GetCurPath);
+	//LuaState["Engine"].get_or_create<table>().new_usertype<File_system>("FS", "GetCurPath",
+	//	&File_system::GetCurrentPath()); Need To Fix IT!!!
 
 	// CutScene !!!
 	LuaState["Engine"].get_or_create<table>().new_usertype<CutScene>("CutScene", constructors<CutScene()>(),
@@ -56,7 +58,12 @@ void CLua::Init()
 	LuaState["package"]["path"] = package_path + (!package_path.empty() ? ";" : "")
 		+ Application->getFS()->getPathFromType(_TypeOfFile::SCRIPTS) + "?.lua";
 
-	callFunction("main.lua", "initEverything", "");
+	auto Obj = Application->getFS()->GetFile("main.lua");
+	if (Obj && !Obj->PathA.empty())
+	{
+		File = Obj->PathA;
+		callFunction(File, "initEverything", "");
+	}
 }
 
 void CLua::Reinit()
@@ -69,18 +76,19 @@ void CLua::Update()
 {
 	try
 	{
-		callFunction("main.lua", "main", "");
+		if (!File.empty())
+			callFunction(File, "main", "");
 	}
 	catch (const exception &SomeError)
 	{
-		if (MessageBoxA(Application->GetHWND(), string(string("Some errors with LUA:\n") + SomeError.what() +
+		if (MessageBoxA(Application->GetHWND(), (string("Some errors with LUA:\n") + SomeError.what() +
 			string("\nDo you want to continue?")).c_str(), Application->getNameWndA().c_str(), MB_YESNO) == IDYES)
 		{
 			Console::LogError(string("Some errors with LUA:\n") + SomeError.what());
 			return;
 		}
 		else
-			Engine::Quit();
+			Application->Quit();
 	}
 }
 
@@ -88,13 +96,12 @@ void CLua::callFunction(string FileName, string Function, string params)
 {
 	try
 	{
-		auto File = Application->getFS()->GetFile(FileName)->PathA;
-		if (File.empty())
+		if (FileName.empty())
 		{
 			Console::LogError(string("Lua error: File: \"") + FileName + string("\" Doesn't Exist!"));
 			return;
 		}
-		LuaState.safe_script_file(File);
+		LuaState.safe_script_file(FileName);
 		LuaState.get<sol::function>(Function.c_str()).template call<void>(params);
 	}
 	catch (error e)

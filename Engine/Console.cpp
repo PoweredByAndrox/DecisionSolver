@@ -107,7 +107,7 @@ void Console::Render()
 	{
 		for (size_t i = 0; i < ProcessCommand->getAllCommands().size(); i++)
 		{
-			auto cmd = ProcessCommand->FindPieceCommand(Dialog, text);
+			auto cmd = ProcessCommand->FindPieceCommand(text);
 			if (cmd.operator bool() && !cmd->CommandStr.empty())
 			{
 				if (cmd->type == 1)
@@ -173,10 +173,16 @@ void Console::LogError(string Msg)
 	File_system::AddTextToLog(Msg, Type::Error);
 }
 
+extern bool IsNotification;
+extern void CreateNotification(string Text, Vector4 Color);
+
 void Console::LogInfo(string Msg)
 {
 	if (Msg.empty() || !Application->getUI().operator bool())
 		return;
+
+	if (IsNotification)
+		CreateNotification(Msg, Colors::Orange.operator DirectX::XMVECTOR());
 
 	auto Consl = Application->getUI()->getDialog("Console");
 	if (!ProcessCommand.operator bool() || !Dialog.operator bool() || !Application->getUI().operator bool()

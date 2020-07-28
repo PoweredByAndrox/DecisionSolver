@@ -49,6 +49,11 @@ void Actor::Render(float Time)
 	}
 }
 
+void Actor::ChangePosition(Vector3 Pos)
+{
+	Application->getCamera()->Teleport(Pos, Application->getCamera()->GetLookAtPt());
+}
+
 HRESULT Actor::Init()
 {
 	//	// Camera Class
@@ -62,7 +67,7 @@ HRESULT Actor::Init()
 		return E_FAIL;
 	}
 
-	Application->getCamera()->SetCameraControlButtons(false, true, false);
+	Application->getCamera()->SetCameraControlButtons(false, true);
 	Application->getCamera()->SetResetCursorAfterMove(true);
 	Application->getCamera()->SetFreeMoveCam(true);
 	Application->getCamera()->SetDrag(true);

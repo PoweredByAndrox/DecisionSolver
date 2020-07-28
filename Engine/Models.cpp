@@ -114,7 +114,7 @@ void Models::Render(Matrix View, Matrix Proj)
 {
 	if (!Application->getDeviceContext()) return;
 
-	ConstantBuffer cb;
+	//ConstantBuffer cb;
 	auto Mrx = scale * position * rotate;
 	cb.World = XMMatrixTranspose(Mrx);
 	cb.View = XMMatrixTranspose(View);
@@ -226,14 +226,14 @@ vector<Texture> Models::loadMaterialTextures(aiMaterial *mat, aiTextureType type
 
 void Models::processNode(aiNode *node, const aiScene *Scene)
 {
-	for (UINT i = 0; i < node->mNumMeshes; i++)
+	for (UINT IndxMesh = 0; IndxMesh < node->mNumMeshes; IndxMesh++)
 	{
 		vector<Things> vertices;
 		vector<UINT> indices;
 		vector<Texture> textures;
 		Vector3 Max;
 		
-		mesh = Scene->mMeshes[node->mMeshes[i]];
+		mesh = Scene->mMeshes[node->mMeshes[IndxMesh]];
 		if (mesh->mMaterialIndex >= 0)
 		{
 			aiMaterial *mat = Scene->mMaterials[mesh->mMaterialIndex];
@@ -365,11 +365,11 @@ void Models::setPosition(Vector3 Pos)
 	position = Matrix::CreateTranslation(Pos);
 }
 
-void Models::Mesh::Init(vector<Things> vertices, vector<UINT> indices, vector<Texture> textures)
+void Models::Mesh::Init(vector<Things> Vertices, vector<UINT> Indices, vector<Texture> Textures)
 {
-	this->vertices = vertices;
-	this->indices = indices;
-	this->textures = textures;
+	this->vertices = Vertices;
+	this->indices = Indices;
+	this->textures = Textures;
 
 	D3D11_BUFFER_DESC vbd;
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;

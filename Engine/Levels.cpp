@@ -44,7 +44,7 @@ HRESULT Levels::Load(string FileBuff)
 	return S_OK;
 }
 
-void Levels::Spawn(Vector3 pos, GameObjects::TYPE type)
+void Levels::Spawn(/*Vector3 pos, GameObjects::TYPE type*/)
 {
 //	switch (type)
 //	{
@@ -219,7 +219,7 @@ void Levels::Process()
 
 		// Check if the model has in resource of engine then add it to level
 		if (exists(Application->getFS()->getPathFromType(_TypeOfFile::MODELS) + ModelFileName))
-			Add(_TypeOfFile::MODELS, make_shared<GameObjects::Object>(ModelID, ModelFileName, nullptr,
+			Add(make_shared<GameObjects::Object>(ModelID, ModelFileName, nullptr,
 				type, Pos, Scale, Rotate))->RenderName = NameOfNode.empty() ? ModelID : NameOfNode;
 		else
 			Engine::LogError((boost::format("Model: %s wasn't find in resources Engine and be skiped") % ModelFileName).str(),
@@ -235,7 +235,7 @@ void Levels::Update()
 		MainChild->Update();
 }
 
-shared_ptr<Levels::Node> Levels::Add(_TypeOfFile T, string PathModel)
+shared_ptr<Levels::Node> Levels::Add(string PathModel)
 {
 	shared_ptr<Node> nd = make_shared<Node>();
 
@@ -249,7 +249,7 @@ shared_ptr<Levels::Node> Levels::Add(_TypeOfFile T, string PathModel)
 	return MainChild->AddNewNode(nd);
 }
 
-shared_ptr<Levels::Node> Levels::Add(_TypeOfFile T, shared_ptr<GameObjects::Object> GM)
+shared_ptr<Levels::Node> Levels::Add(shared_ptr<GameObjects::Object> GM)
 {
 	shared_ptr<Node> nd = make_shared<Node>();
 

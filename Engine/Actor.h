@@ -41,10 +41,7 @@ public:
 			ChangeHealth(Value, '-');
 	}
 
-	void ChangePosition(Vector3 Pos)
-	{
-		//Application->getCamera()->setPosCam(Pos);
-	}
+	void ChangePosition(Vector3 Pos);
 
 	HRESULT Init();
 

@@ -9,18 +9,29 @@ extern shared_ptr<Engine> Application;
 #include "File_system.h"
 
 PxCapsuleController *Camera_Control::C_Control = nullptr;
-string jmpSnd, dwnSnd;
+string jmpSnd, dwnSnd, rnSnd;
 
 void Camera_Control::Init()
 {
 	PCam = make_shared<PhysCamera>();
 	auto Obj = Application->getFS()->GetFile("Start Jump");
-	Application->getSound()->AddNewFile(Obj->PathA, false);
-	jmpSnd = Obj->FileA;
-
+	if (Obj)
+	{
+		Application->getSound()->AddNewFile(Obj->PathA, false);
+		jmpSnd = Obj->FileA;
+	}
 	Obj = Application->getFS()->GetFile("Stop Jump");
-	Application->getSound()->AddNewFile(Obj->PathA, false);
-	dwnSnd = Obj->FileA;
+	if (Obj)
+	{
+		Application->getSound()->AddNewFile(Obj->PathA, false);
+		dwnSnd = Obj->FileA;
+	}
+	Obj = Application->getFS()->GetFile("Run");
+	if (Obj)
+	{
+		Application->getSound()->AddNewFile(Obj->PathA, false);
+		rnSnd = Obj->FileA;
+	}
 
 	//capscDescActor->density = cDescActor.ProxyDensity;
 	//capscDescActor->scaleCoeff = cDescActor.ProxyScale;
@@ -78,18 +89,38 @@ Vector3 Camera_Control::Update(Vector3 camPos, float Time, Vector3 VDir)
 	if (!C_Control) return camPos;
 
 	auto Jump = PCam->getJump();
-	float MGr = Application->getPhysics()->getScene()->getGravity().y;
 	if (Application->getKeyboard()->GetState().IsKeyDown(Keyboard::Keys::Space) && Jump->getCanJump())
 	{
 		if (!jmpSnd.empty())
 			Application->getSound()->doPlay(jmpSnd);
-		Jump->Start(5.5f);
+		Jump->Start(20.f);
 	}
 
 	float jump_height = Jump->getHeight(Time),
 		fScaleMove = Application->getCamera()->getMoveScale();
-	
+
+	bool Shift = Application->getKeyboard()->GetState().LeftShift;
+
 	targetKeyDisplacement.y = jump_height;
+
+	Vector2 Cmp = { targetKeyDisplacement.x, targetKeyDisplacement.z };
+	if (Jump->IsOnTheGround() && (Cmp != Vector2::Zero) && Shift)
+	{
+		if (!rnSnd.empty())
+			Application->getSound()->doPlay(rnSnd);
+	}
+	else
+	{
+		if (!rnSnd.empty())
+			Application->getSound()->doStop(rnSnd);
+	}
+	if (Shift)
+	{
+		fScaleMove += 15.f;
+		targetKeyDisplacement.z *= fScaleMove;
+		targetKeyDisplacement.x *= fScaleMove;
+	}
+
 
 	flags = C_Control->move(targetKeyDisplacement, 0.0f, Time, PxControllerFilters(0));
 

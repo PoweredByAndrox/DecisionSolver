@@ -2184,20 +2184,25 @@ pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LP
 
 	if (path(string(szFile)).has_extension())
 	{
-		RetVal.second.push_back(string(szFile));
+		string File = string(szFile);
+		to_lower(File);
+		RetVal.second.push_back(File);
 		return RetVal;
 	}
 
 	if (MultiSelect)
 	{
 		// Add path first
-		RetVal.second.push_back(string(szFile) + "\\");
+		string File = string(szFile);
+		to_lower(File);
+		RetVal.second.push_back(File + "\\");
 		int FileOffset = ofn.nFileOffset;
 		for (;;)
 		{
 			// Add it to massive of files (like path\File.ext)
-			RetVal.second.push_back(RetVal.second.front() +
-				string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset])));
+			File = string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset]));
+			to_lower(File);
+			RetVal.second.push_back(RetVal.second.front() + File);
 			// Count the next file by offset from previous file (path - next offs file) + 1
 			FileOffset += (RetVal.second.back().size() - RetVal.second.front().size()) + 1;
 			if (ofn.lpstrFile[FileOffset] == '\0') // If the next no file
@@ -2209,7 +2214,11 @@ pair<bool, vector<string>> UI::GetWndDlgOpen(LPSTR DirByDef, LPSTR NameOfWnd, LP
 		}
 	}
 	else
-		RetVal.second.push_back(string(szFile));
+	{
+		string File = string(szFile);
+		to_lower(File);
+		RetVal.second.push_back(File);
+	}
 
 	return RetVal;
 }
@@ -2256,26 +2265,34 @@ pair<bool, vector<string>> UI::GetWndDlgSave(LPSTR DirByDef, LPSTR NameOfWnd, LP
 
 	if (path(string(szFile)).has_extension())
 	{
-		RetVal.second.push_back(string(szFile));
+		string File = string(szFile);
+		to_lower(File);
+		RetVal.second.push_back(File);
 		return RetVal;
 	}
 	else
 	{
+		string File = string(szFile);
+		to_lower(File);
 		if (ofn.nFileExtension == 0)
-			RetVal.second.push_back(string(szFile) + ".*");
+			RetVal.second.push_back(File + ".*");
 		else
-			RetVal.second.push_back(string(szFile) + '.' + ofn.lpstrDefExt);
+			RetVal.second.push_back(File + '.' + ofn.lpstrDefExt);
 
 		return RetVal;
 	}
 
-	RetVal.second.push_back(string(szFile) + "\\");
+	string File = string(szFile);
+	to_lower(File);
+
+	RetVal.second.push_back(File + "\\");
 	int FileOffset = ofn.nFileOffset;
 	for (;;)
 	{
 		// Add it to massive of files (like path\File.ext)
-		RetVal.second.push_back(RetVal.second.front() +
-			string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset])));
+		File = string(const_cast<const LPSTR>(&ofn.lpstrFile[FileOffset]));
+		to_lower(File);
+		RetVal.second.push_back(RetVal.second.front() + File);
 		// Count the next file by offset from previous file (path - next offs file) + 1
 		FileOffset += (RetVal.second.back().size() - RetVal.second.front().size()) + 1;
 		if (ofn.lpstrFile[FileOffset] == '\0') // If the next no file
@@ -2701,15 +2718,21 @@ void IText::Render()
 	Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
 
 	if (IsNeedHint)
-		if (pressEnter = ImGui::InputTextWithHint("", TextHint.c_str(), &Text, Flags))
+	{
+		pressEnter = ImGui::InputTextWithHint("", TextHint.c_str(), &Text, Flags);
+		if (pressEnter)
 			IsTextChange = true;
 		else
 			IsTextChange = false;
+	}
 	else
-		if (pressEnter = ImGui::InputText(GetID().c_str(), &Text, Flags))
+	{
+		pressEnter = ImGui::InputText(GetID().c_str(), &Text, Flags);
+		if (pressEnter)
 			IsTextChange = true;
 		else
 			IsTextChange = false;
+	}
 
 	Active = ImGui::IsItemActive();
 }

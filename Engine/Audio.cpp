@@ -22,6 +22,7 @@ vector<pair<shared_ptr<Audio::Source>, string>> Audio::Src;
 X3DAUDIO_HANDLE Audio::X3DInstance = {};
 X3DAUDIO_DSP_SETTINGS Audio::DSPSettings = {};
 
+/*
 class VoiceCallback: public IXAudio2VoiceCallback
 {
 public:
@@ -40,8 +41,8 @@ public:
 	STDMETHOD_(void, OnLoopEnd) (THIS_ void* pBufferContext);
 	STDMETHOD_(void, OnVoiceError) (THIS_ void* pBufferContext, HRESULT Error);
 } voiceCallback;
-
-HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer)
+*/
+HRESULT Audio::AudioFile::loadWAVFile(string filename, XAUDIO2_BUFFER &_Buffer)
 {
 	mmio = mmioOpenA(const_cast<LPSTR>(filename.c_str()), nullptr, MMIO_READ);
 
@@ -116,9 +117,9 @@ HRESULT Audio::AudioFile::loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx
 
 	mmioClose(mmio, MMIO_FHOPEN);
 
-	buffer.AudioBytes = pDataBuffer.size();
-	buffer.pAudioData = pDataBuffer.data();
-	buffer.Flags = XAUDIO2_END_OF_STREAM;
+	_Buffer.AudioBytes = pDataBuffer.size();
+	_Buffer.pAudioData = pDataBuffer.data();
+	_Buffer.Flags = XAUDIO2_END_OF_STREAM;
 
 	return S_OK;
 }
@@ -131,14 +132,14 @@ HRESULT Audio::AudioFile::Load(string FName, int Channels)
 	hr = S_OK;
 	SecureZeroMemory(&buffer, sizeof(buffer));
 	SecureZeroMemory(&WaveFormEx, sizeof(WaveFormEx));
-	hr = loadWAVFile(FName, wfx, buffer);
+	hr = loadWAVFile(FName, buffer);
 	if (FAILED(hr))
 		return hr;
 
 	if (Repeat)
 		buffer.LoopCount = XAUDIO2_LOOP_INFINITE;
 
-	hr = pXAudio2->CreateSourceVoice(&source, &WaveFormEx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, &voiceCallback);
+	hr = pXAudio2->CreateSourceVoice(&source, &WaveFormEx, 0, XAUDIO2_DEFAULT_FREQ_RATIO/*, &voiceCallback*/);
 	if (FAILED(hr))
 		return hr;
 
@@ -184,7 +185,7 @@ HRESULT Audio::Init()
 
 	InitSoundSystem = true;
 	
-	ResumeThread(voiceCallback.hBufferEndEvent);
+	//ResumeThread(voiceCallback.hBufferEndEvent);
 	return S_OK;
 }
 
@@ -558,6 +559,7 @@ void Audio::Source::Destroy()
 	AUDFile->Destroy();
 }
 
+/*
 void VoiceCallback::OnStreamEnd(void)
 {
 	SetEvent(hBufferEndEvent);
@@ -587,3 +589,4 @@ void VoiceCallback::OnLoopEnd(void *pBufferContext)
 void VoiceCallback::OnVoiceError(void *pBufferContext, HRESULT Error)
 {
 }
+*/

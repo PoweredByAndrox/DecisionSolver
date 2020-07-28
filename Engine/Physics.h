@@ -50,36 +50,19 @@ public:
 	bool IsPhysicsInit() { return IsInitPhysX; }
 	void _createTriMesh(shared_ptr<Models> Model, bool stat_dyn);
 
-	PxTriangleMesh *getTriMesh() { if (triangleMesh) return triangleMesh; return nullptr; }
-	PxScene *getScene() { if (gScene) return gScene; return nullptr; }
-	PxPhysics *getPhysics() { if (gPhysics) return gPhysics; return nullptr; }
-	PxMaterial *getMaterial() { if (gMaterial) return gMaterial; return nullptr; }
-	PxRigidDynamic *getActrCamera() { if (gActorCamera) return gActorCamera; return nullptr; }
+	PxTriangleMesh *getTriMesh() { return triangleMesh; }
+	PxScene *getScene() { return gScene; }
+	PxPhysics *getPhysics() { return gPhysics; }
+	PxMaterial *getMaterial() { return gMaterial; }
+	PxRigidDynamic *getActrCamera() { return gActorCamera; }
 #if defined (_DEBUG)
-	PxPvdSceneClient *getClientPVD() { if (pvdClient) return pvdClient; return nullptr; }
+	PxPvdSceneClient *getClientPVD() { return pvdClient; }
 #endif
 	PxControllerManager *getContrlManager() { return ControllerManager; }
 
-	void ClearAllObj()
-	{
-		while (!DynamicObjects.empty())
-		{
-			SAFE_release(DynamicObjects.at(0));
-			DynamicObjects.erase(DynamicObjects.begin());
-		}
-		Cobes.clear();
-	}
+	void DestroyAllObj();
 
 	void SpawnObject(PxVec3 Pos = PxVec3(0.f, 0.f, 0.f));
-	void DestroyObj()
-	{
-		Cobes.clear();
-		while (!DynCobes.empty())
-		{
-			SAFE_release(DynCobes.at(0));
-			DynCobes.erase(DynCobes.begin());
-		}
-	}
 protected:
 	// ***************
 	PxDefaultErrorCallback gDefaultErrorCallback;

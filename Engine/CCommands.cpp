@@ -27,7 +27,7 @@ void Commands::Work(shared_ptr<dialogs> &Console, string Text)
 	if (Text.empty())
 		return;
 
-	auto cmd = FindPieceCommand(Console, Text);
+	auto cmd = FindPieceCommand(Text);
 	if (cmd.operator bool() && !cmd->CommandStr.empty())
 	{
 		cmd->TypedCmd = Text;
@@ -128,10 +128,8 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 				Console->getComponents()->FindComponentChild("##ConsoleTextBox")->getMassComponents().front()->
 				FindComponentUText("##CText")->AddText(Type::Error, CMD + ": GetPhysDynamicObject() return NULL!!!");
 		}
-		else if (contains(CMD, "cleanphysbox"))
-			Application->getPhysics()->ClearAllObj();
-		//else if (contains(CMD, "reinit_lua"))
-		//	CLua::Reinit();
+		else if (contains(CMD, "reinit_lua"))
+			CLua::Reinit();
 	}
 	//if (cmd->type == Command::TypeOfCommand::Lua)
 	//{
@@ -169,7 +167,7 @@ void Commands::ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cm
 	History.push_back(cmd->TypedCmd);
 }
 
-shared_ptr<Commands::Command> Commands::FindPieceCommand(shared_ptr<dialogs> &Console, string Text)
+shared_ptr<Commands::Command> Commands::FindPieceCommand(string Text)
 {
 	for (size_t i = 0; i < commands.size(); i++)
 	{
@@ -221,7 +219,7 @@ void Commands::Command::CheckRequiredParam()
 	}
 	deleteWord(CommandUnprocessed, " ");
 
-	for (int i = 0; true; i++)
+	for (size_t i = 0; true; i++)
 	{
 		if (i == CommandNeededParams.length())
 			break;

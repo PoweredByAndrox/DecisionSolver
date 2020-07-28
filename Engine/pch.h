@@ -147,9 +147,9 @@ using namespace tinyxml2;
 
 	#define EngineTrace(x) \
 	{ \
-		HRESULT hr = (x); \
-		if (FAILED(hr)) \
-			return DXTraceW(__FILE__, (DWORD)__LINE__, hr, L#x, true); \
+		HRESULT HError = (x); \
+		if (FAILED(HError)) \
+			return DXTraceW(__FILE__, (DWORD)__LINE__, HError, L#x, true); \
 	} 
 #endif
 

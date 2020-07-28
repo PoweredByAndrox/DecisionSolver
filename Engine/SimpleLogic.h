@@ -21,8 +21,8 @@ public:
 		Vector3 GetRotate() { return Rotate; }
 		LogicMode GetState() { return TestState; }
 
-		void SetPos(Vector3 Pos) { this->Pos = Pos; }
-		void SetRotate(Vector3 Rotate) { this->Rotate = Rotate; }
+		void SetPos(Vector3 Position) { Pos = Position; }
+		void SetRotate(Vector3 Rotation) { Rotate = Rotation; }
 		void SetState(LogicMode State) { TestState = State; }
 	private:
 		Vector3 Pos = Vector3::Zero, Rotate = Vector3::Zero;

@@ -64,9 +64,9 @@ private:
 		void Render();
 		void Release();
 
-		void SetPos(Vector3 Pos) {}
-		void SetRot(Vector3 Rot) {}
-		void SetScale(Vector3 Scl) {}
+//		void SetPos(Vector3 Pos) {}
+//		void SetRot(Vector3 Rot) {}
+//		void SetScale(Vector3 Scl) {}
 
 	protected:
 		struct ConstantBuffer

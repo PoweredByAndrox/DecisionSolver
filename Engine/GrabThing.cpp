@@ -13,13 +13,13 @@ extern shared_ptr<Engine> Application;
 
 PxFixedJoint *joint = nullptr;
 
-void GrabThing::CheckType(int ID)
+void GrabThing::CheckType(/*int ID*/)
 {
 	if (!Application->getPhysics() || !Application->getCamera()) return;
 	Application->getPhysics()->SpawnObject(ToPxVec3(Application->getCamera()->GetEyePt() + Vector3(0, 2.5f, -5.f)));
 }
 
-void GrabThing::Drop(int ID)
+void GrabThing::Drop(/*int ID*/)
 {
 	SAFE_release(joint);
 }

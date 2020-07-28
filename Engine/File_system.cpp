@@ -35,7 +35,16 @@ void File_system::ScanFiles()
 		? L"resource/"
 		: L"/resource/");
 
-	int i = 0;
+	if (!exists(WorkDirSourcesA))
+	{
+		MessageBoxA(Engine::GetHWND(), "Engine Cannot Work Without Resource Folder!", "ERROR",
+			MB_OK | MB_ICONERROR);
+		Engine::LogError("File System: RESOURCE_FOLDER_NOT_FOUND!\n",
+			string(__FILE__) + ": " + to_string(__LINE__),
+			"Resource Folder Wasn't Found\n");
+		exit(-1);
+	}
+
 	auto file = getFilesInFolder(WorkDirSourcesA, true, true);
 	for (size_t i = 0; i < file.size(); i++)
 	{
@@ -134,23 +143,25 @@ void File_system::RescanFilesByType(_TypeOfFile Type)
 
 _TypeOfFile File_system::GetTypeFileByExt(path File)
 {
-	if (File.extension().string() == ".obj" || File.extension().string() == ".3ds" ||
-		File.extension().string() == ".fbx")
+	string Ext = File.string();
+	to_lower(Ext);
+	Ext = path(Ext).extension().string();
+
+	if (Ext == ".obj" || Ext == ".3ds" || Ext == ".fbx")
 		return MODELS;
-	else if (File.extension().string() == ".hlsl" || File.extension().string() == ".fx"
-		|| File.extension().string() == ".vs" || File.extension().string() == ".ps")
+	else if (Ext == ".hlsl" || Ext == ".fx" || Ext == ".vs" || Ext == ".ps")
 		return SHADERS;
-	else if (File.extension().string() == ".dds" || File.extension().string() == ".png"
-		|| File.extension().string() == ".bmp" || File.extension().string() == ".mtl"
-		|| File.extension().string() == ".jpg")
+	else if (Ext == ".dds" || Ext == ".png"
+		|| Ext == ".bmp" || Ext == ".mtl"
+		|| Ext == ".jpg")
 		return TEXTURES;
-	else if (File.extension().string() == ".wav")
+	else if (Ext == ".wav")
 		return SOUNDS;
-	else if (File.extension().string() == ".lua")
+	else if (Ext == ".lua")
 		return SCRIPTS;
-	else if (File.extension().string() == ".ttf")
+	else if (Ext == ".ttf")
 		return FONTS;
-	else if (File.extension().string() == ".xml")
+	else if (Ext == ".xml")
 	{
 		if (!File.has_branch_path() && !File.has_parent_path() && !File.has_root_directory() &&
 			!File.has_root_name() && !File.has_root_path() && File.has_filename())
@@ -266,201 +277,341 @@ string File_system::getPathFromType(_TypeOfFile T)
 	return New;
 }
 
-shared_ptr<File_system::File> File_system::Find(path File)
+shared_ptr<File_system::File> File_system::Find(path File, bool AlsoAddFile)
 {
-	shared_ptr<File_system::File> NewObj = make_shared<File_system::File>();
-	auto AllFiles = getFilesInFolder(WorkDirSourcesA, true, true);
-	for (size_t i = 0; i < AllFiles.size(); i++)
+	if (File.empty())
+		return make_shared<File_system::File>();
+
+	if (!File.has_extension())
+		AlsoAddFile = true;
+
+	if (AlsoAddFile)
 	{
-		string Files = AllFiles.at(i);
-		to_lower(Files);
-		// Models
-		if (contains(Files, File.string() + ".obj"))
+		shared_ptr<File_system::File> NewObj = make_shared<File_system::File>();
+		auto AllFiles = getFilesInFolder(WorkDirSourcesA, true, true);
+		for (size_t i = 0; i < AllFiles.size(); i++)
 		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			string Files = AllFiles.at(i);
+			to_lower(Files);
+			// Models
+			if (contains(Files, File.string() + (!File.has_extension() ? ".obj" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::MODELS;
+					NewObj->ExtA = ".obj";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			if (contains(Files, File.string() + (!File.has_extension() ? ".3ds" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::MODELS;
+					NewObj->ExtA = ".3ds";
+					return NewObj;
+				}
+				else
+					return F;
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::MODELS;
-			NewObj->ExtA = ".obj";
-		}
-		if (contains(Files, File.string() + ".3ds"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			}
+			if (contains(Files, File.string() + (!File.has_extension() ? ".fbx" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::MODELS;
+					NewObj->ExtA = ".fbx";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::MODELS;
-			NewObj->ExtA = ".3ds";
-		}
-		if (contains(Files, File.string() + ".fbx"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			// Textures
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".dds" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+					NewObj->ExtA = ".dds";
+					return NewObj;
+				}
+				else
+					return F;
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::MODELS;
-			NewObj->ExtA = ".fbx";
-		}
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".png" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{	// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+					NewObj->ExtA = ".png";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".bmp" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+					NewObj->ExtA = ".bmp";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".jpg" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
+					NewObj->ExtA = ".jpg";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 
-		// Textures
-		else if (contains(Files, File.string() + ".dds"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			// Shaders
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".hlsl" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+					NewObj->ExtA = ".hlsl";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".fx" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+					NewObj->ExtA = ".fx";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".vs" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+					NewObj->ExtA = ".vs";
+					return NewObj;
+				}
+				else
+					return F;
+			}
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".ps" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SHADERS;
+					NewObj->ExtA = ".ps";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
-			NewObj->ExtA = ".dds";
-		}
-		else if (contains(Files, File.string() + ".png"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			// Sounds
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".wav" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SOUNDS;
+					NewObj->ExtA = ".wav";
+					return NewObj;
+				}
+				else 
+					return F;
+			}
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
-			NewObj->ExtA = ".png";
-		}
-		else if (contains(Files, File.string() + ".bmp"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+			// Maps, UI and etc
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".xml" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
-			NewObj->ExtA = ".bmp";
-		}
-		else if (contains(Files, File.string() + ".jpg"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
+					if (contains(NewObj->FileA, "ui"))
+						NewObj->TypeOfFile = _TypeOfFile::UIS;
+					else if (contains(NewObj->FileA, "maps"))
+						NewObj->TypeOfFile = _TypeOfFile::LEVELS;
+					else if (contains(NewObj->FileA, "text"))
+						NewObj->TypeOfFile = _TypeOfFile::DIALOGS;
+					NewObj->ExtA = ".xml";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::TEXTURES;
-			NewObj->ExtA = ".jpg";
-		}
+			// Scripts
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".lua" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::SCRIPTS;
+					NewObj->ExtA = ".lua";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 
-		// Shaders
-		else if (contains(Files, File.string() + ".hlsl"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
-			NewObj->ExtA = ".hlsl";
-		}
-		else if (contains(Files, File.string() + ".fx"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
-			NewObj->ExtA = ".fx";
-		}
-		else if (contains(Files, File.string() + ".vs"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
-			NewObj->ExtA = ".vs";
-		}
-		else if (contains(Files, File.string() + ".ps"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SHADERS;
-			NewObj->ExtA = ".ps";
-		}
-
-		// Sounds
-		else if (contains(Files, File.string() + ".wav"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SOUNDS;
-			NewObj->ExtA = ".wav";
-		}
-
-		// Maps, UI and etc
-		else if (contains(Files, File.string() + ".xml"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-
-			if (contains(NewObj->FileA, "ui"))
-				NewObj->TypeOfFile = _TypeOfFile::UIS;
-			else if (contains(NewObj->FileA, "maps"))
-				NewObj->TypeOfFile = _TypeOfFile::LEVELS;
-			else if (contains(NewObj->FileA, "text"))
-				NewObj->TypeOfFile = _TypeOfFile::DIALOGS;
-			NewObj->ExtA = ".xml";
-		}
-
-		// Scripts
-		else if (contains(Files, File.string() + ".lua"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::SCRIPTS;
-			NewObj->ExtA = ".lua";
-		}
-
-		// Fonts
-		else if (contains(Files, File.string() + ".ttf"))
-		{
-			auto F = GetFileByPath(Files);
-			if (!F || !F->FileA.empty() || !F->FileW.empty())
-				return F;
-
-			// If need to add it to engine
-			NewObj->PathA = Files;
-			NewObj->TypeOfFile = _TypeOfFile::FONTS;
-			NewObj->ExtA = ".ttf";
+			// Fonts
+			else if (contains(Files, File.string() + (!File.has_extension() ? ".ttf" : "")))
+			{
+				auto F = GetFileByPath(Files);
+				if (!F || F->FileA.empty() || F->FileW.empty())
+				{
+					// If need to add it to engine
+					NewObj->PathA = Files;
+					NewObj->TypeOfFile = _TypeOfFile::FONTS;
+					NewObj->ExtA = ".ttf";
+					return NewObj;
+				}
+				else
+					return F;
+			}
 		}
 	}
-
-	return NewObj;
+	else
+	{
+		switch (GetTypeFileByExt(File))
+		{
+		case MODELS:
+			for (auto elem: Models)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case TEXTURES:
+			for (auto elem: Textures)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(Path).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case LEVELS:
+			for (auto elem: Levels)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case DIALOGS:
+			for (auto elem: Dialogs)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case SOUNDS:
+			for (auto elem: Sounds)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case SHADERS:
+			for (auto elem: Shaders)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case UIS:
+			for (auto elem: Uis)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case SCRIPTS:
+			for (auto elem: Scripts)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+			break;
+		case FONTS:
+			for (auto elem: Fonts)
+			{
+				string Path = elem.second;
+				to_lower(Path);
+				if (contains(path(elem.second).filename().string(), File.filename().string()))
+					return elem.first;
+			}
+		}
+	}
+	return make_shared<File_system::File>();
 }
 
 vector<pair<shared_ptr<File_system::File>, string>> File_system::GetFileByType(_TypeOfFile T)
@@ -612,10 +763,34 @@ shared_ptr<File_system::File> File_system::GetFile(path File)
 	return AddFile(File);
 }
 
-shared_ptr<File_system::File> File_system::AddFile(path File)
+#include "Models.h"
+void getListTexturesFromModel(aiNode *node, const aiScene *pScene, vector<string> &ListTextures)
 {
-	if (File.empty() || !exists(File)) return shared_ptr<File_system::File>();
+	for (UINT i = 0; i < node->mNumMeshes; i++)
+	{
+		auto mesh = pScene->mMeshes[node->mMeshes[i]];
+		if (mesh->mMaterialIndex >= 0)
+		{
+			aiMaterial *material = pScene->mMaterials[mesh->mMaterialIndex];
+			for (auto type = 0; (aiTextureType)type <= AI_TEXTURE_TYPE_MAX; type++)
+			{
+				for (UINT i = 0; i < material->GetTextureCount((aiTextureType)type); i++)
+				{
+					aiString str = {};
+					material->GetTexture((aiTextureType)type, i, &str);
+					if (str.C_Str() && str.data)
+						ListTextures.push_back(path(str.C_Str()).filename().string());
+				}
+			}
+		}
 
+	}
+	for (UINT i = 0; i < node->mNumChildren; i++)
+		getListTexturesFromModel(node->mChildren[i], pScene, ListTextures);
+}
+
+shared_ptr<File_system::File> File_system::AddFile(path File, pair<string, vector<pair<bool, string>>> &ListTextures)
+{
 	_TypeOfFile T = NONE;
 	string PathFile, ext;
 
@@ -623,34 +798,263 @@ shared_ptr<File_system::File> File_system::AddFile(path File)
 	string Fname = File.generic_string();
 	to_lower(Fname);
 
-	// It means that we have the path like this "Somme.obj"
-	if (!File.has_branch_path() && !File.has_parent_path() && !File.has_root_directory() &&
-		!File.has_root_name() && !File.has_root_path() && File.has_extension() && File.has_filename())
+	// Try To Find This File In Resources Of Engine
+	auto _Obj = Find(Fname);
+
+	if (File.empty() && !ListTextures.second.empty())
 	{
+		shared_ptr<File_system::File> _Obj;
+		vector<string> tmp;
+		int ID = 0;
+		bool Finded = false;
+		vector<pair<bool, string>>::iterator It;
+
+		for (auto It: ListTextures.second)
+		{
+			auto Obj = It.second;
+			if (Obj.empty()) continue;
+
+			Fname = path(Obj).filename().string();
+			to_lower(Fname);
+
+			if (!path(Obj).has_root_path() && !It.first) // Don't Add Necessary File
+				tmp.push_back(Fname);
+		}
+
+		for (It = ListTextures.second.begin(); It != ListTextures.second.end(); It++)
+		{
+			auto Obj = It->second;
+			if (Obj.empty() || !It->first || !path(Obj).has_root_path()) continue;
+
+			Fname = path(Obj).filename().string();
+			to_lower(Fname);
+
+			vector<string>::iterator it = std::find_if(tmp.begin(), tmp.end(),
+				[&](const string &val)
+			{
+				if (contains(path(val).filename().string(), Fname))
+					return true;
+				return false;
+			});
+			if (it != tmp.end())
+			{
+				ID = std::distance(tmp.begin(), it);
+				Finded = true;
+			}
+
+			path _File = path(Obj);
+			_Obj = Find(_File.filename().string(), false);
+			vector<pair<bool, string>>::iterator begin = ListTextures.second.begin(),
+				end = ListTextures.second.end();
+			auto ptr = begin;
+			for (ptr = begin; ptr < end; ptr++)
+			{
+				string FName = ptr->second;
+				to_lower(FName);
+
+				if (path(FName).has_root_path() && contains(FName, _File.filename().string()))
+					break;
+			}
+			if (_Obj && _Obj->Size == 0 && !_Obj->HasTextures) // Find Our Undoned Files In AllFiles
+			{
+				// Copy Them And Change Them To Set Full-Path And Other
+				bool IsCreated = false;
+
+				//try
+				//{
+				ext = path(ListTextures.first).extension().string();
+				string delExt = ListTextures.first,
+					pathType = getPathFromType(GetTypeFileByExt(Fname)); // Replace Ext
+				deleteWord(delExt, ext);
+				if (!exists(pathType + delExt + "/" + Fname))
+				{
+					if (_Obj->PathA.empty())
+					{
+						path Path = pathType + delExt + "/" + Fname;
+
+						Textures.push_back(make_pair(make_shared<File_system::File>(Path.string(), ext, Fname,
+							(size_t)file_size(_File), T), Path.string()));
+						Textures.back().first->ExtW = Path.extension().wstring();
+						Textures.back().first->FileW = Path.filename().wstring();
+						Textures.back().first->PathW = Path.wstring();
+
+						IsCreated = true;
+						if (!exists(pathType + delExt))
+							create_directory(pathType + delExt);
+
+						copy(_File, Path);
+					}
+					else
+					{
+						if (!exists(pathType + delExt))
+							create_directory(pathType + delExt);
+
+						copy(_File, path(_Obj->PathA));
+					}
+
+					if (!IsCreated)
+					{
+						_Obj->HasTextures = true;
+						_Obj->Size = (size_t)file_size(_File);
+					}
+					// Anyway delete last element in list files to not to show it
+					if (ptr._Ptr)
+					{
+						It = ListTextures.second.erase(ptr);
+						if (It == ListTextures.second.end())
+							It = ListTextures.second.begin();
+					}
+					ListTextures.second.at(ID).first = true;
+					ListTextures.second.at(ID).second = _File.filename().string();
+				}
+				else// (boost::filesystem::filesystem_error const &e)
+				{
+					//OutputDebugStringA(e.what());
+					ListTextures.second.at(ID).first = false;
+					// Anyway delete last element in list files to not to show it
+					if (ptr._Ptr)
+					{
+						It = ListTextures.second.erase(ptr);
+						if (It == ListTextures.second.end())
+							It = ListTextures.second.begin();
+					}
+				}
+			}
+			else
+			{
+				ListTextures.second.at(ID).first = true;
+				ListTextures.second.at(ID).second = _File.filename().string();
+				// Anyway delete last element in list files to not to show it
+				if (ptr._Ptr)
+				{
+					It = ListTextures.second.erase(ptr);
+					if (It == ListTextures.second.end())
+						It = ListTextures.second.begin();
+				}
+			}
+		}
+		return _Obj;
+	}
+
+	// It means that we have the path like this "Somme" or with full-path
+	if (!File.empty() && File.has_filename() && _Obj && _Obj->Size == 0)
+	{
+		if (!exists(_Obj->PathA))
+		{
+			Engine::LogError("File System: File Doesn't Exist Or Found!\n",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"File: " + Fname + " Doesn't Exist Or Found\n");
+			return shared_ptr<File_system::File>();
+		}
+		Fname = File.filename().string();
+		PathFile = File.parent_path().string();
+
 		T = GetTypeFileByExt(Fname);
-		PathFile = getPathFromType(T) + Fname;
+
+		if (T == _TypeOfFile::NONE)
+		{
+			Engine::LogError("File System: File Is Unsupported!\n",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"File: " + Fname + "Isn't Supported By Engine\n");
+			return shared_ptr<File_system::File>(); // Unsupported File!
+		}
+
 		ext = File.extension().string();
 		to_lower(ext);
 
-		// Try to find this file in Engine if it was find then return it
-		auto Obj = GetFileByPath(PathFile);
-		if (Obj && Obj->Size > 0)
-			return Obj;
-	}
-
-	// It means that we have the path like this "Somme" or with full-path "C:/SommePath/Somme"
-	else if (!File.has_extension() && File.has_filename())
-	{
-		auto Obj = Find(Fname);
-		if (Obj && Obj->Size == 0)
+		// Try To Find Some Textures From File And Add It To Queue Engine To Model
+		if (T == _TypeOfFile::MODELS)
 		{
-			T = Obj->TypeOfFile;
-			PathFile = Obj->PathA;
-			ext = Obj->ExtA;
+			auto importer = new Assimp::Importer;
+
+			auto pScene = importer->ReadFile(File.string(), 0);
+			if (!pScene || pScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !pScene->mRootNode || !pScene->HasMeshes())
+			{
+				Engine::LogError("File System: Some Trouble With This File!\n",
+					string(__FILE__) + ": " + to_string(__LINE__),
+					"Some Trouble With: " + Fname + "\n");
+				return shared_ptr<File_system::File>();
+			}
+			else
+			{
+				vector<string> tmpList;
+				getListTexturesFromModel(pScene->mRootNode, pScene, tmpList);
+				if (!tmpList.empty())
+					ListTextures.first = Fname;
+				else
+					Engine::LogError("File System: This File Doesn't Have Any Materials (Or Textures)!\n",
+						string(__FILE__) + ": " + to_string(__LINE__),
+						"File: " + Fname + " Doesn't Have Any Materials (Or Textures)\n");
+
+				for (auto It : tmpList)
+				{
+					PathFile = getPathFromType(GetTypeFileByExt(It));
+					string delExt = Fname; // Replace Ext
+					deleteWord(delExt, ext);
+					if (!exists(path(PathFile + delExt + "/" + It)))
+						ListTextures.second.push_back(make_pair(false, It));
+				}
+			}
 		}
-		else
-			return Obj;
+
+		// Copy New File To Resource In Folder Of Type File
+		string delExt = Fname, pathType = getPathFromType(T); // Replace Ext
+		deleteWord(delExt, ext);
+		path Path = pathType + delExt + "/" + Fname;
+		if (!exists(Path))
+		{
+			if (!exists(pathType + delExt))
+				create_directory(pathType + delExt);
+
+			copy(File, path(Path));
+			Models.push_back(make_pair(make_shared<File_system::File>(Path.string(), ext, Fname,
+				exists(path(pathType + delExt)) ? (size_t)file_size(Path) : 0, T), Path.string()));
+			Models.back().first->ExtW = Path.extension().wstring();
+			Models.back().first->FileW = Path.filename().wstring();
+			Models.back().first->PathW = Path.wstring();
+		}
+
+		delExt = Path.filename().string(); // Replace Ext
+		deleteWord(delExt, Path.extension().string());
+
+		// Check If It Hasn't Around Model Then Add Dialog That File Textures Need To Be Found
+		for (size_t i = 0; i < ListTextures.second.size(); i++)
+		{
+			Fname = path(ListTextures.second.at(i).second).filename().string();
+			T = GetTypeFileByExt(Fname);
+			if (T != _TypeOfFile::TEXTURES)
+				continue;
+
+			pathType = getPathFromType(T);
+			auto Path = pathType + delExt + "/" + Fname;
+			try
+			{
+				if (!exists(pathType + delExt))
+					create_directory(pathType + delExt);
+
+				if (exists(path(PathFile + "/" + Fname)))
+					copy(path(PathFile + "/" + Fname), path(Path));
+
+				Textures.push_back(make_pair(make_shared<File_system::File>(Path, ext, Fname,
+					exists(path(PathFile + "/" + Fname)) ? (size_t)file_size(Path) : 0, T,
+					exists(path(PathFile + "/" + Fname))), path(Path).string()));
+				Textures.back().first->ExtW = path(Path).extension().wstring();
+				Textures.back().first->FileW = path(Path).filename().wstring();
+				Textures.back().first->PathW = path(Path).wstring();
+			}
+			catch (boost::filesystem::filesystem_error const &e)
+			{
+				OutputDebugStringA(e.what());
+				Engine::LogError("File System: " + string(e.what()) + "\n",
+					string(__FILE__) + ": " + to_string(__LINE__),
+					"Some Trouble With: " + Fname + "\n");
+				return shared_ptr<File_system::File>();
+			}
+		}
+		return shared_ptr<File_system::File>();
 	}
+	else if (_Obj && _Obj->Size > 0)
+		return _Obj;
 
 	switch (T)
 	{

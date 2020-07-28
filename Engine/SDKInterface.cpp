@@ -29,9 +29,98 @@ extern shared_ptr<Engine> Application;
 //	return Ret_Thing;
 //}
 
+struct Notification;
+vector<Notification> notifications;
+
+struct Notification
+{
+	Notification(string Text, ImVec4 Color) : Text(Text), Color(Color)
+	{
+		viewport = ImGui::GetMainViewport();
+		work_area_pos = viewport->GetWorkPos(); //ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight())
+		work_area_size = viewport->GetWorkSize();
+		window_pos = ImVec2(work_area_pos.x + work_area_size.x, (work_area_pos.y + work_area_size.y));
+
+		if (!notifications.empty())
+			DISTANCE = (notifications.back().window_pos.y - Application->getframeTime() - 1.f) -
+			(notifications.back().wnd_size > 0.f ? notifications.back().wnd_size : 0.f);
+		else
+			DISTANCE = (window_pos.y - Application->getframeTime() - 1.f) - 100.f;
+	}
+	bool p_open = true, Finish_Anim = false, Reset = false;
+	float DISTANCE = 0.f, wnd_size = 0.f;
+
+	ImVec2 window_pos = { 0, 0 }, work_area_pos = { 0, 0 }, work_area_size = { 0, 0 };
+	ImGuiViewport* viewport = nullptr;
+
+	string Text;
+	ImVec4 Color = ImVec4(1.f, 1.f, 1.f, 1.f);
+
+	bool Update()
+	{
+		if (!p_open) return false;
+
+		if (Reset)
+		{
+			Reset = false;
+			DISTANCE = notifications.back().window_pos.y - notifications.back().wnd_size;
+		}
+
+		if (DISTANCE <= 0.f)
+			DISTANCE = window_pos.y;
+
+		window_pos.y = DISTANCE;
+
+		if (!Finish_Anim)
+			DISTANCE = window_pos.y - Application->getframeTime() - 1.f;
+
+		ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2(1.f, 1.f));
+		ImGui::SetNextWindowBgAlpha(0.35f);
+		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking |
+		/*ImGuiWindowFlags_NoDecoration |*/
+			ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing |
+			ImGuiWindowFlags_NoNav;
+		if (ImGui::Begin(("INFO##" + Text).c_str(), &p_open, window_flags))
+		{
+			wnd_size = ImGui::GetWindowHeight();
+
+			if (DISTANCE <= ((work_area_size.y - Application->getframeTime()) - DISTANCE))
+				Finish_Anim = true;
+			else
+				Finish_Anim = false;
+
+			ImGui::PushStyleColor(ImGuiCol_Text, Color);
+			ImGui::Text(Text.c_str());
+			ImGui::PopStyleColor();
+
+			if (ImGui::Button("Skip"))
+			{
+				if (p_open) p_open = false;
+				ImGui::End();
+				return true;
+			}
+		}
+		else
+		{
+			if (DISTANCE <= ((work_area_size.y - Application->getframeTime()) - DISTANCE))
+				Finish_Anim = true;
+			else
+				Finish_Anim = false;
+		}
+		ImGui::End();
+		return Finish_Anim;
+	}
+};
+
+void CreateNotification(string Text, Vector4 Color)
+{
+	ImVec4 Col = ImVec4(Color.x, Color.y, Color.z, Color.w);
+	notifications.push_back(Notification(Text, Col));
+}
+
 static vector<string> values = { "Stay", "WalkToNPoint", "Follow" };
 static vector<string> TrueFalse = { "True", "False" };
-static vector<string> LeftRightWithout = { "Left", "Right", "Without" };
+static vector<string> LeftRight = { "Left", "Right" };
 int Current = 0, Cur = 1;
 float NewTarget = 0.f, Aud_Targt1 = 0.f, Aud_Targt2 = 1.f, Aud_Targt3 = 0.5f;
 static bool dont_ask_me_next_time = false;
@@ -50,22 +139,23 @@ pair<Vector3, bool> DragFloat3(string ID, Vector3 Thing)
 	return Ret_Thing;
 }
 
-static std::function<void(void)> ShowPopup;
+static std::function<void(void)> ShowWarnDial, ShowMissFiles;
 pair<string, pair<std::function<void(void)>, std::function<void(void)>>> store;
 bool local;
 
+// No Need To Pass 'Save' Something (e.g. Project Or Level) It Has Here
 void SDKInterface::WarningDial(string Name, std::function<void(void)> OK,
 	std::function<void(void)> Cancel)
 {
 	store = make_pair(Name, make_pair(OK, Cancel));
-	ShowPopup = ([&]
+	ShowWarnDial = ([&]
 	{
 		ImGui::OpenPopup(store.first.c_str());
 
 		if (dont_ask_me_next_time)
 		{
 			ImGui::CloseCurrentPopup();
-			ShowPopup = nullptr;
+			ShowWarnDial = nullptr;
 		}
 
 		if (Application->getLevel()->IsNotSaved())
@@ -85,24 +175,25 @@ void SDKInterface::WarningDial(string Name, std::function<void(void)> OK,
 				ImGui::PopStyleVar();
 
 				ImGui::SetItemDefaultFocus();
+				if (ImGui::Button("Cancel", ImVec2(120, 0)))
+				{
+					ImGui::CloseCurrentPopup();
+					dont_ask_me_next_time = local;
+					Save();
+					store.second.second();
+					ShowWarnDial = nullptr;
+					ImGui::EndPopup();
+					return;
+				}
+				ImGui::SameLine();
 				if (ImGui::Button("OK", ImVec2(120, 0)))
 				{
 					ImGui::CloseCurrentPopup();
-					dont_ask_me_next_time = local;
-					Save();
+					ShowWarnDial = nullptr;
 					store.second.first();
-					ShowPopup = nullptr;
-					ImGui::EndPopup();
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("Cancel", ImVec2(120, 0)))
-				{
-					Save();
-					ImGui::CloseCurrentPopup();
-					ShowPopup = nullptr;
-					store.second.second();
 					dont_ask_me_next_time = local;
 					ImGui::EndPopup();
+					return;
 				}
 				ImGui::EndPopup();
 			}
@@ -110,19 +201,255 @@ void SDKInterface::WarningDial(string Name, std::function<void(void)> OK,
 		else
 		{
 			store.second.first();
-			ShowPopup = nullptr;
+			ShowWarnDial = nullptr;
 		}
 	});
 }
 
+//	 src file,		needed files
+pair<string, vector<pair<bool, string>>> ListTextures;
+
+void SDKInterface::SelectMissingFiles()
+{
+	ShowMissFiles = ([&]
+	{
+		ImGui::OpenPopup("Stacked 1");
+		if (ImGui::BeginPopupModal("Stacked 1", NULL, ImGuiWindowFlags_MenuBar))
+		{
+			ImGui::Text("The File: %s Required Some Files That Weren't Found Near That File.\n"\
+				"The Following Files Will Necessary To Point Them Then "\
+				"These Files Will Copy To Resource Of Engine Folder!", ListTextures.first.c_str());
+
+			Vector4 Missing(Colors::DarkRed.operator DirectX::XMVECTOR()),
+				Found(Colors::LawnGreen.operator DirectX::XMVECTOR());
+			pair<string, vector<pair<bool, string>>> Tmp;
+			for (auto &It: ListTextures.second)
+			{
+				if (It.first) continue;
+				ImGui::TextColored(It.first ? ImVec4(Found.x, Found.y, Found.z, Found.w)
+					: ImVec4(Missing.x, Missing.y, Missing.z, Missing.w),
+					It.second.c_str());
+				ImGui::SameLine();
+
+				if (!It.first)
+				{
+					if (ImGui::Button(("Find##" + It.second).c_str()))
+					{
+						auto Obj = UI::GetWndDlgOpen("", "Select Missing Files", "All\0*.*\0", true);
+						if (Obj.first) // If Dialog Wasn't Skip
+						{
+							if (Obj.second.empty())
+							{
+								ImGui::CloseCurrentPopup();
+								break;
+							}
+
+							if (Obj.second.size() > 1)
+							{
+								string FName = It.second;
+								to_lower(FName);
+								int ID = 0;
+								int Size = ListTextures.second.size();
+								for (auto File: Obj.second)
+								{
+									string ListFiles = path(ListTextures.second.at(ID).second).filename().string();
+
+									if (path(ListTextures.second.at(ID).second).has_parent_path())
+									{
+										ID++;
+										continue;
+									}
+									to_lower(ListFiles);
+									vector<string>::iterator it = std::find_if(Obj.second.begin(), Obj.second.end(),
+										[&](const string &val)
+									{
+										if (contains(path(val).filename().string(), ListFiles))
+											return true;
+										return false;
+									});
+									if (it != Obj.second.end())
+										// Set Found File As Found To Set It In Engine
+										ListTextures.second.push_back(make_pair(true, *it));
+									ID++;
+								}
+								if (Application->getFS()->AddFile(path(), ListTextures)) // Changed files are here
+									if (Size == ListTextures.second.size()) // If previous size equal current
+										//it means that files were found and clear necessary list of files
+									{
+										ShowMissFiles = nullptr;
+										ListTextures.second.clear();
+										auto newNode = Application->getLevel()->Add(ListTextures.first);
+										if (newNode)
+										{
+											// Need To Save It As New Object (or mark it)
+											newNode->SaveInfo->T = newNode->GM->GetType();
+											newNode->IsItChanged = true;
+											newNode->SaveInfo->IsVisible = newNode->GM->RenderIt;
+											newNode->SaveInfo->Pos = newNode->SaveInfo->Rot =
+												newNode->SaveInfo->Scale = true;
+										}
+									}
+							}
+							else
+							{
+								auto File = Obj.second.front();
+								string FName = It.second;
+								to_lower(FName);
+								to_lower(File);
+								if (contains(FName, path(File).filename().string()))
+								{
+									ShowMissFiles = nullptr;
+									// Set Found File As Found To Set It In Engine
+									ListTextures.second.push_back(make_pair(true, File));
+									Application->getFS()->AddFile(path(), ListTextures); // Changed files are here
+									auto newNode = Application->getLevel()->Add(ListTextures.first);
+									if (newNode)
+									{
+										// Need To Save It As New Object (or mark it)
+										newNode->SaveInfo->T = newNode->GM->GetType();
+										newNode->IsItChanged = true;
+										newNode->SaveInfo->IsVisible = newNode->GM->RenderIt;
+										newNode->SaveInfo->Pos = newNode->SaveInfo->Rot =
+											newNode->SaveInfo->Scale = true;
+									}
+								}
+							}
+						}
+					}
+
+					ImGui::Separator();
+				}
+			}
+
+			if (ImGui::Button("Close"))
+			{
+				ShowMissFiles = nullptr;
+				ImGui::CloseCurrentPopup();
+			}
+			ImGui::EndPopup();
+		}
+	});
+}
+
+/*
+Add Queue To Info Message And It's 5 Max
+Also Add Function To Update Animation Goin' To Up
+*/
+
+float X = 0.f, Y = 0.f, Z = 0.f;
 void SDKInterface::Render()
 {
+	USES_CONVERSION;
+	if (Application->getMessage().message == WM_CLOSE || Application->getMessage().wParam == SC_CLOSE)
+	{
+		WarningDial("Close Engine wihout save changes?",
+			[&]
+		{
+			Application->Quit();
+		},
+			[&]
+		{
+			Application->setMessage(MSG{});
+		});
+	}
+	else if (Application->getMessage().message == WM_DROPFILES || Application->getMessage().wParam > 0)
+	{
+		WCHAR buffer[512];
+		HDROP fDrop = (HDROP)Application->getMessage().wParam;
+		for (int i = DragQueryFileW(fDrop, 0xFFFFFFFF, 0, 0); 0 <= i; i--)
+		{
+			if (DragQueryFileW((HDROP)Application->getMessage().wParam, i, buffer, 512))
+			{
+				auto File = path(W2A(buffer));
+				File.swap(File.generic());
+
+				// If It's Resource of Engine
+				if (contains(File.string(), Application->getFS()->getWorkDirSourceA()))
+				{
+					auto Obj = Application->getFS()->GetFile(File.filename());
+					if (Obj && !Obj->PathA.empty())
+					{
+						if (Obj->TypeOfFile == _TypeOfFile::LEVELS)
+						{
+							Application->getLevel()->Destroy();
+							Application->getFS()->GetProject()->OpenFile(Obj->PathA);
+							Application->getFS()->GetProject()->SetCurProject(Obj->PathA);
+							Application->getLevel()->SetNotSaved(false);
+						}
+						else // It Means Model File
+						{
+							auto newNode = Application->getLevel()->Add(Obj->PathA);
+							if (newNode)
+							{
+								// Need To Save It As New Object (or mark it)
+								newNode->SaveInfo->T = newNode->GM->GetType();
+								newNode->IsItChanged = true;
+								newNode->SaveInfo->IsVisible = newNode->GM->RenderIt;
+								newNode->SaveInfo->Pos = newNode->SaveInfo->Rot =
+									newNode->SaveInfo->Scale = true;
+							}
+						}
+					}
+
+					continue;
+				}
+				else
+					Application->getFS()->AddFile(File, ListTextures);
+			}
+		}
+		DragFinish(fDrop);
+		Application->setMessage(MSG{});
+
+		if (!ListTextures.second.empty())
+			SelectMissingFiles();
+		else
+		{
+			if (!ListTextures.first.empty())
+			{
+				auto newNode = Application->getLevel()->Add(ListTextures.first);
+				if (newNode)
+				{
+					// Need To Save It As New Object (or mark it)
+					newNode->SaveInfo->T = newNode->GM->GetType();
+					newNode->IsItChanged = true;
+					newNode->SaveInfo->IsVisible = newNode->GM->RenderIt;
+					newNode->SaveInfo->Pos = newNode->SaveInfo->Rot =
+						newNode->SaveInfo->Scale = true;
+				}
+			}
+		}
+	}
+
+	for (auto It = notifications.begin(); It != notifications.end(); It++)
+	{
+		if (It._Ptr && It._Ptr->Update())
+		{
+			It->Reset = true;
+			It = notifications.erase(It);
+			if (notifications.empty())
+			{
+				notifications.clear();
+				break;
+			}
+			if (It == notifications.end())
+				It = notifications.begin();
+		}
+	}
+
+	//if (Application->getTrackerKeyboard().IsKeyPressed(Keyboard::OemPlus))
+	//{
+	//	Vector4 CLErr = Colors::DarkMagenta.operator DirectX::XMVECTOR();
+	//	notifications.push_back(Notification(string("TEST!!!") + to_string(rand() % 100),
+	//		ImVec4(CLErr.x, CLErr.y, CLErr.z, CLErr.w)));
+	//	notifications.push_back(Notification(string("TEST!!!") + to_string(rand() % 100),
+	//		ImVec4(CLErr.x, CLErr.y, CLErr.z, CLErr.w)));
+	//}
+
 	auto LevelObjs = Application->getLevel()->getChild();
 
 	ImGuiID dockspaceID = 0;
 	ImGui::SetNextWindowPos(ImVec2(Application->getWorkAreaSize(Application->GetHWND()).x -
-		ImGui::GetWindowWidth() - 100.f,
-		0.f), ImGuiCond_::ImGuiCond_Once);
+		ImGui::GetWindowWidth() - 100.f, 0.f), ImGuiCond_::ImGuiCond_Once);
 	ImGui::SetNextWindowSize(ImVec2(430, 450), ImGuiCond_FirstUseEver);
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 2));
 
@@ -373,7 +700,7 @@ void SDKInterface::Render()
 
 						for (auto It: Obj.second)
 						{
-							auto newNode = Application->getLevel()->Add(_TypeOfFile::MODELS, It);
+							auto newNode = Application->getLevel()->Add(It);
 							if (newNode)
 							{
 								// Need To Save It As New Object (or mark it)
@@ -409,7 +736,7 @@ void SDKInterface::Render()
 								+ "cube_with_diffuse_texture.3ds"))
 							{
 								Application->getSound()->AddNewFile(It, true);
-								auto OurNode = Application->getLevel()->Add(_TypeOfFile::MODELS,
+								auto OurNode = Application->getLevel()->Add(
 									Application->getFS()->getPathFromType(_TypeOfFile::MODELS) +
 									"cube_with_diffuse_texture.3ds");
 								if (OurNode)
@@ -562,7 +889,8 @@ void SDKInterface::Render()
 							{
 								Vector4 CLErr = Colors::DarkMagenta.operator DirectX::XMVECTOR(),
 									CLWarn = Colors::DarkKhaki.operator DirectX::XMVECTOR();
-								ImGui::TextColored(ImVec4(CLErr.x, CLErr.y, CLErr.z, CLErr.w), "This node doesn't have a logic.");
+								ImGui::TextColored(ImVec4(CLErr.x, CLErr.y, CLErr.z, CLErr.w),
+									"This node doesn't have a logic.");
 								ImGui::TextColored(ImVec4(CLWarn.x, CLWarn.y, CLWarn.z, CLWarn.w),
 									"Need to add logic to work with it here "); ImGui::SameLine();
 								if (ImGui::Button("Add Logic"))
@@ -617,7 +945,8 @@ void SDKInterface::Render()
 									ImGui::NextColumn();
 									ImGui::SetNextItemWidth(-1);
 
-									if (Combobox::Combo(("##SLogic_St" + to_string(i)).c_str(), &CS_Current_StateIndx, values))
+									if (Combobox::Combo(("##SLogic_St" + to_string(i)).c_str(), &CS_Current_StateIndx,
+										values))
 										ThisPoint->SetState((SimpleLogic::LogicMode)CS_Current_StateIndx);
 									ImGui::NextColumn();
 									ImGui::Separator();
@@ -970,14 +1299,14 @@ void SDKInterface::Render()
 						"I hope you're happy now, good bye! xD",
 						"Bye!", MB_OK);
 
-					WarningDial("Open a project wihout save changes?",
+					WarningDial("Close Engine wihout save changes?",
 						[&]
 					{
-						Engine::Quit();
+						Application->Quit();
 					},
 						[&]
 					{
-						Engine::Quit();
+						//Application->Quit();
 					});
 				}
 				//if (Application->getFS()->GetProject().operator bool())
@@ -1004,11 +1333,11 @@ void SDKInterface::Render()
 				WarningDial("Close Engine wihout save changes?",
 				[&]
 				{
-					Engine::Quit();
+					Application->Quit();
 				},
 					[&]
 				{
-					Engine::Quit(); 
+					//Application->Quit();
 				});
 			}
 
@@ -1095,31 +1424,25 @@ void SDKInterface::Render()
 				ImGui::Separator();
 				
 				int Indx = Application->getCamera()->getIsLeftCtrlBtn() ? 0 :
-					(Application->getCamera()->getIsRightCtrlBtn() ? 1 :
-					(Application->getCamera()->getIsWithoutButtonCtrl() ? 2 : 1));
+					(Application->getCamera()->getIsRightCtrlBtn() ? 1 : 1);
 				Vector4 DOrange(Colors::DarkOrange.operator DirectX::XMVECTOR());
 				UI::HelpMarker("Default is Right", ImVec4(DOrange.x, DOrange.y, DOrange.z, DOrange.w));
 				ImGui::Text("Camera Button Control: ");
 				ImGui::SameLine();
-				if (Combobox::Combo("##CameraButtonControl", (int *)&Indx, LeftRightWithout))
+				if (Combobox::Combo("##CameraButtonControl", (int *)&Indx, LeftRight))
 				{
 					IfNeedSave = true;
-					if (LeftRightWithout.at(Indx) == "Left")
+					if (LeftRight.at(Indx) == "Left")
 						CamBtnLeft = true;
 					else
 						CamBtnLeft = false;
 
-					if (LeftRightWithout.at(Indx) == "Right")
+					if (LeftRight.at(Indx) == "Right")
 						CamBtnRight = true;
 					else
 						CamBtnRight = false;
 
-					if (LeftRightWithout.at(Indx) == "Without")
-						CamBtnWihoutBtn = true;
-					else
-						CamBtnWihoutBtn = false;
-
-					Application->getCamera()->SetCameraControlButtons(CamBtnLeft, CamBtnRight, CamBtnWihoutBtn);
+					Application->getCamera()->SetCameraControlButtons(CamBtnLeft, CamBtnRight);
 				}
 				ImGui::Separator();
 
@@ -1179,8 +1502,11 @@ void SDKInterface::Render()
 		ImGui::EndMainMenuBar();
 	}
 
-	if (ShowPopup.operator bool())
-		ShowPopup();
+	if (ShowWarnDial.operator bool())
+		ShowWarnDial();
+
+	if (ShowMissFiles.operator bool())
+		ShowMissFiles();
 
 	if (ImGui::GetIO().WantCaptureMouse)
 		Application->getCamera()->DisableCameraControl(true);
@@ -1224,7 +1550,6 @@ void SDKInterface::LoadSettings(boost::property_tree::ptree fData)
 	RotSense = fData.get<float>("application.rotsense", 0.001f);
 	CamBtnLeft = fData.get<int>("application.cambuttonbyleft", 0);
 	CamBtnRight = fData.get<int>("application.cambuttonbyright", 1);
-	CamBtnWihoutBtn = fData.get<int>("application.cambuttonbynone", 0);
 
 	if (Application->getCamera())
 	{
@@ -1233,9 +1558,9 @@ void SDKInterface::LoadSettings(boost::property_tree::ptree fData)
 
 		if (Application->getPhysics())
 			Application->getCamera()->SetFreeMoveCam(!IsFreeCam);
-		if (!CamBtnLeft && !CamBtnRight && !CamBtnWihoutBtn)
+		if (!CamBtnLeft && !CamBtnRight)
 			CamBtnRight = true;
-		Application->getCamera()->SetCameraControlButtons(CamBtnLeft, CamBtnRight, CamBtnWihoutBtn);
+		Application->getCamera()->SetCameraControlButtons(CamBtnLeft, CamBtnRight);
 	}
 }
 void SDKInterface::SaveSettings()
@@ -1262,7 +1587,6 @@ void SDKInterface::SaveSettings()
 		
 		make_pair("application.cambuttonbyleft", to_string(CamBtnLeft)),
 		make_pair("application.cambuttonbyright", to_string(CamBtnRight)),
-		make_pair("application.cambuttonbynone", to_string(CamBtnWihoutBtn)),
 
 		make_pair("application.lockfps", to_string(LockFPS)),
 		make_pair("application.distfarrenderer", to_string(DistFarRender)),
@@ -1308,6 +1632,13 @@ void SDKInterface::Open()
 			return;
 		}
 
+		if (Application->getFS()->GetTypeFileByExt(Obj.second.back()) != _TypeOfFile::LEVELS)
+		{
+			Engine::LogError("SDK::OpenFileProj Failed!",
+				string(__FILE__) + ": " + to_string(__LINE__),
+				"This File Isn't Level Or Project!");
+			return;
+		}
 		Application->getLevel()->Destroy();
 		Application->getFS()->GetProject()->OpenFile(Obj.second.back());
 		Application->getFS()->GetProject()->SetCurProject(path(Obj.second.back()));
@@ -1343,7 +1674,7 @@ void SDKInterface::undo()
 	vector<float> ret;
 	getFloat3Text(It->After_val, ", ", ret);
 	float X = 0.f, Y = 0.f, Z = 0.f;
-	bool B;
+	bool B = false;
 	if (ret.size() == 3)
 	{
 		X = ret.front();
@@ -1411,7 +1742,7 @@ void SDKInterface::redo()
 	vector<float> ret;
 	getFloat3Text(It->Before_val, ", ", ret);
 	float X = 0.f, Y = 0.f, Z = 0.f;
-	bool B;
+	bool B = false;
 	if (ret.size() == 3)
 	{
 		X = ret.front();
@@ -1477,7 +1808,7 @@ void SDKInterface::AddToUndo(string Desc, Vector3 BeforeVal, Vector3 AfterVal)
 
 void SDKInterface::Changes()
 {
-	if(_Changes)
+	if (_Changes)
 	{
 		ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_::ImGuiCond_Once);
 		if (ImGui::Begin("Changes", &_Changes))

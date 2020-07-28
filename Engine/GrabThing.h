@@ -6,9 +6,9 @@
 class GrabThing
 {
 public:
-	void CheckType(int ID);
+	void CheckType(/*int ID*/);
 
-	void Drop(int ID = -1 /* It means the current thing*/);
+	void Drop(/*int ID = -1*/ /* It means the current thing*/);
 	//void Drop();
 	void Grab();
 

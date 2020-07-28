@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <shellapi.h>
 
 #include "UI.h"
 #include "Models.h"
@@ -43,6 +44,9 @@ shared_ptr<Mouse> Engine::mouse = make_shared<Mouse>();
 shared_ptr<Keyboard> Engine::keyboard = make_shared<Keyboard>();
 shared_ptr<GamePad> Engine::gamepad = make_shared<GamePad>();
 
+Engine::ThreadStatus Engine::ThState = _Nothing;
+
+
 extern shared_ptr<SDKInterface> SDK;
 
 WNDCLASSEXW wnd;
@@ -65,16 +69,16 @@ bool DrawGrid = true, DrawCamSphere;
 HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 {
 	this->hInstance = hInstance;
-	ZeroMemory(&wnd, sizeof(WNDCLASSEXA));
-	wnd.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC | CS_CLASSDC;
+	ZeroMemory(&wnd, sizeof(WNDCLASSEXW));
+	wnd.style = CS_BYTEALIGNCLIENT | CS_BYTEALIGNWINDOW | CS_HREDRAW | CS_VREDRAW;
 	wnd.lpfnWndProc = (WNDPROC)Engine::WndProc;
 	wnd.hInstance = hInstance;
-	wnd.hIcon = ::LoadIconA(hInstance, (LPCSTR)IDI_ICON1);
+	wnd.hIcon = ::LoadIconW(hInstance, (LPCWSTR)IDI_ICON1);
 	wnd.hIconSm = wnd.hIcon;
-	wnd.hCursor = ::LoadCursorA(hInstance, (LPCSTR)IDC_ARROW);
+	wnd.hCursor = ::LoadCursorW(hInstance, (LPCWSTR)IDC_ARROW);
 	wnd.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wnd.lpszClassName = L"WND_ENGINE";
-	wnd.cbSize = sizeof(WNDCLASSEXA);
+	wnd.cbSize = sizeof(WNDCLASSEXW);
 
 	if (!::RegisterClassExW(&wnd))
 	{
@@ -83,8 +87,39 @@ HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 			"Engine: Something is wrong with create the main window class!");
 		return E_FAIL;
 	}
-	if (!(hwnd = ::CreateWindowA("WND_ENGINE", "DecisionSolver", WS_MAXIMIZE | WS_POPUP,
-		392, 160, 1024, 768, NULL, NULL, hInstance, NULL)))
+
+	int offset = 50, x = 0, y = 0;
+	RECT winRect, screen;
+	winRect.left = offset;
+	winRect.top = offset;
+	winRect.right = 1024 + offset;
+	winRect.bottom = 768 + offset;
+	DWORD dwstyle = 0;
+	SystemParametersInfo(SPI_GETWORKAREA, 0, &screen, 0);
+
+	// If Not FullScreen
+	if (winRect.right > screen.right)
+	{
+		int diff = winRect.right - screen.right;
+		winRect.right -= diff;
+		winRect.left = std::max<int>(0, winRect.left - diff);
+	}
+
+	// If Not FullScreen
+	if (winRect.bottom > screen.bottom)
+	{
+		int diff = winRect.bottom - screen.bottom;
+		winRect.bottom -= diff;
+		winRect.top = std::max<int>(0, winRect.top - diff);
+	}
+
+	::AdjustWindowRect(&winRect, dwstyle, 0);
+	x = (GetSystemMetrics(SM_CXSCREEN) - winRect.right - screen.left) / 2;
+	y = (GetSystemMetrics(SM_CYSCREEN) - winRect.bottom - screen.top) / 2;
+
+	hwnd = ::CreateWindowW(L"WND_ENGINE", L"DecisionSolver", WS_TILEDWINDOW,
+		x, y, winRect.right - winRect.left, winRect.bottom - winRect.top, NULL, NULL, hInstance, NULL);
+	if (!hwnd)
 	{
 		LogError("Engine::Init->CreateWindow() Init is failed!",
 			string(__FILE__) + ": " + to_string(__LINE__),
@@ -92,10 +127,11 @@ HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 		return E_FAIL;
 	}
 
-	this->NameWnd = NameWnd;
-	ClassWND = wnd.lpszClassName;
-	if (true)
-	{
+	// If Need To Disable DX At All
+//	if (false)
+//	{
+		this->NameWnd = NameWnd;
+		ClassWND = wnd.lpszClassName;
 		UINT createDeviceFlags = 0;
 #if defined (_DEBUG)
 		createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -291,26 +327,43 @@ HRESULT Engine::Init(string NameWnd, HINSTANCE hInstance)
 		vp.TopLeftX = 0;
 		vp.TopLeftY = 0;
 		DeviceContext->RSSetViewports(1, &vp);
-	}
+//	}
+
 	::ShowWindow(hwnd, SW_SHOW);
 	::UpdateWindow(hwnd);
-
+	DragAcceptFiles(hwnd, TRUE);
 	return S_OK;
 }
 
-bool Finish = false;
+std::condition_variable cv;
+extern std::atomic_bool m_threadExit;
+
 void Engine::Render()
 {
-	MainThread->Tick([&]()
+	MainThread->Tick([&]() -> bool
 	{
-		if (IsQuit())
-		{
-			MainThread->stop();
-			Finish = true;
-			return;
-		}
+		if (ThState == _Quit)
+			return false;
 
-		Finish = false;
+		if (ThState != _Work)
+		{
+			std::mutex m;
+			std::unique_lock<std::mutex> lckck{ m };
+			if (cv.wait_for(lckck, chrono::minutes(1000000),
+				[&]() -> bool
+			{
+				while (true)
+				{
+					if (ThState == _Nothing)
+					{
+						cv.notify_one();
+						return true;
+					}
+					Sleep(1);
+				}
+			}))
+				ThState = _Work;
+		}
 
 		frameTime = float(MainThread->GetElapsedSeconds());
 		fps = float(MainThread->GetFramesPerSecond());
@@ -433,12 +486,19 @@ void Engine::Render()
 
 		if (SwapChain)
 			SwapChain->Present(SDK->getLockFPS() ? 1 : 0, 0);
-		Finish = true;
+	
+		this_thread::sleep_for(10ms);
+		return true;
 	});
 }
 
+bool IsNotification = true;
+extern void CreateNotification(string Text, Vector4 Color);
+
 void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 {
+	if (IsNotification)
+		CreateNotification(LogText, Colors::OrangeRed.operator DirectX::XMVECTOR());
 	if (!IsLogError) return;
 #if defined (_DEBUG)
 	if (!DebugText.empty())
@@ -452,42 +512,70 @@ void Engine::LogError(string DebugText, string ExceptionText, string LogText)
 		Console::LogError(LogText);
 }
 
+std::mutex m;
+std::unique_lock<std::mutex> lckck{ m };
 void Engine::Destroy()
 {
-	if (PhysX.operator bool())
-		PhysX->Destroy();
-
-	if (ui.operator bool())
+	auto extFunc = [&]()
 	{
-		if (ui->getThread().operator bool())
-			ui->getThread()->stop();
-		ui->Destroy();
-	}
+		if (PhysX.operator bool())
+			PhysX->Destroy();
 
-	if (Sound.operator bool())
-		Sound->ReleaseAudio();
+		if (ui.operator bool())
+		{
+			if (ui->getThread().operator bool())
+				ui->getThread()->stop();
+			ui->Destroy();
+		}
 
-	::ShowWindow(hwnd, SW_HIDE);
-	::DestroyWindow(hwnd);
-	::UnregisterClassW(ClassWND.c_str(), hInstance);
+		if (Sound.operator bool())
+			Sound->ReleaseAudio();
 
-	SAFE_RELEASE(RenderTargetView);
-	SAFE_RELEASE(SwapChain);
-	SAFE_RELEASE(SwapChain1);
+		::ShowWindow(hwnd, SW_HIDE);
+		::DestroyWindow(hwnd);
+		::UnregisterClassW(ClassWND.c_str(), hInstance);
 
-	SAFE_RELEASE(m_depthStencilState);
+		SAFE_RELEASE(RenderTargetView);
+		SAFE_RELEASE(SwapChain);
+		SAFE_RELEASE(SwapChain1);
 
-	SAFE_RELEASE(DeviceContext1);
-	SAFE_RELEASE(Device1);
+		SAFE_RELEASE(m_depthStencilState);
 
-	SAFE_RELEASE(DepthStencil);
-	SAFE_RELEASE(DepthStencilView);
+		SAFE_RELEASE(DeviceContext1);
+		SAFE_RELEASE(Device1);
 
-	SAFE_RELEASE(dxgiFactory);
-	SAFE_RELEASE(DeviceContext);
-	SAFE_RELEASE(Device);
+		SAFE_RELEASE(DepthStencil);
+		SAFE_RELEASE(DepthStencilView);
 
-	::CoUninitialize();
+		SAFE_RELEASE(dxgiFactory);
+		SAFE_RELEASE(DeviceContext);
+		SAFE_RELEASE(Device);
+
+		::CoUninitialize();
+
+		MainThread = nullptr;
+	};
+
+	if (cv.wait_for(lckck, chrono::minutes(1000000),
+		[&]() -> bool
+	{
+		while (true)
+		{
+			if (Application->getThreadState() == _Quit && m_threadExit && !MainThread->IsThreadEnd())
+			{
+				cv.notify_one();
+				return m_threadExit;
+			}
+			Sleep(1);
+		}
+	}))
+		extFunc();
+}
+
+void Engine::Quit()
+{
+	isQuit = true;
+	ThState = _Quit;
 }
 
 ID3D11Device *Engine::getDevice()
@@ -543,8 +631,10 @@ ID3D11RenderTargetView *Engine::getTargetView()
 
 void Engine::ClearRenderTarget()
 {
-	DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
-	DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	if (RenderTargetView)
+		DeviceContext->ClearRenderTargetView(RenderTargetView, _ColorBuffer);
+	if (DepthStencilView)
+		DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
 HRESULT Engine::ResizeWindow(WPARAM wParam)
@@ -686,9 +776,42 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SIZE:
 		if (uMsg != WM_DESTROY && Application->getUI().operator bool())
 		{
+			if (cv.wait_for(lckck, chrono::minutes(1000000),
+				[&]() -> bool
+			{
+				while (true)
+				{
+					if (ThState == _Work)
+					{
+						cv.notify_one();
+						return true;
+					}
+					Sleep(1);
+				}
+			}))
+				ThState = _ResizeWND;
+
 			ResizeWindow(wParam);
 			UI::ResizeWnd();
+			ThState = _Nothing;
 		}
+	break;
+
+	case WM_CLOSE:
+	case WM_SYSCOMMAND:
+		if (GET_SC_WPARAM(wParam) == SC_KEYMENU || GET_SC_WPARAM(wParam) == SC_CLOSE) // Disable ALT application menu
+		{
+			MSG msg = { hWnd, uMsg, wParam, lParam, 0, 0 };
+			Application->setMessage(msg);
+			return true;
+		}
+	break;
+
+	case WM_DROPFILES:
+	{
+		MSG msg = { hWnd, uMsg, wParam, lParam, 0, 0 };
+		Application->setMessage(msg);
+	}
 	break;
 
 	case WM_INPUT:
@@ -712,15 +835,9 @@ LRESULT Engine::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_SYSKEYUP:
 		Keyboard::ProcessMessage(uMsg, wParam, lParam);
 		break;
-
-	case WM_SYSCOMMAND:
-		if ((wParam & 0xfff0) == SC_KEYMENU) // Disable ALT application menu
-			break;
-	default:
-		return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 
-	return true;
+	return ::DefWindowProcW(hWnd, uMsg, wParam, lParam);
 }
 
 //	Work with LUA Scripts

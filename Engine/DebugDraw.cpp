@@ -140,7 +140,7 @@ void DebugDraw::BaseRender::Init(vector<SimpleVertex> verts, vector<WORD> s_indi
 	//	ThrowIfFailed(hr);
 }
 
-void DebugDraw::Box::Draw(Vector3 Pos, Matrix View, Matrix Proj)
+void DebugDraw::Box::Draw(Vector3 Position, Matrix View, Matrix Proj)
 {
 	ConstantBuffer cb{};
 	cb.World = XMMatrixTranspose(Matrix::CreateTranslation(Pos));
@@ -195,7 +195,7 @@ void DebugDraw::Box::Init(BoundingBox Box, Vector4 color)
 	BaseRender::Init(verts, s_indices);
 }
 
-void DebugDraw::Sphere::Draw(Vector3 Pos, Matrix View, Matrix Proj)
+void DebugDraw::Sphere::Draw(Vector3 Position, Matrix View, Matrix Proj)
 {
 	ConstantBuffer cb{};
 	cb.World = XMMatrixTranspose(Matrix::CreateTranslation(Pos));
@@ -225,8 +225,6 @@ void DebugDraw::Sphere::Init(BoundingSphere Sphere, Vector4 color)
 	// Create rings of vertices at progressively higher latitudes.
 	for (WORD i = 0; i <= verticalSegments; i++)
 	{
-		float v = 1 - float(i) / float(verticalSegments);
-
 		float latitude = (float(i) * XM_PI / float(verticalSegments)) - XM_PIDIV2;
 		float dy, dxz;
 
@@ -235,8 +233,6 @@ void DebugDraw::Sphere::Init(BoundingSphere Sphere, Vector4 color)
 		// Create a single ring of vertices at this latitude.
 		for (WORD j = 0; j <= horizontalSegments; j++)
 		{
-			float u = float(j) / float(horizontalSegments);
-
 			float longitude = float(j) * XM_2PI / float(horizontalSegments);
 			float dx, dz;
 
