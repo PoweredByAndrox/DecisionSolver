@@ -191,7 +191,7 @@ float Camera::getRotateScale()
 	return m_fRotationScaler;
 }
 
-void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
+void Camera::GetInput()
 {
 	if (!DisableCameraCtrl && Application->getKeyboard()->IsConnected())
 	{
@@ -241,36 +241,41 @@ void Camera::GetInput(bool bGetKeyboardInput, bool bGetGamepadInput)
 			C_CT->setTargKey(ToPxVec3(m_vKeyboardDirection));
 	}
 
-	if (!DisableCameraCtrl && ((Application->getMouse()->GetState().leftButton && Left) ||
-		(Application->getMouse()->GetState().rightButton && Right)) != WithoutButton)
+	if (!DisableCameraCtrl && (Application->getMouse()->GetState().leftButton && Left ||
+		Application->getMouse()->GetState().rightButton && Right))
+	{
+		POINT pnt;
+		GetCursorPos(&pnt);
+		if (was_click)
+		{
+			m_ptLastMousePosition.x = static_cast<float>(pnt.x);
+			m_ptLastMousePosition.y = static_cast<float>(pnt.y);
+			//OutputDebugStringA(("\n\\Last\\\n\t\tX: " + to_string(m_ptLastMousePosition.x) +
+			//	"\n\t\tY: " + to_string(m_ptLastMousePosition.y) + "\n").c_str());
+
+			was_click = false;
+		}
+
 		UpdateMouseDelta();
+	}
+	else
+		was_click = true;
 }
 
 void Camera::UpdateMouseDelta()
 {
-		// Get current position of mouse
-	ptCurMousePos.x = static_cast<float>(Application->getMouse()->GetState().x);
-	ptCurMousePos.y = static_cast<float>(Application->getMouse()->GetState().y);
-
-		// Calc how far it's moved since last frame
-	ptCurMouseDelta = ptCurMousePos - m_ptLastMousePosition;
-
-		// Record current position for next time
-	m_ptLastMousePosition = ptCurMousePos;
-
+	POINT pnt;
+	pnt.x = static_cast<int>(Application->getMouse()->GetState().x);
+	pnt.y = static_cast<int>(Application->getMouse()->GetState().y);
+	::ClientToScreen(Engine::GetHWND(), &pnt);
 	if (m_bResetCursorAfterMove)
-	{
-		Vector2 ptCenter = Vector2(static_cast<float>(Application->getWorkAreaSize(Application->GetHWND()).x),
-			static_cast<float>(Application->getWorkAreaSize(Application->GetHWND()).y)) / 2.f;
+		::SetCursorPos(static_cast<int>(m_ptLastMousePosition.x), static_cast<int>(m_ptLastMousePosition.y));
 
-		::SetCursorPos(static_cast<int>(ptCenter.x), static_cast<int>(ptCenter.y));
-		m_ptLastMousePosition = ptCenter;
-	}
+	ptCurMouseDelta = Vector2(static_cast<float>(pnt.x), static_cast<float>(pnt.y)) - m_ptLastMousePosition;
 
 	float fPercentOfNew = 1.0f / m_fFramesToSmoothMouseData,
 		  fPercentOfOld = 1.0f - fPercentOfNew;
 	m_vMouseDelta = m_vMouseDelta * fPercentOfOld + ptCurMouseDelta * fPercentOfNew;
-
 	m_vRotVelocity = m_vMouseDelta * m_fRotationScaler;
 }
 
@@ -326,7 +331,8 @@ void Camera::UpdateVelocity(float fElapsedTime)
 void Camera::Reset()
 {
 	//SetViewParams(m_vDefaultEye, m_vDefaultLookAt);
-	Teleport(m_vDefaultEye, m_vDefaultLookAt);
+	m_vEye = m_vDefaultEye;
+	m_vLookAt = m_vDefaultLookAt;
 }
 
 #include "DebugDraw.h"
@@ -343,15 +349,14 @@ void Camera::FrameMove(float fElapsedTime)
 	//	GThing->Drop();
 
 		// Get keyboard/mouse/gamepad input
-	GetInput(m_bEnablePositionMovement, true);
+	GetInput();
 
 		// Get amount of velocity based on the keyboard input and drag (if any)
 	UpdateVelocity(fElapsedTime);
 
 		// If rotating the camera
-	if (!DisableCameraCtrl && ((Application->getMouse()->GetState().leftButton && Left ||
-		Application->getMouse()->GetState().rightButton && Right)
-		!= WithoutButton) || m_vGamePadRightThumb.x != 0 || m_vGamePadRightThumb.z != 0)
+	if (!DisableCameraCtrl && (Application->getMouse()->GetState().leftButton && Left ||
+		Application->getMouse()->GetState().rightButton && Right))
 	{
 			// Update the pitch & yaw angle based on mouse movement
 		float fYawDelta = m_vRotVelocity.x,

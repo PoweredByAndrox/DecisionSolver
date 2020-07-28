@@ -42,18 +42,18 @@ public:
 			TYPE type, Vector3 PosCoords = Vector3::Zero, Vector3 ScaleCoords = Vector3::Zero,
 			Vector3 RotationCoords = Vector3::Zero);
 
-		void SetID_TEXT(LPCSTR ID_TEXT) { this->ID_TEXT = ID_TEXT; }
+		void SetID_TEXT(LPCSTR _ID_TEXT) { ID_TEXT = _ID_TEXT; }
 
-		void SetHasScale(bool HasScale) { this->HasScale = HasScale; }
-		void SetScaleCoords(Vector3 ScaleCoords) { this->ScaleCoords = ScaleCoords; }
+		void SetHasScale(bool _HasScale) { HasScale = _HasScale; }
+		void SetScaleCoords(Vector3 _ScaleCoords) { ScaleCoords = _ScaleCoords; }
 
-		void SetHasRotation(bool HasRotation) { this->HasRotation = HasRotation; }
-		void SetRotationCoords(Vector3 RotationCoords) { this->RotationCoords = RotationCoords; }
+		void SetHasRotation(bool _HasRotation) { HasRotation = _HasRotation; }
+		void SetRotationCoords(Vector3 _RotationCoords) { RotationCoords = _RotationCoords; }
 
-		void SetPositionCoords(Vector3 PosCoords) { this->PosCoords = PosCoords; }
+		void SetPositionCoords(Vector3 _PosCoords) { PosCoords = _PosCoords; }
 
-		void SetModel(shared_ptr<Models> model) { this->model = model; }
-		void SetType(TYPE type) { this->type = type; }
+		void SetModel(shared_ptr<Models> Model) { model = Model; }
+		void SetType(TYPE Type) { type = Type; }
 		void SetLogic(shared_ptr<SimpleLogic> Logic);
 		void RemoveLogic();
 		//void SetPH(PxRigidDynamic *PH) { this->PH = PH; }

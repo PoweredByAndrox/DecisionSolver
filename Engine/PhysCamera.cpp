@@ -93,8 +93,7 @@ float PhysCamera::Jump::getHeight(float elapsedTime)
 	JumpTimes += elapsedTime;
 	//OutputDebugStringA(("\nJumpTimes: " + to_string(JumpTimes) + "\n").c_str());
 
-	const float Result = (-MainGravity * -JumpTimes)
-		* JumpTimes*JumpTimes + ForceJump*JumpTimes;
+	const float Result = (-MainGravity * -JumpTimes) * JumpTimes*JumpTimes + ForceJump*JumpTimes;
 	//OutputDebugStringA((string("\nResult: ") + to_string(Result) + string("\n")).c_str());
 
 	return Result * elapsedTime;

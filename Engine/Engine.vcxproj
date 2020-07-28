@@ -206,10 +206,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Camera_Control.cpp" />
     <ClCompile Include="CCommands.cpp" />
-    <ClCompile Include="CLua.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="CLua.cpp" />
     <ClCompile Include="Console.cpp" />
     <ClCompile Include="CutScene.cpp" />
     <ClCompile Include="DebugDraw.cpp" />
@@ -258,10 +255,7 @@ copy "$(ProjectDir)..\submodules\Assimp\bin\$(Configuration)\*.dll" "$(TargetDir
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Camera_Control.h" />
     <ClInclude Include="CCommands.h" />
-    <ClInclude Include="CLua.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="CLua.h" />
     <ClInclude Include="Console.h" />
     <ClInclude Include="CutScene.h" />
     <ClInclude Include="DebugDraw.h" />

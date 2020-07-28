@@ -183,12 +183,12 @@ public:
 	void ChangeOrderInDial(int num) { OrderlyRenderInDial = num; }
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeID(string ID);
-	void ChangeText(string Text) { this->Text = Text; }
+	void ChangeText(string _Text) { Text = _Text; }
 	void setVisible(bool Visible) { IsVisible = Visible; }
 
 	static void SetOnlyRenderID(bool b) { OnlyRenderID = b; }
 	void MergeComponents(shared_ptr<AllTheComponent> Component);
-	void setComponent(shared_ptr<AllTheComponent> Component) { this->Component = Component; }
+	void setComponent(shared_ptr<AllTheComponent> _Component) { Component = _Component; }
 
 	vector<ColorText> getCLText() { return clText; }
 	void AddText(Type type, string str) { clText.push_back(ColorText(type, str)); }
@@ -351,11 +351,11 @@ public:
 	UnformatedText() {}
 	UnformatedText(string ID) { this->ChangeID(ID); }
 
-	ColorText getString(string Text)
+	ColorText getString(string _Text)
 	{
 		for (size_t i = 0; i < clText.size(); i++)
 		{
-			if (clText.at(i).str == Text)
+			if (clText.at(i).str == _Text)
 				return clText.at(i);
 		}
 	
@@ -367,12 +367,12 @@ public:
 class Tab: public BaseComponent
 {
 public:
-	void setDragTabs(bool DragTabs) { this->DragTabs = DragTabs; }
-	void setCloseMidMouse(bool CloseMidMouse) { this->CloseMidMouse = CloseMidMouse; }
-	void setASelectNewTab(bool ASelectNewTab) { this->ASelectNewTab = ASelectNewTab; }
+	void setDragTabs(bool _DragTabs) { DragTabs = _DragTabs; }
+	void setCloseMidMouse(bool _CloseMidMouse) { CloseMidMouse = _CloseMidMouse; }
+	void setASelectNewTab(bool _ASelectNewTab) { ASelectNewTab = _ASelectNewTab; }
 
 	vector<shared_ptr<TabItem>> getTabItem() { return TBItm; }
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setComponents(shared_ptr<AllTheComponent> _Component) { Components.push_back(_Component); }
 	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
 
 	Tab() {}
@@ -399,7 +399,7 @@ public:
 	{
 		ChangeID(ID);
 	}
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setComponents(shared_ptr<AllTheComponent> _Component) { Components.push_back(_Component); }
 	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
 
 	void Render();
@@ -413,7 +413,7 @@ class CollapsingHeaders: public BaseComponent
 {
 public:
 	void setCollapse(bool Collapse) { IsCollapse = Collapse; }
-	void setSelDefault(bool SelDef) { this->SelDef = SelDef; }
+	void setSelDefault(bool _SelDef) { SelDef = _SelDef; }
 
 	bool Collapse() { return IsCollapse; }
 
@@ -423,7 +423,7 @@ public:
 	{
 		ChangeID(ID);
 	}
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setComponents(shared_ptr<AllTheComponent> _Component) { Components.push_back(_Component); }
 	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
 
 	void Render();
@@ -436,7 +436,7 @@ class Child: public BaseComponent
 {
 public:
 	void setHScroll(bool HScroll) { IsHScroll = HScroll; }
-	void setSize(ImVec2 size) { this->size = size; }
+	void setSize(ImVec2 Size) { size = Size; }
 	void setBorder(bool Border) { IsBorder = Border; }
 	void setAutoScroll(bool AScrl) { AutoScroll = AScrl; }
 
@@ -446,7 +446,7 @@ public:
 	{
 		ChangeID(ID);
 	}
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setComponents(shared_ptr<AllTheComponent> _Component) { Components.push_back(_Component); }
 	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
 
 	void Render();
@@ -462,7 +462,7 @@ class Column: public BaseComponent
 public:
 	Column() {}
 	Column(int CountColumn) : CountColumn(CountColumn) {}
-	void setComponents(shared_ptr<AllTheComponent> Component) { this->Components.push_back(Component); }
+	void setComponents(shared_ptr<AllTheComponent> _Component) { Components.push_back(_Component); }
 	vector<shared_ptr<AllTheComponent>> getMassComponents() { return Components; }
 
 	int getCountColumn() { return CountColumn; }
@@ -470,7 +470,7 @@ public:
 
 	void ChangeCountColumn(int Count) { CountColumn = Count; }
 
-	void SetBorder(bool Border) { this->Border = Border; }
+	void SetBorder(bool _Border) { Border = _Border; }
 private:
 	int CountColumn = 0;
 	bool Border = false;
@@ -480,7 +480,7 @@ private:
 class IText: public BaseComponent
 {
 public:
-	void ChangeTextHint(string Text) { TextHint = Text; }
+	void ChangeTextHint(string _Text) { TextHint = _Text; }
 
 	void setHistory(bool History) { IsNeedHistory = History; }
 	void setHint(bool NeedHint) { IsNeedHint = NeedHint; }
@@ -492,7 +492,7 @@ public:
 
 	IText() {}
 	IText(string ID, bool IsVisible = true, bool IsNeedHistory = false, bool NeedToUseTAB = false, 
-		bool EnterReturnsTrue = true, bool IsNeedHint = false):
+		bool EnterReturnsTrue = true):
 		IsNeedHistory(IsNeedHistory),
 		NeedToUseTAB(NeedToUseTAB), EnterReturnsTrue(EnterReturnsTrue)
 	{
@@ -515,7 +515,7 @@ class ITextMulti: public BaseComponent
 {
 	struct ColorText;
 public:
-	void setReadOnly(bool ReadOnly) { this->ReadOnly = ReadOnly; }
+	void setReadOnly(bool _ReadOnly) { ReadOnly = _ReadOnly; }
 
 	ITextMulti() {}
 	ITextMulti(string ID, bool IsVisible = true, bool ReadOnly = false, bool IsCtrlNewLine = false):
@@ -535,9 +535,9 @@ class Labels: public BaseComponent
 {
 public:
 	
-	void SetColorText(ImVec4 Color)
+	void SetColorText(ImVec4 _Color)
 	{
-		this->Color = Color;
+		Color = _Color;
 		NeedToChangeColor = true;
 	}
 
@@ -586,10 +586,10 @@ public:
 	void ChangeTitle(string Title) { IDTitle = Title; }
 	void ChangeOrder(int num) { OrderlyRender = num; }
 	void ChangeSize(float W, float H) { SizeW = W; SizeH = H; }
-	void ChangePosition(float X, float Y, ImVec2 Pivot = { 0.f, 0.f })
+	void ChangePosition(float X, float Y, ImVec2 _Pivot = { 0.f, 0.f })
 	{
 		PosX = X; PosY = Y;
-		this->Pivot = Pivot;
+		Pivot = _Pivot;
 	}
 	void ChangeFont(string FontName, float SizePixel = 14.0f, float Brighten = -1.f);
 
@@ -617,7 +617,7 @@ public:
 	dialogs() {}
 	dialogs(string IDTitle): IDTitle(IDTitle) {}
 	dialogs(string IDTitle, bool IsVisible, bool ShowTitle, bool IsMoveble, bool IsKeyboardSupport, bool IsResizeble,
-		bool IsCollapsible, int style, bool IsNeedBringToFont, bool IsFullScreen, float SizeW = 0.f, float SizeH = 0.f):
+		bool IsCollapsible, bool IsNeedBringToFont, bool IsFullScreen, float SizeW = 0.f, float SizeH = 0.f):
 		IDTitle(IDTitle), IsVisible(IsVisible), IsKeyboardSupport(IsKeyboardSupport), IsMoveble(IsMoveble),
 		IsResizeble(IsResizeble), IsCollapsible(IsCollapsible), ShowTitle(ShowTitle), IsNeedBringToFont(IsNeedBringToFont),
 		IsFullScreen(IsFullScreen), SizeW(SizeW), SizeH(SizeH)

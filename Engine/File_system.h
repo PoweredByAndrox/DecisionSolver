@@ -485,7 +485,7 @@ public:
 	 * \returns	The current path.
 	 */
 
-	auto static GetCurrentPath() { return WorkDir.generic_string() + 
+	static string GetCurrentPath() { return WorkDir.generic_string() +
 		((WorkDir.generic_string().back() == '/') ? "" : "/"); }
 
 	/**
@@ -533,6 +533,9 @@ public:
 
 	bool compressFile(path data, string where = "");
 	bool decompressFile(path data, string where = "");
+
+	string getWorkDirSourceA() { return WorkDirSourcesA; }
+	wstring getWorkDirSourceW() { return WorkDirSourcesW; }
 protected:
 	/** \brief	The work dir */
 	static path WorkDir;

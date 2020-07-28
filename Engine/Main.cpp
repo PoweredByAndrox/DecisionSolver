@@ -55,6 +55,7 @@ shared_ptr<SDKInterface> SDK = make_shared<SDKInterface>();
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow)
 {
+	using namespace std::chrono_literals;
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -67,17 +68,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 			"CoInitializeEx() Failed!");
 		return 3;
 	}
-
-	// Release
-	// Disable Every Class Become 12%CPU
-
-	// With Only DX 15-16%CPU
-
-	// Debug With Every Class
-	// Within DX Will Be ~30-33%CPU
-
-	// With Only DX 17-20%CPU
-
 
 	//	// FS (File System)!!!
 	Application->setFS(make_shared<File_system>());
@@ -93,8 +83,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// ***********
 	// INITIALIZATION ALL THE CLASSES
 
-	//Application->setCLua(make_shared<CLua>());
-	//Application->getCLua()->Init();
+	Application->setCLua(make_shared<CLua>());
+	if (Application->getCLua().operator bool())
+		Application->getCLua()->Init();
 
 	Application->setPhysics(make_shared<Physics>());
 	if (Application->getPhysics().operator bool())
@@ -132,7 +123,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		}
 
 	//	// GUI!!!
-	Application->setUI(make_shared<UI>());
+	if (Application->getDevice() && Application->getDeviceContext())
+		Application->setUI(make_shared<UI>());
 	if (Application->getUI())
 	{
 		if (FAILED(Application->getUI()->Init()))
@@ -163,7 +155,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	// ***********
 
 	//	// Level Class
-	Application->setLevel(make_shared<Levels>());
+	if (Application->getDevice() && Application->getDeviceContext())
+		Application->setLevel(make_shared<Levels>());
 	if (Application->getLevel().operator bool())
 	{
 		if (FAILED(Application->getLevel()->Init()))
@@ -188,13 +181,15 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 	MSG msg = { 0 };
 	while (!Application->IsQuit())
 	{
-		if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 		}
-		else if (Application->getThreadState() == Engine::ThreadStatus::_Quit)
-				Application->Destroy();
+		if (Application->getThreadState() == Engine::ThreadStatus::_Quit)
+			Application->Destroy();
+		else
+			this_thread::sleep_for(10ms);
 	}
 
 	return 0;

@@ -2718,15 +2718,21 @@ void IText::Render()
 	Flags |= ImGuiInputTextFlags_EnterReturnsTrue;
 
 	if (IsNeedHint)
-		if (pressEnter = ImGui::InputTextWithHint("", TextHint.c_str(), &Text, Flags))
+	{
+		pressEnter = ImGui::InputTextWithHint("", TextHint.c_str(), &Text, Flags);
+		if (pressEnter)
 			IsTextChange = true;
 		else
 			IsTextChange = false;
+	}
 	else
-		if (pressEnter = ImGui::InputText(GetID().c_str(), &Text, Flags))
+	{
+		pressEnter = ImGui::InputText(GetID().c_str(), &Text, Flags);
+		if (pressEnter)
 			IsTextChange = true;
 		else
 			IsTextChange = false;
+	}
 
 	Active = ImGui::IsItemActive();
 }

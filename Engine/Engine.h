@@ -168,64 +168,64 @@ public:
 	shared_ptr<Multiplayer> getMPL() { return MPL; }
 	shared_ptr<Timer> getMainThread() { return MainThread; }
 
-	void setUI(shared_ptr<UI> ui)
+	void setUI(shared_ptr<UI> _UI)
 	{
 		if (!this->ui.operator bool())
-			this->ui = ui;
+			this->ui = _UI;
 	}
-	void setConsole(shared_ptr<Console> console)
+	void setConsole(shared_ptr<Console> _Ñonsole)
 	{
 		if (!this->console.operator bool())
-			this->console = console;
+			this->console = _Ñonsole;
 	}
-	void setFS(shared_ptr<File_system> FS)
+	void setFS(shared_ptr<File_system> _FS)
 	{
 		if (!this->FS.operator bool())
-			this->FS = FS;
+			this->FS = _FS;
 	}
-	void setModel(shared_ptr<Models> model)
+	void setModel(shared_ptr<Models> _Model)
 	{
 		if (!this->model.operator bool())
-			this->model = model;
+			this->model = _Model;
 	}
-	void setCamera(shared_ptr<Camera> camera)
+	void setCamera(shared_ptr<Camera> _Camera)
 	{
 		if (!this->camera.operator bool())
-			this->camera = camera;
+			this->camera = _Camera;
 	}
-	void setActor(shared_ptr<Actor> mainActor)
+	void setActor(shared_ptr<Actor> _MainActor)
 	{
 		if (!this->mainActor.operator bool())
-			this->mainActor = mainActor;
+			this->mainActor = _MainActor;
 	}
-	void setSound(shared_ptr<Audio> Sound)
+	void setSound(shared_ptr<Audio> _Sound)
 	{
 		if (!this->Sound.operator bool())
-			this->Sound = Sound;
+			this->Sound = _Sound;
 	}
-	void setPhysics(shared_ptr<Physics> PhysX)
+	void setPhysics(shared_ptr<Physics> _PhysX)
 	{
 		if (!this->PhysX.operator bool())
-			this->PhysX = PhysX;
+			this->PhysX = _PhysX;
 	}
-	void setDebugDraw(shared_ptr<DebugDraw> dDraw)
+	void setDebugDraw(shared_ptr<DebugDraw> _DebugDraw)
 	{
 		if (!this->dDraw.operator bool())
-			this->dDraw = dDraw;
+			this->dDraw = _DebugDraw;
 	}
-	void setCLua(shared_ptr<CLua> lua)
+	void setCLua(shared_ptr<CLua> _LUA)
 	{
 		if (!this->lua.operator bool())
-			this->lua = lua;
+			this->lua = _LUA;
 	}
-	void setCScene(shared_ptr<CutScene> CScene)
+	void setCScene(shared_ptr<CutScene> _CutScene)
 	{
-		this->CScene = CScene;
+		this->CScene = _CutScene;
 	}
-	void setPick(shared_ptr<Picking> Pick)
+	void setPick(shared_ptr<Picking> _Pick)
 	{
 		if (!this->Pick.operator bool())
-			this->Pick = Pick;
+			this->Pick = _Pick;
 	}
 	/*
 	void setFrustum(shared_ptr<Frustum> frustum)
@@ -234,21 +234,21 @@ public:
 			this->frustum = frustum;
 	}
 	*/
-	void setLevel(shared_ptr<Levels> Level)
+	void setLevel(shared_ptr<Levels> _Level)
 	{
 		if (!this->Level.operator bool())
-			this->Level = Level;
+			this->Level = _Level;
 	}
-	void setMultiplayer(shared_ptr<Multiplayer> MPL)
+	void setMultiplayer(shared_ptr<Multiplayer> _Multiplayer)
 	{
 		if (!this->MPL.operator bool())
-			this->MPL = MPL;
+			this->MPL = _Multiplayer;
 	}
 	shared_ptr<Mouse> getMouse() { return mouse; }
 	shared_ptr<Keyboard> getKeyboard() { return keyboard; }
 	shared_ptr<GamePad> getGamepad() { return gamepad; }
 
-	void setMessage(MSG msg) { this->msg = msg; }
+	void setMessage(MSG _Message) { msg = _Message; }
 	MSG getMessage() { return msg; }
 
 	ID3D11Device *getDevice();

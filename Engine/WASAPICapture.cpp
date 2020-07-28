@@ -308,8 +308,8 @@ DWORD CWASAPICapture::DoCaptureThread()
 {
 	bool stillPlaying = true;
 	HANDLE waitArray[3] = { _ShutdownEvent, _StreamSwitchEvent, _AudioSamplesReadyEvent };
-	HANDLE mmcssHandle = NULL;
-	DWORD mmcssTaskIndex = 0;
+//	HANDLE mmcssHandle = NULL;
+//	DWORD mmcssTaskIndex = 0;
 
 	HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED);
 	if (FAILED(hr))
@@ -320,7 +320,6 @@ DWORD CWASAPICapture::DoCaptureThread()
 
 	while (stillPlaying)
 	{
-		HRESULT hr;
 		DWORD waitResult = WaitForMultipleObjects(3, waitArray, FALSE, INFINITE);
 		switch (waitResult)
 		{

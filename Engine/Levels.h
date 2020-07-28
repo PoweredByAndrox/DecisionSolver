@@ -54,8 +54,8 @@ public:
 	void Reload_Level(string File);
 	void Update();
 
-	shared_ptr<Node> Add(_TypeOfFile T, string PathModel);
-	shared_ptr<Node> Add(_TypeOfFile T, shared_ptr<GameObjects::Object> GM);
+	shared_ptr<Node> Add(string PathModel);
+	shared_ptr<Node> Add(shared_ptr<GameObjects::Object> GM);
 	void AddTo(string ID, shared_ptr<SimpleLogic> Logic);
 	void AddTo(shared_ptr<Node> nd, shared_ptr<SimpleLogic> Logic);
 	void Remove(string ID);
@@ -73,7 +73,7 @@ public:
 protected:
 	// **********
 	shared_ptr<tinyxml2::XMLDocument> doc = make_shared<tinyxml2::XMLDocument>();
-	static void Spawn(Vector3 pos, GameObjects::TYPE type);
+	static void Spawn(/*Vector3 pos, GameObjects::TYPE type*/);
 	bool NotSaved = false;
 };
 #endif // !__LEVELS__H_

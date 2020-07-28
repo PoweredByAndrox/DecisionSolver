@@ -54,10 +54,10 @@ GameObjects::Object::Object(string ID_TEXT, string ModelNameFile, shared_ptr<Sim
 	HasScale = true;
 }
 
-void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> Logic)
+void GameObjects::Object::SetLogic(shared_ptr<SimpleLogic> _Logic)
 {
 	if (!this->Logic.operator bool())
-		this->Logic = Logic;
+		this->Logic = _Logic;
 }
 
 void GameObjects::Object::RemoveLogic()

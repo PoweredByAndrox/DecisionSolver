@@ -46,7 +46,7 @@ void CutScene::Update()
 	if ((size_t)curPos > Points.size() - 1)
 		curPos = 0;
 
-	auto &Cam = Application->getCamera();
+	auto Cam = Application->getCamera();
 	auto CurrentPoint = Points.at(curPos);
 	Vector3 CamPos = Cam->GetEyePt(), CamLook = Cam->GetLookAtPt();
 

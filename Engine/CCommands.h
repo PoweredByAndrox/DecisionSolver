@@ -44,6 +44,6 @@ public:
 	void Work(shared_ptr<dialogs> &Console, string Text);
 	void ExecCommand(shared_ptr<dialogs> &Console, shared_ptr<Command> &cmd);
 
-	shared_ptr<Command> FindPieceCommand(shared_ptr<dialogs> &Console, string Text);
+	shared_ptr<Command> FindPieceCommand(string Text);
 };
 #endif // __COMMANDS_H__

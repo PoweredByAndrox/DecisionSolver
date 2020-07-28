@@ -30,9 +30,9 @@ private:
 			Before_val = Thing;
 			return this;
 		}
-		Und *AddDesc(string Desc)
+		Und *AddDesc(string Description)
 		{
-			this->Desc = Desc;
+			Desc = Description;
 			return this;
 		}
 	};
@@ -66,7 +66,6 @@ public:
 	float GetDistFarRender() { return DistFarRender; }
 	float GetDistNearRender() { return DistNearRender; }
 
-	bool getCameraWithoutBtn() { return CamBtnWihoutBtn; }
 	bool getCameraRightBtn() { return CamBtnRight; }
 	bool getCameraLeftBtn() { return CamBtnLeft; }
 private:
@@ -75,7 +74,7 @@ private:
 	float DistFarRender = 1000.f, DistNearRender = 0.1f;
 	Vector3 Pos = Vector3::Zero, Look = Vector3::Zero;
 	bool LOGO = true, HoL = true, FR = false, CS = false, LagTest = false, audio = false, MP = false, LockFPS = true,
-		IfNeedSave = false, IsFreeCam = false, CamBtnLeft = false, CamBtnRight = false, CamBtnWihoutBtn = false,
+		IfNeedSave = false, IsFreeCam = false, CamBtnLeft = false, CamBtnRight = false,
 		_Changes = false, _Information = true;
 
 	// Utilities

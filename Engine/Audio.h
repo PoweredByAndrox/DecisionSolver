@@ -25,7 +25,7 @@ private:
 
 		bool Repeat = false;
 
-		HRESULT loadWAVFile(string filename, WAVEFORMATEXTENSIBLE &wfx, XAUDIO2_BUFFER &buffer);
+		HRESULT loadWAVFile(string filename, XAUDIO2_BUFFER &_Buffer);
 	public:
 		AudioFile(string FName, int Channels, bool Repeat): Repeat(Repeat)
 		{
@@ -63,7 +63,10 @@ private:
 		DWORD GetCalcFlags() { return dwCalcFlags; }
 		shared_ptr<AudioFile> GetAUDFile() { return AUDFile; }
 
-		void setSoundPosition(Vector3 pos) { this->pos = X3DAUDIO_VECTOR{ pos.x, pos.y, pos.z }; }
+		void setSoundPosition(Vector3 _Position)
+		{
+			this->pos = X3DAUDIO_VECTOR{ _Position.x, _Position.y, _Position.z };
+		}
 
 		HRESULT Play();
 		HRESULT Stop();

@@ -61,7 +61,7 @@ public:
 protected:
 	void UpdateMouseDelta();
 	void UpdateVelocity(float fElapsedTime);
-	void GetInput(bool bGetKeyboardInput, bool bGetGamepadInput);
+	void GetInput();
 
 	Vector3 vWorldUp = Vector3::Zero, vWorldAhead = Vector3::Zero;
 
@@ -128,21 +128,19 @@ public:
 		DisableCameraCtrl = b;
 	}
 
-	void SetCameraControlButtons(bool LeftM, bool RightM, bool WithoutButtons)
+	void SetCameraControlButtons(bool LeftM, bool RightM)
 	{
 		Left = LeftM;
 		Right = RightM;
-		WithoutButton = WithoutButtons;
 	}
 
 	auto GetCCT() { return C_CT; }
 	bool getIsLeftCtrlBtn() { return Left; }
 	bool getIsRightCtrlBtn() { return Right; }
-	bool getIsWithoutButtonCtrl() { return WithoutButton; }
 protected:
 	Matrix m_mCameraWorld = {};
 
-	bool Left = false, Right = false, WithoutButton = false, DisableCameraCtrl = false;
+	bool Left = false, Right = false, DisableCameraCtrl = false, was_click = true;
 
 	shared_ptr<Camera_Control> C_CT;
 };

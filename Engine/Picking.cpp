@@ -85,7 +85,7 @@ bool Picking::pick(int x, int y)
 
 	if (hit.shape)
 	{
-		LPCSTR shapeName = hit.shape->getName();
+		//LPCSTR shapeName = hit.shape->getName();
 		PxRigidActor *actor = hit.actor;
 		PX_ASSERT(actor);
 		mSelectedActor = static_cast<PxRigidActor*>(actor->is<PxRigidDynamic>());
