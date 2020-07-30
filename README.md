@@ -21,6 +21,9 @@ https://vk.com/decisionsolver
 <div><b><font size="4">git submodule init</font></b></div>
 <div><b><font size="4">git submodule update</font></b></div>
 <div>&nbsp;</div>
-<div><font size="4"><i>That&#39;s all</i> you can start project from <b>./Engine/Engine Projects.sln</b></font></div>
+<div><font size="4"><i>That&#39;s all</i> you can start working in project from <b>Engine/Engine Projects.sln</b></font></div>
 <div>&nbsp;</div>
 <div><b><font size="4">Good Luck And Having Fun!</font></b></div>
+
+<h2>To get resources for Engine use the following link:</h2>
+<div><font size="4"><a href="https://drive.google.com/file/d/149R4pvedlhSCgy5LyF3Y7T2ZVdEDZZ86/view?usp=sharing">https://drive.google.com/file/d/149R4pvedlhSCgy5LyF3Y7T2ZVdEDZZ86/view?usp=sharing</a></font></div>
