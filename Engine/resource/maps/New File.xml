@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scene>
-    <models>
-        <model id="0" name="ak47.obj" file_name="ak47.obj" pos="0.000000, 0.000000, 0.000000" scale="1.000000, 1.000000, 1.000000" rotate="-0.026732, 0.000000, -0.986634"/>
-        <model id="1" name="Plane" file_name="Plane.obj" pos="0.000000, 0.000000, 0.000000" scale="1.000000, 1.000000, 1.000000" rotate="1.571000, 0.000000, 0.000000"/>
-    </models>
-</scene>

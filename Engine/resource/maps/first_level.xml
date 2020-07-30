@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<scene>
-    <models>
-        <model id="0" file_name="Plane.obj" pos="0.000000, 0.000000, 0.322000" scale="0.500000, 0.500000, 0.500000" rotate="1.566000, 0.000000, 0.000000" name="Планета"/>
-        <model id="1" file_name="ak47.obj" pos="0.000000, 0.000000, 0.000000" scale="1.000000, 1.000000, 1.000000" rotate="0.000000, 0.000000, 0.000000" name="Калащик"/>
-    </models>
-    <s_objs/>
-</scene>
